@@ -163,7 +163,7 @@ describe("help requests", () => {
       const res = await call("GET", `/api/requests/${open.id}`, { as: volunteer.id });
       expect(res.status).toBe(200);
       const summary = res.body as HelpRequestSummary;
-      expect(summary).toMatchObject({ id: open.id, area: "Precinct 1", distanceKm: 1.1 });
+      expect(summary).toMatchObject({ id: open.id, area: "Precinct 1", distanceKm: 1 });
       for (const hidden of ["location", "elderId", "elderName", "volunteerId", "reviewNote"]) {
         expect(summary).not.toHaveProperty(hidden);
       }
@@ -171,6 +171,14 @@ describe("help requests", () => {
       const taker = await createVerifiedVolunteer(coordinator.id);
       await call("POST", `/api/requests/${open.id}/accept`, { as: taker.id });
       expect((await call("GET", `/api/requests/${open.id}`, { as: volunteer.id })).status).toBe(
+        404,
+      );
+    });
+
+    it("hides open requests from unverified volunteers", async () => {
+      const open = await createOpen();
+      const unverified = await createUser("volunteer");
+      expect((await call("GET", `/api/requests/${open.id}`, { as: unverified.id })).status).toBe(
         404,
       );
     });

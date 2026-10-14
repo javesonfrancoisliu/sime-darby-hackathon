@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { distanceKm, roundKm } from "./geo";
+import { approxKm, distanceKm, roundKm } from "./geo";
 
 describe("distanceKm", () => {
   it("is zero for the same point and symmetric", () => {
@@ -14,6 +14,13 @@ describe("distanceKm", () => {
     const km = distanceKm({ lat: 3.0738, lng: 101.5183 }, { lat: 3.139, lng: 101.6869 });
     expect(km).toBeGreaterThan(19.5);
     expect(km).toBeLessThan(20.5);
+  });
+
+  it("approximates to 0.5 km steps and never below 0.5 km", () => {
+    expect(approxKm(0)).toBe(0.5);
+    expect(approxKm(1.1)).toBe(1);
+    expect(approxKm(1.3)).toBe(1.5);
+    expect(approxKm(4.74)).toBe(4.5);
   });
 
   it("rounds to one decimal place", () => {

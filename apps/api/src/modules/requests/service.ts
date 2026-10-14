@@ -10,7 +10,7 @@ import type {
   User,
 } from "@sdh/contracts";
 import { isConditionFailure } from "../../lib/db";
-import { distanceKm, roundKm } from "../../lib/geo";
+import { approxKm, distanceKm } from "../../lib/geo";
 import { HttpError } from "../../lib/http";
 import { newContribution } from "../contributions/service";
 import {
@@ -54,7 +54,7 @@ export function toSummary(request: HelpRequest, viewerLocation: Location): HelpR
     createdAt: request.createdAt,
     updatedAt: request.updatedAt,
     area: request.location.area,
-    distanceKm: roundKm(distanceKm(viewerLocation, request.location)),
+    distanceKm: approxKm(distanceKm(viewerLocation, request.location)),
   };
 }
 
@@ -84,7 +84,7 @@ export async function listMine(user: User): Promise<HelpRequest[]> {
 
 export const listByStatus = (status: RequestStatus) => listRequestsByStatus(status);
 
-// Involved parties get the full request; other volunteers see a shaped summary only while open.
+// Involved parties get the full request; other verified volunteers see a shaped summary only while open.
 export async function viewRequest(
   user: User,
   id: string,
@@ -94,7 +94,9 @@ export async function viewRequest(
   if (user.role === "elder" && request.elderId === user.id) return request;
   if (user.role === "volunteer") {
     if (request.volunteerId === user.id) return request;
-    if (request.status === "open") return toSummary(request, user.location);
+    if (request.status === "open" && user.verification === "verified") {
+      return toSummary(request, user.location);
+    }
   }
   throw notFound();
 }

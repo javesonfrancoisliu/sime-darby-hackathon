@@ -49,6 +49,7 @@ export const HelpRequestSummary = HelpRequest.omit({
   reviewNote: true,
 }).extend({
   area: z.string(),
+  // Approximate: 0.5 km steps, minimum 0.5, so an elder's home cannot be pinpointed.
   distanceKm: z.number().nonnegative(),
 });
 export type HelpRequestSummary = z.infer<typeof HelpRequestSummary>;
