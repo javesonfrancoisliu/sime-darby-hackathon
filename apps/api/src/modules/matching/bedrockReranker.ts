@@ -77,7 +77,7 @@ function mergeRanking(ranking: RankingInput, candidates: ScoredVolunteer[]): Rer
     seen.add(candidate);
     items.push({
       volunteerId: entry.volunteer.id,
-      reason: truncate(reason.trim() || ruleReason(entry)),
+      reason: truncate(isSafeReason(reason) ? reason.trim() : ruleReason(entry)),
     });
   }
   candidates.forEach((entry, index) => {
@@ -86,6 +86,12 @@ function mergeRanking(ranking: RankingInput, candidates: ScoredVolunteer[]): Rer
   });
   return { rankedBy: "ai", items };
 }
+
+// Model reasons are shown to elders; anything that looks like a link, email or phone number
+// could be injected via user-written text, so it is replaced with the rule-based reason.
+const UNSAFE_REASON = /(https?:|www\.|@|\d[\d\s-]{5,}\d)/i;
+export const isSafeReason = (reason: string): boolean =>
+  reason.trim().length > 0 && !UNSAFE_REASON.test(reason);
 
 export function createBedrockReranker(deps: Partial<BedrockDeps> = {}): Reranker {
   return {
