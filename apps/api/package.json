@@ -11,6 +11,7 @@
     "db:setup": "tsx --env-file-if-exists=.env scripts/setup-local-table.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.1150.0",
     "@aws-sdk/client-dynamodb": "^3.1150.0",
     "@aws-sdk/lib-dynamodb": "^3.1150.0",
     "@sdh/contracts": "workspace:*",

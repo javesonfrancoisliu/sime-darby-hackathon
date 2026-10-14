@@ -1,4 +1,5 @@
 const DEFAULT_SERVICE_NAME = "sdh-api";
+const DEFAULT_MATCHING_AI_TIMEOUT_MS = 3000;
 
 // Read lazily so tests and the local server can set env before first use.
 export const config = {
@@ -12,5 +13,12 @@ export const config = {
   },
   get dynamodbEndpoint(): string | undefined {
     return process.env.DYNAMODB_ENDPOINT || undefined;
+  },
+  get matchingAiModelId(): string | undefined {
+    return process.env.MATCHING_AI_MODEL_ID || undefined;
+  },
+  get matchingAiTimeoutMs(): number {
+    const value = Number(process.env.MATCHING_AI_TIMEOUT_MS);
+    return Number.isFinite(value) && value > 0 ? value : DEFAULT_MATCHING_AI_TIMEOUT_MS;
   },
 };
