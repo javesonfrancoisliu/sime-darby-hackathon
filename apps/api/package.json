@@ -1,0 +1,24 @@
+{
+  "name": "@sdh/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --env-file-if-exists=.env src/local.ts",
+    "build": "esbuild src/handler.ts --bundle --platform=node --target=node24 --format=esm --sourcemap --outfile=dist/handler.mjs --banner:js=\"import{createRequire}from'node:module';const require=createRequire(import.meta.url);\"",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@sdh/contracts": "workspace:*"
+  },
+  "devDependencies": {
+    "@sdh/config": "workspace:*",
+    "@types/aws-lambda": "^8.10.164",
+    "@types/node": "^24.19.2",
+    "esbuild": "^0.28.2",
+    "tsx": "^4.23.15",
+    "typescript": "6.0.3",
+    "vitest": "^5.0.4"
+  }
+}
