@@ -1,15 +1,16 @@
-export interface Config {
-  serviceName: string;
-  tableName: string | undefined;
-}
-
 const DEFAULT_SERVICE_NAME = "sdh-api";
 
-export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
-  return {
-    serviceName: env.SERVICE_NAME || DEFAULT_SERVICE_NAME,
-    tableName: env.TABLE_NAME || undefined,
-  };
-}
-
-export const config = loadConfig();
+// Read lazily so tests and the local server can set env before first use.
+export const config = {
+  get serviceName(): string {
+    return process.env.SERVICE_NAME || DEFAULT_SERVICE_NAME;
+  },
+  get tableName(): string {
+    const name = process.env.TABLE_NAME;
+    if (!name) throw new Error("TABLE_NAME is not set");
+    return name;
+  },
+  get dynamodbEndpoint(): string | undefined {
+    return process.env.DYNAMODB_ENDPOINT || undefined;
+  },
+};

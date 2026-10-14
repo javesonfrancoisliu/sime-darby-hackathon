@@ -13,7 +13,9 @@
     "typecheck": "turbo run typecheck",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "db:up": "docker compose up -d dynamodb",
+    "db:setup": "pnpm --filter @sdh/api db:setup"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
