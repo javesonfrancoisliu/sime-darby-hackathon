@@ -89,9 +89,12 @@ function mergeRanking(ranking: RankingInput, candidates: ScoredVolunteer[]): Rer
 
 // Model reasons are shown to elders; anything that looks like a link, email or phone number
 // could be injected via user-written text, so it is replaced with the rule-based reason.
-const UNSAFE_REASON = /(https?:|www\.|@|\d[\d\s-]{5,}\d)/i;
+const LINK_OR_EMAIL = /(https?:|www\.|@|[a-z0-9-]+\.[a-z]{2,})/i;
+const MAX_DIGITS = 6;
 export const isSafeReason = (reason: string): boolean =>
-  reason.trim().length > 0 && !UNSAFE_REASON.test(reason);
+  reason.trim().length > 0 &&
+  !LINK_OR_EMAIL.test(reason) &&
+  reason.replace(/\D/g, "").length <= MAX_DIGITS;
 
 export function createBedrockReranker(deps: Partial<BedrockDeps> = {}): Reranker {
   return {

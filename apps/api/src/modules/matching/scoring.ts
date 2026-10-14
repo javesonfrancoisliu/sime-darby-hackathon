@@ -89,7 +89,9 @@ export function scoreVolunteer(
   radiusKm = DEFAULT_RADIUS_KM,
 ): ScoredVolunteer | null {
   if (volunteer.verification !== "verified") return null;
-  const distance = distanceKm(volunteer.location, target.location);
+  // Filter and score on the coarse distance so neither the radius cut-off nor the score
+  // can be probed to recover someone's exact home.
+  const distance = approxKm(distanceKm(volunteer.location, target.location));
   if (distance > radiusKm) return null;
 
   const hasSkill = volunteer.skills.includes(target.category);
@@ -109,16 +111,14 @@ export function scoreVolunteer(
   const reasons: string[] = [];
   if (hasSkill) reasons.push(`Has helped with ${CATEGORY_LABELS[target.category]}`);
   else if (keyword) reasons.push(`Experience mentions ${keyword}`);
-  // Shown to elders about a volunteer's home, so coarse like every other shared distance.
-  const rounded = approxKm(distance);
-  reasons.push(`About ${rounded} km away`);
+  reasons.push(`About ${distance} km away`);
   if (slot) reasons.push(`Free on ${DAY_NAMES[slot.day]} ${slot.start} to ${slot.end}`);
 
   return {
     volunteer,
     score: Math.round(weighted * PERCENT),
     components,
-    distanceKm: rounded,
+    distanceKm: distance,
     reasons,
   };
 }

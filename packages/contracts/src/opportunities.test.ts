@@ -11,6 +11,7 @@ describe("OpportunitiesQuery", () => {
 
   it("rejects an out-of-range radius and an unknown category", () => {
     expect(OpportunitiesQuery.safeParse({ radiusKm: "100" }).success).toBe(false);
+    expect(OpportunitiesQuery.safeParse({ radiusKm: "0.7" }).success).toBe(false);
     expect(OpportunitiesQuery.safeParse({ category: "juggling" }).success).toBe(false);
   });
 });

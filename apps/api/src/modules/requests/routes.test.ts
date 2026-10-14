@@ -382,6 +382,16 @@ describe("help requests", () => {
       ).toBe(400);
     });
 
+    it("caps claimed minutes at twice the planned duration", async () => {
+      const open = await createOpen();
+      const path = `/api/requests/${open.id}/complete`;
+      await call("POST", `/api/requests/${open.id}/accept`, { as: volunteer.id });
+      const tooMuch = await call("POST", path, { as: volunteer.id, body: { minutesSpent: 121 } });
+      expect(tooMuch.status).toBe(400);
+      const atCap = await call("POST", path, { as: volunteer.id, body: { minutesSpent: 120 } });
+      expect(atCap.status).toBe(200);
+    });
+
     it("cannot complete a request that was never accepted", async () => {
       const open = await createOpen();
       const res = await call("POST", `/api/requests/${open.id}/complete`, {

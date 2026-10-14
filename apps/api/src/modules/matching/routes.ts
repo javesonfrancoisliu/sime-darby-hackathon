@@ -7,9 +7,6 @@ import { listUsersByRole } from "../users/repository";
 import { selectReranker, toMatches } from "./reranker";
 import { rankVolunteers } from "./scoring";
 
-// Suggestions only make sense before someone has taken the request.
-const MATCHABLE = new Set(["pending_review", "open"]);
-
 export const matchingRoutes: Route[] = [
   {
     method: "GET",
@@ -19,11 +16,13 @@ export const matchingRoutes: Route[] = [
       const request = await getRequest(parse(Id, req.params.id));
       const visible = request && (user.role === "coordinator" || request.elderId === user.id);
       if (!request || !visible) throw new HttpError("NOT_FOUND", "Request not found");
-      if (!MATCHABLE.has(request.status)) {
-        throw new HttpError(
-          "CONFLICT",
-          "Suggestions are only available before a volunteer is assigned",
-        );
+      // Elders see suggestions once approved, so unreviewed requests cannot be used to probe
+      // where volunteers live; coordinators also see them while reviewing.
+      const matchable =
+        request.status === "open" ||
+        (request.status === "pending_review" && user.role === "coordinator");
+      if (!matchable) {
+        throw new HttpError("CONFLICT", "Suggestions are available once the request is approved");
       }
 
       const volunteers = await listUsersByRole("volunteer", "verified");

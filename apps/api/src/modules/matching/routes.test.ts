@@ -50,6 +50,19 @@ describe("GET /api/requests/{id}/matches", () => {
     request = created.body as HelpRequest;
   });
 
+  it("hides suggestions from the elder until approved, but not from coordinators", async () => {
+    expect(
+      (await call("GET", `/api/requests/${request.id}/matches`, { as: elder.id })).status,
+    ).toBe(409);
+    expect(
+      (await call("GET", `/api/requests/${request.id}/matches`, { as: coordinator.id })).status,
+    ).toBe(200);
+    await call("POST", `/api/requests/${request.id}/review`, {
+      as: coordinator.id,
+      body: { decision: "approved" },
+    });
+  });
+
   it("ranks verified nearby volunteers with rule reasons for the owner", async () => {
     const res = await call("GET", `/api/requests/${request.id}/matches`, { as: elder.id });
     expect(res.status).toBe(200);
@@ -74,10 +87,6 @@ describe("GET /api/requests/{id}/matches", () => {
   });
 
   it("returns 409 once a volunteer has taken the request", async () => {
-    await call("POST", `/api/requests/${request.id}/review`, {
-      as: coordinator.id,
-      body: { decision: "approved" },
-    });
     await call("POST", `/api/requests/${request.id}/accept`, { as: best.id });
     const res = await call("GET", `/api/requests/${request.id}/matches`, { as: elder.id });
     expect(res.status).toBe(409);
