@@ -65,7 +65,7 @@ describe("scoreVolunteer components", () => {
     expect(scoreVolunteer(volunteer(), target)?.components.proximity).toBe(1);
     const half = scoreVolunteer(volunteer({ location: at(2.5) }), target);
     expect(half?.components.proximity).toBeCloseTo(0.5, 2);
-    expect(half?.reasons).toContain("2.5 km away");
+    expect(half?.reasons).toContain("About 2.5 km away");
   });
 
   it("honours a custom radius", () => {
