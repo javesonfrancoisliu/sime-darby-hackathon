@@ -1,5 +1,5 @@
 bucket       = "<state-bucket-name>"
-key          = "sime-derby-hackathon/dev/terraform.tfstate"
+key          = "sime-darby-hackathon/dev/terraform.tfstate"
 region       = "<region>"
 profile      = "<profile>"
 use_lockfile = true

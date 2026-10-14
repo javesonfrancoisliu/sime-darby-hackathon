@@ -1,4 +1,4 @@
 aws_region        = "<region>"
 aws_profile       = "<profile>"
 state_bucket_name = "<globally-unique-state-bucket-name>"
-project           = "sime-derby-hackathon"
+project           = "sime-darby-hackathon"

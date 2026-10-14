@@ -1,6 +1,6 @@
 aws_region                = "<region>"
 aws_profile               = "<profile>"
-project                   = "sime-derby-hackathon"
+project                   = "sime-darby-hackathon"
 environment               = "dev"
 table_deletion_protection = false
 
