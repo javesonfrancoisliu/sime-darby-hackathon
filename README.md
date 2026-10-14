@@ -39,5 +39,6 @@ pnpm typecheck
 ## Frontend notes
 
 - Import API types from `@sdh/contracts` instead of redefining them.
+- After the demo sign-in, send the chosen profile id on every call as the `X-Demo-User` header.
 - Call the API with relative paths (`/api/...`); in local dev, proxy `/api` to `http://127.0.0.1:3001`.
 - Errors come back as `{ "error": { "code": "...", "message": "..." } }`.
