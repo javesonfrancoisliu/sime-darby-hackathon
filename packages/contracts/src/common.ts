@@ -35,3 +35,7 @@ export const AvailabilitySlot = z
 export type AvailabilitySlot = z.infer<typeof AvailabilitySlot>;
 
 export const IsoDateTime = z.iso.datetime({ offset: true });
+
+// A point plus the human-readable area shown instead of the exact spot when privacy requires it.
+export const Place = Location.extend({ area: Area });
+export type Place = z.infer<typeof Place>;
