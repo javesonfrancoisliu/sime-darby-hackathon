@@ -14,3 +14,8 @@ export function distanceKm(a: Location, b: Location): number {
 }
 
 export const roundKm = (km: number): number => Math.round(km * 10) / 10;
+
+// Distance shown about another person's home: coarse steps so repeated queries cannot pinpoint it.
+const APPROX_STEP_KM = 0.5;
+export const approxKm = (km: number): number =>
+  Math.max(APPROX_STEP_KM, Math.round(km / APPROX_STEP_KM) * APPROX_STEP_KM);
