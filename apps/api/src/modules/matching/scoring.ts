@@ -1,5 +1,5 @@
 import type { AvailabilitySlot, Category, Day, Location, User } from "@sdh/contracts";
-import { distanceKm, roundKm } from "../../lib/geo";
+import { approxKm, distanceKm } from "../../lib/geo";
 import {
   CATEGORY_KEYWORDS,
   CATEGORY_LABELS,
@@ -109,8 +109,9 @@ export function scoreVolunteer(
   const reasons: string[] = [];
   if (hasSkill) reasons.push(`Has helped with ${CATEGORY_LABELS[target.category]}`);
   else if (keyword) reasons.push(`Experience mentions ${keyword}`);
-  const rounded = roundKm(distance);
-  reasons.push(`${rounded} km away`);
+  // Shown to elders about a volunteer's home, so coarse like every other shared distance.
+  const rounded = approxKm(distance);
+  reasons.push(`About ${rounded} km away`);
   if (slot) reasons.push(`Free on ${DAY_NAMES[slot.day]} ${slot.start} to ${slot.end}`);
 
   return {
