@@ -1,0 +1,6 @@
+bucket       = "<state-bucket-name>"
+key          = "sime-derby-hackathon/prod/terraform.tfstate"
+region       = "<region>"
+profile      = "<profile>"
+use_lockfile = true
+encrypt      = true
