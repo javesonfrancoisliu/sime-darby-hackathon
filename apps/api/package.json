@@ -7,10 +7,14 @@
     "dev": "tsx watch --env-file-if-exists=.env src/local.ts",
     "build": "esbuild src/handler.ts --bundle --platform=node --target=node24 --format=esm --sourcemap --outfile=dist/handler.mjs --banner:js=\"import{createRequire}from'node:module';const require=createRequire(import.meta.url);\"",
     "test": "vitest run",
-    "typecheck": "tsc -p tsconfig.json"
+    "typecheck": "tsc -p tsconfig.json",
+    "db:setup": "tsx --env-file-if-exists=.env scripts/setup-local-table.ts"
   },
   "dependencies": {
-    "@sdh/contracts": "workspace:*"
+    "@aws-sdk/client-dynamodb": "^3.1150.0",
+    "@aws-sdk/lib-dynamodb": "^3.1150.0",
+    "@sdh/contracts": "workspace:*",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@sdh/config": "workspace:*",

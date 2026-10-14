@@ -23,10 +23,13 @@ infra/terraform/     AWS infrastructure
 
 ## Getting started
 
-Requires Node 24+ and pnpm 11.
+Requires Node 24+, pnpm 11 and Docker.
 
 ```
 pnpm install
+pnpm db:up      # DynamoDB Local on 127.0.0.1:8000
+cp apps/api/.env.example apps/api/.env
+pnpm db:setup   # create the local table (once)
 pnpm dev        # API on http://127.0.0.1:3001
 pnpm test
 pnpm lint
