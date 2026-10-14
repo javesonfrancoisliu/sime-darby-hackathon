@@ -1,0 +1,41 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# build output
+dist/
+build/
+coverage/
+.turbo/
+*.tsbuildinfo
+
+# env and secrets
+.env
+.env.*
+!.env.example
+
+# local planning docs and agent instructions (not shared)
+docs/
+CLAUDE.md
+AGENTS.md
+
+# terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+backend.hcl
+*.tfvars
+*.auto.tfvars
+!*.tfvars.example
+infra/terraform/build/
+
+# os and editor
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# claude code agent worktrees
+.claude/worktrees/
