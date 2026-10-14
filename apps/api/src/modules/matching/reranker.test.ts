@@ -136,6 +136,9 @@ describe("bedrock reranker", () => {
       "see www.example.com",
       "email me a@b.co",
       "Whatsapp 0123456789",
+      "Text 012.345.6789",
+      "Pay at help-aina.example/pay",
+      "Join t.me/helpers",
       "",
     ]) {
       expect(isSafeReason(unsafe)).toBe(false);

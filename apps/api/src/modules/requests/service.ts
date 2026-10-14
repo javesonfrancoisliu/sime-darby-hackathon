@@ -25,6 +25,9 @@ import {
 
 const notFound = () => new HttpError("NOT_FOUND", "Request not found");
 
+// Volunteer hours may run over the planned duration, but not without limit.
+const MAX_OVERRUN_FACTOR = 2;
+
 // Maps a lost conditional write to 409 and lets anything else surface as a 500.
 async function guarded<T>(conflictMessage: string, write: () => Promise<T>): Promise<T> {
   try {
@@ -153,6 +156,12 @@ export async function completeRequest(
 ): Promise<HelpRequest> {
   const request = await loadOrThrow(id);
   if (request.volunteerId !== volunteer.id) throw notFound();
+  if (body.minutesSpent > request.durationMinutes * MAX_OVERRUN_FACTOR) {
+    throw new HttpError(
+      "VALIDATION_FAILED",
+      `minutesSpent: at most ${request.durationMinutes * MAX_OVERRUN_FACTOR} for this request`,
+    );
+  }
   const changes = {
     status: "completed",
     minutesSpent: body.minutesSpent,

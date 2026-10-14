@@ -8,7 +8,13 @@ const MAX_RADIUS_KM = 20;
 
 // Query strings arrive as text, so numbers and booleans are coerced here.
 export const OpportunitiesQuery = z.object({
-  radiusKm: z.coerce.number().min(MIN_RADIUS_KM).max(MAX_RADIUS_KM).optional(),
+  // Whole 0.5 km steps, matching the precision of shared distances.
+  radiusKm: z.coerce
+    .number()
+    .min(MIN_RADIUS_KM)
+    .max(MAX_RADIUS_KM)
+    .multipleOf(MIN_RADIUS_KM)
+    .optional(),
   category: Category.optional(),
   from: IsoDateTime.optional(),
   to: IsoDateTime.optional(),

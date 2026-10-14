@@ -61,8 +61,12 @@ describe("scoreVolunteer components", () => {
     expect(result?.components.skill).toBe(0);
   });
 
-  it("scales proximity linearly to zero at the radius", () => {
-    expect(scoreVolunteer(volunteer(), target)?.components.proximity).toBe(1);
+  it("scales proximity linearly on the coarse 0.5 km distance", () => {
+    // Same spot still counts as 0.5 km, so proximity tops out at 0.9 with a 5 km radius.
+    expect(scoreVolunteer(volunteer(), target)?.components.proximity).toBeCloseTo(0.9, 2);
+    expect(scoreVolunteer(volunteer({ location: at(0.3) }), target)?.components.proximity).toBe(
+      scoreVolunteer(volunteer({ location: at(0.6) }), target)?.components.proximity,
+    );
     const half = scoreVolunteer(volunteer({ location: at(2.5) }), target);
     expect(half?.components.proximity).toBeCloseTo(0.5, 2);
     expect(half?.reasons).toContain("About 2.5 km away");
@@ -76,9 +80,9 @@ describe("scoreVolunteer components", () => {
 
   it("combines weights into a rounded 0..100 score", () => {
     const best = scoreVolunteer(volunteer({ skills: ["groceries"], availability: [slot] }), target);
-    expect(best?.score).toBe(100);
+    expect(best?.score).toBe(97);
     const skillOnly = scoreVolunteer(
-      volunteer({ skills: ["groceries"], location: at(4.99) }),
+      volunteer({ skills: ["groceries"], location: at(4.9) }),
       target,
     );
     expect(skillOnly?.score).toBe(50);
