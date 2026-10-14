@@ -4,5 +4,6 @@ export * from "./error";
 export * from "./events";
 export * from "./health";
 export * from "./matching";
+export * from "./opportunities";
 export * from "./requests";
 export * from "./users";
