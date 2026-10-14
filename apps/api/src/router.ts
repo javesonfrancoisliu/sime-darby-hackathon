@@ -1,6 +1,7 @@
 import { errorResponse, HttpError, type HttpResponse, type Route } from "./lib/http";
 import { logger } from "./lib/logger";
 import { contributionRoutes } from "./modules/contributions/routes";
+import { eventRoutes } from "./modules/events/routes";
 import { healthRoutes } from "./modules/health/routes";
 import { requestRoutes } from "./modules/requests/routes";
 import { userRoutes } from "./modules/users/routes";
@@ -11,6 +12,7 @@ export const routes: Route[] = [
   ...userRoutes,
   ...contributionRoutes,
   ...requestRoutes,
+  ...eventRoutes,
 ];
 
 export interface RawRequest {
