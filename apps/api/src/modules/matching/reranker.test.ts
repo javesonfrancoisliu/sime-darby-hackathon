@@ -2,7 +2,7 @@ import type { ConverseCommandOutput } from "@aws-sdk/client-bedrock-runtime";
 import type { User } from "@sdh/contracts";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { logger } from "../../lib/logger";
-import { createBedrockReranker, type SendConverse } from "./bedrockReranker";
+import { createBedrockReranker, isSafeReason, type SendConverse } from "./bedrockReranker";
 import { buildConverseRequest, buildPromptPayload, RANKING_TOOL_NAME } from "./prompt";
 import { rulesReranker, selectReranker, toMatches } from "./reranker";
 import { rankVolunteers, type MatchTarget } from "./scoring";
@@ -113,6 +113,34 @@ describe("bedrock reranker", () => {
     ]);
     const rules = await rulesReranker.rerank(target, candidates);
     expect(result.items[1]?.reason).toBe(rules.items[0]?.reason);
+  });
+
+  it("replaces reasons carrying contact details or links with the rule reason", async () => {
+    const send = vi.fn<SendConverse>().mockResolvedValue(
+      toolOutput({
+        ranking: [
+          { candidate: "c1", reason: "Call me on 012-345 6789 first" },
+          { candidate: "c2", reason: "Lives close by and enjoys shopping" },
+        ],
+      }),
+    );
+    const result = await rerankerWith(send).rerank(target, candidates);
+    const rules = await rulesReranker.rerank(target, candidates);
+    expect(result.items[0]?.reason).toBe(rules.items[0]?.reason);
+    expect(result.items[1]?.reason).toBe("Lives close by and enjoys shopping");
+  });
+
+  it("flags links, emails and phone-like numbers as unsafe", () => {
+    for (const unsafe of [
+      "Visit https://example.com",
+      "see www.example.com",
+      "email me a@b.co",
+      "Whatsapp 0123456789",
+      "",
+    ]) {
+      expect(isSafeReason(unsafe)).toBe(false);
+    }
+    expect(isSafeReason("About 1.5 km away and free on Saturday")).toBe(true);
   });
 
   it("truncates long reasons to 140 characters", async () => {
