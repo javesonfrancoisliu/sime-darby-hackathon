@@ -1,8 +1,11 @@
 import { errorResponse, HttpError, type HttpResponse, type Route } from "./lib/http";
 import { logger } from "./lib/logger";
+import { contributionRoutes } from "./modules/contributions/routes";
 import { healthRoutes } from "./modules/health/routes";
+import { userRoutes } from "./modules/users/routes";
 
-export const routes: Route[] = [...healthRoutes];
+// Literal paths (for example /api/requests/mine) must come before {param} paths they overlap.
+export const routes: Route[] = [...healthRoutes, ...userRoutes, ...contributionRoutes];
 
 export interface RawRequest {
   method: string;
