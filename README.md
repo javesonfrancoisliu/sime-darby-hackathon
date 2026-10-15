@@ -11,15 +11,73 @@ A mobile-first web app that connects elderly residents with nearby young volunte
 | Jens    | Frontend (elderly)                   |
 | Justina | Frontend (young volunteers), AI part |
 
-## Layout
+## Codebase structure
+
+A pnpm monorepo. `apps/` holds what runs; `packages/` holds code shared between apps.
 
 ```
-apps/api/            TypeScript API on AWS Lambda
-apps/<frontend>/     React frontends (added by the frontend team)
-packages/contracts/  Request and response schemas shared by frontend and API
-packages/config/     Shared TypeScript config
-infra/terraform/     AWS infrastructure
+apps/
+  api/                    Backend API (TypeScript, runs on AWS Lambda)
+    src/
+      handler.ts          Lambda entry point
+      local.ts            Local dev server (pnpm dev)
+      router.ts           Sends each URL to its feature module
+      lib/                Shared helpers: config, database, validation, demo sign-in, distance
+      modules/            One folder per feature
+        users/            Profiles, demo sign-in, volunteer verification
+        requests/         Help requests: create, approve, accept, complete
+        events/           Community events: create, join, close
+        matching/         Suggested volunteers: rule scoring plus optional AI re-rank
+        opportunities/    Feed of nearby requests and events for volunteers
+        contributions/    Volunteer hours
+        health/           Health check
+      test/               Test helpers
+    scripts/              Local table setup
+  <frontend>/             React frontends (added by the frontend team)
+packages/
+  contracts/              Request and response schemas shared by frontends and API
+  config/                 Shared TypeScript config
+infra/terraform/
+  bootstrap/              S3 bucket for Terraform state (run once)
+  modules/                api (Lambda, API Gateway), data (DynamoDB), web-hosting (S3, CloudFront)
+  envs/dev, envs/prod     Settings for each environment
+compose.yaml              DynamoDB Local for development
 ```
+
+Most feature modules are split into three files:
+
+- `routes.ts`: reads the request, checks who is calling and sends the response.
+- `service.ts`: business rules.
+- `repository.ts`: DynamoDB reads and writes.
+
+## API
+
+| Method | Path                        |
+| ------ | --------------------------- |
+| GET    | /api/health                 |
+| GET    | /api/demo/users             |
+| POST   | /api/users                  |
+| GET    | /api/me                     |
+| PATCH  | /api/me                     |
+| GET    | /api/volunteers             |
+| POST   | /api/volunteers/{id}/review |
+| POST   | /api/requests               |
+| GET    | /api/requests/mine          |
+| GET    | /api/requests               |
+| GET    | /api/requests/{id}          |
+| POST   | /api/requests/{id}/review   |
+| POST   | /api/requests/{id}/cancel   |
+| GET    | /api/requests/{id}/matches  |
+| POST   | /api/requests/{id}/accept   |
+| POST   | /api/requests/{id}/complete |
+| GET    | /api/opportunities          |
+| GET    | /api/contributions/mine     |
+| GET    | /api/events                 |
+| POST   | /api/events                 |
+| POST   | /api/events/{id}/join       |
+| POST   | /api/events/{id}/complete   |
+
+Request and response shapes are in `packages/contracts`.
 
 ## Getting started
 
