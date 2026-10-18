@@ -28,7 +28,7 @@ export const FONT_LABEL: Record<FontSizeLevel, string> = {
 };
 
 // Root font size in px for each text size, so every rem value scales together.
-export const ROOT_FONT_PX: Record<FontSizeLevel, number> = { normal: 16, large: 19, xlarge: 23 };
+const ROOT_FONT_PX: Record<FontSizeLevel, number> = { normal: 16, large: 19, xlarge: 23 };
 
 function prefersReducedMotion(): boolean {
   return typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;

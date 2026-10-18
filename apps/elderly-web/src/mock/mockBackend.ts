@@ -6,12 +6,7 @@ import { MOCK_RESIDENT } from "./residentData";
 
 // In-memory stand-in for the API while demo data is switched on.
 let requests: HelpRequest[] = MOCK_HELP_REQUESTS.map((r) => ({ ...r }));
-let events: CommunityEvent[] = MOCK_EVENTS.map((e) => ({ ...e }));
-
-export function resetMockBackend(): void {
-  requests = MOCK_HELP_REQUESTS.map((r) => ({ ...r }));
-  events = MOCK_EVENTS.map((e) => ({ ...e }));
-}
+const events: CommunityEvent[] = MOCK_EVENTS.map((e) => ({ ...e }));
 
 function notFound(): ApiError {
   return new ApiError(404, "NOT_FOUND", "Request not found");

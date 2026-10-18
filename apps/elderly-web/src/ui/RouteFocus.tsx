@@ -14,7 +14,7 @@ const TITLES: [string, string][] = [
   ["/requests", "My requests"],
 ];
 
-export function titleFor(pathname: string): string {
+function titleFor(pathname: string): string {
   const match = TITLES.find(([prefix]) => pathname === prefix || pathname.startsWith(`${prefix}/`));
   return match ? match[1] : "Home";
 }
