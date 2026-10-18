@@ -4,7 +4,7 @@ import type { Contribution, ImpactSummary, Opportunity } from "../types/voluntee
 // Demo volunteering data for the young role. Dates are ISO 8601 with the
 // Malaysia offset (+08:00). All flagged as demo data so the UI can label it.
 //
-// `coords` are approximate area centroids around a fictional Bandar Serai, never
+// `coords` are approximate area centroids around a fictional City of Elmina, never
 // exact residential addresses. The baked `distanceKm` is the fallback shown when
 // the volunteer's live geolocation is unavailable.
 
@@ -23,7 +23,7 @@ const MOCK_OPPORTUNITY_BASE: Omit<Opportunity, "urgency">[] = [
     category: "groceries",
     coords: { lat: BASE.lat + 0.3 * KM, lng: BASE.lng + 0.4 * KM },
     distanceKm: 0.5,
-    area: "Block A, Bandar Serai",
+    area: "Block A, Elmina West",
     scheduledAt: "2026-10-18T09:30:00+08:00",
     durationMinutes: 45,
     matchScore: 92,
@@ -40,7 +40,7 @@ const MOCK_OPPORTUNITY_BASE: Omit<Opportunity, "urgency">[] = [
     category: "digital_literacy",
     coords: { lat: BASE.lat + 0.9 * KM, lng: BASE.lng - 0.5 * KM },
     distanceKm: 1,
-    area: "Block C, Bandar Serai",
+    area: "Block C, Elmina West",
     scheduledAt: "2026-10-18T16:00:00+08:00",
     durationMinutes: 30,
     matchScore: 88,
@@ -57,7 +57,7 @@ const MOCK_OPPORTUNITY_BASE: Omit<Opportunity, "urgency">[] = [
     category: "transport",
     coords: { lat: BASE.lat - 1.6 * KM, lng: BASE.lng + 1.1 * KM },
     distanceKm: 2,
-    area: "Bandar Serai",
+    area: "City of Elmina",
     scheduledAt: "2026-10-20T08:00:00+08:00",
     durationMinutes: 90,
     matchScore: 74,
@@ -91,7 +91,7 @@ const MOCK_OPPORTUNITY_BASE: Omit<Opportunity, "urgency">[] = [
     category: "home_help",
     coords: { lat: BASE.lat - 0.3 * KM, lng: BASE.lng - 0.4 * KM },
     distanceKm: 0.5,
-    area: "Block B, Bandar Serai",
+    area: "Block B, Elmina West",
     scheduledAt: "2026-10-19T11:00:00+08:00",
     durationMinutes: 20,
     matchScore: 81,
@@ -108,7 +108,7 @@ const MOCK_OPPORTUNITY_BASE: Omit<Opportunity, "urgency">[] = [
     category: "health_literacy",
     coords: { lat: BASE.lat + 2.4 * KM, lng: BASE.lng - 1.8 * KM },
     distanceKm: 3,
-    area: "Block D, Bandar Serai",
+    area: "Block D, Elmina West",
     scheduledAt: "2026-10-21T15:30:00+08:00",
     durationMinutes: 25,
     matchScore: 63,
@@ -118,17 +118,17 @@ const MOCK_OPPORTUNITY_BASE: Omit<Opportunity, "urgency">[] = [
     sourceLabel: "Help a Neighbour",
   },
   {
-    // Same underlying activity as the "Central Green clean-up" challenge
+    // Same underlying activity as the "Central Park clean-up" challenge
     // (shared dedupeKey): verifying this volunteering task AND completing that
     // challenge award points only once, but it still counts as one verified task.
     id: "opp-cleanup-central-green",
     kind: "event",
-    title: "Central Green clean-up",
-    summary: "Join the Saturday neighbourhood clean-up at Central Green.",
+    title: "Central Park clean-up",
+    summary: "Join the Saturday neighbourhood clean-up at Central Park.",
     category: "community_activity",
     coords: { lat: BASE.lat + 1.1 * KM, lng: BASE.lng + 1.0 * KM },
     distanceKm: 1.5,
-    area: "Central Green, Bandar Serai",
+    area: "Central Park, City of Elmina",
     scheduledAt: "2026-10-24T08:30:00+08:00",
     durationMinutes: 120,
     matchScore: 70,

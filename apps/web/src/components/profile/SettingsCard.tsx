@@ -106,7 +106,7 @@ export function SettingsCard() {
         <p className="ui-meta-row ui-flush">
           <span className="inline-icon">
             <HelpCircle size={16} className="icon-dim" aria-hidden="true" />
-            Township Connect is a hackathon prototype. For demo questions, ask the team.
+            Help a Neighbour is a hackathon prototype. For demo questions, ask the team.
           </span>
         </p>
       </div>

@@ -35,8 +35,8 @@ export const MOCK_CHALLENGES: Challenge[] = [
   // ---- Community clean-up (verified participation) ----
   {
     id: "chl-cleanup-park",
-    title: "Central Green clean-up",
-    summary: "Take part in the Saturday neighbourhood clean-up at Central Green.",
+    title: "Central Park clean-up",
+    summary: "Take part in the Saturday neighbourhood clean-up at Central Park.",
     category: "cleanup",
     points: 80,
     goal: { type: "sessions", target: 1, unit: "session" },
@@ -50,7 +50,7 @@ export const MOCK_CHALLENGES: Challenge[] = [
   {
     id: "chl-cleanup-river",
     title: "Riverside litter pick",
-    summary: "Help clear litter along the Bandar Serai riverside path.",
+    summary: "Help clear litter along the City of Elmina riverside path.",
     category: "cleanup",
     points: 70,
     goal: { type: "sessions", target: 1, unit: "session" },
