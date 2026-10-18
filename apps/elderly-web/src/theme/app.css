@@ -490,14 +490,12 @@
   margin: var(--space-2) 0;
 }
 
-.safety-bar--amber {
-  background: var(--bar-track-amber);
-}
-
 .safety-bar__fill {
   height: 100%;
   border-radius: var(--radius-pill);
   transition: width 600ms ease;
+  /* The dark edge keeps every fill at 3:1 or more against the light track, including yellow, orange and green. */
+  box-shadow: inset 0 0 0 1.5px var(--text-primary);
 }
 
 /* ── Status chip ─────────────────────────────────────────────── */
@@ -2665,27 +2663,27 @@ main:focus {
 
 /* Status tones and severity levels read their colours from @sdh/design-tokens. */
 .tone-good {
-  --tone-fg: var(--tone-good-text);
+  --tone-bar: var(--tone-good-text);
   background: var(--tone-good-bg);
   color: var(--tone-good-text);
 }
 .tone-caution {
-  --tone-fg: var(--warning-fill);
+  --tone-bar: var(--warning-fill);
   background: var(--tone-caution-bg);
   color: var(--tone-caution-text);
 }
 .tone-alert {
-  --tone-fg: var(--tone-alert-text);
+  --tone-bar: var(--tone-alert-text);
   background: var(--tone-alert-bg);
   color: var(--tone-alert-text);
 }
 .tone-extreme {
-  --tone-fg: var(--tone-solid-text);
+  --tone-bar: var(--tone-extreme-bg);
   background: var(--tone-extreme-bg);
   color: var(--tone-solid-text);
 }
 .tone-solid-danger {
-  --tone-fg: var(--tone-solid-text);
+  --tone-bar: var(--tone-alert-text);
   background: var(--tone-alert-text);
   color: var(--tone-solid-text);
 }
@@ -2694,7 +2692,7 @@ main:focus {
   color: var(--brand-deep);
 }
 .safety-bar__fill--tone {
-  background: var(--tone-fg);
+  background: var(--tone-bar);
 }
 .safety-bar__fill--ok {
   background: var(--success);

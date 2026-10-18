@@ -50,3 +50,34 @@ describe("control edge contrast", () => {
     );
   });
 });
+
+describe("warning colours", () => {
+  const MIN_TEXT_CONTRAST = 4.5;
+
+  it("keeps dark text on the amber tint readable", () => {
+    expect(contrast(token("text-primary"), token("warning-tint"))).toBeGreaterThanOrEqual(
+      MIN_TEXT_CONTRAST,
+    );
+  });
+
+  it("defines the amber and its tint once", () => {
+    expect(tokensCss).toMatch(/--warn-accent:\s*var\(--warning-fill\)/);
+    expect(tokensCss).toMatch(/--warning-bg:\s*var\(--warning-tint\)/);
+    expect(tokensCss).toMatch(/--tone-caution-bg:\s*var\(--warning-tint\)/);
+  });
+
+  it("tints the warning badge and colours only its icon amber", () => {
+    expect(tokensCss).toMatch(/\.ui-badge--warning\s*\{[^}]*background: var\(--warning-bg\)/s);
+    expect(tokensCss).toMatch(/\.ui-badge--warning svg\s*\{[^}]*color: var\(--warning-fill\)/s);
+    expect(tokensCss).toMatch(/\.ui-badge--warning\s*\{[^}]*color: var\(--warning-ink\)/s);
+  });
+
+  it("no longer uses or documents the removed --warning token", () => {
+    const docs = ["DESIGN_SYSTEM.md", "township_frontend_design_guidelines.md"].map((f) =>
+      readFileSync(resolve(process.cwd(), "../../packages/design-tokens/docs", f), "utf8"),
+    );
+    for (const text of [tokensCss, appCss, ...docs]) {
+      expect(text).not.toMatch(/var\(--warning\)|`--warning`/);
+    }
+  });
+});

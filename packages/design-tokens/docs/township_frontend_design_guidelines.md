@@ -1,4 +1,4 @@
-# Township Community Platform --- Shared Frontend Design System (v1.0)
+# Help a Neighbour --- Shared Frontend Design System (v1.0)
 
 **Project:** Sime Darby Property University Hackathon 2026\
 **Design direction:** Modern, trusted, inclusive township living\
@@ -67,7 +67,13 @@ Property brand codes.**
   `--success`               `#15803D`               Resolved, safe,
                                                     completed
 
-  `--warning`               `#9A6700`               Caution text/icons
+  `--warning-ink`           `var(--text-primary)`   Caution text, always dark
+
+  `--warning-fill`          `#F59E0B`               Caution icon, dot, bar
+                                                    and fill only, never text
+
+  `--warning-tint`          `#FEF3C7`               Caution badge and card
+                                                    background
 
   `--danger`                `#B91C1C`               Critical, destructive
                                                     action

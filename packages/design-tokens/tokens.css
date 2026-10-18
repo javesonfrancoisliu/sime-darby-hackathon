@@ -1,4 +1,4 @@
-/* Township Community Platform shared prototype tokens, v1.0. Proposed colors are not official brand specifications. */
+/* Help a Neighbour shared prototype tokens, v1.0. Proposed colors are not official brand specifications. */
 :root {
   --brand-primary: #d71920;
   --brand-primary-hover: #a61219;
@@ -19,17 +19,18 @@
   --danger: #b91c1c;
   --info: #1d4ed8;
   --success-bg: #f0fdf4;
-  --warning-bg: #fffbeb;
+  --warning-tint: #fef3c7; /* caution backgrounds; dark text on it is about 14:1 */
+  --warning-bg: var(--warning-tint);
   --danger-bg: #fef2f2;
   --info-bg: #eff6ff;
 
   --brand-deep: #ba0000;
-  --warn-accent: #f59e0b;
+  --warn-accent: var(--warning-fill);
 
   /* Status tones for readings and chips: soft background with readable text. */
   --tone-good-bg: #d1fae5;
   --tone-good-text: #065f46;
-  --tone-caution-bg: #fef9c3;
+  --tone-caution-bg: var(--warning-tint);
   --tone-caution-text: var(--text-primary);
   --caution-ink: var(--text-primary);
   --tone-alert-bg: #fee2e2;
@@ -37,7 +38,6 @@
   --tone-extreme-bg: #4b0082;
   --tone-solid-text: #ffffff;
   --tone-bar-mid: var(--warning-fill);
-  --bar-track-amber: #4b5563; /* 3.5:1 against --warning-fill */
 
   /* Condition severity ramp, 1 safest to 5 most severe. */
   --sev-1-accent: #22c55e;
@@ -241,6 +241,9 @@ textarea {
 .ui-badge--warning {
   background: var(--warning-bg);
   color: var(--warning-ink);
+}
+.ui-badge--warning svg {
+  color: var(--warning-fill);
 }
 .ui-badge--danger {
   background: var(--danger-bg);
