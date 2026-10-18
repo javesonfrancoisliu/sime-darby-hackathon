@@ -2,6 +2,9 @@
 
 type Env = Record<string, string | undefined>;
 
+// Brand red (#D71920) for the PWA manifest and the generated icon backgrounds.
+export const THEME_COLOR = "#D71920";
+
 export const DEFAULT_API_PROXY_TARGET = "http://127.0.0.1:3001";
 
 export function apiProxy(env: Env) {

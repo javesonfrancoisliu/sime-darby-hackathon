@@ -12,6 +12,7 @@
 import { mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import sharp from "sharp";
+import { THEME_COLOR } from "./vite.shared.ts";
 
 const [sourceArg, outDirArg] = process.argv.slice(2);
 if (!sourceArg || !outDirArg) {
@@ -21,7 +22,7 @@ if (!sourceArg || !outDirArg) {
 const source = resolve(sourceArg);
 const outDir = resolve(outDirArg);
 
-const BRAND_RED = "#D71920";
+const BRAND_RED = THEME_COLOR;
 
 async function run() {
   // Trim removes the uniform near-white border. threshold tolerates the soft
@@ -39,7 +40,7 @@ async function run() {
 
   await mkdir(outDir, { recursive: true });
 
-  // 1. "any" icons — tight crop, transparent corners preserved.
+  // 1. "any" icons - tight crop, transparent corners preserved.
   for (const size of [192, 512]) {
     await sharp(square)
       .resize(size, size)
@@ -48,7 +49,7 @@ async function run() {
     console.log(`wrote pwa-${size}.png`);
   }
 
-  // 2. Maskable 512 — artwork at 78% on brand-red, 11% padding each side.
+  // 2. Maskable 512 - artwork at 78% on brand-red, 11% padding each side.
   const maskSize = 512;
   const inner = Math.round(maskSize * 0.78);
   const innerIcon = await sharp(square).resize(inner, inner).png().toBuffer();
@@ -65,7 +66,7 @@ async function run() {
     .toFile(resolve(outDir, "maskable-512.png"));
   console.log("wrote maskable-512.png");
 
-  // 3. Apple touch icon 180 — opaque (iOS ignores transparency, shows black).
+  // 3. Apple touch icon 180 - opaque (iOS ignores transparency, shows black).
   const apple = 180;
   const appleInner = await sharp(square).resize(apple, apple).png().toBuffer();
   await sharp({

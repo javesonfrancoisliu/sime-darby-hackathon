@@ -5,6 +5,7 @@ import {
   publicApiCache,
   pwaBase,
   pwaIcons,
+  THEME_COLOR,
 } from "@sdh/config/vite.shared";
 import react from "@vitejs/plugin-react";
 import { defineConfig, loadEnv } from "vite";
@@ -29,7 +30,7 @@ export default defineConfig(({ mode }) => {
           display: "standalone",
           orientation: "portrait",
           background_color: "#F8F9FA",
-          theme_color: "#D71920",
+          theme_color: THEME_COLOR,
           icons: pwaIcons(),
         },
         workbox: {

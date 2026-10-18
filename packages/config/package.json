@@ -5,8 +5,7 @@
   "type": "module",
   "exports": {
     "./tsconfig.base.json": "./tsconfig.base.json",
-    "./vite.shared": "./vite.shared.ts",
-    "./generate-icons": "./generate-icons.mjs"
+    "./vite.shared": "./vite.shared.ts"
   },
   "scripts": {
     "test": "vitest run"

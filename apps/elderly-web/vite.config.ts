@@ -1,5 +1,5 @@
 /// <reference types="vitest/config" />
-import { apiProxy, previewServer, pwaBase, pwaIcons } from "@sdh/config/vite.shared";
+import { apiProxy, previewServer, pwaBase, pwaIcons, THEME_COLOR } from "@sdh/config/vite.shared";
 import react from "@vitejs/plugin-react";
 import { defineConfig, loadEnv } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
@@ -23,7 +23,7 @@ export default defineConfig(({ mode }) => {
           orientation: "portrait",
           lang: "en",
           background_color: "#FFF6F3",
-          theme_color: "#D71920",
+          theme_color: THEME_COLOR,
           icons: pwaIcons(),
         },
       }),
