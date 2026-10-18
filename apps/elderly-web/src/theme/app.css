@@ -11,7 +11,6 @@
 
 /* Easy View is always on for the elderly app (Req 1.1, 1.2). */
 .app-root {
-  --control-border: #6B7280;
   min-height: 100vh;
   background: var(--page-bg);
   /* Leave room for the fixed bottom tab bar and the phone home indicator */

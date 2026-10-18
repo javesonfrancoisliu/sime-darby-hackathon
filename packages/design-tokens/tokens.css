@@ -10,6 +10,7 @@
   --text-primary: #1F2937;
   --text-secondary: #4B5563;
   --border: #E5E7EB;
+  --control-border: #6B7280; /* 4.8:1 on white, for input, chip and switch edges */
 
   --success: #15803D;
   --warning: #9A6700;
@@ -86,7 +87,7 @@ button, input, select, textarea { font: inherit; }
 .ui-input {
   width: 100%; min-height: var(--control-height); padding: 10px 14px;
   background: var(--surface); color: var(--text-primary);
-  border: 1px solid #9CA3AF; border-radius: var(--radius-control);
+  border: 1px solid var(--control-border); border-radius: var(--radius-control);
 }
 .ui-input:focus { border-color: var(--brand-primary); }
 .ui-helper { margin: 6px 0 0; font-size: 14px; color: var(--text-secondary); }
