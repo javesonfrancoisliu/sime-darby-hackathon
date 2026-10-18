@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 # Build, apply Terraform and publish both frontends for one environment.
-# Usage: infra/scripts/deploy.sh <env> <aws-profile>   e.g. infra/scripts/deploy.sh dev javesonpersonal
+# Usage: infra/scripts/deploy.sh <env> <aws-profile> [--yes]   e.g. infra/scripts/deploy.sh dev javesonpersonal
+# --yes skips both confirmations (account and plan) for shells that cannot answer prompts.
 # Needs gitignored infra/terraform/envs/<env>/terraform.tfvars and backend.hcl (copy the .example files).
 set -euo pipefail
 
 ENV_NAME="${1:-}"
 PROFILE="${2:-}"
-if [[ -z "$ENV_NAME" || -z "$PROFILE" ]]; then
-  echo "Usage: $0 <env> <aws-profile>" >&2
+ASSUME_YES="${3:-}"
+if [[ -z "$ENV_NAME" || -z "$PROFILE" || (-n "$ASSUME_YES" && "$ASSUME_YES" != "--yes") ]]; then
+  echo "Usage: $0 <env> <aws-profile> [--yes]" >&2
   exit 64
 fi
 
@@ -27,6 +29,10 @@ site_dist() {
 }
 
 confirm() {
+  if [[ "$ASSUME_YES" == "--yes" ]]; then
+    echo "$1 yes (--yes)"
+    return 0
+  fi
   read -r -p "$1 [y/N] " answer
   [[ "$answer" == "y" || "$answer" == "Y" ]]
 }
