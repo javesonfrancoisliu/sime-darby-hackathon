@@ -42,7 +42,10 @@ export function safeNextPath(raw: string | null | undefined): string | null {
   try {
     const url = new URL(raw, PLACEHOLDER_ORIGIN);
     if (url.origin !== PLACEHOLDER_ORIGIN) return null;
-    return url.pathname + url.search + url.hash;
+    // Dot segments can normalise "/.//evil" into "//evil", so check the result again.
+    const normalised = url.pathname + url.search + url.hash;
+    if (normalised.startsWith("//") || hasUnsafeChar(normalised)) return null;
+    return normalised;
   } catch {
     return null;
   }
