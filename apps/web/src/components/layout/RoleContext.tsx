@@ -37,12 +37,20 @@ function devRoleOverride(): Role | null {
 // Shared resident-role mode. The role drives which features/emphasis appear and
 // the elderly comfort sizing, so the whole app reads from this one source.
 //
-// There is no in-app role toggle - the role comes from role-based authentication.
-// Until auth is wired, `role` defaults to "young"; when auth lands, feed the
-// authenticated user's role into the `role` prop and nothing downstream changes.
-// A dev-only override (see devRoleOverride) allows previewing elderly.
-export function RoleProvider({ role = "young", children }: { role?: Role; children: ReactNode }) {
-  const effectiveRole = devRoleOverride() ?? role;
+// There is no in-app role toggle. SessionRoleProvider feeds in the signed-in
+// user's role, and the role defaults to "young" when signed out. A dev-only
+// override (see devRoleOverride) allows previewing elderly while signed out;
+// pass allowPreview={false} once someone is signed in so their own role wins.
+export function RoleProvider({
+  role = "young",
+  allowPreview = true,
+  children,
+}: {
+  role?: Role;
+  allowPreview?: boolean;
+  children: ReactNode;
+}) {
+  const effectiveRole = (allowPreview ? devRoleOverride() : null) ?? role;
 
   useEffect(() => {
     document.documentElement.dataset.role = effectiveRole;

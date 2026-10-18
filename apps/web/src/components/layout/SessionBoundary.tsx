@@ -6,10 +6,13 @@ import { LoadingState } from "../ui";
 import { RoleProvider } from "./RoleContext";
 
 // Feeds the signed-in demo user's role into RoleProvider (young when signed out).
+// The dev role preview only applies while signed out.
 export function SessionRoleProvider({ children }: { children: ReactNode }) {
-  const { user } = useSession();
+  const { user, userId } = useSession();
   return (
-    <RoleProvider role={user?.role === "elder" ? "elderly" : "young"}>{children}</RoleProvider>
+    <RoleProvider role={user?.role === "elder" ? "elderly" : "young"} allowPreview={!userId}>
+      {children}
+    </RoleProvider>
   );
 }
 
