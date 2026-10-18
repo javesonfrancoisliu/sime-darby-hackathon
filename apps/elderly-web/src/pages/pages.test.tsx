@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, screen, waitFor } from "@testing-library/react";
+import { act, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderApp } from "../test/renderRoute";
 import { installFakeApi, signInAs } from "../test/fakeApi";
@@ -61,7 +61,7 @@ describe("Category selection", () => {
       expect(screen.getByRole("button", { name })).toBeInTheDocument();
     }
     await userEvent.click(screen.getByRole("button", { name: "Groceries" }));
-    expect(screen.getByLabelText("Describe the help you need")).toBeInTheDocument();
+    expect(screen.getByLabelText(/Tell us more/)).toBeInTheDocument();
   });
 });
 
@@ -204,18 +204,5 @@ describe("Demo data", () => {
     await renderApp("/requests");
     await screen.findByText(/no requests yet/i);
     expect(screen.queryByText(/Demo data/)).not.toBeInTheDocument();
-  });
-});
-
-describe("Describe page (before the full flow)", () => {
-  it("sends a request the server can accept and shows the confirmation", async () => {
-    const { calls } = installFakeApi({
-      "POST /api/requests": { status: 201, body: open },
-    });
-    await renderApp("/request/groceries");
-    await userEvent.type(screen.getByLabelText("Describe the help you need"), "Milk and bread");
-    await userEvent.click(screen.getByRole("button", { name: "Send request" }));
-    await waitFor(() => expect(screen.getByText("Request sent")).toBeInTheDocument());
-    expect(calls.filter((c) => c.method === "POST")).toHaveLength(1);
   });
 });

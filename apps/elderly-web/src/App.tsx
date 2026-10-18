@@ -4,7 +4,7 @@ import { SessionGate } from "./session/SessionGate";
 import { AppShell } from "./ui/AppShell";
 import { HomePage } from "./pages/HomePage";
 import { CategoryPage } from "./pages/CategoryPage";
-import { DescribePage } from "./pages/DescribePage";
+import { RequestFlowPage } from "./pages/RequestFlowPage";
 import { ConfirmationPage } from "./pages/ConfirmationPage";
 import { RequestsListPage } from "./pages/RequestsListPage";
 import { RequestDetailPage } from "./pages/RequestDetailPage";
@@ -27,34 +27,34 @@ import { AccessibilityProvider } from "./context/AccessibilityContext";
 export function App() {
   return (
     <SessionProvider>
-    <AccessibilityProvider>
-      <SessionGate>
-      <Routes>
-        <Route
-          path="/*"
-          element={
-            <AppShell>
-              <Routes>
-                <Route path="/"                          element={<HomePage />} />
-                <Route path="/home"                      element={<HomePage />} />
-                <Route path="/safety"                    element={<SafetyPage />} />
-                <Route path="/community"                 element={<CommunityPage />} />
-                <Route path="/challenges"                element={<ChallengesPage />} />
-                <Route path="/me"                        element={<MePage />} />
-                <Route path="/request"                   element={<CategoryPage />} />
-                <Route path="/request/confirmation"      element={<ConfirmationPage />} />
-                <Route path="/request/:category"         element={<DescribePage />} />
-                <Route path="/requests"                  element={<RequestsListPage />} />
-                <Route path="/requests/:id"              element={<RequestDetailPage />} />
-                {/* Fallback: redirect unknown paths to /home */}
-                <Route path="*"                          element={<HomePage />} />
-              </Routes>
-            </AppShell>
-          }
-        />
-      </Routes>
-      </SessionGate>
-    </AccessibilityProvider>
+      <AccessibilityProvider>
+        <SessionGate>
+          <Routes>
+            <Route
+              path="/*"
+              element={
+                <AppShell>
+                  <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/home" element={<HomePage />} />
+                    <Route path="/safety" element={<SafetyPage />} />
+                    <Route path="/community" element={<CommunityPage />} />
+                    <Route path="/challenges" element={<ChallengesPage />} />
+                    <Route path="/me" element={<MePage />} />
+                    <Route path="/request" element={<CategoryPage />} />
+                    <Route path="/request/confirmation" element={<ConfirmationPage />} />
+                    <Route path="/request/:category" element={<RequestFlowPage />} />
+                    <Route path="/requests" element={<RequestsListPage />} />
+                    <Route path="/requests/:id" element={<RequestDetailPage />} />
+                    {/* Fallback: redirect unknown paths to /home */}
+                    <Route path="*" element={<HomePage />} />
+                  </Routes>
+                </AppShell>
+              }
+            />
+          </Routes>
+        </SessionGate>
+      </AccessibilityProvider>
     </SessionProvider>
   );
 }

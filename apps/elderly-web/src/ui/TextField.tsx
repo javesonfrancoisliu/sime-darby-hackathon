@@ -8,6 +8,7 @@ interface TextFieldProps {
   helper?: string;
   multiline?: boolean;
   placeholder?: string;
+  maxLength?: number;
 }
 
 /**
@@ -15,7 +16,16 @@ interface TextFieldProps {
  * built on the shared ui-label / ui-input / ui-helper / ui-error classes.
  * Error is tied via aria-describedby. (Req 1.6, 5.5)
  */
-export function TextField({ label, value, onChange, error, helper, multiline, placeholder }: TextFieldProps) {
+export function TextField({
+  label,
+  value,
+  onChange,
+  error,
+  helper,
+  multiline,
+  placeholder,
+  maxLength,
+}: TextFieldProps) {
   const id = useId();
   const errorId = `${id}-error`;
   const helperId = `${id}-helper`;
@@ -25,9 +35,11 @@ export function TextField({ label, value, onChange, error, helper, multiline, pl
     className: "ui-input",
     value,
     placeholder,
+    maxLength,
     "aria-invalid": error ? true : undefined,
     "aria-describedby": describedBy,
-    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => onChange(e.target.value),
+    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      onChange(e.target.value),
   };
   return (
     <div style={{ marginBottom: "var(--space-6)" }}>

@@ -3,6 +3,8 @@ import { IconChevronLeft } from "./Icons";
 
 interface BackLinkProps {
   label?: string;
+  // Replaces going to the previous page, for example to go back one step.
+  onBack?: () => void;
 }
 
 /**
@@ -13,7 +15,7 @@ interface BackLinkProps {
  * - Standardized monochrome outline chevron icon
  * - Accessible name preserved for unit tests (/back/i)
  */
-export function BackLink({ label = "Back" }: BackLinkProps) {
+export function BackLink({ label = "Back", onBack }: BackLinkProps) {
   const navigate = useNavigate();
 
   return (
@@ -21,7 +23,7 @@ export function BackLink({ label = "Back" }: BackLinkProps) {
       <button
         type="button"
         className="ui-button ui-button--ghost apple-back-btn"
-        onClick={() => navigate(-1)}
+        onClick={() => (onBack ? onBack() : navigate(-1))}
         aria-label={`Go ${label}`}
       >
         <IconChevronLeft size={20} strokeWidth={2.4} aria-hidden="true" />
