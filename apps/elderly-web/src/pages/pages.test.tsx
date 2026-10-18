@@ -171,6 +171,21 @@ describe("Cancel flow", () => {
     });
   }
 
+  it("moves focus into the confirmation, then announces the cancellation", async () => {
+    const req = makeRequest({ status: "open" });
+    installFakeApi({
+      [`GET /api/requests/${req.id}`]: { body: req },
+      [`POST /api/requests/${req.id}/cancel`]: { body: { ...req, status: "cancelled" } },
+    });
+    await renderApp(`/requests/${req.id}`);
+    await userEvent.click(await screen.findByRole("button", { name: "Cancel request" }));
+    expect(screen.getByText("This request will be closed.").parentElement).toHaveFocus();
+
+    await userEvent.click(screen.getByRole("button", { name: "Yes, cancel request" }));
+    expect(await screen.findByText("Your request was cancelled.")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: req.title })).toHaveFocus();
+  });
+
   it("keeps the status and explains in plain words when cancel is refused", async () => {
     installFakeApi({
       [`GET /api/requests/${open.id}`]: { body: open },

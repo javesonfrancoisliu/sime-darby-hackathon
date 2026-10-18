@@ -35,7 +35,7 @@ export function useLiveQuery<T>(key: string, load: () => Promise<T>, intervalMs?
 
     const run = () => {
       const id = ++sequence.current.started;
-      const isStale = () => !active || id < sequence.current.applied;
+      const isStale = () => !active || id <= sequence.current.applied;
       loadRef
         .current()
         .then((data) => {
@@ -89,6 +89,8 @@ export function useLiveQuery<T>(key: string, load: () => Promise<T>, intervalMs?
   }, []);
 
   const update = useCallback((change: (data: T) => T) => {
+    // Replies for loads that started before this change must not undo it.
+    sequence.current.applied = sequence.current.started;
     setState((prev) => (prev.data === undefined ? prev : { ...prev, data: change(prev.data) }));
   }, []);
 

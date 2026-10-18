@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useCancelRequest, useRequest } from "../hooks/useRequests";
 import { CATEGORY_TEXT } from "../requests/categories";
 import { formatWhen, minutesLabel } from "../requests/schedule";
+import { useAnnounce } from "../ui/Announcer";
 import { canCancel, showsVolunteer } from "../ui/status";
 import { BackLink } from "../ui/BackLink";
 import { Button } from "../ui/Button";
@@ -23,6 +24,14 @@ export function RequestDetailPage() {
   const { data, status, error, refetch, update } = useRequest(id);
   const cancelMutation = useCancelRequest();
   const [confirming, setConfirming] = useState(false);
+  const announce = useAnnounce();
+  const confirmRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+
+  // Keyboard and screen reader focus follows the button into the confirmation card.
+  useEffect(() => {
+    if (confirming) confirmRef.current?.focus();
+  }, [confirming]);
 
   if (status === "loading" && !data) {
     return (
@@ -46,8 +55,12 @@ export function RequestDetailPage() {
 
   async function onConfirmCancel() {
     const updated = await cancelMutation.run(req.id);
-    if (updated) update(() => updated);
+    if (updated) {
+      update(() => updated);
+      announce("Your request was cancelled.");
+    }
     setConfirming(false);
+    titleRef.current?.focus();
   }
 
   return (
@@ -55,7 +68,7 @@ export function RequestDetailPage() {
       <BackLink />
 
       <div className="apple-detail-hero">
-        <h1 className="ui-page-title" style={{ marginBottom: 4 }}>
+        <h1 ref={titleRef} tabIndex={-1} className="ui-page-title" style={{ marginBottom: 4 }}>
           {req.title}
         </h1>
         <div>
@@ -121,13 +134,11 @@ export function RequestDetailPage() {
 
       {canCancel(req.status) ? (
         confirming ? (
-          <div className="apple-confirm-card">
+          <div ref={confirmRef} tabIndex={-1} className="apple-confirm-card">
             <p className="apple-confirm-card__title">
               Are you sure you want to cancel this request?
             </p>
-            <p className="apple-confirm-card__sub">
-              Your neighbour volunteer will be notified and this request will be closed.
-            </p>
+            <p className="apple-confirm-card__sub">This request will be closed.</p>
             <div className="ui-stack" style={{ gap: 10, marginTop: 16 }}>
               <Button
                 block

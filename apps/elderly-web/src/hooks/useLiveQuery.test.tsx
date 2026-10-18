@@ -103,6 +103,23 @@ describe("useLiveQuery", () => {
     expect(result.current.data).toBe("new");
   });
 
+  it("drops a reply that was in flight when update changed the data", async () => {
+    let resolveInFlight: (value: string) => void = () => {};
+    const load = vi
+      .fn()
+      .mockResolvedValueOnce("open")
+      .mockImplementationOnce(() => new Promise<string>((resolve) => (resolveInFlight = resolve)));
+    const { result } = renderHook(() => useLiveQuery("k", load, 10_000));
+    await act(async () => {});
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10_000);
+    });
+    act(() => result.current.update(() => "cancelled"));
+    await act(async () => resolveInFlight("open"));
+    expect(result.current.data).toBe("cancelled");
+  });
+
   it("keeps showing data when a refresh fails, and reports a first-load failure", async () => {
     const load = vi
       .fn()
