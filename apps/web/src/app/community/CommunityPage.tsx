@@ -1,4 +1,4 @@
-import { Search, Star } from "lucide-react";
+import { CloudOff, Search, Star } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import {
@@ -46,7 +46,7 @@ const EMPTY_COUNTS: Record<FilterValue, number> = {
 };
 
 export function CommunityPage() {
-  const { items, loading, reload } = useCommunityItems();
+  const { items, loading, error, usingSampleData, reload } = useCommunityItems();
   const { userId } = useSession();
   // Joined events also show in Volunteer → My accepted tasks.
   const { refresh: refreshTasks } = useAcceptedTasks();
@@ -59,9 +59,7 @@ export function CommunityPage() {
   const [joinedVolunteerIds, setJoinedVolunteerIds] = useState<Set<string>>(new Set());
   const [registeredEventIds, setRegisteredEventIds] = useState<Set<string>>(new Set());
   // Success confirmation shown after registering/joining. null = hidden.
-  const [confirmation, setConfirmation] = useState<{ title: string; message: string } | null>(
-    null,
-  );
+  const [confirmation, setConfirmation] = useState<{ title: string; message: string } | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
 
   // Highest-priority township update, else the newest item, as the featured notice.
@@ -84,10 +82,7 @@ export function CommunityPage() {
     return items.filter((item) => {
       if (filter !== "all" && item.category !== filter) return false;
       if (!query) return true;
-      return (
-        item.title.toLowerCase().includes(query) ||
-        item.summary.toLowerCase().includes(query)
-      );
+      return item.title.toLowerCase().includes(query) || item.summary.toLowerCase().includes(query);
     });
   }, [items, filter, search]);
 
@@ -106,13 +101,15 @@ export function CommunityPage() {
     setActiveEvent(null);
     if (live) {
       try {
-        await apiFetch(`/api/events/${encodeURIComponent(event.id)}/join`, { method: "POST" });
+        await apiFetch(`/api/events/${encodeURIComponent(event.id)}/join`, {
+          method: "POST",
+          userId,
+        });
       } catch (err) {
         setFailure(errorMessage(err));
         return;
       } finally {
-        reload();
-        refreshTasks();
+        await Promise.all([reload(), refreshTasks()]);
       }
     }
     setRegisteredEventIds((prev) => new Set(prev).add(event.id));
@@ -138,9 +135,7 @@ export function CommunityPage() {
           />
         );
       case "township":
-        return (
-          <TownshipUpdateCard key={item.id} item={item} onReadMore={setActiveUpdate} />
-        );
+        return <TownshipUpdateCard key={item.id} item={item} onReadMore={setActiveUpdate} />;
     }
   }
 
@@ -162,6 +157,25 @@ export function CommunityPage() {
         <LoadingState rows={3} label="Loading community updates" />
       ) : (
         <>
+          {error && (
+            <InfoCard>
+              <EmptyState
+                icon={CloudOff}
+                title="Couldn't load community events"
+                description={error}
+                action={
+                  <AppButton variant="secondary" onClick={() => void reload()}>
+                    Try again
+                  </AppButton>
+                }
+              />
+            </InfoCard>
+          )}
+          {usingSampleData && (
+            <p className="ui-helper live-hint" role="status">
+              Showing sample data. The live events list was empty or could not be reached.
+            </p>
+          )}
           {featured && (
             <section className="ui-section" aria-labelledby="featured-heading">
               <h2 className="ui-visually-hidden" id="featured-heading">
@@ -170,7 +184,10 @@ export function CommunityPage() {
               <InfoCard className="featured-card">
                 <div className="feature-card">
                   <div className="feature-card-head">
-                    <span className="inline-icon" style={{ color: "var(--brand-primary)", fontWeight: 700 }}>
+                    <span
+                      className="inline-icon"
+                      style={{ color: "var(--brand-primary)", fontWeight: 700 }}
+                    >
                       <Star size={18} aria-hidden="true" />
                       Featured update
                     </span>
@@ -180,7 +197,9 @@ export function CommunityPage() {
                   <p className="feature-card-desc">{featured.summary}</p>
                   <div className="ui-meta-row">
                     <span>{formatDate(featured.updatedAt)}</span>
-                    <span className="ui-meta-dot" aria-hidden="true">•</span>
+                    <span className="ui-meta-dot" aria-hidden="true">
+                      •
+                    </span>
                     <span>{featured.sourceLabel}</span>
                   </div>
                 </div>
@@ -228,7 +247,9 @@ export function CommunityPage() {
       <EventDetailsModal
         event={activeEvent}
         registered={
-          activeEvent ? registeredEventIds.has(activeEvent.id) || activeEvent.joined === true : false
+          activeEvent
+            ? registeredEventIds.has(activeEvent.id) || activeEvent.joined === true
+            : false
         }
         onClose={() => setActiveEvent(null)}
         onRegister={(event) => void registerEvent(event)}
