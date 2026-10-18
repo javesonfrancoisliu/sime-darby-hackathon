@@ -1,5 +1,11 @@
 /// <reference types="vitest/config" />
-import { apiProxy, previewServer, pwaBase, pwaIcons } from "@sdh/config/vite.shared";
+import {
+  apiProxy,
+  previewServer,
+  publicApiCache,
+  pwaBase,
+  pwaIcons,
+} from "@sdh/config/vite.shared";
 import react from "@vitejs/plugin-react";
 import { defineConfig, loadEnv } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
@@ -29,24 +35,7 @@ export default defineConfig(({ mode }) => {
         workbox: {
           ...pwaBase().workbox,
           runtimeCaching: [
-            {
-              // Live safety / township / community API data: always try the network
-              // first, fall back to a short-lived cache only when offline. Never
-              // served stale indefinitely. Requests made as a demo user are left
-              // uncached: the cache keys on URL only, so it would mix users' data.
-              urlPattern: ({ url, request }) =>
-                url.pathname.startsWith("/api/") && !request.headers.has("X-Demo-User"),
-              handler: "NetworkFirst",
-              options: {
-                cacheName: "api-cache",
-                networkTimeoutSeconds: 5,
-                expiration: {
-                  maxEntries: 32,
-                  maxAgeSeconds: 60 * 5, // 5 minutes
-                },
-                cacheableResponse: { statuses: [0, 200] },
-              },
-            },
+            publicApiCache(),
             {
               // Google Fonts stylesheet + files.
               urlPattern: ({ url }) =>

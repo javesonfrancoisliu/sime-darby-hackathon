@@ -52,3 +52,29 @@ export function pwaIcons() {
     { src: "icons/maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
   ];
 }
+
+type CacheableRequest = {
+  url: { pathname: string };
+  request: { method: string; headers: { has(name: string): boolean } };
+};
+
+// Runtime cache for the only API read that is public and carries no personal data:
+// the event list requested while signed out. Anything sent with the X-Demo-User
+// header, and every other path (/api/demo/users, /api/me, requests), goes straight
+// to the network, because the cache keys on the URL alone and would mix users.
+// The matcher is copied into the service worker as text, so it must stay self-contained.
+export function publicApiCache() {
+  return {
+    urlPattern: ({ url, request }: CacheableRequest) =>
+      request.method === "GET" &&
+      !request.headers.has("X-Demo-User") &&
+      url.pathname === "/api/events",
+    handler: "NetworkFirst" as const,
+    options: {
+      cacheName: "public-api-cache",
+      networkTimeoutSeconds: 5,
+      expiration: { maxEntries: 4, maxAgeSeconds: 60 * 5 },
+      cacheableResponse: { statuses: [0, 200] },
+    },
+  };
+}

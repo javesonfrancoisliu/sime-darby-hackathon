@@ -5,6 +5,7 @@ import {
   DEFAULT_API_PROXY_TARGET,
   previewServer,
   pwaBase,
+  publicApiCache,
   pwaIcons,
 } from "./vite.shared";
 
@@ -58,5 +59,46 @@ describe("pwaIcons", () => {
     const icons = pwaIcons();
     expect(icons.map((i) => i.sizes)).toEqual(["192x192", "512x512", "512x512"]);
     expect(icons.filter((i) => i.purpose === "maskable")).toHaveLength(1);
+  });
+});
+
+describe("publicApiCache", () => {
+  // Run the matcher from its source text, the way the service worker receives it.
+  const matches = new Function(`return ${String(publicApiCache().urlPattern)}`)() as (
+    input: ReturnType<typeof call>,
+  ) => boolean;
+
+  function call(path: string, options: { method?: string; demoUser?: string } = {}) {
+    const headers = new Headers(options.demoUser ? { "X-Demo-User": options.demoUser } : {});
+    return {
+      url: new URL(path, "https://app.test"),
+      request: { method: options.method ?? "GET", headers },
+    };
+  }
+
+  it("caches the signed-out event list", () => {
+    expect(matches(call("/api/events"))).toBe(true);
+  });
+
+  it("never caches requests made as a demo user", () => {
+    expect(matches(call("/api/events", { demoUser: "u1" }))).toBe(false);
+  });
+
+  it("never caches the demo user list or other personal reads", () => {
+    for (const path of [
+      "/api/demo/users",
+      "/api/me",
+      "/api/requests/mine",
+      "/api/opportunities",
+      "/api/contributions/mine",
+      "/api/health",
+      "/api/events/abc/join",
+    ]) {
+      expect(matches(call(path)), path).toBe(false);
+    }
+  });
+
+  it("ignores writes", () => {
+    expect(matches(call("/api/events", { method: "POST" }))).toBe(false);
   });
 });
