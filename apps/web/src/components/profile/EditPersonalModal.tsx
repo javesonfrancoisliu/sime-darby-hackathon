@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { errorMessage } from "@sdh/api-client";
+import { MAX_NAME_LENGTH } from "@sdh/contracts";
 
 import { useProfile } from "../../data/ProfileContext";
 import { AppButton, FormField, Modal } from "../ui";
@@ -63,12 +64,14 @@ export function EditPersonalModal({ open, onClose }: EditPersonalModalProps) {
       <FormField
         label="Display name"
         value={name}
+        maxLength={MAX_NAME_LENGTH}
         onChange={(e) => setName(e.target.value)}
         error={nameError ?? undefined}
       />
       <FormField
         label="Township / neighbourhood"
         value={area}
+        maxLength={MAX_NAME_LENGTH}
         onChange={(e) => setArea(e.target.value)}
         error={areaError ?? undefined}
         helper={isDemo ? "Saved on this device for the demo." : "Saved to your account."}

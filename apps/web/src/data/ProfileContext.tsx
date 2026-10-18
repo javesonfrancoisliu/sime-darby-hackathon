@@ -108,9 +108,15 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
           body.availability = preferenceToSlots(patch.availability);
         }
         if (Object.keys(body).length > 0) {
+          const checked = UpdateMeBody.safeParse(body);
+          if (!checked.success) {
+            throw new Error(
+              "Some of those details are too long or missing. Please check and try again.",
+            );
+          }
           const saved = await apiFetch<User>("/api/me", {
             method: "PATCH",
-            body: UpdateMeBody.parse(body),
+            body: checked.data,
             userId: user.id,
           });
           updateUser(saved);

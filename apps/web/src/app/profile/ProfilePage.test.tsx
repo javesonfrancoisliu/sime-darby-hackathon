@@ -79,6 +79,58 @@ describe("profile page", () => {
     ]);
   });
 
+  it("leaves the stored availability alone when only skills change", async () => {
+    const scheduled = User.parse({
+      ...VOLUNTEER,
+      availability: [{ day: "mon", start: "09:00", end: "11:00" }],
+    });
+    const { calls } = installFakeApi({
+      "GET /api/me": { body: scheduled },
+      "PATCH /api/me": ({ body }) => ({ body: User.parse({ ...scheduled, ...(body as object) }) }),
+    });
+    signInAs(scheduled.id);
+    renderApp("/profile");
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Edit volunteer preferences" }));
+    const dialog = await screen.findByRole("dialog");
+    const skills = within(dialog).getByRole("group", { name: "Skills" });
+    await user.click(within(skills).getByRole("button", { name: "Groceries" }));
+    await user.click(within(dialog).getByRole("button", { name: "Save" }));
+
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    const body = UpdateMeBody.parse(calls.find((c) => c.method === "PATCH")?.body);
+    expect(body).toEqual({ skills: ["groceries"] });
+  });
+
+  it("asks for a day and a time together instead of wiping availability", async () => {
+    const { calls } = installFakeApi({ "GET /api/me": { body: VOLUNTEER } });
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Edit volunteer preferences" }));
+    const dialog = await screen.findByRole("dialog");
+    const days = within(dialog).getByRole("group", { name: "Preferred days" });
+    await user.click(within(days).getByRole("button", { name: "Weekends" }));
+    await user.click(within(dialog).getByRole("button", { name: "Save" }));
+
+    expect(await within(dialog).findByText(/at least one day and one time/)).toBeInTheDocument();
+    expect(calls.some((c) => c.method === "PATCH")).toBe(false);
+  });
+
+  it("limits the display name field to the contract length", async () => {
+    const { calls } = installFakeApi({ "GET /api/me": { body: VOLUNTEER } });
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Edit personal information" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByLabelText("Display name")).toHaveAttribute("maxlength", "80");
+    expect(calls.some((c) => c.method === "PATCH")).toBe(false);
+  });
+
   it("keeps the dialog open and shows the error when saving fails", async () => {
     installFakeApi({
       "GET /api/me": { body: VOLUNTEER },

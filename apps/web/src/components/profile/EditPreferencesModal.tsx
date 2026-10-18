@@ -70,11 +70,27 @@ export function EditPreferencesModal({ open, onClose }: EditPreferencesModalProp
   const [busy, setBusy] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
+  function sameSet(a: string[], b: string[]): boolean {
+    return a.length === b.length && a.every((value) => b.includes(value));
+  }
+
   async function save() {
+    const availabilityChanged =
+      !sameSet(days, prefs.availability.days) || !sameSet(times, prefs.availability.times);
+    if (availabilityChanged && days.length > 0 !== times.length > 0) {
+      setSaveError("Pick at least one day and one time of day, or clear both.");
+      return;
+    }
     setBusy(true);
     setSaveError(null);
     try {
-      await updatePrefs({ skills, interests, availability: { days, times }, languages });
+      // Availability is only sent when the chips changed, so saving other fields never rewrites it.
+      await updatePrefs({
+        skills,
+        interests,
+        languages,
+        ...(availabilityChanged && { availability: { days, times } }),
+      });
       onClose();
     } catch (err) {
       setSaveError(errorMessage(err));
