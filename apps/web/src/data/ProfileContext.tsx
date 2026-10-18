@@ -55,6 +55,14 @@ function readMerged<T extends object>(key: string, fallback: T): T {
   return { ...fallback, ...readJson<Partial<T>>(key, {}) };
 }
 
+// The township used to be called this; prefs saved on a device before the rename keep it.
+const RENAMED_TOWNSHIP_NAME = "Bandar Serai";
+
+function readPrefs(key: string): ProfilePrefs {
+  const prefs = readMerged(key, DEFAULT_PREFS);
+  return prefs.area === RENAMED_TOWNSHIP_NAME ? { ...prefs, area: DEMO_TOWNSHIP.name } : prefs;
+}
+
 export type ProfileContextValue = {
   // Signed in, name, area, skills and availability come from the API user.
   prefs: ProfilePrefs;
@@ -73,9 +81,7 @@ const ProfileContext = createContext<ProfileContextValue | null>(null);
 export function ProfileProvider({ children }: { children: ReactNode }) {
   const { user, userId, updateUser } = useSession();
   const verification: VerificationStatus = user ? user.verification : DEMO_VERIFICATION;
-  const [localPrefs, setLocalPrefs] = useState<ProfilePrefs>(() =>
-    readMerged(prefsKey(userId), DEFAULT_PREFS),
-  );
+  const [localPrefs, setLocalPrefs] = useState<ProfilePrefs>(() => readPrefs(prefsKey(userId)));
   const [settings, setSettings] = useState<ProfileSettings>(() =>
     readMerged(settingsKey(userId), DEFAULT_SETTINGS),
   );

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Township Platform - Integrated Dashboard Preview</title>
+  <title>Integrated Dashboard Preview - Help a Neighbour</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -25,7 +25,7 @@
     .eyebrow{color:var(--brand-primary);font-size:13px;letter-spacing:.09em;text-transform:uppercase;font-weight:700}
     .section-head{margin:28px 0 16px;display:flex;align-items:center;justify-content:space-between}
     .section-head h2{margin:0;font-size:20px}
-    .alert{border-left:4px solid var(--warning);background:#fffdf4;display:flex;justify-content:space-between;gap:16px;align-items:center}
+    .alert{border-left:4px solid var(--warning-fill);background:#fffdf4;display:flex;justify-content:space-between;gap:16px;align-items:center}
     .alert strong{display:block;margin-bottom:5px}
     .alert p,.mini p{margin:5px 0;color:var(--text-secondary);font-size:14px}
     .mini{display:flex;flex-direction:column;gap:8px}
@@ -42,7 +42,7 @@
 <body>
   <div class="layout">
     <aside class="sidebar" aria-label="Main navigation">
-      <div class="brand"><div class="brand-icon">T</div><div>Township<br/>Connect <small style="color:#6b7280;font-weight:400">(concept)</small></div></div>
+      <div class="brand"><div class="brand-icon">H</div><div>Help a<br/>Neighbour <small style="color:#6b7280;font-weight:400">(concept)</small></div></div>
       <nav class="nav">
         <a class="active" href="#home"><span>⌂</span> Home</a>
         <a href="#community"><span>♧</span> Neighbourhood</a>
@@ -52,7 +52,7 @@
       <div class="nav-notice">Unofficial student prototype theme inspired by Sime Darby Property.</div>
     </aside>
     <main class="main" id="home">
-      <div class="topbar"><strong>Community Overview</strong><span class="pill">📍 Demo Township &nbsp; · &nbsp; 🔔 2 updates</span></div>
+      <div class="topbar"><strong>Community Overview</strong><span class="pill">📍 City of Elmina &nbsp; · &nbsp; 🔔 2 updates</span></div>
       <div class="ui-container">
         <div class="hello"><div><div class="eyebrow">Resident Dashboard</div><h1 class="ui-page-title" style="margin-top:8px">Good morning, neighbour 👋</h1><p class="ui-page-subtitle">Stay safe, connected, and involved in your township.</p></div><button class="ui-button ui-button--secondary" id="toggle-easy" aria-pressed="false">A+ Easy View</button></div>
         <section id="safety" class="ui-card alert" aria-label="Safety alert"><div><span class="ui-badge ui-badge--warning">⚠ Caution</span><strong style="margin-top:10px">Elevated haze levels nearby</strong><p>Consider reducing strenuous outdoor activity and checking local air quality.</p></div><button class="ui-button ui-button--secondary">View advisory</button></section>

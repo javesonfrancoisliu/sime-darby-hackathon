@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from "@testing-library/react";
+import { act, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -100,6 +100,24 @@ describe("volunteer page", () => {
     const card = await screen.findByLabelText("Opportunity: Groceries");
     expect(within(card).getByText(/1.5 km away/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Use my location/ })).not.toBeInTheDocument();
+  });
+
+  it("moves a demo card from Urgent to Started as the clock passes its start time", async () => {
+    vi.useFakeTimers({ toFake: ["Date", "setInterval", "clearInterval"] });
+    try {
+      installFakeApi();
+      renderApp("/volunteer");
+      const card = await screen.findByLabelText("Opportunity: Weekly grocery run");
+      expect(within(card).getByText("Urgent")).toBeInTheDocument();
+
+      act(() => {
+        vi.advanceTimersByTime(4 * 3_600_000);
+      });
+      expect(within(card).getByText("Started")).toBeInTheDocument();
+      expect(within(card).queryByText("Urgent")).not.toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("offers the device location only on the signed-out demo", async () => {

@@ -98,15 +98,15 @@ export function SettingsCard() {
           />
         ))}
         <p className="ui-helper" style={{ margin: "var(--space-2) 0 0" }}>
-          Demo only: these toggles are saved on this device and do not control real notifications or
-          enforce backend privacy.
+          Demo only: these toggles are saved on this device and do not send real notifications or
+          change who can see your information.
         </p>
 
         <h3 className="impact-subhead">Help &amp; support</h3>
         <p className="ui-meta-row ui-flush">
           <span className="inline-icon">
             <HelpCircle size={16} className="icon-dim" aria-hidden="true" />
-            Township Connect is a hackathon prototype. For demo questions, ask the team.
+            Help a Neighbour is a hackathon prototype. For demo questions, ask the team.
           </span>
         </p>
       </div>

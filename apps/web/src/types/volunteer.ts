@@ -8,7 +8,8 @@ export type TaskCategory = Category;
 
 export type OpportunityKind = "request" | "event";
 
-export type Urgency = "low" | "medium" | "high";
+// "past" is a start time that has already gone by.
+export type Urgency = "low" | "medium" | "high" | "past";
 
 export type Opportunity = {
   id: string;
@@ -26,8 +27,6 @@ export type Opportunity = {
   area: string;
   scheduledAt: string; // ISO 8601
   durationMinutes: number;
-  // How time-sensitive the request is. Drives the "Most urgent" sort.
-  urgency: Urgency;
   // 0–100 rule-based fit score from the matching module.
   matchScore: number;
   // Short human reasons for the match, e.g. "Matches your Saturdays".
@@ -42,12 +41,13 @@ export type Opportunity = {
   sourceLabel: string;
 };
 
-export const URGENCY_RANK: Record<Urgency, number> = { high: 0, medium: 1, low: 2 };
+export const URGENCY_RANK: Record<Urgency, number> = { high: 0, medium: 1, low: 2, past: 3 };
 
 export const URGENCY_LABEL: Record<Urgency, string> = {
   high: "Urgent",
   medium: "Soon",
   low: "Flexible",
+  past: "Started",
 };
 
 // NOTE: SHORT_TASK_MAX_MINUTES (the old "short tasks only" filter threshold) was

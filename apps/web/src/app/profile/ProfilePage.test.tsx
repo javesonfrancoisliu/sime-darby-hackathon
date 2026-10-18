@@ -16,6 +16,38 @@ describe("profile page", () => {
     expect(within(card).getByText("Demo data")).toBeInTheDocument();
   });
 
+  it("shows City of Elmina for a profile saved before the township was renamed", async () => {
+    localStorage.setItem(
+      "tc.profile.prefs:signed-out",
+      JSON.stringify({ displayName: "Alex Tan", area: "Bandar Serai" }),
+    );
+    installFakeApi({ "GET /api/demo/users": { body: { users: [] } } });
+    renderApp("/profile");
+    const card = await screen.findByLabelText("Your profile");
+    expect(within(card).getByText("City of Elmina")).toBeInTheDocument();
+    expect(within(card).queryByText("Bandar Serai")).not.toBeInTheDocument();
+  });
+
+  it("explains the demo settings toggles in plain words", async () => {
+    installFakeApi({ "GET /api/demo/users": { body: { users: [] } } });
+    renderApp("/profile");
+    expect(
+      await screen.findByText(
+        "Demo only: these toggles are saved on this device and do not send real notifications or change who can see your information.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/backend|enforce/i)).not.toBeInTheDocument();
+  });
+
+  it("explains in plain words when no demo people exist yet", async () => {
+    installFakeApi({ "GET /api/demo/users": { body: { users: [] } } });
+    renderApp("/profile");
+    expect(
+      await screen.findByText("No demo people are set up yet. Please ask the team to add them."),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/pnpm|db:seed/)).not.toBeInTheDocument();
+  });
+
   it("shows the signed-in user name and area without a demo label", async () => {
     installFakeApi({ "GET /api/me": { body: VOLUNTEER } });
     signInAs(VOLUNTEER.id);

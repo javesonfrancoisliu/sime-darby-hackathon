@@ -1,4 +1,4 @@
-# Township Connect (web)
+# Help a Neighbour (web)
 
 Mobile-first PWA for young volunteers (Help a Neighbour). Vite, React 19, TypeScript and React Router 7. It covers the neighbourhood hub, volunteer feed, challenges and rewards, safety and the profile.
 

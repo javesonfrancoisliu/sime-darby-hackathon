@@ -20,8 +20,8 @@ export default defineConfig(({ mode }) => {
       VitePWA({
         ...pwaBase(),
         manifest: {
-          name: "Township Connect",
-          short_name: "Township",
+          name: "Help a Neighbour Volunteer",
+          short_name: "Volunteer",
           description:
             "Neighbourhood hub for community events, volunteering, and township updates.",
           id: "/",

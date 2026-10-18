@@ -6,6 +6,7 @@ import { buildCreateBody, isSlotPast, type DayChoice, type TimeSlot } from "../r
 import { useResident } from "../session/useResident";
 import { Banner } from "../ui/Banner";
 import { BackLink } from "../ui/BackLink";
+import { scrollToTop } from "../ui/scrollToTop";
 import { ConfirmStep } from "./requestFlow/ConfirmStep";
 import { DescribeStep } from "./requestFlow/DescribeStep";
 import { WhenStep } from "./requestFlow/WhenStep";
@@ -36,8 +37,10 @@ export function RequestFlowPage() {
   const [timeMessage, setTimeMessage] = useState<string>();
   const headingRef = useRef<HTMLHeadingElement>(null);
 
+  // Each step starts at the top with its heading focused, so the screen reader reads it.
   useEffect(() => {
-    headingRef.current?.focus();
+    scrollToTop();
+    headingRef.current?.focus({ preventScroll: true });
   }, [step]);
 
   if (!option || !resident) {

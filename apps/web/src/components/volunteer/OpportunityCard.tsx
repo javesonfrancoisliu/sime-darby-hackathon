@@ -1,6 +1,6 @@
 import { CalendarDays, Clock, MapPin, Sparkles } from "lucide-react";
 
-import type { Opportunity } from "../../types/volunteer";
+import type { Opportunity, Urgency } from "../../types/volunteer";
 import { TASK_CATEGORY_LABEL, URGENCY_LABEL } from "../../types/volunteer";
 import { formatDate, formatTimeRange } from "../../lib/format";
 import { approxKm } from "../../lib/geo";
@@ -8,6 +8,8 @@ import { AppButton, DemoTag, InfoCard, Pill, StatusBadge } from "../ui";
 
 export type OpportunityCardProps = {
   opportunity: Opportunity;
+  // Worked out by the page from the start time and the current clock.
+  urgency: Urgency;
   // Live distance (km) computed from the user's location, when available.
   liveDistanceKm?: number;
   joined: boolean;
@@ -20,18 +22,14 @@ export type OpportunityCardProps = {
 // a rule-based match score and reasons, plus an accept action.
 export function OpportunityCard({
   opportunity,
+  urgency,
   liveDistanceKm,
   joined,
   accepting = false,
   onAccept,
 }: OpportunityCardProps) {
   const distance = liveDistanceKm != null ? approxKm(liveDistanceKm) : opportunity.distanceKm;
-  const urgencyVariant =
-    opportunity.urgency === "high"
-      ? "danger"
-      : opportunity.urgency === "medium"
-        ? "warning"
-        : "info";
+  const urgencyVariant = urgency === "high" ? "danger" : urgency === "medium" ? "warning" : "info";
 
   return (
     <InfoCard as="li" ariaLabel={`Opportunity: ${opportunity.title}`}>
@@ -42,7 +40,7 @@ export function OpportunityCard({
         </div>
 
         <div className="ui-chip-row ui-gap-2" aria-label="Highlights">
-          <StatusBadge label={URGENCY_LABEL[opportunity.urgency]} variant={urgencyVariant} />
+          <StatusBadge label={URGENCY_LABEL[urgency]} variant={urgencyVariant} />
           <span className="match-score" title="How well this fits you">
             <Sparkles size={14} aria-hidden="true" />
             {opportunity.matchScore}% match

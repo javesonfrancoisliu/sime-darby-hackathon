@@ -28,15 +28,20 @@ import { errorMessage } from "@sdh/api-client";
 import { formatDate } from "../../lib/format";
 import { distanceKm } from "../../lib/geo";
 import { useGeolocation } from "../../lib/useGeolocation";
+import { useNow } from "../../lib/useNow";
+import { urgencyFor } from "../../lib/urgency";
 import { URGENCY_RANK, type Opportunity } from "../../types/volunteer";
 
 // Demo points granted for a VERIFIED volunteering task. Flat value for the
 // prototype; a real system would derive this server-side.
 const VOLUNTEERING_POINTS = 60;
+// How often the urgency badges and the "Most urgent" order are worked out again.
+const URGENCY_REFRESH_MS = 60_000;
 
 export function VolunteerPage() {
   const { opportunities, loading, error, notVerified, live, reload } = useVolunteerData();
   const geo = useGeolocation();
+  const now = useNow(URGENCY_REFRESH_MS);
   const {
     tasks,
     isAccepted,
@@ -91,7 +96,9 @@ export function VolunteerPage() {
         break;
       case "urgent":
         sorted.sort((a, b) => {
-          const byUrgency = URGENCY_RANK[a.urgency] - URGENCY_RANK[b.urgency];
+          const byUrgency =
+            URGENCY_RANK[urgencyFor(a.scheduledAt, now)] -
+            URGENCY_RANK[urgencyFor(b.scheduledAt, now)];
           if (byUrgency !== 0) return byUrgency;
           // Tie-break urgent items by soonest, then nearest.
           const byTime = new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime();
@@ -100,7 +107,7 @@ export function VolunteerPage() {
         break;
     }
     return sorted;
-  }, [opportunities, sort, distances]);
+  }, [opportunities, sort, distances, now]);
 
   async function handleAccept(opportunity: Opportunity) {
     setAcceptingId(opportunity.id);
@@ -277,6 +284,7 @@ export function VolunteerPage() {
                     <OpportunityCard
                       key={opportunity.id}
                       opportunity={opportunity}
+                      urgency={urgencyFor(opportunity.scheduledAt, now)}
                       liveDistanceKm={
                         useDevice && opportunity.coords ? distances.get(opportunity.id) : undefined
                       }

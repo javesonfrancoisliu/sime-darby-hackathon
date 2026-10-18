@@ -25,7 +25,7 @@ describe("useVolunteerData", () => {
   });
 
   it("maps requests and events from the API", async () => {
-    const soon = new Date(Date.now() + 5 * HOUR_MS).toISOString();
+    const soon = new Date(Date.now() + 2 * HOUR_MS).toISOString();
     const later = new Date(Date.now() + 100 * HOUR_MS).toISOString();
     installFakeApi({
       "GET /api/me": { body: VOLUNTEER },
@@ -59,10 +59,9 @@ describe("useVolunteerData", () => {
     expect(request).toMatchObject({
       kind: "request",
       distanceKm: 2.5,
-      urgency: "high",
       isDemoData: false,
     });
-    expect(event).toMatchObject({ kind: "event", distanceKm: 4, urgency: "low" });
+    expect(event).toMatchObject({ kind: "event", distanceKm: 4 });
     expect(event?.coords).toEqual({ lat: 3.2, lng: 101.5 });
     expect(result.current.impact).toMatchObject({ totalMinutes: 90, completedCount: 2 });
     expect(result.current.live).toBe(true);
