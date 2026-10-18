@@ -20,13 +20,14 @@ export default defineConfig(
       "apps/web/src/**/*.{ts,tsx}",
       "apps/elderly-web/src/**/*.{ts,tsx}",
       "packages/api-client/src/**/*.{ts,tsx}",
+      "packages/auth/src/**/*.{ts,tsx}",
     ],
     extends: [reactHooks.configs.flat.recommended],
     languageOptions: { globals: globals.browser },
   },
   {
     files: ["apps/api/**/*.ts", "packages/**/*.mjs", "packages/**/*.ts", "**/*.config.{js,ts}"],
-    ignores: ["packages/api-client/**"],
+    ignores: ["packages/api-client/**", "packages/auth/**"],
     languageOptions: { globals: globals.node },
   },
 );
