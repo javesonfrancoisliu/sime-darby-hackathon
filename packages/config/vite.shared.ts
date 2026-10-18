@@ -63,7 +63,7 @@ type CacheableRequest = {
 
 // Runtime cache for the only API read that is public and carries no personal data:
 // the event list requested while signed out. Anything sent with the X-Demo-User
-// header, and every other path (/api/demo/users, /api/me, requests), goes straight
+// or Authorization header, and every other path (/api/demo/users, /api/me, requests), goes straight
 // to the network, because the cache keys on the URL alone and would mix users.
 // The matcher is copied into the service worker as text, so it must stay self-contained.
 export function publicApiCache() {
@@ -71,6 +71,7 @@ export function publicApiCache() {
     urlPattern: ({ url, request }: CacheableRequest) =>
       request.method === "GET" &&
       !request.headers.has("X-Demo-User") &&
+      !request.headers.has("Authorization") &&
       url.pathname === "/api/events",
     handler: "NetworkFirst" as const,
     options: {

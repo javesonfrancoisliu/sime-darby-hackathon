@@ -68,8 +68,13 @@ describe("publicApiCache", () => {
     input: ReturnType<typeof call>,
   ) => boolean;
 
-  function call(path: string, options: { method?: string; demoUser?: string } = {}) {
-    const headers = new Headers(options.demoUser ? { "X-Demo-User": options.demoUser } : {});
+  function call(
+    path: string,
+    options: { method?: string; demoUser?: string; bearer?: string } = {},
+  ) {
+    const headers = new Headers();
+    if (options.demoUser) headers.set("X-Demo-User", options.demoUser);
+    if (options.bearer) headers.set("Authorization", `Bearer ${options.bearer}`);
     return {
       url: new URL(path, "https://app.test"),
       request: { method: options.method ?? "GET", headers },
@@ -82,6 +87,11 @@ describe("publicApiCache", () => {
 
   it("never caches requests made as a demo user", () => {
     expect(matches(call("/api/events", { demoUser: "u1" }))).toBe(false);
+  });
+
+  it("never caches requests that carry a bearer token", () => {
+    expect(matches(call("/api/events", { bearer: "tok" }))).toBe(false);
+    expect(matches(call("/api/events", { bearer: "tok", demoUser: "u1" }))).toBe(false);
   });
 
   it("never caches the demo user list or other personal reads", () => {
