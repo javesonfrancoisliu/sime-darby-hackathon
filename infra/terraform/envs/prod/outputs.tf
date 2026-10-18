@@ -1,16 +1,12 @@
-output "cloudfront_domain_name" {
-  description = "Public domain serving the app and /api/*."
-  value       = module.web.distribution_domain_name
-}
-
-output "distribution_id" {
-  description = "CloudFront distribution id (for invalidations)."
-  value       = module.web.distribution_id
-}
-
-output "web_bucket_name" {
-  description = "S3 bucket to sync the web build into."
-  value       = module.web.bucket_name
+output "sites" {
+  description = "Per site: CloudFront domain, distribution id (for invalidations) and the S3 bucket to sync the build into."
+  value = {
+    for name, site in module.web : name => {
+      domain_name     = site.distribution_domain_name
+      distribution_id = site.distribution_id
+      bucket_name     = site.bucket_name
+    }
+  }
 }
 
 output "api_endpoint" {
@@ -31,4 +27,9 @@ output "lambda_function_name" {
 output "lambda_log_group_name" {
   description = "Lambda CloudWatch log group name."
   value       = module.api.lambda_log_group_name
+}
+
+output "aws_region" {
+  description = "Region the stack runs in (used by the deploy script for S3 uploads)."
+  value       = var.aws_region
 }

@@ -9,6 +9,6 @@ output "distribution_id" {
 }
 
 output "distribution_domain_name" {
-  description = "CloudFront domain name serving web and API."
+  description = "CloudFront domain name serving this site and /api/*."
   value       = aws_cloudfront_distribution.web.domain_name
 }

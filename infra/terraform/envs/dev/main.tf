@@ -1,5 +1,7 @@
 locals {
   name_prefix = "${var.project}-${var.environment}"
+  # One static site per frontend; each also routes /api/* to the shared API.
+  sites = toset(["volunteer", "elderly"])
 }
 
 module "data" {
@@ -24,9 +26,11 @@ module "api" {
 }
 
 module "web" {
-  source = "../../modules/web-hosting"
+  source   = "../../modules/web-hosting"
+  for_each = local.sites
 
   name_prefix     = local.name_prefix
+  site_name       = each.key
   api_domain_name = replace(module.api.api_endpoint, "https://", "")
   price_class     = var.cloudfront_price_class
 }
