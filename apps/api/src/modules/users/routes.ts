@@ -1,4 +1,5 @@
 import {
+  CreateMeBody,
   CreateUserBody,
   DemoUsersQuery,
   Id,
@@ -10,9 +11,16 @@ import {
   type VolunteersResponse,
 } from "@sdh/contracts";
 import { HttpError, ok, type Route } from "../../lib/http";
-import { requireDemoAuthEnabled, requireUser } from "../../lib/identity";
+import { requireDemoAuthEnabled, requireToken, requireUser } from "../../lib/identity";
 import { parse } from "../../lib/validate";
-import { createUser, listDemoUsers, listVolunteers, reviewVolunteer, updateMe } from "./service";
+import {
+  createMyProfile,
+  createUser,
+  listDemoUsers,
+  listVolunteers,
+  reviewVolunteer,
+  updateMe,
+} from "./service";
 
 export const userRoutes: Route[] = [
   {
@@ -35,6 +43,15 @@ export const userRoutes: Route[] = [
         throw new HttpError("FORBIDDEN", "Coordinator accounts cannot be created here");
       }
       return ok((await createUser(body)) satisfies User, 201);
+    },
+  },
+  {
+    method: "POST",
+    path: "/api/me",
+    handler: async (req) => {
+      const { sub } = await requireToken(req);
+      const body = parse(CreateMeBody, req.body);
+      return ok((await createMyProfile(sub, body)) satisfies User, 201);
     },
   },
   {

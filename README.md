@@ -56,12 +56,15 @@ Most feature modules are split into three files:
 
 ## API
 
+The API accepts `Authorization: Bearer <Cognito access token>`. `POST /api/me` creates your profile after the first sign-in (Bearer token only).
+
 | Method | Path                        |
 | ------ | --------------------------- |
 | GET    | /api/health                 |
 | GET    | /api/demo/users             |
 | POST   | /api/users                  |
 | GET    | /api/me                     |
+| POST   | /api/me                     |
 | PATCH  | /api/me                     |
 | GET    | /api/volunteers             |
 | POST   | /api/volunteers/{id}/review |

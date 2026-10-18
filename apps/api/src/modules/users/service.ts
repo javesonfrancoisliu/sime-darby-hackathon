@@ -1,6 +1,8 @@
 import { randomUUID } from "node:crypto";
 import {
+  PRECINCT_LOCATIONS,
   Role,
+  type CreateMeBody,
   type CreateUserBody,
   type DemoUser,
   type UpdateMeBody,
@@ -11,17 +13,40 @@ import { isConditionFailure } from "../../lib/db";
 import { HttpError } from "../../lib/http";
 import { getUser, listUsersByRole, putUser, setVerification, updateProfile } from "./repository";
 
-export async function createUser(body: CreateUserBody): Promise<User> {
+export async function createUser(body: CreateUserBody, id: string = randomUUID()): Promise<User> {
   const now = new Date().toISOString();
   const user: User = {
     ...body,
-    id: randomUUID(),
+    id,
     verification: body.role === "volunteer" ? "pending" : "not_required",
     createdAt: now,
     updatedAt: now,
   };
   await putUser(user);
   return user;
+}
+
+// Self sign-up: the id is the verified Cognito sub. A second call for the same sub is a conflict.
+export async function createMyProfile(sub: string, body: CreateMeBody): Promise<User> {
+  try {
+    return await createUser(
+      {
+        role: body.role,
+        name: body.name,
+        area: body.precinct,
+        location: PRECINCT_LOCATIONS[body.precinct],
+        skills: [],
+        experience: "",
+        availability: [],
+      },
+      sub,
+    );
+  } catch (error) {
+    if (isConditionFailure(error)) {
+      throw new HttpError("CONFLICT", "Your account is already set up");
+    }
+    throw error;
+  }
 }
 
 export async function listDemoUsers(role?: Role): Promise<DemoUser[]> {
