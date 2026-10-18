@@ -1,14 +1,15 @@
 // Fills DynamoDB Local with demo users, open help requests and upcoming events.
 // Goes through the services so every record follows the same rules as the API.
-// Refuses to run without DYNAMODB_ENDPOINT so it never touches AWS. Skips if users already exist.
+// Refuses to run unless DYNAMODB_ENDPOINT is a local address, so it never touches AWS. Skips if users already exist.
 import type { Category, CreateUserBody, Day } from "@sdh/contracts";
 import { config } from "../src/lib/config";
+import { isLoopbackEndpoint } from "../src/lib/local-endpoint";
 import { createEvent } from "../src/modules/events/service";
 import { createRequest, reviewRequest } from "../src/modules/requests/service";
 import { createUser, listDemoUsers, reviewVolunteer } from "../src/modules/users/service";
 
-if (!config.dynamodbEndpoint) {
-  console.error("DYNAMODB_ENDPOINT is not set; copy apps/api/.env.example to apps/api/.env first.");
+if (!isLoopbackEndpoint(config.dynamodbEndpoint)) {
+  console.error("DYNAMODB_ENDPOINT must be set to a local address (see apps/api/.env.example).");
   process.exit(1);
 }
 

@@ -1,11 +1,19 @@
 import { Id, type Role, type User } from "@sdh/contracts";
+import { config } from "./config";
 import { getUser } from "../modules/users/repository";
 import { HttpError, type HttpRequest } from "./http";
 
 // Simulated sign-in for the demo: the client sends the chosen profile id. Not authentication.
 export const DEMO_USER_HEADER = "x-demo-user";
 
+// Demo-only endpoints disappear (404) when ALLOW_DEMO_IDENTITY=false.
+export function requireDemoIdentity(): void {
+  if (!config.allowDemoIdentity) throw new HttpError("NOT_FOUND", "Not found");
+}
+
 export async function requireUser(req: HttpRequest, ...roles: Role[]): Promise<User> {
+  if (!config.allowDemoIdentity)
+    throw new HttpError("UNAUTHENTICATED", "Demo sign-in is switched off");
   const raw = req.headers[DEMO_USER_HEADER];
   if (!raw) throw new HttpError("UNAUTHENTICATED", "Sign in first");
   const id = Id.safeParse(raw);
