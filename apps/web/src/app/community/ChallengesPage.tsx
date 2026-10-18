@@ -8,7 +8,7 @@ import {
   QuizModal,
   RewardsPanel,
 } from "../../components/challenges";
-import { ConfirmationDialog, PageHeader, Pill } from "../../components/ui";
+import { ConfirmationDialog, PageHeader, Pill, TabPanel, Tabs } from "../../components/ui";
 import { useGamification } from "../../data/useGamification";
 import { MOCK_ECO_QUIZ } from "../../data/gamification.mock";
 import {
@@ -53,18 +53,13 @@ export function ChallengesPage() {
   const [category, setCategory] = useState<CategoryFilter>("all");
   const [logging, setLogging] = useState<Challenge | null>(null);
   const [quizOpen, setQuizOpen] = useState(false);
-  const [confirmation, setConfirmation] = useState<{ title: string; message: string } | null>(
-    null,
-  );
+  const [confirmation, setConfirmation] = useState<{ title: string; message: string } | null>(null);
 
   const quizChallenge = challenges.find((c) => c.id === QUIZ_CHALLENGE_ID);
   const quizAlreadyEarned = progress[QUIZ_CHALLENGE_ID]?.status === "completed";
 
   const visible = useMemo(
-    () =>
-      category === "all"
-        ? challenges
-        : challenges.filter((c) => c.category === category),
+    () => (category === "all" ? challenges : challenges.filter((c) => c.category === category)),
     [challenges, category],
   );
 
@@ -132,68 +127,76 @@ export function ChallengesPage() {
 
       <ChallengeStatsStrip summary={summary} />
 
-      <div className="ui-tabs" role="tablist" aria-label="Challenges sections">
-        {TABS.map(({ id, label }) => (
-          <button
-            key={id}
-            type="button"
-            role="tab"
-            aria-selected={tab === id}
-            className="ui-tab"
-            onClick={() => setTab(id)}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <Tabs
+        idBase="challenges"
+        label="Challenges sections"
+        tabs={TABS}
+        value={tab}
+        onChange={setTab}
+      />
 
       {tab === "challenges" && (
-        <section className="ui-section" aria-label="Challenges">
-          <div className="ui-chip-row" role="group" aria-label="Filter by category">
-            {CATEGORY_FILTERS.map((value) => (
-              <button
-                key={value}
-                type="button"
-                className="ui-chip"
-                aria-pressed={category === value}
-                onClick={() => setCategory(value)}
-              >
-                {value === "all" ? "All" : CHALLENGE_CATEGORY_LABEL[value]}
-              </button>
-            ))}
-          </div>
+        <TabPanel idBase="challenges" id="challenges">
+          <section className="ui-section" aria-labelledby="challenges-heading">
+            <h2 className="ui-visually-hidden" id="challenges-heading">
+              Challenges
+            </h2>
+            <div className="ui-chip-row" role="group" aria-label="Filter by category">
+              {CATEGORY_FILTERS.map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  className="ui-chip"
+                  aria-pressed={category === value}
+                  onClick={() => setCategory(value)}
+                >
+                  {value === "all" ? "All" : CHALLENGE_CATEGORY_LABEL[value]}
+                </button>
+              ))}
+            </div>
 
-          <ul className="ui-grid community-list" style={{ marginTop: "var(--space-4)" }}>
-            {visible.map((challenge) => (
-              <ChallengeCard
-                key={challenge.id}
-                challenge={challenge}
-                progress={progress[challenge.id]}
-                onJoin={handleJoin}
-                onLogProgress={handleLogProgress}
-                onRequestCompletion={handleRequestCompletion}
-                onVerify={handleVerify}
-              />
-            ))}
-          </ul>
-        </section>
+            <ul className="ui-grid community-list" style={{ marginTop: "var(--space-4)" }}>
+              {visible.map((challenge) => (
+                <ChallengeCard
+                  key={challenge.id}
+                  challenge={challenge}
+                  progress={progress[challenge.id]}
+                  onJoin={handleJoin}
+                  onLogProgress={handleLogProgress}
+                  onRequestCompletion={handleRequestCompletion}
+                  onVerify={handleVerify}
+                />
+              ))}
+            </ul>
+          </section>
+        </TabPanel>
       )}
 
       {tab === "leaderboard" && (
-        <section className="ui-section" aria-label="Leaderboard">
-          <Leaderboard entries={leaderboard} />
-        </section>
+        <TabPanel idBase="challenges" id="leaderboard">
+          <section className="ui-section" aria-labelledby="leaderboard-heading">
+            <h2 className="ui-visually-hidden" id="leaderboard-heading">
+              Leaderboard
+            </h2>
+            <Leaderboard entries={leaderboard} />
+          </section>
+        </TabPanel>
       )}
 
       {tab === "rewards" && (
-        <section className="ui-section" aria-label="Rewards and badges">
-          <RewardsPanel
-            rewards={rewards}
-            badges={badges}
-            achievements={achievements}
-            onRedeem={handleRedeem}
-          />
-        </section>
+        <TabPanel idBase="challenges" id="rewards">
+          <section className="ui-section" aria-labelledby="rewards-heading">
+            <h2 className="ui-visually-hidden" id="rewards-heading">
+              Rewards and badges
+            </h2>
+            <RewardsPanel
+              rewards={rewards}
+              badges={badges}
+              achievements={achievements}
+              onRedeem={handleRedeem}
+            />
+          </section>
+        </TabPanel>
       )}
 
       <LogProgressModal
