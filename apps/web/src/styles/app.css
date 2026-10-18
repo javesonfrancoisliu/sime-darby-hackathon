@@ -43,9 +43,6 @@
   height: 100%;
   object-fit: cover;
 }
-.app-topbar-spacer {
-  flex: 1;
-}
 
 .app-body {
   flex: 1;

@@ -27,25 +27,11 @@
   }
 }
 
-/* ── Selectable cards ────────────────────────────────────────── */
-.app-card-button {
-  display: block;
-  width: 100%;
-  text-align: left;
-  cursor: pointer;
-}
-.app-card-button:hover {
-  border-color: var(--brand-primary);
-}
-
 .app-page-lead {
   margin: 0 0 var(--space-8);
   color: var(--text-secondary);
 }
 
-.app-detail-row {
-  margin-bottom: var(--space-6);
-}
 .app-detail-label {
   display: block;
   font-weight: 700;
@@ -178,10 +164,6 @@
   line-height: 1.1;
 }
 
-.app-hero--large .app-hero__name {
-  font-size: 2.5rem;
-}
-
 .app-hero__aa-btn {
   flex-shrink: 0;
   background: rgba(110, 0, 0, 0.4);
@@ -197,19 +179,6 @@
   margin-top: 4px;
 }
 
-/* ── Health metrics strip ────────────────────────────────────── */
-.app-metrics-strip {
-  display: flex;
-  gap: var(--space-3);
-  overflow-x: auto;
-  padding-bottom: var(--space-2);
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  margin-top: calc(-1 * var(--space-4));
-}
-.app-metrics-strip::-webkit-scrollbar {
-  display: none;
-}
 /* ── CTA card ────────────────────────────────────────────────── */
 .app-cta-card {
   background: var(--surface);
@@ -364,22 +333,6 @@
 .app-tab-bar__label {
   font-size: 1rem;
   font-weight: 600;
-}
-
-/* ── Me page avatar ──────────────────────────────────────────── */
-.app-me-avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: var(--brand-primary);
-  color: #fff;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2.25rem;
-  font-weight: 800;
-  margin-top: var(--space-8);
-  margin-left: var(--space-4);
 }
 
 /* ── Safety / Community page shell ──────────────────────────── */
@@ -575,13 +528,6 @@
   line-height: 1.5;
 }
 
-/* Township Live Conditions - dashboard condition cards Apple-design pass: clear hierarchy & spacing (§6, §16), optical typography (§15), material depth (§12), press response on pointer-down (§1). Brand tokens stay from the SDP/Township kit. */
-.apple-conditions-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-3);
-}
-
 .apple-condition-card {
   display: flex;
   flex-direction: column;
@@ -703,11 +649,6 @@
 }
 
 /* Narrow phones: keep two columns but allow a single column if the content would overflow at 360px. */
-@media (max-width: 360px) {
-  .apple-conditions-grid {
-    grid-template-columns: 1fr;
-  }
-}
 
 /* Honour the system reduced-motion preference for the press animation. */
 @media (prefers-reduced-motion: reduce) {
@@ -1176,7 +1117,6 @@
 
 /* ── 1. Apple Instant Press Response (§1, §10) ───────────────── */
 button:active,
-.app-card-button:active,
 .category-choice-card:active,
 .daily-support-item:active,
 .safety-card:active,
@@ -1860,28 +1800,6 @@ button:active,
   }
 }
 
-/* ── 13. Apple Form Card & Hints ─────────────────────────────── */
-.apple-form-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
-  padding: var(--space-6);
-  box-shadow: var(--shadow-card);
-}
-
-.apple-form-hint {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 10px 14px;
-  background: #f9fafb;
-  border-radius: var(--radius-sm);
-  font-size: 1rem;
-  color: var(--text-secondary);
-  line-height: 1.4;
-  margin-top: var(--space-3);
-}
-
 /* ── 14. Apple Senior Profile (Me Page) ──────────────────────── */
 .apple-profile-page {
   padding-top: var(--space-4);
@@ -2284,38 +2202,6 @@ button:active,
 .carousel__slide .apple-condition-card > * {
   position: relative;
   z-index: 1;
-}
-
-/* Haze / Air quality - hazy amber sky. */
-.apple-condition-card--haze {
-  background: linear-gradient(135deg, #fffdf5 0%, #fef3c7 100%);
-}
-.apple-condition-card--haze::after {
-  background: radial-gradient(circle, #fcd34d 0%, rgba(252, 211, 77, 0) 70%);
-}
-
-/* Temperature - warm heat. */
-.apple-condition-card--temp {
-  background: linear-gradient(135deg, #fff7ed 0%, #ffe4d3 100%);
-}
-.apple-condition-card--temp::after {
-  background: radial-gradient(circle, #fb923c 0%, rgba(251, 146, 60, 0) 70%);
-}
-
-/* Maintenance - calm blue. */
-.apple-condition-card--maintenance {
-  background: linear-gradient(135deg, #f5faff 0%, #dbeafe 100%);
-}
-.apple-condition-card--maintenance::after {
-  background: radial-gradient(circle, #60a5fa 0%, rgba(96, 165, 250, 0) 70%);
-}
-
-/* Facility damage - caution amber. */
-.apple-condition-card--facility {
-  background: linear-gradient(135deg, var(--warning-bg) 0%, #fde8c8 100%);
-}
-.apple-condition-card--facility::after {
-  background: radial-gradient(circle, var(--warn-accent) 0%, rgba(245, 158, 11, 0) 70%);
 }
 
 /* On the themed surfaces, give the icon chip a translucent white backing so it reads as a floating control (§12 material weight). */
