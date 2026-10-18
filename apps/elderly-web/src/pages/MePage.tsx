@@ -138,7 +138,7 @@ export function MePage() {
                 <span className="apple-inset-btn-row__subtitle">Demo number, not a real line</span>
               </div>
             </div>
-            <span style={{ fontWeight: 700, color: "var(--brand-primary)", fontSize: 14 }}>
+            <span style={{ fontWeight: 700, color: "var(--brand-primary)" }}>
               {DEMO_SECURITY_LINE.display}
             </span>
           </a>

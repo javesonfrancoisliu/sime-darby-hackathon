@@ -42,7 +42,7 @@ export function CategoryPage() {
                 {cat.badge && (
                   <span
                     className="safety-chip"
-                    style={{ background: "#FEF2F2", color: "#D71920", fontSize: 11 }}
+                    style={{ background: "#FEF2F2", color: "#BA0000" }}
                   >
                     {cat.badge}
                   </span>

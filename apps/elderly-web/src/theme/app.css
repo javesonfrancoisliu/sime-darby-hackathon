@@ -11,10 +11,11 @@
 
 /* Easy View is always on for the elderly app (Req 1.1, 1.2). */
 .app-root {
+  --control-border: #6B7280;
   min-height: 100vh;
   background: var(--page-bg);
-  /* Leave room for the fixed bottom tab bar */
-  padding-bottom: 72px;
+  /* Leave room for the fixed bottom tab bar and the phone home indicator */
+  padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
 }
 
 /* One readable column, centred — no horizontal padding on home (hero bleeds full width). */
@@ -87,7 +88,7 @@
 
 .app-home__section-subtitle {
   margin: 4px 0 0;
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: var(--text-secondary);
   line-height: 1.35;
 }
@@ -102,7 +103,10 @@
   font-size: 1rem;
   white-space: nowrap;
   cursor: pointer;
-  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 4px;
 }
 
 /* ── Hero header ─────────────────────────────────────────────── */
@@ -151,15 +155,14 @@
   display: flex;
   align-items: center;
   gap: var(--space-1);
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.08em;
-  opacity: 0.85;
   margin-bottom: var(--space-3);
 }
 
 .app-hero__location-icon {
-  font-size: 0.8125rem;
+  font-size: 1rem;
 }
 
 .app-hero__greeting-row {
@@ -173,7 +176,6 @@
   margin: 0;
   font-size: 1.125rem;
   font-weight: 400;
-  opacity: 0.9;
 }
 
 .app-hero__name {
@@ -189,12 +191,14 @@
 
 .app-hero__aa-btn {
   flex-shrink: 0;
-  background: rgba(255 255 255 / 0.2);
+  background: rgba(110, 0, 0, 0.4);
   border: none;
   border-radius: var(--radius-sm);
   color: #fff;
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 700;
+  min-width: 48px;
+  min-height: 48px;
   padding: 8px 12px;
   cursor: pointer;
   margin-top: 4px;
@@ -238,14 +242,14 @@
 }
 
 .app-metric-card__unit {
-  font-size: 0.8125rem;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--text-secondary);
 }
 
 .app-metric-card__label {
   margin-top: var(--space-1);
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
@@ -302,7 +306,7 @@
   display: inline-block;
   padding: 4px 12px;
   border-radius: var(--radius-pill);
-  font-size: 0.8125rem;
+  font-size: 1rem;
   font-weight: 600;
   margin-bottom: var(--space-3);
 }
@@ -319,7 +323,7 @@
 
 .app-request-card__date {
   margin: 0 0 var(--space-3);
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: var(--text-secondary);
 }
 
@@ -327,7 +331,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 600;
 }
 
@@ -341,7 +345,7 @@
   background: #FEF9C3;
   color: #713F12;
   font-weight: 700;
-  font-size: 0.875rem;
+  font-size: 1rem;
 }
 
 .app-request-card__verified {
@@ -375,8 +379,9 @@
   background: none;
   border: none;
   cursor: pointer;
+  min-width: 0;
   color: var(--text-secondary);
-  font-size: 0.6875rem;
+  font-size: 1rem;
   font-weight: 500;
   transition: color 150ms ease;
 }
@@ -391,7 +396,7 @@
 }
 
 .app-tab-bar__label {
-  font-size: 0.6875rem;
+  font-size: 1rem;
   font-weight: 600;
 }
 
@@ -433,8 +438,7 @@
 
 .safety-page__subtitle {
   margin: 4px 0 0;
-  font-size: 0.875rem;
-  opacity: 0.85;
+  font-size: 1rem;
 }
 
 /* Keep the header title from pushing the right-side controls off-screen on
@@ -493,21 +497,21 @@
 
 .safety-card__location {
   margin: 0 0 2px;
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--text-primary);
 }
 
 .safety-card__meta {
   margin: 0;
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: var(--text-secondary);
   line-height: 1.6;
 }
 
 .safety-card__description {
   margin: 0 0 var(--space-3);
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: var(--text-secondary);
   line-height: 1.5;
 }
@@ -521,7 +525,7 @@
 }
 
 .safety-card__category {
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--brand-primary);
   background: #FEF2F2;
@@ -531,7 +535,7 @@
 
 .safety-card__tip {
   margin: var(--space-2) 0 0;
-  font-size: 0.8125rem;
+  font-size: 1rem;
   color: var(--text-secondary);
 }
 
@@ -554,7 +558,7 @@
 }
 
 .safety-card__badge-label {
-  font-size: 0.6875rem;
+  font-size: 1rem;
   font-weight: 600;
   margin-top: 2px;
 }
@@ -579,7 +583,7 @@
   display: inline-block;
   padding: 3px 10px;
   border-radius: var(--radius-pill);
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 600;
   white-space: nowrap;
   flex-shrink: 0;
@@ -587,11 +591,11 @@
 /* Compact chip used inside the dense dashboard condition cards. */
 .safety-chip--sm {
   padding: 2px 8px;
-  font-size: 0.6875rem;
+  font-size: 1rem;
   letter-spacing: 0.01em;
 }
 .easy-view .safety-chip--sm {
-  font-size: 0.8125rem;
+  font-size: 1rem;
 }
 
 /* ── Advisory banner ─────────────────────────────────────────── */
@@ -601,7 +605,7 @@
   background: #FFFBEB;
   border: 1px solid #FCD34D;
   border-radius: var(--radius-sm);
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: #713F12;
   line-height: 1.5;
 }
@@ -682,7 +686,7 @@
   color: var(--text-primary);
 }
 .apple-condition-card__unit {
-  font-size: 0.8125rem;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--text-secondary);
 }
@@ -691,14 +695,14 @@
    run-together text in the old layout). */
 .apple-condition-card__label {
   margin-top: auto;
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 600;
   line-height: 1.3;
   color: var(--text-primary);
 }
 .apple-condition-card__title-line {
   margin-top: 4px;
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 600;
   line-height: 1.3;
   color: var(--text-primary);
@@ -708,7 +712,7 @@
   overflow: hidden;
 }
 .apple-condition-card__location {
-  font-size: 0.8125rem;
+  font-size: 1rem;
   color: var(--text-secondary);
   line-height: 1.35;
   display: -webkit-box;
@@ -717,7 +721,7 @@
   overflow: hidden;
 }
 .apple-condition-card__sub {
-  font-size: 0.8125rem;
+  font-size: 1rem;
   color: var(--text-secondary);
   line-height: 1.35;
 }
@@ -733,7 +737,7 @@
 .easy-view .apple-condition-card__sub,
 .easy-view .apple-condition-card__location,
 .easy-view .apple-condition-card__unit {
-  font-size: 0.9375rem;
+  font-size: 1rem;
 }
 
 /* Narrow phones: keep two columns but allow a single column if the
@@ -785,7 +789,7 @@
 }
 
 .safety-temp__stat-label {
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: var(--text-secondary);
 }
 
@@ -808,12 +812,13 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 6px 14px;
+  min-height: 48px;
+  padding: 6px 16px;
   border-radius: var(--radius-pill);
-  border: 1px solid var(--border);
+  border: 1px solid var(--control-border);
   background: var(--surface);
   color: var(--text-secondary);
-  font-size: 0.8125rem;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
@@ -830,7 +835,7 @@
   background: rgba(0 0 0 / 0.12);
   border-radius: var(--radius-pill);
   padding: 0 6px;
-  font-size: 0.6875rem;
+  font-size: 1rem;
 }
 
 /* ── Facility summary strip ──────────────────────────────────── */
@@ -856,7 +861,7 @@
 }
 
 .safety-facility-summary__label {
-  font-size: 0.6875rem;
+  font-size: 1rem;
   font-weight: 600;
   margin-top: 3px;
 }
@@ -864,7 +869,7 @@
 /* ── Source attribution ──────────────────────────────────────── */
 .safety-source {
   margin: var(--space-2) 0 0;
-  font-size: 0.6875rem;
+  font-size: 1rem;
   color: var(--text-secondary);
   text-align: right;
 }
@@ -878,7 +883,7 @@
 }
 
 .community-category-chip {
-  font-size: 0.6875rem;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--brand-primary);
   background: #FEF2F2;
@@ -898,7 +903,7 @@
 }
 
 .community-spots__text {
-  font-size: 0.8125rem;
+  font-size: 1rem;
   color: var(--text-secondary);
 }
 
@@ -907,13 +912,13 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  min-height: 44px;
+  min-height: 48px;
   background: var(--brand-primary);
   color: #fff;
   border: none;
   border-radius: var(--radius-pill);
   padding: 8px 20px;
-  font-size: 0.8125rem;
+  font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
   transition: background 150ms ease, transform 120ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -940,7 +945,7 @@
   width: 100%;
   margin-top: var(--space-3);
   padding: 12px;
-  font-size: 0.9375rem;
+  font-size: 1rem;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -958,7 +963,7 @@
 
 .community-vol-progress__label {
   margin: 4px 0 0;
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: var(--text-secondary);
 }
 
@@ -1014,7 +1019,7 @@
 }
 
 .category-choice-card__desc {
-  font-size: 0.8125rem;
+  font-size: 1rem;
   color: var(--text-secondary);
   line-height: 1.4;
 }
@@ -1028,13 +1033,13 @@
 }
 
 /* Labels for example data */
-.demo-tag { display: inline-block; margin-left: 8px; padding: 2px 10px; border-radius: var(--radius-pill); background: var(--info-bg); color: var(--info); font-size: 0.875rem; font-weight: 700; vertical-align: middle; }
+.demo-tag { display: inline-block; margin-left: 8px; padding: 2px 10px; border-radius: var(--radius-pill); background: var(--info-bg); color: var(--info); font-size: 1rem; font-weight: 700; vertical-align: middle; }
 .demo-banner { padding: 8px 16px; background: var(--info-bg); color: var(--info); font-size: 1rem; font-weight: 700; text-align: center; }
 
 /* Big pick-one buttons for the request steps */
 .choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); margin-bottom: var(--space-6); }
 .choice-list { display: grid; grid-template-columns: 1fr; gap: var(--space-3); margin-bottom: var(--space-6); }
-.choice-btn { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-height: 72px; padding: var(--space-3) var(--space-4); border: 2px solid var(--border); border-radius: var(--radius-card); background: var(--surface); color: var(--text-primary); font-size: 1.25rem; font-weight: 700; text-align: left; cursor: pointer; }
+.choice-btn { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-height: 72px; padding: var(--space-3) var(--space-4); border: 2px solid var(--control-border); border-radius: var(--radius-card); background: var(--surface); color: var(--text-primary); font-size: 1.25rem; font-weight: 700; text-align: left; cursor: pointer; }
 .choice-btn--selected { border-color: var(--brand-primary); background: #FFF6F3; color: #BA0000; }
 .choice-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .choice-btn__text { display: flex; flex-direction: column; gap: 2px; }
@@ -1094,13 +1099,13 @@
 }
 
 .daily-support-item__title {
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--text-primary);
 }
 
 .daily-support-item__desc {
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: var(--text-secondary);
   margin-top: 1px;
 }
@@ -1158,15 +1163,15 @@ button:active,
 }
 
 .app-hero__btn-icon {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(110, 0, 0, 0.4);
   border: none;
   border-radius: var(--radius-sm);
   color: #fff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  width: 48px;
+  height: 48px;
   cursor: pointer;
   transition: all 150ms ease;
 }
@@ -1191,14 +1196,14 @@ button:active,
    blocks keep the control-height tokens and let the root div follow html. */
 .app-root.text-size-normal {
   --font-body: 1rem;
-  --font-small: 0.875rem;
+  --font-small: 1rem;
   --control-height: 48px;
   font-size: 1rem;
 }
 
 .app-root.text-size-large {
   --font-body: 1rem;
-  --font-small: 0.875rem;
+  --font-small: 1rem;
   --control-height: 56px;
   font-size: 1rem;
 }
@@ -1212,7 +1217,7 @@ button:active,
 
 .app-root.text-size-xlarge {
   --font-body: 1rem;
-  --font-small: 0.875rem;
+  --font-small: 1rem;
   --control-height: 64px;
   font-size: 1rem;
   line-height: 1.6;
@@ -1238,6 +1243,7 @@ button:active,
 
 /* ── 5. High Contrast Mode (Low Vision / Cataracts) ──────────── */
 .high-contrast {
+  --control-border: #000000;
   --page-bg: #FFFFFF;
   --surface: #FFFFFF;
   --text-primary: #000000;
@@ -1364,7 +1370,7 @@ button:active,
 
 .apple-sheet-subtitle {
   margin: 2px 0 0;
-  font-size: 0.8125rem;
+  font-size: 1rem;
   color: var(--text-secondary);
 }
 
@@ -1372,8 +1378,8 @@ button:active,
   background: #E5E7EB;
   border: none;
   border-radius: 50%;
-  width: 32px;
-  height: 32px;
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1395,7 +1401,7 @@ button:active,
 }
 
 .apple-control-label {
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--text-secondary);
   text-transform: uppercase;
@@ -1438,7 +1444,7 @@ button:active,
 }
 
 .apple-segment-text {
-  font-size: 0.75rem;
+  font-size: 1rem;
 }
 
 /* ── Apple Control Row with Toggle Switch ────────────────────── */
@@ -1467,14 +1473,14 @@ button:active,
 
 .apple-control-row__title {
   display: block;
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--text-primary);
 }
 
 .apple-control-row__desc {
   display: block;
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: var(--text-secondary);
   margin-top: 2px;
 }
@@ -1483,7 +1489,7 @@ button:active,
 .apple-switch {
   width: 52px;
   height: 32px;
-  background: #D1D5DB;
+  background: var(--control-border);
   border-radius: var(--radius-pill);
   border: none;
   padding: 2px;
@@ -1492,9 +1498,15 @@ button:active,
   transition: background-color 220ms ease;
   flex-shrink: 0;
 }
+/* Grow the tap area to 48 px tall without changing how the switch looks. */
+.apple-switch::before {
+  content: "";
+  position: absolute;
+  inset: -8px -4px;
+}
 
 .apple-switch--on {
-  background: #34C759; /* Apple iOS green */
+  background: #15803D;
 }
 
 .apple-switch__thumb {
@@ -1523,7 +1535,7 @@ button:active,
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: 700;
   color: #991B1B;
   margin-bottom: var(--space-3);
@@ -1545,7 +1557,7 @@ button:active,
   border-radius: var(--radius-control);
   text-decoration: none;
   color: #1F2937;
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: 600;
   transition: border-color 150ms ease;
 }
@@ -1590,7 +1602,7 @@ button:active,
   color: var(--brand-primary);
   font-weight: 600;
   font-size: 1rem;
-  min-height: 44px;
+  min-height: 48px;
   margin: 0;
 }
 .apple-back-btn:hover {
@@ -1608,7 +1620,7 @@ button:active,
   border-radius: var(--radius-pill);
   background: #F3F4F6;
   color: var(--text-secondary);
-  font-size: 0.8125rem;
+  font-size: 1rem;
   font-weight: 600;
 }
 
@@ -1655,13 +1667,13 @@ button:active,
 
 .apple-card-button__desc {
   margin: 0 0 var(--space-2);
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: var(--text-secondary);
   line-height: 1.4;
 }
 
 .apple-card-button__volunteer {
-  font-size: 0.8125rem;
+  font-size: 1rem;
   color: var(--text-primary);
 }
 
@@ -1682,7 +1694,7 @@ button:active,
   border-radius: var(--radius-pill);
   background: #F3F4F6;
   color: var(--text-secondary);
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 600;
 }
 
@@ -1707,7 +1719,7 @@ button:active,
 }
 
 .apple-inset-value {
-  font-size: 0.9375rem;
+  font-size: 1rem;
   color: var(--text-primary);
   text-align: right;
   max-width: 60%;
@@ -1721,7 +1733,7 @@ button:active,
   background: #FEF9C3;
   color: #713F12;
   border-radius: var(--radius-pill);
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: 700;
 }
 
@@ -1760,7 +1772,7 @@ button:active,
 
 .apple-confirm-card__sub {
   margin: 0;
-  font-size: 0.8125rem;
+  font-size: 1rem;
   color: #7F1D1D;
   line-height: 1.4;
 }
@@ -1806,7 +1818,7 @@ button:active,
   padding: 10px 14px;
   background: #F9FAFB;
   border-radius: var(--radius-sm);
-  font-size: 0.8125rem;
+  font-size: 1rem;
   color: var(--text-secondary);
   line-height: 1.4;
   margin-top: var(--space-3);
@@ -1859,13 +1871,13 @@ button:active,
 
 .apple-profile-location {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: var(--text-secondary);
 }
 
 .apple-profile-voice-btn {
   margin-top: 10px;
-  font-size: 0.8125rem;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--brand-primary);
   padding: 4px 12px;
@@ -1877,7 +1889,7 @@ button:active,
 
 .apple-profile-section-title {
   display: block;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -1923,14 +1935,14 @@ button:active,
 
 .apple-inset-btn-row__title {
   display: block;
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--text-primary);
 }
 
 .apple-inset-btn-row__subtitle {
   display: block;
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: var(--text-secondary);
   margin-top: 2px;
 }
@@ -1940,25 +1952,26 @@ button:active,
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(110, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   color: #fff;
   border-radius: var(--radius-pill);
-  padding: 6px 14px;
-  font-size: 0.8125rem;
+  min-height: 48px;
+  padding: 6px 16px;
+  font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 160ms ease;
   flex-shrink: 0;
 }
 .apple-header-voice-btn:hover {
-  background: rgba(255, 255, 255, 0.35);
+  background: rgba(110, 0, 0, 0.55);
 }
 
 .apple-header-voice-text {
-  font-size: 0.8125rem;
+  font-size: 1rem;
 }
 
 /* On very narrow screens the header can run out of room. The voice button
@@ -2029,7 +2042,7 @@ button:active,
   border: none;
   border-radius: 10px;
   color: var(--text-secondary);
-  font-size: 0.8125rem;
+  font-size: 1rem;
   font-weight: 600;
   line-height: 1.1;
   cursor: pointer;
@@ -2053,13 +2066,13 @@ button:active,
   text-align: center;
 }
 .easy-view .seg-tabs__tab {
-  font-size: 0.875rem;
+  font-size: 1rem;
 }
 
 /* Very narrow phones: shrink the label a touch rather than hiding it. */
 @media (max-width: 360px) {
   .seg-tabs__tab {
-    font-size: 0.75rem;
+    font-size: 1rem;
     padding: 6px 2px;
   }
 }
@@ -2147,7 +2160,7 @@ button:active,
    jumps between slides, regardless of how many content rows a card has. */
 .carousel__slide .apple-condition-card {
   width: 100%;
-  height: 184px;
+  height: 212px;
   min-height: 0;
   justify-content: flex-start;
 }
@@ -2159,7 +2172,7 @@ button:active,
 }
 /* Font scaling: at X-Large text the cards need a little more room. */
 .text-size-xlarge .carousel__slide .apple-condition-card {
-  height: 212px;
+  height: 248px;
 }
 
 .carousel__controls {
@@ -2333,7 +2346,7 @@ button:active,
 }
 .play-summary__points-label,
 .play-summary__streak-label {
-  font-size: 0.8125rem;
+  font-size: 1rem;
   color: var(--text-secondary);
 }
 
@@ -2365,7 +2378,7 @@ button:active,
   border-color: var(--success);
 }
 .play-week__label {
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: var(--text-secondary);
   font-weight: 600;
 }
@@ -2394,7 +2407,7 @@ button:active,
   border-radius: var(--radius-sm);
   color: #065F46;
   font-weight: 600;
-  font-size: 0.9375rem;
+  font-size: 1rem;
   animation: seg-fade-in 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 @media (prefers-reduced-motion: reduce) {
@@ -2403,7 +2416,7 @@ button:active,
 
 .play-section-note {
   margin: 0 0 var(--space-3);
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: var(--text-secondary);
   line-height: 1.4;
 }
@@ -2432,7 +2445,7 @@ button:active,
 }
 .play-challenge__desc {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: var(--text-secondary);
   line-height: 1.4;
 }
@@ -2446,12 +2459,12 @@ button:active,
   margin-top: 6px;
 }
 .play-challenge__count {
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--text-primary);
 }
 .play-challenge__ends {
-  font-size: 0.8125rem;
+  font-size: 1rem;
   color: var(--text-secondary);
 }
 .play-challenge__reward {
@@ -2459,7 +2472,7 @@ button:active,
   padding: 8px 12px;
   background: #FFFBEB;
   border-radius: var(--radius-sm);
-  font-size: 0.8125rem;
+  font-size: 1rem;
   font-weight: 600;
   color: #713F12;
 }
@@ -2493,18 +2506,18 @@ button:active,
   line-height: 1;
 }
 .play-badge__name {
-  font-size: 0.8125rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--text-primary);
 }
 .play-badge__desc {
-  font-size: 0.6875rem;
+  font-size: 1rem;
   color: var(--text-secondary);
   line-height: 1.3;
 }
 .play-badge__locked {
   margin-top: 2px;
-  font-size: 0.625rem;
+  font-size: 1rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -2531,13 +2544,13 @@ button:active,
 }
 .play-reward__title {
   margin: 0 0 2px;
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--text-primary);
 }
 .play-reward__partner {
   margin: 0;
-  font-size: 0.8125rem;
+  font-size: 1rem;
   color: var(--text-secondary);
 }
 .play-reward__action {
@@ -2548,7 +2561,7 @@ button:active,
   flex-shrink: 0;
 }
 .play-reward__cost {
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--brand-primary);
 }
@@ -2577,15 +2590,13 @@ button:active,
   gap: 4px;
   padding: 6px 12px;
   border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(110, 0, 0, 0.4);
   color: #fff;
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 800;
   white-space: nowrap;
 }
-.play-header-points svg {
-  opacity: 0.9;
-}
+
 
 /* ─────────────────────────────────────────────────────────────
    Live-condition carousel cards — severity-driven accent.
@@ -2649,3 +2660,44 @@ button:active,
 .emergency-call__sub { font-size: 1rem; font-weight: 600; }
 .medical-empty__hint { display: block; margin-top: 4px; font-size: 1rem; color: var(--text-secondary); }
 @media (prefers-reduced-motion: reduce) { .emergency-call { transition: none; } }
+
+/* ── Accessibility floors ────────────────────────────────────── */
+/* The shared tokens size these in px, below the 16 px floor; lift them here. */
+.app-root .ui-badge,
+.app-root .ui-button,
+.app-root .ui-helper,
+.app-root .ui-error,
+.app-root .ui-label {
+  font-size: 1rem;
+}
+.app-root .ui-input {
+  border-color: var(--control-border);
+}
+.app-tab-bar__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  white-space: nowrap;
+}
+
+/* People who ask for less transparency get solid surfaces. */
+@media (prefers-reduced-transparency: reduce) {
+  .app-tab-bar,
+  .apple-sheet-backdrop,
+  .apple-sheet-panel {
+    background: var(--surface);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .apple-sheet-backdrop {
+    background: rgba(17, 24, 39, 0.7);
+  }
+  .apple-header-voice-btn,
+  .app-hero__btn-icon,
+  .app-hero__aa-btn,
+  .play-header-points {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: #8A0A10;
+  }
+}
