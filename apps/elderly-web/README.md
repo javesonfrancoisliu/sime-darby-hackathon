@@ -23,7 +23,7 @@ Set `API_PROXY_TARGET` to point the dev proxy somewhere other than `http://127.0
 
 ## Live and demo modes
 
-The first screen asks who is using the phone and lists residents from `GET /api/demo/users?role=elder`. The choice is stored by `@sdh/api-client` and sent as the `X-Demo-User` header.
+The first screen asks who is using the phone and lists residents from `GET /api/demo/users?role=elder`. The choice is stored by `@sdh/api-client` and sent as the `X-Demo-User` header. Build with `VITE_DEMO_SIGN_IN=false` to remove the picker (pair it with `ALLOW_DEMO_IDENTITY=false` on the API).
 
 - Live: requests (`/api/requests`), events (`/api/events`) and the resident name come from the API. The request and event lists refresh every 10 seconds while the page is visible.
 - Demo: set `VITE_USE_MOCK=true` to skip sign-in and use sample data from `src/mock`. Mock data is imported only by `api/`, `hooks/` and `session/`, and is tagged "Demo data" in the UI. A failed live call never falls back to mock data.
@@ -34,16 +34,19 @@ Notices, Volunteer, Updates, Safety, Play and Medical ID are still demo data.
 
 ```
 src/
-  pages/        Route pages, with request flow steps in pages/requestFlow
+  pages/        Route pages (including the resident picker), with request flow steps in pages/requestFlow
   ui/           Shared components
   api/          Request and event calls and error messages (switch to mock in demo mode)
   hooks/        Live query, mutation and demo content hooks
-  session/      Resident picker and session gate
+  session/      Session gate and the signed-in resident
   context/      Accessibility settings
+  community/    Event category words and spots left
+  safety/       Labels, colours and severity for each safety reading
   requests/     Categories and scheduling rules
   mock/         Fictional demo data
-  types/        Shared types and ambient declarations
+  types/        Shared types
   theme/        App CSS on top of @sdh/design-tokens
+  config.ts     Mock mode, sign-in switch and fixed numbers
   test/         Test setup and helpers
 ```
 
