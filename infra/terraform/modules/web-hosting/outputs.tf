@@ -13,6 +13,16 @@ output "distribution_arn" {
   value       = aws_cloudfront_distribution.web.arn
 }
 
+output "function_arn" {
+  description = "CloudFront function ARN for the path rewrite."
+  value       = aws_cloudfront_function.spa_rewrite.arn
+}
+
+output "origin_access_control_id" {
+  description = "CloudFront origin access control id."
+  value       = aws_cloudfront_origin_access_control.web.id
+}
+
 output "distribution_id" {
   description = "CloudFront distribution id."
   value       = aws_cloudfront_distribution.web.id

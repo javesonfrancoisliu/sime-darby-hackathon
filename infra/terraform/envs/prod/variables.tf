@@ -81,3 +81,9 @@ variable "developer_sso_role_arns" {
   type        = list(string)
   default     = []
 }
+
+variable "developer_user_names" {
+  description = "Teammate IAM users to create with MFA and the developer role. IAM users are account-wide, so list each name in one environment only."
+  type        = list(string)
+  default     = []
+}

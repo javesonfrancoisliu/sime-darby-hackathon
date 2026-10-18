@@ -15,6 +15,17 @@ variable "trusted_principal_arns" {
   }
 }
 
+variable "user_names" {
+  description = "IAM users to create for teammates. They join the developers group and can switch to the developer role."
+  type        = list(string)
+  default     = []
+
+  validation {
+    condition     = alltrue([for name in var.user_names : can(regex("^[A-Za-z0-9+=,.@_-]{1,64}$", name))])
+    error_message = "Each user name must be 1 to 64 letters, digits or +=,.@_- characters."
+  }
+}
+
 variable "trusted_sso_role_arns" {
   description = "IAM Identity Center role ARNs allowed to assume the developer role; MFA is enforced by Identity Center."
   type        = list(string)
@@ -61,6 +72,16 @@ variable "api_id" {
 
 variable "user_pool_arn" {
   description = "Cognito user pool ARN."
+  type        = string
+}
+
+variable "cloudfront_function_arn" {
+  description = "CloudFront function ARN used by the distribution."
+  type        = string
+}
+
+variable "origin_access_control_id" {
+  description = "CloudFront origin access control id used by the distribution."
   type        = string
 }
 

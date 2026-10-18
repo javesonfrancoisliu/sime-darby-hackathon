@@ -47,15 +47,18 @@ module "web" {
 module "developer_access" {
   source = "../../modules/developer-access"
 
-  name_prefix            = local.name_prefix
-  trusted_principal_arns = var.developer_principal_arns
-  trusted_sso_role_arns  = var.developer_sso_role_arns
-  log_group_arns         = module.api.log_group_arns
-  table_arn              = module.data.table_arn
-  function_arn           = module.api.function_arn
-  function_role_arn      = module.api.role_arn
-  api_id                 = module.api.api_id
-  user_pool_arn          = module.auth.user_pool_arn
-  distribution_arn       = module.web.distribution_arn
-  bucket_arn             = module.web.bucket_arn
+  name_prefix              = local.name_prefix
+  trusted_principal_arns   = var.developer_principal_arns
+  trusted_sso_role_arns    = var.developer_sso_role_arns
+  user_names               = var.developer_user_names
+  log_group_arns           = module.api.log_group_arns
+  table_arn                = module.data.table_arn
+  function_arn             = module.api.function_arn
+  function_role_arn        = module.api.role_arn
+  api_id                   = module.api.api_id
+  user_pool_arn            = module.auth.user_pool_arn
+  cloudfront_function_arn  = module.web.function_arn
+  origin_access_control_id = module.web.origin_access_control_id
+  distribution_arn         = module.web.distribution_arn
+  bucket_arn               = module.web.bucket_arn
 }

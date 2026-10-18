@@ -46,3 +46,8 @@ output "developer_role_arn" {
   description = "Read-only developer role ARN, or null when no developers are set."
   value       = module.developer_access.role_arn
 }
+
+output "developer_user_names" {
+  description = "Teammate IAM users created for the developer role."
+  value       = module.developer_access.user_names
+}

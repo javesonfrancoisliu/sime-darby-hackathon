@@ -3,7 +3,7 @@ data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
 locals {
-  enabled    = length(var.trusted_principal_arns) + length(var.trusted_sso_role_arns) > 0
+  enabled    = length(var.trusted_principal_arns) + length(var.trusted_sso_role_arns) + length(var.user_names) > 0
   account_id = data.aws_caller_identity.current.account_id
   region     = data.aws_region.current.region
   log_group_resources = flatten([
@@ -11,13 +11,14 @@ locals {
   ])
   apigateway_prefix = "arn:aws:apigateway:${local.region}::"
   cloudfront_prefix = "arn:aws:cloudfront::${local.account_id}"
+  mfa_user_arns     = concat(var.trusted_principal_arns, [for user in aws_iam_user.developer : user.arn])
 }
 
 # IAM users must have signed in with MFA. SSO roles carry no MFA key, so their
 # Identity Center enforces MFA instead.
 data "aws_iam_policy_document" "assume" {
   dynamic "statement" {
-    for_each = length(var.trusted_principal_arns) > 0 ? [1] : []
+    for_each = length(local.mfa_user_arns) > 0 ? [1] : []
 
     content {
       sid     = "IamUsersWithMfa"
@@ -25,7 +26,7 @@ data "aws_iam_policy_document" "assume" {
 
       principals {
         type        = "AWS"
-        identifiers = var.trusted_principal_arns
+        identifiers = local.mfa_user_arns
       }
 
       condition {
@@ -137,11 +138,12 @@ data "aws_iam_policy_document" "read" {
     actions = ["cloudfront:Describe*", "cloudfront:Get*", "cloudfront:List*"]
     resources = [
       var.distribution_arn,
-      "${local.cloudfront_prefix}:function/*",
+      var.cloudfront_function_arn,
+      "${local.cloudfront_prefix}:origin-access-control/${var.origin_access_control_id}",
+      # The distribution uses AWS managed cache, origin request and header policies, whose settings are public.
       "${local.cloudfront_prefix}:cache-policy/*",
       "${local.cloudfront_prefix}:origin-request-policy/*",
       "${local.cloudfront_prefix}:response-headers-policy/*",
-      "${local.cloudfront_prefix}:origin-access-control/*",
     ]
   }
 
@@ -192,8 +194,6 @@ data "aws_iam_policy_document" "read" {
       "s3:ListAllMyBuckets",
       "s3:GetAccountPublicAccessBlock",
       "tag:GetResources",
-      "xray:GetTraceSummaries",
-      "xray:BatchGetTraces",
     ]
     resources = ["*"]
   }
