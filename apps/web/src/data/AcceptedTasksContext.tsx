@@ -12,6 +12,7 @@ import type { CommunityEvent, EventsResponse, HelpRequest, RequestsResponse } fr
 
 import { apiFetch, errorMessage, useSession } from "@sdh/api-client";
 import { readJson, scopedKey, writeJson } from "../lib/storage";
+import { useLoader } from "../lib/useLoader";
 import type { Opportunity, OpportunityKind } from "../types/volunteer";
 
 // Tracks the volunteer's accepted Help-a-Neighbour tasks. Held once at the app
@@ -100,6 +101,22 @@ function eventToTask(event: CommunityEvent): AcceptedTask {
   };
 }
 
+type LiveTasks = { requests: HelpRequest[]; events: CommunityEvent[]; error: string | null };
+
+// Settled separately so a failing events call does not hide the volunteer's requests.
+async function loadLiveTasks(userId: string | null): Promise<LiveTasks> {
+  const [requests, events] = await Promise.allSettled([
+    apiFetch<RequestsResponse>("/api/requests/mine", { userId }),
+    apiFetch<EventsResponse>("/api/events", { userId }),
+  ]);
+  const failed = [requests, events].find((r) => r.status === "rejected");
+  return {
+    requests: requests.status === "fulfilled" ? requests.value.requests : [],
+    events: events.status === "fulfilled" ? events.value.events.filter((e) => e.joined) : [],
+    error: failed?.status === "rejected" ? errorMessage(failed.reason) : null,
+  };
+}
+
 export type AcceptedTasksContextValue = {
   tasks: AcceptedTask[];
   /** True when tasks come from the API (a demo user is signed in). */
@@ -113,8 +130,8 @@ export type AcceptedTasksContextValue = {
   complete: (id: string, minutesSpent: number) => Promise<void>;
   /** Simulated resident confirmation. Marks the task verified. */
   verify: (id: string) => void;
-  /** Re-reads live tasks from the API. No-op when signed out. */
-  refresh: () => void;
+  // Re-reads live tasks from the API. No-op when signed out.
+  refresh: () => Promise<void>;
   /** Clears all accepted-task demo state. */
   reset: () => void;
 };
@@ -131,50 +148,20 @@ export function AcceptedTasksProvider({ children }: { children: ReactNode }) {
   );
   // `forUserId` marks whose tasks are loaded, so switching user shows loading
   // while a refresh after accept/complete keeps the current list on screen.
-  const [liveData, setLiveData] = useState<{
-    forUserId: string | null;
-    requests: HelpRequest[];
-    events: CommunityEvent[];
-    error: string | null;
-  }>({ forUserId: null, requests: [], events: [], error: null });
-  const [version, setVersion] = useState(0);
+  const { loaded, reload } = useLoader(userId, loadLiveTasks, userId !== null);
+  const liveData = loaded !== null && loaded.scope === userId ? loaded.value : null;
 
   useEffect(() => writeJson(tasksKey(userId), mockTasks), [userId, mockTasks]);
   useEffect(() => writeJson(confirmedKey(userId), confirmed), [userId, confirmed]);
 
-  useEffect(() => {
-    if (!userId) return;
-    let cancelled = false;
-    Promise.all([
-      apiFetch<RequestsResponse>("/api/requests/mine", { userId }),
-      apiFetch<EventsResponse>("/api/events", { userId }),
-    ])
-      .then(([requests, events]) => {
-        if (cancelled) return;
-        setLiveData({
-          forUserId: userId,
-          requests: requests.requests,
-          events: events.events.filter((e) => e.joined),
-          error: null,
-        });
-      })
-      .catch((err: unknown) => {
-        if (cancelled) return;
-        setLiveData({ forUserId: userId, requests: [], events: [], error: errorMessage(err) });
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [userId, version]);
-
-  const refresh = useCallback(() => setVersion((v) => v + 1), []);
+  const refresh = reload;
 
   const tasks = useMemo<AcceptedTask[]>(() => {
     if (!live) return mockTasks;
-    const fromRequests = liveData.requests
+    const fromRequests = (liveData?.requests ?? [])
       .map((r) => requestToTask(r, confirmed))
       .filter((t): t is AcceptedTask => t !== null);
-    return [...fromRequests, ...liveData.events.map(eventToTask)].sort((a, b) =>
+    return [...fromRequests, ...(liveData?.events ?? []).map(eventToTask)].sort((a, b) =>
       a.scheduledAt.localeCompare(b.scheduledAt),
     );
   }, [live, mockTasks, liveData, confirmed]);
@@ -189,7 +176,8 @@ export function AcceptedTasksProvider({ children }: { children: ReactNode }) {
             ? `/api/events/${encodeURIComponent(opportunity.id)}/join`
             : `/api/requests/${encodeURIComponent(opportunity.id)}/accept`;
         await apiFetch(path, { method: "POST", userId });
-        refresh();
+        // Wait for the list so the card does not vanish before the task appears.
+        await refresh();
         return;
       }
       setMockTasks((prev) => {
@@ -220,7 +208,7 @@ export function AcceptedTasksProvider({ children }: { children: ReactNode }) {
           body: { minutesSpent },
           userId,
         });
-        refresh();
+        await refresh();
         return;
       }
       setMockTasks((prev) =>
@@ -260,8 +248,8 @@ export function AcceptedTasksProvider({ children }: { children: ReactNode }) {
     () => ({
       tasks,
       live,
-      loading: live && liveData.forUserId !== userId,
-      error: live ? liveData.error : null,
+      loading: live && liveData === null,
+      error: live ? (liveData?.error ?? null) : null,
       isAccepted,
       accept,
       complete,
@@ -269,7 +257,7 @@ export function AcceptedTasksProvider({ children }: { children: ReactNode }) {
       refresh,
       reset,
     }),
-    [tasks, live, userId, liveData, isAccepted, accept, complete, verify, refresh, reset],
+    [tasks, live, liveData, isAccepted, accept, complete, verify, refresh, reset],
   );
 
   return <AcceptedTasksContext.Provider value={value}>{children}</AcceptedTasksContext.Provider>;
