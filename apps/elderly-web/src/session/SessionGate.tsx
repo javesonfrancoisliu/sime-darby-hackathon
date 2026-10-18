@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { useSession } from "@sdh/api-client";
 import { logApiError } from "../api/errors";
-import { isMockMode } from "../config";
+import { demoSignInEnabled, isMockMode } from "../config";
 import { AppShell } from "../ui/AppShell";
 import { WhoIsUsingPage } from "../pages/WhoIsUsingPage";
 import { Banner } from "../ui/Banner";
@@ -15,7 +15,11 @@ export function SessionGate({ children }: { children: ReactNode }) {
   if (status === "signed_out")
     return (
       <AppShell hideTabs>
-        <WhoIsUsingPage />
+        {demoSignInEnabled() ? (
+          <WhoIsUsingPage />
+        ) : (
+          <Banner message="Sign-in is not available in this version of the app." />
+        )}
       </AppShell>
     );
   if (status === "loading") {

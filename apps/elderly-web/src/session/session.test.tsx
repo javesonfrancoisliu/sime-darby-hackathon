@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { DemoUsersResponse } from "@sdh/contracts";
@@ -92,5 +92,13 @@ describe("Me page", () => {
     await waitFor(() =>
       expect(screen.getByRole("heading", { name: "Who is using this phone?" })).toBeInTheDocument(),
     );
+  });
+
+  it("shows no picker and asks for no users in a build that switches sign-in off", async () => {
+    vi.stubEnv("VITE_DEMO_SIGN_IN", "false");
+    const { calls } = installFakeApi({ "GET /api/demo/users": { body: demoUsers } });
+    renderRoute(<App />, "/");
+    expect(await screen.findByText(/Sign-in is not available/)).toBeInTheDocument();
+    expect(calls.some((c) => c.path.startsWith("/api/demo/users"))).toBe(false);
   });
 });

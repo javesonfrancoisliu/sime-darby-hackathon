@@ -1,3 +1,9 @@
+// Whether the demo identity picker is offered. On unless a build sets VITE_DEMO_SIGN_IN=false,
+// which pairs with ALLOW_DEMO_IDENTITY=false on the API. Not a security boundary on its own.
+export function demoSignInEnabled(): boolean {
+  return import.meta.env.VITE_DEMO_SIGN_IN !== "false";
+}
+
 // Whether demo-only affordances (e.g. Demo Controls) should be shown.
 //
 // True in dev, or in any build where VITE_DEMO_CONTROLS=true (so it can be

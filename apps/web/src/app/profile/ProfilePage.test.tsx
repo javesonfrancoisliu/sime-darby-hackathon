@@ -1,7 +1,7 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { UpdateMeBody, User } from "@sdh/contracts";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { installFakeApi, signInAs } from "../../test/fakeApi";
 import { VOLUNTEER } from "../../test/fixtures";
@@ -149,5 +149,14 @@ describe("profile page", () => {
 
     expect(await within(dialog).findByText("Name is too long")).toBeInTheDocument();
     expect(screen.getByRole("dialog")).toBeInTheDocument();
+  });
+
+  it("hides the demo sign-in picker in a build that switches it off", async () => {
+    vi.stubEnv("VITE_DEMO_SIGN_IN", "false");
+    const { calls } = installFakeApi({ "GET /api/demo/users": { body: { users: [] } } });
+    renderApp("/profile");
+    await screen.findByLabelText("Your profile");
+    expect(screen.queryByLabelText("Demo sign-in")).not.toBeInTheDocument();
+    expect(calls.some((c) => c.path.startsWith("/api/demo/users"))).toBe(false);
   });
 });

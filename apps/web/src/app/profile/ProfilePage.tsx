@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { demoSignInEnabled } from "../../lib/demoFlag";
 import { DemoControls } from "../../components/demo/DemoControls";
 import {
   ClaimedRewardsCard,
@@ -45,7 +46,7 @@ export function ProfilePage() {
         <SettingsCard />
       </section>
 
-      <DemoSignInCard />
+      {demoSignInEnabled() && <DemoSignInCard />}
 
       {/* Demo-only reset (hidden unless demo controls are enabled). */}
       <DemoControls />
