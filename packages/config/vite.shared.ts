@@ -16,6 +16,26 @@ export function apiProxy(env: Env) {
   };
 }
 
+export const DEFAULT_ELDER_DEV_URL = "http://localhost:5174";
+export const DEFAULT_VOLUNTEER_DEV_URL = "http://localhost:5173";
+
+// The sign-in app's dev server also serves the other two apps, so all three share one origin
+// locally the way they do behind CloudFront. Each app runs on its own port with its own base path.
+export function appDevProxies(env: Env) {
+  return {
+    "/elder": {
+      target: env.ELDER_DEV_URL || DEFAULT_ELDER_DEV_URL,
+      ws: true,
+      changeOrigin: true,
+    },
+    "/volunteer": {
+      target: env.VOLUNTEER_DEV_URL || DEFAULT_VOLUNTEER_DEV_URL,
+      ws: true,
+      changeOrigin: true,
+    },
+  };
+}
+
 // Preview listens on localhost only. Set PREVIEW_HOST (e.g. 0.0.0.0) and
 // PREVIEW_ALLOWED_HOSTS (comma separated, e.g. .loca.lt) to share it via a tunnel.
 export function previewServer(env: Env, port: number) {

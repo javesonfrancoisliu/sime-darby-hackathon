@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   apiProxy,
+  appDevProxies,
+  DEFAULT_ELDER_DEV_URL,
+  DEFAULT_VOLUNTEER_DEV_URL,
   DEFAULT_API_PROXY_TARGET,
   previewServer,
   pwaBase,
@@ -18,6 +21,30 @@ describe("apiProxy", () => {
     expect(apiProxy({ API_PROXY_TARGET: "http://10.0.0.5:3001" })["/api"].target).toBe(
       "http://10.0.0.5:3001",
     );
+  });
+});
+
+describe("appDevProxies", () => {
+  it("defaults to the local elder and volunteer dev servers", () => {
+    const proxies = appDevProxies({});
+    expect(proxies["/elder"].target).toBe(DEFAULT_ELDER_DEV_URL);
+    expect(proxies["/volunteer"].target).toBe(DEFAULT_VOLUNTEER_DEV_URL);
+  });
+
+  it("reads the targets from ELDER_DEV_URL and VOLUNTEER_DEV_URL", () => {
+    const proxies = appDevProxies({
+      ELDER_DEV_URL: "http://localhost:6001",
+      VOLUNTEER_DEV_URL: "http://localhost:6002",
+    });
+    expect(proxies["/elder"].target).toBe("http://localhost:6001");
+    expect(proxies["/volunteer"].target).toBe("http://localhost:6002");
+  });
+
+  it("forwards websockets and rewrites the origin for both apps", () => {
+    for (const rule of Object.values(appDevProxies({}))) {
+      expect(rule.ws).toBe(true);
+      expect(rule.changeOrigin).toBe(true);
+    }
   });
 });
 
