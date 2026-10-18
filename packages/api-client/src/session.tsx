@@ -27,6 +27,8 @@ export type SessionContextValue = {
   error: string | null;
   signIn: (userId: string) => void;
   signOut: () => void;
+  // Replaces the loaded user with a fresher copy, e.g. the reply to PATCH /api/me.
+  updateUser: (user: User) => void;
 };
 
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -82,6 +84,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     setUserId(null);
   }, []);
 
+  const updateUser = useCallback((next: User) => {
+    setUser((current) => (current && current.id === next.id ? next : current));
+  }, []);
+
   const status: SessionStatus = !userId
     ? "signed_out"
     : user && user.id === userId
@@ -98,8 +104,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       error,
       signIn,
       signOut,
+      updateUser,
     }),
-    [userId, user, status, error, signIn, signOut],
+    [userId, user, status, error, signIn, signOut, updateUser],
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

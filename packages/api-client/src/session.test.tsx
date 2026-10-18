@@ -67,4 +67,17 @@ describe("session", () => {
     act(() => result.current.signIn("u1"));
     await waitFor(() => expect(result.current.status).toBe("signed_in"));
   });
+
+  it("replaces the signed-in user with a fresher copy", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(reply(me)));
+    const { result } = renderHook(() => useSession(), { wrapper });
+    act(() => result.current.signIn("u1"));
+    await waitFor(() => expect(result.current.status).toBe("signed_in"));
+
+    act(() => result.current.updateUser({ ...me, name: "Sam Lee" } as never));
+    expect(result.current.user?.name).toBe("Sam Lee");
+
+    act(() => result.current.updateUser({ id: "u2", name: "Other" } as never));
+    expect(result.current.user?.name).toBe("Sam Lee");
+  });
 });
