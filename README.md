@@ -43,7 +43,8 @@ packages/
 infra/terraform/
   bootstrap/              S3 bucket for Terraform state (run once)
   modules/                api (Lambda, API Gateway), data (DynamoDB), web-hosting (S3, CloudFront)
-  envs/dev, envs/prod     Settings for each environment
+  envs/dev, envs/prod     Settings for each environment; each hosts the volunteer and elderly sites
+infra/scripts/deploy.sh   Build, apply Terraform and publish both frontends
 compose.yaml              DynamoDB Local for development
 ```
 
@@ -96,6 +97,16 @@ pnpm test
 pnpm lint
 pnpm typecheck
 ```
+
+## Deploy
+
+Runs from your machine; there is no CI/CD. Needs the AWS CLI, Terraform 1.10+ and a named AWS profile.
+
+1. Once per account: `terraform -chdir=infra/terraform/bootstrap init`, then `apply` with `bootstrap/terraform.tfvars` filled in from the example. It creates the state bucket.
+2. Copy `envs/dev/terraform.tfvars.example` and `envs/dev/backend.hcl.example` (drop `.example`) and fill them in. Set `demo_auth_enabled = true` only while the demo needs sign-in, because anyone with the URL can then pick any demo user.
+3. Run `infra/scripts/deploy.sh dev <aws-profile>`. It builds everything, shows the Terraform plan and asks before applying, then uploads both apps to S3 and clears the CloudFront caches. It prints the volunteer and elderly URLs at the end.
+
+Hashed files in `assets/` are cached for a year; `index.html`, `sw.js` and the manifest are always revalidated so installed PWAs pick up new releases.
 
 ## Frontend notes
 
