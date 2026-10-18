@@ -6,6 +6,8 @@ import { storedDemoUserId } from "./storage";
 
 const DEMO_USER_HEADER = "X-Demo-User";
 export const DEFAULT_TIMEOUT_MS = 8000;
+// Writes get longer: an abort after the server stored the change looks like a failure and invites a duplicate retry.
+export const MUTATION_TIMEOUT_MS = 30000;
 
 export class ApiError extends Error {
   constructor(
@@ -26,6 +28,10 @@ export type ApiOptions = {
   timeoutMs?: number;
 };
 
+function defaultTimeout(method: ApiOptions["method"]): number {
+  return method && method !== "GET" ? MUTATION_TIMEOUT_MS : DEFAULT_TIMEOUT_MS;
+}
+
 const NETWORK_MESSAGE = "Can't reach the server. Check your connection and try again.";
 
 export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promise<T> {
@@ -35,7 +41,7 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promi
   if (options.body !== undefined) headers["content-type"] = "application/json";
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), options.timeoutMs ?? DEFAULT_TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), options.timeoutMs ?? defaultTimeout(options.method));
 
   try {
     let res: Response;

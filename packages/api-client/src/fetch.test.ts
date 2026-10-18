@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ApiError, apiFetch } from "./fetch";
+import { ApiError, apiFetch, DEFAULT_TIMEOUT_MS, MUTATION_TIMEOUT_MS } from "./fetch";
 import { DEMO_USER_STORAGE_KEY } from "./storage";
 
 const json = (body: unknown, status = 200) =>
@@ -69,6 +69,25 @@ describe("apiFetch", () => {
     const pending = apiFetch("/api/x", { timeoutMs: 100 }).catch((e: unknown) => e);
     await vi.advanceTimersByTimeAsync(101);
     await expect(pending).resolves.toMatchObject({ status: 0, code: "NETWORK" });
+  });
+
+  it("gives writes a longer timeout than reads", async () => {
+    vi.useFakeTimers();
+    fetchMock.mockImplementation(
+      (_path: string, init: RequestInit) =>
+        new Promise((_resolve, reject) => {
+          init.signal?.addEventListener("abort", () => reject(new DOMException("a", "AbortError")));
+        }),
+    );
+    const read = apiFetch("/api/x").catch((e: unknown) => e);
+    const write = apiFetch("/api/x", { method: "POST", body: {} }).catch((e: unknown) => e);
+    let writeSettled = false;
+    void write.then(() => (writeSettled = true));
+    await vi.advanceTimersByTimeAsync(DEFAULT_TIMEOUT_MS + 1);
+    await expect(read).resolves.toMatchObject({ code: "NETWORK" });
+    expect(writeSettled).toBe(false);
+    await vi.advanceTimersByTimeAsync(MUTATION_TIMEOUT_MS);
+    await expect(write).resolves.toMatchObject({ code: "NETWORK" });
   });
 
   it("throws BAD_RESPONSE when a 2xx body is not JSON", async () => {

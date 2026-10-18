@@ -1,13 +1,11 @@
-import { readStorage, registerScopedKey, writeStorage } from "@sdh/api-client";
+import { readStorage, registerScopedKey, SIGNED_OUT_SCOPE, writeStorage } from "@sdh/api-client";
 
 // Per-user persisted state. Keys are `${base}:${userId}`, or `${base}:signed-out`
-// for the offline demo, and the api-client removes all of them on sign-out.
-
-const SIGNED_OUT = "signed-out";
+// for the offline demo, and the api-client removes the signed-in ones on sign-out.
 
 export function scopedKey(base: string): (userId: string | null) => string {
   const keyFor = registerScopedKey(base);
-  return (userId) => keyFor(userId ?? SIGNED_OUT);
+  return (userId) => keyFor(userId ?? SIGNED_OUT_SCOPE);
 }
 
 export function readJson<T>(key: string, fallback: T): T {

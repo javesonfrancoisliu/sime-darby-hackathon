@@ -25,8 +25,12 @@ export function storedDemoUserId(): string | null {
   return readStorage(DEMO_USER_STORAGE_KEY);
 }
 
+// Scope suffix for the signed-out offline demo. It survives sign-in and sign-out.
+export const SIGNED_OUT_SCOPE = "signed-out";
+
 // Keys an app namespaces per user. Each is stored as `${base}:${userId}` and is
-// removed for every user when the session signs out.
+// removed for every signed-in user when the session signs out. The signed-out
+// scope is kept; the old un-suffixed key is dropped as leftover from before scoping.
 const scopedBases = new Set<string>();
 
 export function registerScopedKey(base: string): (userId: string) => string {
@@ -34,12 +38,17 @@ export function registerScopedKey(base: string): (userId: string) => string {
   return (userId) => `${base}:${userId}`;
 }
 
+function isDoomed(key: string, base: string): boolean {
+  if (key === base) return true;
+  return key.startsWith(`${base}:`) && key !== `${base}:${SIGNED_OUT_SCOPE}`;
+}
+
 export function clearScopedKeys(): void {
   try {
     const doomed: string[] = [];
     for (let i = 0; i < window.localStorage.length; i += 1) {
       const key = window.localStorage.key(i);
-      if (key && [...scopedBases].some((base) => key.startsWith(`${base}:`))) doomed.push(key);
+      if (key && [...scopedBases].some((base) => isDoomed(key, base))) doomed.push(key);
     }
     for (const key of doomed) window.localStorage.removeItem(key);
   } catch {

@@ -1,4 +1,4 @@
-export { ApiError, apiFetch, DEFAULT_TIMEOUT_MS, errorMessage, type ApiOptions } from "./fetch";
+export { ApiError, apiFetch, DEFAULT_TIMEOUT_MS, errorMessage, MUTATION_TIMEOUT_MS, type ApiOptions } from "./fetch";
 export {
   SessionProvider,
   useSession,
@@ -8,6 +8,7 @@ export {
 export {
   clearScopedKeys,
   DEMO_USER_STORAGE_KEY,
+  SIGNED_OUT_SCOPE,
   readStorage,
   registerScopedKey,
   storedDemoUserId,

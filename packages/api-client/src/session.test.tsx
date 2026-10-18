@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SessionProvider, useSession } from "./session";
-import { DEMO_USER_STORAGE_KEY, registerScopedKey } from "./storage";
+import { DEMO_USER_STORAGE_KEY, registerScopedKey, SIGNED_OUT_SCOPE } from "./storage";
 
 const wrapper = ({ children }: { children: ReactNode }) => (
   <SessionProvider>{children}</SessionProvider>
@@ -25,6 +25,8 @@ describe("session", () => {
     const scoped = registerScopedKey("tc.test");
     window.localStorage.setItem(scoped("u1"), "mine");
     window.localStorage.setItem("other", "keep");
+    window.localStorage.setItem(scoped(SIGNED_OUT_SCOPE), "demo");
+    window.localStorage.setItem("tc.test", "legacy");
 
     const { result } = renderHook(() => useSession(), { wrapper });
     expect(result.current.status).toBe("signed_out");
@@ -38,6 +40,8 @@ describe("session", () => {
     expect(window.localStorage.getItem(DEMO_USER_STORAGE_KEY)).toBeNull();
     expect(window.localStorage.getItem(scoped("u1"))).toBeNull();
     expect(window.localStorage.getItem("other")).toBe("keep");
+    expect(window.localStorage.getItem(scoped(SIGNED_OUT_SCOPE))).toBe("demo");
+    expect(window.localStorage.getItem("tc.test")).toBeNull();
   });
 
   it("drops a stored user the API no longer knows", async () => {
