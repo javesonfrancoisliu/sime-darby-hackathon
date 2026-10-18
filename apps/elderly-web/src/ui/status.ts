@@ -1,5 +1,5 @@
 import type { RequestStatus } from "@sdh/contracts";
-import type { AlertLevel } from "../mock/safetyData";
+import type { AlertLevel } from "../types/safety";
 
 // Plain-language text for each status a resident can see.
 export const STATUS_TEXT: Record<RequestStatus, string> = {

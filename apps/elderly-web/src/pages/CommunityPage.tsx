@@ -6,11 +6,7 @@ import { useResident } from "../session/useResident";
 import { Banner } from "../ui/Banner";
 import { DemoTag } from "../ui/DemoTag";
 import { Spinner } from "../ui/Spinner";
-import {
-  MAINTENANCE_ANNOUNCEMENTS,
-  VOLUNTEER_OPPORTUNITIES,
-  TOWNSHIP_UPDATES,
-} from "../mock/communityData";
+import { useCommunityContent } from "../hooks/useCommunityContent";
 import {
   IconCalendar,
   IconAlertTriangle,
@@ -58,6 +54,7 @@ function SectionHeading({
 // c. Community volunteering opportunities
 // d. Important township updates
 export function CommunityPage() {
+  const { maintenanceNotices, volunteerOpportunities, townshipUpdates } = useCommunityContent();
   const { speak, voiceAssist, triggerHaptic } = useAccessibility();
   const [tab, setTab] = useState<CommunityTab>("events");
   const groupId = useId();
@@ -256,7 +253,7 @@ export function CommunityPage() {
               demo
             />
             <div className="ui-stack">
-              {MAINTENANCE_ANNOUNCEMENTS.map((m) => (
+              {maintenanceNotices.map((m) => (
                 <div key={m.id} className="safety-card">
                   <div className="safety-card__row">
                     <div className="community-event-card__icon" aria-hidden="true">
@@ -303,7 +300,7 @@ export function CommunityPage() {
               demo
             />
             <div className="ui-stack">
-              {VOLUNTEER_OPPORTUNITIES.map((v) => {
+              {volunteerOpportunities.map((v) => {
                 const joined = joinedVolunteer.has(v.id);
                 const signedUp = joined ? v.volunteersSignedUp + 1 : v.volunteersSignedUp;
                 const pct = Math.min(Math.round((signedUp / v.volunteersNeeded) * 100), 100);
@@ -380,7 +377,7 @@ export function CommunityPage() {
               demo
             />
             <div className="ui-stack">
-              {TOWNSHIP_UPDATES.map((u) => (
+              {townshipUpdates.map((u) => (
                 <div key={u.id} className={`safety-card${u.pinned ? " safety-card--pinned" : ""}`}>
                   <div className="safety-card__row">
                     <div className="community-event-card__icon" aria-hidden="true">

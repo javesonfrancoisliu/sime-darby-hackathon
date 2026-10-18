@@ -1,17 +1,7 @@
 // Mock Safety Data - Health & Safety Hazards
 // Example values only, shown with a Demo data label.
 
-export type HazardLevel = "good" | "moderate" | "unhealthy" | "hazardous";
-export type AlertLevel  = "normal" | "warning" | "danger";
-
-// ── Haze / Air Quality ───────────────────────────────
-export interface HazeReading {
-  location: string;
-  api: number;          // Air Pollutant Index (Malaysia standard)
-  level: HazardLevel;
-  updatedAt: string;
-  recommendation: string;
-}
+import type { HazeReading, WaterLevelReading, TemperatureAlert, FacilityReport } from "../types/safety";
 
 export const HAZE_DATA: HazeReading[] = [
   {
@@ -36,18 +26,6 @@ export const HAZE_DATA: HazeReading[] = [
     recommendation: "Air quality is satisfactory. Enjoy outdoor activities.",
   },
 ];
-
-// ── Water Levels ─────────────────────────────────────
-export type WaterStatus = "normal" | "watch" | "warning" | "danger";
-
-export interface WaterLevelReading {
-  name: string;
-  type: "river" | "lake";
-  levelM: number;      // current level in metres
-  normalMaxM: number;  // normal max level in metres
-  status: WaterStatus;
-  updatedAt: string;
-}
 
 export const WATER_LEVELS: WaterLevelReading[] = [
   {
@@ -76,17 +54,6 @@ export const WATER_LEVELS: WaterLevelReading[] = [
   },
 ];
 
-// ── Temperature ──────────────────────────────────────
-export interface TemperatureAlert {
-  location: string;
-  tempC: number;
-  feelsLikeC: number;
-  humidity: number;    // percent
-  level: AlertLevel;
-  updatedAt: string;
-  advisory?: string;
-}
-
 export const TEMPERATURE_DATA: TemperatureAlert = {
   location: "Elmina West",
   tempC: 35,
@@ -96,20 +63,6 @@ export const TEMPERATURE_DATA: TemperatureAlert = {
   updatedAt: "8:00 am",
   advisory: "Heat advisory in effect. Stay hydrated and avoid prolonged sun exposure between 11 am–3 pm.",
 };
-
-// ── Broken / Damaged Facilities ──────────────────────
-export type FacilityStatus = "reported" | "in_progress" | "fixed";
-
-export interface FacilityReport {
-  id: string;
-  title: string;
-  location: string;
-  category: string;
-  status: FacilityStatus;
-  reportedAt: string;
-  updatedAt: string;
-  description: string;
-}
 
 export const FACILITY_REPORTS: FacilityReport[] = [
   {

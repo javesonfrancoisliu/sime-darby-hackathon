@@ -1,13 +1,7 @@
 import { useId, useState } from "react";
-import {
-  MY_NEIGHBOURHOOD,
-  COMMUNITY_CHALLENGES,
-  BADGES,
-  INITIAL_STREAK,
-  REWARDS,
-  INITIAL_POINTS,
-  type StreakState,
-} from "../mock/challengesData";
+import { PlayIcon } from "../ui/PlayIcon";
+import { useChallengesData } from "../hooks/useChallengesData";
+import type { StreakState } from "../types/challenges";
 import {
   IconTrophy,
   IconFlame,
@@ -27,6 +21,8 @@ type PlayTab = "streak" | "challenges" | "badges" | "rewards";
 // a daily check-in streak, and rewards/vouchers for township shops & clinics.
 // Stateful demo; apple-design feedback (§13 causal feedback, §16 completion).
 export function ChallengesPage() {
+  const { neighbourhood, communityChallenges, badgeList, rewardList, initialStreak, initialPoints } =
+    useChallengesData();
   const { speak, voiceAssist, triggerHaptic } = useAccessibility();
 
   const [tab, setTab] = useState<PlayTab>("streak");
@@ -38,14 +34,14 @@ export function ChallengesPage() {
     { id: "rewards", label: "Rewards", icon: <IconGift size={18} strokeWidth={2} /> },
   ];
 
-  const [points, setPoints] = useState(INITIAL_POINTS);
-  const [streak, setStreak] = useState<StreakState>(INITIAL_STREAK);
+  const [points, setPoints] = useState(initialPoints);
+  const [streak, setStreak] = useState<StreakState>(initialStreak);
   const [checkedInToday, setCheckedInToday] = useState(false);
   const [challengeBoost, setChallengeBoost] = useState<Record<string, number>>({});
   const [redeemed, setRedeemed] = useState<Set<string>>(new Set());
   const [justEarnedBadge, setJustEarnedBadge] = useState(false);
 
-  const firstChallenge = COMMUNITY_CHALLENGES[0];
+  const firstChallenge = communityChallenges[0];
 
   function handleCheckIn() {
     if (checkedInToday) return;
@@ -77,9 +73,9 @@ export function ChallengesPage() {
   }
 
   function handleReadSummary() {
-    const earned = BADGES.filter((b) => b.earned).length + (justEarnedBadge ? 0 : 0);
+    const earned = badgeList.filter((b) => b.earned).length + (justEarnedBadge ? 0 : 0);
     speak(
-      `Community play for ${MY_NEIGHBOURHOOD.name}. You have ${points} points and a ${streak.current} day check-in streak. ${earned} badges earned. Join a neighbourhood challenge or redeem a reward at a township shop or clinic.`,
+      `Community play for ${neighbourhood.name}. You have ${points} points and a ${streak.current} day check-in streak. ${earned} badges earned. Join a neighbourhood challenge or redeem a reward at a township shop or clinic.`,
     );
   }
 
@@ -93,7 +89,7 @@ export function ChallengesPage() {
             <h1 className="safety-page__title">Community Play</h1>
             <p className="safety-page__subtitle">
               <IconUsers size={13} strokeWidth={2} style={{ verticalAlign: "-2px", marginRight: 4 }} />
-              {MY_NEIGHBOURHOOD.name} · {MY_NEIGHBOURHOOD.members} neighbours
+              {neighbourhood.name} · {neighbourhood.members} neighbours
             </p>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -173,7 +169,7 @@ export function ChallengesPage() {
         </button>
         {justEarnedBadge && (
           <p className="play-toast" role="status">
-            🎉 Nice! +10 points added to {MY_NEIGHBOURHOOD.name}
+            Nice! +10 points added to {neighbourhood.name}
           </p>
         )}
       </section>
@@ -193,7 +189,7 @@ export function ChallengesPage() {
           We reach these goals <strong>together</strong> - every neighbour&rsquo;s check-in counts.
         </p>
         <div className="ui-stack">
-          {COMMUNITY_CHALLENGES.map((c) => {
+          {communityChallenges.map((c) => {
             const boost = challengeBoost[c.id] ?? 0;
             const progress = Math.min(c.progress + boost, c.goal);
             const pct = Math.min(Math.round((progress / c.goal) * 100), 100);
@@ -201,7 +197,7 @@ export function ChallengesPage() {
             return (
               <div key={c.id} className="play-challenge">
                 <div className="play-challenge__top">
-                  <span className="play-challenge__emoji" aria-hidden="true">{c.emoji}</span>
+                  <PlayIcon name={c.icon} className="play-challenge__icon" />
                   <div style={{ flex: 1 }}>
                     <p className="play-challenge__title">{c.title}</p>
                     <p className="play-challenge__desc">{c.description}</p>
@@ -241,9 +237,9 @@ export function ChallengesPage() {
           <h2 className="safety-section__heading-text">Participation Badges</h2>
         </div>
         <div className="play-badges">
-          {BADGES.map((b) => (
+          {badgeList.map((b) => (
             <div key={b.id} className={`play-badge${b.earned ? " play-badge--earned" : ""}`}>
-              <span className="play-badge__emoji" aria-hidden="true">{b.emoji}</span>
+              <PlayIcon name={b.icon} className="play-badge__icon" />
               <span className="play-badge__name">{b.name}</span>
               <span className="play-badge__desc">{b.description}</span>
               {!b.earned && <span className="play-badge__locked">Locked</span>}
@@ -265,12 +261,12 @@ export function ChallengesPage() {
         </div>
         <p className="play-section-note">Use your neighbour points at township shops &amp; clinics.</p>
         <div className="ui-stack">
-          {REWARDS.map((r) => {
+          {rewardList.map((r) => {
             const isRedeemed = redeemed.has(r.id);
             const affordable = points >= r.cost;
             return (
               <div key={r.id} className="play-reward">
-                <span className="play-reward__emoji" aria-hidden="true">{r.emoji}</span>
+                <PlayIcon name={r.icon} className="play-reward__icon" />
                 <div className="play-reward__body">
                   <p className="play-reward__title">{r.title}</p>
                   <p className="play-reward__partner">{r.partner}</p>

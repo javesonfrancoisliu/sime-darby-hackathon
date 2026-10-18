@@ -1,14 +1,6 @@
 import { useId, useState, type ReactNode } from "react";
-import {
-  HAZE_DATA,
-  WATER_LEVELS,
-  TEMPERATURE_DATA,
-  FACILITY_REPORTS,
-  type HazardLevel,
-  type WaterStatus,
-  type AlertLevel,
-  type FacilityStatus,
-} from "../mock/safetyData";
+import { useSafetyData } from "../hooks/useSafetyData";
+import type { AlertLevel, FacilityStatus, HazardLevel, WaterStatus } from "../types/safety";
 import {
   IconWind,
   IconWaves,
@@ -73,6 +65,7 @@ function SectionHeading({ icon, title }: { icon: ReactNode; title: string }) {
 // c. Temperature Alerts
 // d. Broken or Damaged Facilities within the Township (Reported, In progress, Fixed)
 export function SafetyPage() {
+  const { hazeReadings, waterReadings, temperatureAlert, facilityReports } = useSafetyData();
   const [facilityFilter, setFacilityFilter] = useState<FilterStatus>("all");
   const [tab, setTab] = useState<SafetyTab>("haze");
   const groupId = useId();
@@ -87,17 +80,17 @@ export function SafetyPage() {
 
   const filteredFacilities =
     facilityFilter === "all"
-      ? FACILITY_REPORTS
-      : FACILITY_REPORTS.filter((f) => f.status === facilityFilter);
+      ? facilityReports
+      : facilityReports.filter((f) => f.status === facilityFilter);
 
-  const tempStyle = ALERT_COLOR[TEMPERATURE_DATA.level];
-  const localHaze = HAZE_DATA[0] ?? { location: "Elmina West", level: "good", api: 0 };
+  const tempStyle = ALERT_COLOR[temperatureAlert.level];
+  const localHaze = hazeReadings[0] ?? { location: "Elmina West", level: "good", api: 0 };
 
   function handleReadSafetySummary() {
-    const open = FACILITY_REPORTS.filter((f) => f.status !== "fixed").length;
+    const open = facilityReports.filter((f) => f.status !== "fixed").length;
     speak(
       `Health and safety. These are example readings, not live data. Air quality in ${localHaze.location} is ${localHaze.level}, API ${localHaze.api}. ` +
-        `Temperature is ${TEMPERATURE_DATA.tempC} degrees, ${tempStyle.label}. ` +
+        `Temperature is ${temperatureAlert.tempC} degrees, ${tempStyle.label}. ` +
         `${open} facility repairs are not yet fixed.`,
     );
   }
@@ -146,7 +139,7 @@ export function SafetyPage() {
           title="Air Quality &amp; Haze API"
         />
         <div className="ui-stack">
-          {HAZE_DATA.map((r) => {
+          {hazeReadings.map((r) => {
             const s = HAZARD_COLOR[r.level];
             const pct = Math.min((r.api / 300) * 100, 100);
             return (
@@ -188,7 +181,7 @@ export function SafetyPage() {
           title="River &amp; Lake Water Levels"
         />
         <div className="ui-stack">
-          {WATER_LEVELS.map((r) => {
+          {waterReadings.map((r) => {
             const s = WATER_COLOR[r.status];
             const pct = Math.min((r.levelM / r.normalMaxM) * 100, 100);
             return (
@@ -231,11 +224,11 @@ export function SafetyPage() {
         />
         <div
           className="safety-card safety-card--temperature"
-          style={{ borderColor: TEMPERATURE_DATA.level === "normal" ? undefined : "#F59E0B" }}
+          style={{ borderColor: temperatureAlert.level === "normal" ? undefined : "#F59E0B" }}
         >
           <div className="safety-temp__main">
             <div className="safety-temp__reading">
-              <span className="safety-temp__value">{TEMPERATURE_DATA.tempC}°C</span>
+              <span className="safety-temp__value">{temperatureAlert.tempC}°C</span>
               <span
                 className="safety-chip"
                 style={{ background: tempStyle.bg, color: tempStyle.text }}
@@ -245,23 +238,23 @@ export function SafetyPage() {
             </div>
             <p className="safety-card__meta">
               <IconMapPin size={12} strokeWidth={2} style={{ verticalAlign: "-1px", marginRight: 4 }} />
-              {TEMPERATURE_DATA.location} · {TEMPERATURE_DATA.updatedAt}
+              {temperatureAlert.location} · {temperatureAlert.updatedAt}
             </p>
           </div>
           <div className="safety-temp__stats">
             <div className="safety-temp__stat">
               <span className="safety-temp__stat-label">Feels like</span>
-              <span className="safety-temp__stat-value">{TEMPERATURE_DATA.feelsLikeC}°C</span>
+              <span className="safety-temp__stat-value">{temperatureAlert.feelsLikeC}°C</span>
             </div>
             <div className="safety-temp__stat">
               <span className="safety-temp__stat-label">Humidity</span>
-              <span className="safety-temp__stat-value">{TEMPERATURE_DATA.humidity}%</span>
+              <span className="safety-temp__stat-value">{temperatureAlert.humidity}%</span>
             </div>
           </div>
-          {TEMPERATURE_DATA.advisory && (
+          {temperatureAlert.advisory && (
             <div className="safety-advisory">
               <IconAlertTriangle size={16} strokeWidth={2} style={{ verticalAlign: "-2px", marginRight: 6 }} />
-              {TEMPERATURE_DATA.advisory}
+              {temperatureAlert.advisory}
             </div>
           )}
         </div>
@@ -289,8 +282,8 @@ export function SafetyPage() {
               {f === "all" ? "All" : FACILITY_COLOR[f].label}
               <span className="safety-filter__count">
                 {f === "all"
-                  ? FACILITY_REPORTS.length
-                  : FACILITY_REPORTS.filter((r) => r.status === f).length}
+                  ? facilityReports.length
+                  : facilityReports.filter((r) => r.status === f).length}
               </span>
             </button>
           ))}
@@ -329,7 +322,7 @@ export function SafetyPage() {
         <div className="safety-facility-summary">
           {(["reported", "in_progress", "fixed"] as FacilityStatus[]).map((s) => {
             const c = FACILITY_COLOR[s];
-            const count = FACILITY_REPORTS.filter((r) => r.status === s).length;
+            const count = facilityReports.filter((r) => r.status === s).length;
             return (
               <div
                 key={s}

@@ -2337,9 +2337,9 @@ button:active,
   gap: var(--space-3);
   margin-bottom: var(--space-3);
 }
-.play-challenge__emoji {
-  font-size: 1.75rem;
-  line-height: 1;
+.play-challenge__icon {
+  flex-shrink: 0;
+  color: var(--brand-primary);
 }
 .play-challenge__title {
   margin: 0 0 2px;
@@ -2405,9 +2405,8 @@ button:active,
   border-color: #FCD34D;
   background: linear-gradient(135deg, #FFFDF5 0%, #FEF3C7 100%);
 }
-.play-badge__emoji {
-  font-size: 1.75rem;
-  line-height: 1;
+.play-badge__icon {
+  color: var(--brand-primary);
 }
 .play-badge__name {
   font-size: 1rem;
@@ -2437,10 +2436,9 @@ button:active,
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
 }
-.play-reward__emoji {
-  font-size: 1.625rem;
-  line-height: 1;
+.play-reward__icon {
   flex-shrink: 0;
+  color: var(--brand-primary);
 }
 .play-reward__body {
   flex: 1;

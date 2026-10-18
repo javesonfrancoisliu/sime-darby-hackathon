@@ -33,12 +33,8 @@ import {
   type Severity,
 } from "../ui/status";
 import type { CSSProperties } from "react";
-import {
-  HAZE_DATA,
-  TEMPERATURE_DATA,
-  FACILITY_REPORTS,
-} from "../mock/safetyData";
-import { MAINTENANCE_ANNOUNCEMENTS } from "../mock/communityData";
+import { useCommunityContent } from "../hooks/useCommunityContent";
+import { useSafetyData } from "../hooks/useSafetyData";
 
 // Short chip labels for the live-condition carousel cards.
 const HAZE_LABEL: Record<string, string> = {
@@ -69,14 +65,16 @@ export function HomePage() {
   const navigate = useNavigate();
   const { data, status, error, refetch } = useMyRequests();
   const resident = useResident();
+  const { hazeReadings, temperatureAlert, facilityReports } = useSafetyData();
+  const { maintenanceNotices } = useCommunityContent();
 
   // Local township data for Elmina West. Under noUncheckedIndexedAccess these
   // lookups are typed as possibly undefined, so each card below renders only
   // when its datum exists.
-  const localHaze = HAZE_DATA.find((h) => h.location === "Elmina West") ?? HAZE_DATA[0];
-  const localMaintenance = MAINTENANCE_ANNOUNCEMENTS[0];
+  const localHaze = hazeReadings.find((h) => h.location === "Elmina West") ?? hazeReadings[0];
+  const localMaintenance = maintenanceNotices[0];
   const localFacilityDamage =
-    FACILITY_REPORTS.find((f) => f.status === "in_progress") ?? FACILITY_REPORTS[0];
+    facilityReports.find((f) => f.status === "in_progress") ?? facilityReports[0];
 
   // Severity → CSS custom properties so each card's chip, bar and left
   // accent stripe all follow one colour from the shared 5-step ramp
@@ -128,7 +126,7 @@ export function HomePage() {
     );
   }
   {
-    const sev = tempSeverity(TEMPERATURE_DATA.level);
+    const sev = tempSeverity(temperatureAlert.level);
     conditionSlides.push(
       <button
         key="temp"
@@ -143,13 +141,13 @@ export function HomePage() {
             <IconThermometer size={20} strokeWidth={1.8} />
           </span>
           <span className="safety-chip safety-chip--sm apple-condition-card__chip">
-            {TEMP_LABEL[TEMPERATURE_DATA.level]}
+            {TEMP_LABEL[temperatureAlert.level]}
           </span>
           <DemoTag />
         </div>
         <div className="apple-condition-card__main">
-          <span className="apple-condition-card__value">{TEMPERATURE_DATA.tempC}°C</span>
-          <span className="apple-condition-card__unit">Feels {TEMPERATURE_DATA.feelsLikeC}°</span>
+          <span className="apple-condition-card__value">{temperatureAlert.tempC}°C</span>
+          <span className="apple-condition-card__unit">Feels {temperatureAlert.feelsLikeC}°</span>
         </div>
         <span className="apple-condition-card__label">Temperature Alert</span>
         <span className="apple-condition-card__sub">Stay hydrated &amp; rest in shade</span>
