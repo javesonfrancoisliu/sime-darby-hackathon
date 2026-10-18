@@ -26,7 +26,7 @@ import {
 import { ChallengesEntryCard } from "../../components/challenges";
 import { useRole } from "../../components/layout";
 import { useAcceptedTasks } from "../../data/AcceptedTasksContext";
-import { apiFetch, errorMessage, useSession } from "@sdh/api-client";
+import { errorMessage, useSession } from "@sdh/api-client";
 import { useCommunityItems } from "../../data/useCommunityItems";
 import { formatDate } from "../../lib/format";
 import { DEMO_TOWNSHIP } from "../../lib/township";
@@ -49,7 +49,7 @@ export function CommunityPage() {
   const { items, loading, error, usingSampleData, reload } = useCommunityItems();
   const { userId } = useSession();
   // Joined events also show in Volunteer → My accepted tasks.
-  const { refresh: refreshTasks } = useAcceptedTasks();
+  const { joinEvent } = useAcceptedTasks();
   const { role } = useRole();
 
   const [filter, setFilter] = useState<FilterValue>("all");
@@ -101,15 +101,12 @@ export function CommunityPage() {
     setActiveEvent(null);
     if (live) {
       try {
-        await apiFetch(`/api/events/${encodeURIComponent(event.id)}/join`, {
-          method: "POST",
-          userId,
-        });
+        await joinEvent(event.id);
       } catch (err) {
         setFailure(errorMessage(err));
         return;
       } finally {
-        await Promise.all([reload(), refreshTasks()]);
+        await reload();
       }
     }
     setRegisteredEventIds((prev) => new Set(prev).add(event.id));

@@ -124,6 +124,8 @@ export type AcceptedTasksContextValue = {
   isAccepted: (id: string) => boolean;
   // Accept a request or join an event. Rejects with an ApiError in live mode.
   accept: (opportunity: Opportunity) => Promise<void>;
+  // Joins a live event as the signed-in user, then refreshes the task list even if the join fails.
+  joinEvent: (eventId: string) => Promise<void>;
   // Volunteer-reported completion. Does NOT award points or count as verified.
   complete: (id: string, minutesSpent: number) => Promise<void>;
   // Simulated resident confirmation. Marks the task verified.
@@ -166,15 +168,32 @@ export function AcceptedTasksProvider({ children }: { children: ReactNode }) {
 
   const isAccepted = useCallback((id: string) => tasks.some((t) => t.id === id), [tasks]);
 
+  const joinEvent = useCallback(
+    async (eventId: string) => {
+      try {
+        await apiFetch(`/api/events/${encodeURIComponent(eventId)}/join`, {
+          method: "POST",
+          userId,
+        });
+      } finally {
+        // Wait for the list so the card does not vanish before the task appears.
+        await refresh();
+      }
+    },
+    [userId, refresh],
+  );
+
   const accept = useCallback(
     async (opportunity: Opportunity) => {
       if (userId) {
-        const path =
-          opportunity.kind === "event"
-            ? `/api/events/${encodeURIComponent(opportunity.id)}/join`
-            : `/api/requests/${encodeURIComponent(opportunity.id)}/accept`;
-        await apiFetch(path, { method: "POST", userId });
-        // Wait for the list so the card does not vanish before the task appears.
+        if (opportunity.kind === "event") {
+          await joinEvent(opportunity.id);
+          return;
+        }
+        await apiFetch(`/api/requests/${encodeURIComponent(opportunity.id)}/accept`, {
+          method: "POST",
+          userId,
+        });
         await refresh();
         return;
       }
@@ -195,7 +214,7 @@ export function AcceptedTasksProvider({ children }: { children: ReactNode }) {
         return [task, ...prev];
       });
     },
-    [userId, refresh],
+    [userId, refresh, joinEvent],
   );
 
   const complete = useCallback(
@@ -250,12 +269,13 @@ export function AcceptedTasksProvider({ children }: { children: ReactNode }) {
       error: live ? (liveData?.error ?? null) : null,
       isAccepted,
       accept,
+      joinEvent,
       complete,
       verify,
       refresh,
       reset,
     }),
-    [tasks, live, liveData, isAccepted, accept, complete, verify, refresh, reset],
+    [tasks, live, liveData, isAccepted, accept, joinEvent, complete, verify, refresh, reset],
   );
 
   return <AcceptedTasksContext.Provider value={value}>{children}</AcceptedTasksContext.Provider>;

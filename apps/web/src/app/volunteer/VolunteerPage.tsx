@@ -204,8 +204,8 @@ export function VolunteerPage() {
                 }
                 description={
                   verification === "rejected"
-                    ? "A coordinator did not approve your profile, so requests stay hidden. You can still join community events."
-                    : "A coordinator needs to verify your profile before you can see neighbours' requests. You can still join community events while you wait."
+                    ? "A coordinator did not approve your profile, so requests stay hidden."
+                    : "A coordinator needs to verify your profile before you can see neighbours' requests."
                 }
                 action={<AppLinkButton to="/community">See community events</AppLinkButton>}
               />
