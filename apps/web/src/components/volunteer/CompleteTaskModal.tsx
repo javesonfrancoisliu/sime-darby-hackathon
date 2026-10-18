@@ -56,7 +56,7 @@ export function CompleteTaskModal({
     >
       {task && (
         <>
-          <p style={{ margin: 0 }}>
+          <p className="ui-flush">
             Mark <strong>{task.title}</strong> as completed?
           </p>
           <FormField

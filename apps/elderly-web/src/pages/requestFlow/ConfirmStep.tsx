@@ -32,7 +32,7 @@ export function ConfirmStep(props: ConfirmStepProps) {
       <div className="apple-inset-group">
         <div className="apple-inset-row">
           <span className="app-detail-label">Help with</span>
-          <span className="apple-inset-value" style={{ fontWeight: 700 }}>
+          <span className="apple-inset-value text-strong">
             {categoryLabel}
           </span>
         </div>

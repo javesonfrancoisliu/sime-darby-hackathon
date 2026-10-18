@@ -41,7 +41,7 @@ function ChipGroup<T extends string>({
   return (
     <fieldset className="chip-fieldset">
       <legend className="pref-row-label">{legend}</legend>
-      <div className="ui-chip-row" style={{ gap: "var(--space-2)" }}>
+      <div className="ui-chip-row ui-gap-2">
         {options.map((option) => (
           <button
             key={option}
@@ -135,13 +135,13 @@ export function EditPreferencesModal({ open, onClose }: EditPreferencesModalProp
         selected={languages}
         onToggle={(v) => setLanguages((prev) => toggle(prev, v))}
       />
-      <p className="ui-helper" style={{ margin: 0 }}>
+      <p className="ui-helper ui-flush">
         {isDemo
           ? "Saved on this device for the demo."
           : "Skills and availability are saved to your account and used for matching. Interests and languages stay on this device."}
       </p>
       {saveError && (
-        <p className="ui-error" role="alert" style={{ margin: 0 }}>
+        <p className="ui-error ui-flush" role="alert">
           {saveError}
         </p>
       )}

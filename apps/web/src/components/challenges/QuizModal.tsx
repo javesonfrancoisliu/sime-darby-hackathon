@@ -106,7 +106,7 @@ export function QuizModal({
     >
       {finished ? (
         <div role="status">
-          <p style={{ margin: 0, fontWeight: 600 }}>
+          <p className="ui-flush ui-semibold">
             You got {correctCount} of {questions.length} correct.
           </p>
           <p className="ui-helper" style={{ marginTop: "var(--space-2)" }}>
@@ -123,7 +123,7 @@ export function QuizModal({
             <p className="ui-meta-row">
               Question {index + 1} of {questions.length}
             </p>
-            <p style={{ margin: 0, fontWeight: 600 }}>{question.question}</p>
+            <p className="ui-flush ui-semibold">{question.question}</p>
             <div
               className="quiz-options"
               role="radiogroup"

@@ -44,7 +44,7 @@ export function LogProgressModal({ challenge, current, onClose, onSave }: LogPro
     >
       {challenge && (
         <>
-          <p style={{ margin: 0 }}>
+          <p className="ui-flush">
             Update your total {challenge.goal.unit} for <strong>{challenge.title}</strong>{" "}
             (goal: {challenge.goal.target}).
           </p>

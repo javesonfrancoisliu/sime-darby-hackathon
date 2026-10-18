@@ -105,13 +105,7 @@ export function CommunityPage() {
   return (
     <div className="safety-page">
       <div className="safety-page__header">
-        <div
-          style={{
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "space-between",
-            gap: 12,
-          }}
+        <div className="row-between"
         >
           <div>
             <h1 className="safety-page__title">Community</h1>
@@ -176,21 +170,19 @@ export function CommunityPage() {
                       <div className="community-event-card__icon" aria-hidden="true">
                         <IconCalendar size={24} strokeWidth={1.8} />
                       </div>
-                      <div style={{ flex: 1 }}>
+                      <div className="flex-fill">
                         <p className="safety-card__location">{e.title}</p>
                         <p className="safety-card__meta">
-                          <IconClock
+                          <IconClock className="icon-inline"
                             size={12}
                             strokeWidth={2}
-                            style={{ verticalAlign: "-1px", marginRight: 4 }}
                           />
                           {formatWhen(e.startsAt)}
                         </p>
                         <p className="safety-card__meta">
-                          <IconMapPin
+                          <IconMapPin className="icon-inline"
                             size={12}
                             strokeWidth={2}
-                            style={{ verticalAlign: "-1px", marginRight: 4 }}
                           />
                           {e.location.area}
                         </p>
@@ -259,21 +251,19 @@ export function CommunityPage() {
                     <div className="community-event-card__icon" aria-hidden="true">
                       <IconAlertTriangle size={24} strokeWidth={1.8} />
                     </div>
-                    <div style={{ flex: 1 }}>
+                    <div className="flex-fill">
                       <p className="safety-card__location">{m.title}</p>
                       <p className="safety-card__meta">
-                        <IconMapPin
+                        <IconMapPin className="icon-inline"
                           size={12}
                           strokeWidth={2}
-                          style={{ verticalAlign: "-1px", marginRight: 4 }}
                         />
                         {m.affectedArea}
                       </p>
                       <p className="safety-card__meta">
-                        <IconCalendar
+                        <IconCalendar className="icon-inline"
                           size={12}
                           strokeWidth={2}
-                          style={{ verticalAlign: "-1px", marginRight: 4 }}
                         />
                         {m.dateRange}
                       </p>
@@ -310,21 +300,19 @@ export function CommunityPage() {
                       <div className="community-event-card__icon" aria-hidden="true">
                         <IconUsers size={24} strokeWidth={1.8} />
                       </div>
-                      <div style={{ flex: 1 }}>
+                      <div className="flex-fill">
                         <p className="safety-card__location">{v.title}</p>
                         <p className="safety-card__meta">
-                          <IconCalendar
+                          <IconCalendar className="icon-inline"
                             size={12}
                             strokeWidth={2}
-                            style={{ verticalAlign: "-1px", marginRight: 4 }}
                           />
                           {v.date} · {v.duration}
                         </p>
                         <p className="safety-card__meta">
-                          <IconMapPin
+                          <IconMapPin className="icon-inline"
                             size={12}
                             strokeWidth={2}
-                            style={{ verticalAlign: "-1px", marginRight: 4 }}
                           />
                           {v.location}
                         </p>
@@ -383,15 +371,15 @@ export function CommunityPage() {
                     <div className="community-event-card__icon" aria-hidden="true">
                       <IconBell size={24} strokeWidth={1.8} />
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div className="flex-fill">
+                      <div className="row-center">
                         <p className="safety-card__location" style={{ margin: 0 }}>
                           {u.title}
                         </p>
                         {u.pinned && (
                           <span
-                            className="safety-chip"
-                            style={{ background: "#FEE2E2", color: "#991B1B", flexShrink: 0 }}
+                            className="safety-chip tone-alert"
+                            style={{ flexShrink: 0 }}
                           >
                             <IconPin
                               size={11}
@@ -403,10 +391,9 @@ export function CommunityPage() {
                         )}
                       </div>
                       <p className="safety-card__meta">
-                        <IconCalendar
+                        <IconCalendar className="icon-inline"
                           size={12}
                           strokeWidth={2}
-                          style={{ verticalAlign: "-1px", marginRight: 4 }}
                         />
                         {u.category} · {u.date}
                       </p>

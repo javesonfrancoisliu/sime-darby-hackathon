@@ -41,7 +41,7 @@ export function OpportunityCard({
           <Pill>{TASK_CATEGORY_LABEL[opportunity.category]}</Pill>
         </div>
 
-        <div className="ui-chip-row" aria-label="Highlights" style={{ gap: "var(--space-2)" }}>
+        <div className="ui-chip-row ui-gap-2" aria-label="Highlights">
           <StatusBadge label={URGENCY_LABEL[opportunity.urgency]} variant={urgencyVariant} />
           <span className="match-score" title="How well this fits you">
             <Sparkles size={14} aria-hidden="true" />
@@ -49,7 +49,7 @@ export function OpportunityCard({
           </span>
         </div>
 
-        <div className="ui-stack" style={{ gap: "var(--space-2)" }}>
+        <div className="ui-stack ui-gap-2">
           <span className="inline-icon">
             <MapPin size={16} className="icon-dim" aria-hidden="true" />
             {opportunity.area} · {distance} km away

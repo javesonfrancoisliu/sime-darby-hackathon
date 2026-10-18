@@ -76,7 +76,7 @@ export function SettingsCard() {
           <h2 className="feature-card-title">Settings</h2>
         </div>
 
-        <h3 className="impact-subhead" style={{ marginTop: 0 }}>
+        <h3 className="impact-subhead ui-flush-top">
           Notifications
         </h3>
         {toggles.slice(0, 2).map((t) => (
@@ -105,7 +105,7 @@ export function SettingsCard() {
         </p>
 
         <h3 className="impact-subhead">Help &amp; support</h3>
-        <p className="ui-meta-row" style={{ margin: 0 }}>
+        <p className="ui-meta-row ui-flush">
           <span className="inline-icon">
             <HelpCircle size={16} className="icon-dim" aria-hidden="true" />
             Township Connect is a hackathon prototype. For demo questions, ask the team.

@@ -64,10 +64,9 @@ export function WhoIsUsingPage() {
               <div className="category-choice-card__content">
                 <span className="category-choice-card__title">{person.name}</span>
                 <span className="category-choice-card__desc">
-                  <IconMapPin
+                  <IconMapPin className="icon-inline-low"
                     size={14}
                     strokeWidth={2}
-                    style={{ verticalAlign: "-2px", marginRight: 4 }}
                   />
                   {person.area}
                 </span>

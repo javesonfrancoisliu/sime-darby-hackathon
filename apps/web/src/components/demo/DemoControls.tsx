@@ -44,7 +44,7 @@ export function DemoControls() {
               </span>
             </h2>
           </div>
-          <p className="ui-helper" style={{ marginTop: 0 }}>
+          <p className="ui-helper ui-flush-top">
             Development/demo only. Resets all simulated progress so the app returns to a clean,
             consistent state for a fresh walkthrough.
           </p>
@@ -72,7 +72,7 @@ export function DemoControls() {
           </>
         }
       >
-        <p style={{ margin: 0 }}>
+        <p className="ui-flush">
           This clears accepted tasks, completed and verified tasks, challenge progress, points,
           achievements, reward redemption and profile preferences. This cannot be undone.
         </p>

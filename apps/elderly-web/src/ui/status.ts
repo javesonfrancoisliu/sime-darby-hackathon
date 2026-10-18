@@ -34,28 +34,12 @@ export function canCancel(status: RequestStatus): boolean {
 }
 
 // Township condition severity scale (used by the Home carousel).
-// A single 5-step ramp so every live-condition card reads at a
-// glance: calm → caution → alarm. Order: 1 safest → 5 most severe.
-// Each step carries an accent (chip/bar/stripe), a soft chip bg,
-// and a readable text colour that meets >=4.5:1 on the chip bg.
+// One 5-step ramp, 1 safest to 5 most severe. The colours live in @sdh/design-tokens
+// and reach each card through its data-severity attribute.
 export type Severity = 1 | 2 | 3 | 4 | 5;
 
-export interface SeverityStyle {
-  // Strong accent - progress bar, left stripe, icon tint.
-  accent: string;
-  // Soft chip background.
-  chipBg: string;
-  // Chip text (AA on chipBg).
-  chipText: string;
-}
-
-export const SEVERITY_SCALE: Record<Severity, SeverityStyle> = {
-  1: { accent: "#22C55E", chipBg: "#DCFCE7", chipText: "#15803D" }, // light green - all clear
-  2: { accent: "#16A34A", chipBg: "#D1FAE5", chipText: "#065F46" }, // green - good
-  3: { accent: "#EAB308", chipBg: "#FEF9C3", chipText: "#713F12" }, // yellow - moderate
-  4: { accent: "#F97316", chipBg: "#FFEDD5", chipText: "#9A3412" }, // orange - advisory
-  5: { accent: "#DC2626", chipBg: "#FEE2E2", chipText: "#991B1B" }, // red - severe
-};
+// Top of the Air Pollutant Index bar; readings above it fill the bar.
+export const HAZE_API_SCALE_MAX = 300;
 
 // Map an Air Pollutant Index (Malaysia) to the shared severity ramp.
 export function apiSeverity(api: number): Severity {

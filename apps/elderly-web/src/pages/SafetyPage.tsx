@@ -14,35 +14,47 @@ import {
 import { SegmentedTabs, TabPanel, type TabItem } from "../ui/SegmentedTabs";
 import { useAccessibility } from "../context/AccessibilityContext";
 import { DemoTag } from "../ui/DemoTag";
+import { HAZE_API_SCALE_MAX } from "../ui/status";
 
 type SafetyTab = "haze" | "water" | "temp" | "facilities";
 
 // ── Colour helpers ────────────────────────────────────
-const HAZARD_COLOR: Record<HazardLevel, { bg: string; text: string; label: string }> = {
-  good:      { bg: "#D1FAE5", text: "#065F46", label: "Good" },
-  moderate:  { bg: "#FEF9C3", text: "#713F12", label: "Moderate" },
-  unhealthy: { bg: "#FEE2E2", text: "#991B1B", label: "Unhealthy" },
-  hazardous: { bg: "#4B0082", text: "#fff",    label: "Hazardous" },
+type Tone = "good" | "caution" | "alert" | "extreme" | "solid-danger";
+type ToneLabel = { tone: Tone; label: string };
+
+const HAZARD_COLOR: Record<HazardLevel, ToneLabel> = {
+  good: { tone: "good", label: "Good" },
+  moderate: { tone: "caution", label: "Moderate" },
+  unhealthy: { tone: "alert", label: "Unhealthy" },
+  hazardous: { tone: "extreme", label: "Hazardous" },
 };
 
-const WATER_COLOR: Record<WaterStatus, { bg: string; text: string; label: string }> = {
-  normal:  { bg: "#D1FAE5", text: "#065F46", label: "Normal" },
-  watch:   { bg: "#FEF9C3", text: "#713F12", label: "Watch" },
-  warning: { bg: "#FEE2E2", text: "#991B1B", label: "Warning" },
-  danger:  { bg: "#991B1B", text: "#fff",    label: "Danger" },
+const WATER_COLOR: Record<WaterStatus, ToneLabel> = {
+  normal: { tone: "good", label: "Normal" },
+  watch: { tone: "caution", label: "Watch" },
+  warning: { tone: "alert", label: "Warning" },
+  danger: { tone: "solid-danger", label: "Danger" },
 };
 
-const ALERT_COLOR: Record<AlertLevel, { bg: string; text: string; label: string }> = {
-  normal:  { bg: "#D1FAE5", text: "#065F46", label: "Normal" },
-  warning: { bg: "#FEF9C3", text: "#713F12", label: "Heat Advisory" },
-  danger:  { bg: "#FEE2E2", text: "#991B1B", label: "Extreme Heat" },
+const ALERT_COLOR: Record<AlertLevel, ToneLabel> = {
+  normal: { tone: "good", label: "Normal" },
+  warning: { tone: "caution", label: "Heat Advisory" },
+  danger: { tone: "alert", label: "Extreme Heat" },
 };
 
-const FACILITY_COLOR: Record<FacilityStatus, { bg: string; text: string; label: string }> = {
-  reported:    { bg: "#FEE2E2", text: "#991B1B", label: "Reported" },
-  in_progress: { bg: "#FEF9C3", text: "#713F12", label: "In Progress" },
-  fixed:       { bg: "#D1FAE5", text: "#065F46", label: "Fixed" },
+const FACILITY_COLOR: Record<FacilityStatus, ToneLabel> = {
+  reported: { tone: "alert", label: "Reported" },
+  in_progress: { tone: "caution", label: "In Progress" },
+  fixed: { tone: "good", label: "Fixed" },
 };
+
+// Water bar turns amber, then red, as the level nears the normal maximum.
+const WATER_WARN_PCT = 70;
+const WATER_HIGH_PCT = 85;
+function waterBarLevel(pct: number): "ok" | "mid" | "high" {
+  if (pct > WATER_HIGH_PCT) return "high";
+  return pct > WATER_WARN_PCT ? "mid" : "ok";
+}
 
 type FilterStatus = "all" | FacilityStatus;
 const FACILITY_STATUSES: FacilityStatus[] = ["reported", "in_progress", "fixed"];
@@ -105,7 +117,7 @@ export function SafetyPage() {
   return (
     <div className="safety-page">
       <div className="safety-page__header">
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+        <div className="row-between">
           <div>
             <h1 className="safety-page__title">
               Health &amp; Safety
@@ -143,7 +155,7 @@ export function SafetyPage() {
         <div className="ui-stack">
           {hazeReadings.map((r) => {
             const s = HAZARD_COLOR[r.level];
-            const pct = Math.min((r.api / 300) * 100, 100);
+            const pct = Math.min((r.api / HAZE_API_SCALE_MAX) * 100, 100);
             return (
               <div key={r.location} className="safety-card">
                 <div className="safety-card__row">
@@ -151,19 +163,19 @@ export function SafetyPage() {
                     <p className="safety-card__location">{r.location}</p>
                     <p className="safety-card__meta">Updated: {r.updatedAt}</p>
                   </div>
-                  <div className="safety-card__badge" style={{ background: s.bg, color: s.text }}>
+                  <div className={`safety-card__badge tone-${s.tone}`}>
                     <span className="safety-card__badge-value">{r.api}</span>
                     <span className="safety-card__badge-label">API · {s.label}</span>
                   </div>
                 </div>
-                <div className="safety-bar" aria-label={`API level ${r.api} out of 300`}>
+                <div className="safety-bar" aria-label={`API level ${r.api} out of ${HAZE_API_SCALE_MAX}`}>
                   <div
-                    className="safety-bar__fill"
-                    style={{ width: `${pct}%`, background: s.text }}
+                    className={`safety-bar__fill safety-bar__fill--tone tone-${s.tone}`}
+                    style={{ width: `${pct}%` }}
                   />
                 </div>
                 <p className="safety-card__tip">
-                  <IconInfo size={14} strokeWidth={2} style={{ verticalAlign: "-2px", marginRight: 4 }} />
+                  <IconInfo className="icon-inline-low" size={14} strokeWidth={2} />
                   {r.recommendation}
                 </p>
               </div>
@@ -195,17 +207,14 @@ export function SafetyPage() {
                       {r.type === "river" ? "River gauge" : "Lake retention basin"} · {r.levelM} m / {r.normalMaxM} m normal max · {r.updatedAt}
                     </p>
                   </div>
-                  <span className="safety-chip" style={{ background: s.bg, color: s.text }}>
+                  <span className={`safety-chip tone-${s.tone}`}>
                     {s.label}
                   </span>
                 </div>
                 <div className="safety-bar" aria-label={`Water level ${r.levelM}m of ${r.normalMaxM}m`}>
                   <div
-                    className="safety-bar__fill"
-                    style={{
-                      width: `${pct}%`,
-                      background: pct > 85 ? "#991B1B" : pct > 70 ? "#D97706" : "#15803D",
-                    }}
+                    className={`safety-bar__fill safety-bar__fill--${waterBarLevel(pct)}`}
+                    style={{ width: `${pct}%` }}
                   />
                 </div>
               </div>
@@ -225,21 +234,17 @@ export function SafetyPage() {
           title="Temperature Alerts"
         />
         <div
-          className="safety-card safety-card--temperature"
-          style={{ borderColor: temperatureAlert.level === "normal" ? undefined : "#F59E0B" }}
+          className={`safety-card safety-card--temperature${temperatureAlert.level === "normal" ? "" : " safety-card--alert"}`}
         >
           <div className="safety-temp__main">
             <div className="safety-temp__reading">
               <span className="safety-temp__value">{temperatureAlert.tempC}°C</span>
-              <span
-                className="safety-chip"
-                style={{ background: tempStyle.bg, color: tempStyle.text }}
-              >
+              <span className={`safety-chip tone-${tempStyle.tone}`}>
                 {tempStyle.label}
               </span>
             </div>
             <p className="safety-card__meta">
-              <IconMapPin size={12} strokeWidth={2} style={{ verticalAlign: "-1px", marginRight: 4 }} />
+              <IconMapPin className="icon-inline" size={12} strokeWidth={2} />
               {temperatureAlert.location} · {temperatureAlert.updatedAt}
             </p>
           </div>
@@ -297,14 +302,14 @@ export function SafetyPage() {
             return (
               <div key={r.id} className="safety-card">
                 <div className="safety-card__row">
-                  <div style={{ flex: 1 }}>
+                  <div className="flex-fill">
                     <p className="safety-card__location">{r.title}</p>
                     <p className="safety-card__meta">
-                      <IconMapPin size={12} strokeWidth={2} style={{ verticalAlign: "-1px", marginRight: 4 }} />
+                      <IconMapPin className="icon-inline" size={12} strokeWidth={2} />
                       {r.location}
                     </p>
                   </div>
-                  <span className="safety-chip" style={{ background: s.bg, color: s.text }}>
+                  <span className={`safety-chip tone-${s.tone}`}>
                     {s.label}
                   </span>
                 </div>
@@ -328,8 +333,7 @@ export function SafetyPage() {
             return (
               <div
                 key={s}
-                className="safety-facility-summary__item"
-                style={{ background: c.bg, color: c.text }}
+                className={`safety-facility-summary__item tone-${c.tone}`}
               >
                 <span className="safety-facility-summary__count">{count}</span>
                 <span className="safety-facility-summary__label">{c.label}</span>

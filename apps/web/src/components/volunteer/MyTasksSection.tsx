@@ -33,7 +33,7 @@ export function MyTasksSection({ tasks, onComplete, onVerify }: MyTasksSectionPr
                 <Pill>{TASK_CATEGORY_LABEL[task.category]}</Pill>
               </div>
 
-              <div className="ui-stack" style={{ gap: "var(--space-2)" }}>
+              <div className="ui-stack ui-gap-2">
                 <span className="inline-icon">
                   <MapPin size={16} className="icon-dim" aria-hidden="true" />
                   {task.area}

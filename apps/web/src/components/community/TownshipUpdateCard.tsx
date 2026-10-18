@@ -22,7 +22,7 @@ export function TownshipUpdateCard({ item, onReadMore }: TownshipUpdateCardProps
               {item.title}
             </span>
           </h3>
-          <div className="inline-icon" style={{ gap: "var(--space-2)" }}>
+          <div className="inline-icon ui-gap-2">
             {item.priority === "high" && (
               <StatusBadge label="High priority" variant="warning" />
             )}

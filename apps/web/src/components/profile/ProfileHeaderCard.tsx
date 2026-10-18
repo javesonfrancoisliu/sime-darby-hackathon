@@ -31,7 +31,7 @@ export function ProfileHeaderCard({ claimedCount, onEdit }: ProfileHeaderCardPro
             {isDemo && <DemoTag />}
           </div>
           {claimedCount > 0 && (
-            <p className="ui-meta-row" style={{ margin: 0 }}>
+            <p className="ui-meta-row ui-flush">
               {claimedCount} claimed reward{claimedCount === 1 ? "" : "s"}
             </p>
           )}

@@ -74,7 +74,7 @@ export function EditPersonalModal({ open, onClose }: EditPersonalModalProps) {
         helper={isDemo ? "Saved on this device for the demo." : "Saved to your account."}
       />
       {saveError && (
-        <p className="ui-error" role="alert" style={{ margin: 0 }}>
+        <p className="ui-error ui-flush" role="alert">
           {saveError}
         </p>
       )}

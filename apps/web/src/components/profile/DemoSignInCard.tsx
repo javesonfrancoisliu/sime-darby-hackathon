@@ -59,7 +59,7 @@ export function DemoSignInCard() {
 
           {userId ? (
             <>
-              <p className="ui-helper" style={{ marginTop: 0 }}>
+              <p className="ui-helper ui-flush-top">
                 {status === "signed_in" && user
                   ? `Signed in as ${user.name} (${ROLE_LABEL[user.role]}, ${user.area}).`
                   : status === "error"
@@ -74,20 +74,20 @@ export function DemoSignInCard() {
               </div>
             </>
           ) : loadError ? (
-            <p className="ui-helper" style={{ marginTop: 0 }}>
+            <p className="ui-helper ui-flush-top">
               The live service isn't reachable ({loadError}). The app is using demo data.
             </p>
           ) : users === null ? (
-            <p className="ui-helper" style={{ marginTop: 0 }}>
+            <p className="ui-helper ui-flush-top">
               Looking for demo users…
             </p>
           ) : users.length === 0 ? (
-            <p className="ui-helper" style={{ marginTop: 0 }}>
+            <p className="ui-helper ui-flush-top">
               No demo users yet. Run <code>pnpm db:seed</code> to create them.
             </p>
           ) : (
             <>
-              <p className="ui-helper" style={{ marginTop: 0 }}>
+              <p className="ui-helper ui-flush-top">
                 Choose a demo user to use the live service instead of demo data.
               </p>
               <span className="ui-label" id={labelId}>

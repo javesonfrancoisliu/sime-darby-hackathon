@@ -59,7 +59,7 @@ export function MePage() {
           {name}
         </h1>
         <p className="apple-profile-location">
-          <IconMapPin size={14} strokeWidth={2} style={{ verticalAlign: "-2px", marginRight: 4 }} />
+          <IconMapPin className="icon-inline-low" size={14} strokeWidth={2} />
           {area}
         </p>
 
@@ -69,13 +69,13 @@ export function MePage() {
           onClick={handleReadProfile}
           aria-label="Read profile aloud"
         >
-          <IconVolume2 size={16} strokeWidth={2} style={{ marginRight: 6 }} />
+          <IconVolume2 className="icon-gap" size={16} strokeWidth={2} />
           <span>Read profile aloud</span>
         </button>
 
         {isMockMode() ? null : (
           <button type="button" className="ui-button ui-button--secondary" onClick={switchPerson}>
-            <IconUsers size={18} strokeWidth={2} style={{ marginRight: 6 }} />
+            <IconUsers className="icon-gap" size={18} strokeWidth={2} />
             <span>Switch person</span>
           </button>
         )}
@@ -145,7 +145,7 @@ export function MePage() {
         <div className="apple-inset-group">
           <div className="apple-inset-row">
             <span className="app-detail-label">Community Status</span>
-            <span className="apple-meta-pill" style={{ background: "#D1FAE5", color: "#065F46" }}>
+            <span className="apple-meta-pill tone-good">
               Active Elder Resident
             </span>
           </div>

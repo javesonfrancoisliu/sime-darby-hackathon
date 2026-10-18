@@ -36,7 +36,7 @@ export function ChallengeCard({
           <Pill>{CHALLENGE_CATEGORY_LABEL[challenge.category]}</Pill>
         </div>
 
-        <div className="ui-chip-row" style={{ gap: "var(--space-2)" }}>
+        <div className="ui-chip-row ui-gap-2">
           <span className="match-score" title="Points for verified completion">
             <Sparkles size={14} aria-hidden="true" />
             {challenge.points} pts

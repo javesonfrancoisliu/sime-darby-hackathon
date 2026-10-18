@@ -268,7 +268,7 @@ export function CommunityPage() {
           </AppButton>
         }
       >
-        <p style={{ margin: 0 }} role="alert">
+        <p className="ui-flush" role="alert">
           {failure}
         </p>
       </Modal>

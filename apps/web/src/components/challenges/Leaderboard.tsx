@@ -12,7 +12,7 @@ export function Leaderboard({ entries }: LeaderboardProps) {
     <InfoCard ariaLabel="Neighbourhood leaderboard">
       <div className="feature-card">
         <div className="feature-card-head">
-          <span className="inline-icon" style={{ fontWeight: 700 }}>
+          <span className="inline-icon ui-strong">
             Neighbourhood leaderboard
           </span>
           <DemoTag />

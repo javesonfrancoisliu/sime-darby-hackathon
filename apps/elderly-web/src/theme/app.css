@@ -2597,3 +2597,29 @@ button:active,
 .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 /* The heading that receives focus on a page change needs no ring. */
 main h1:focus, main:focus { outline: none; }
+
+/* Status tones and severity levels read their colours from @sdh/design-tokens. */
+.tone-good { --tone-fg: var(--tone-good-text); background: var(--tone-good-bg); color: var(--tone-good-text); }
+.tone-caution { --tone-fg: var(--tone-caution-text); background: var(--tone-caution-bg); color: var(--tone-caution-text); }
+.tone-alert { --tone-fg: var(--tone-alert-text); background: var(--tone-alert-bg); color: var(--tone-alert-text); }
+.tone-extreme { --tone-fg: var(--tone-solid-text); background: var(--tone-extreme-bg); color: var(--tone-solid-text); }
+.tone-solid-danger { --tone-fg: var(--tone-solid-text); background: var(--tone-alert-text); color: var(--tone-solid-text); }
+.tone-brand { background: var(--danger-bg); color: var(--brand-deep); }
+.safety-bar__fill--tone { background: var(--tone-fg); }
+.safety-bar__fill--ok { background: var(--success); }
+.safety-bar__fill--mid { background: var(--tone-bar-mid); }
+.safety-bar__fill--high { background: var(--tone-alert-text); }
+.safety-card--alert { border-color: var(--warn-accent); }
+[data-severity="1"] { --sev-accent: var(--sev-1-accent); --sev-chip-bg: var(--sev-1-chip-bg); --sev-chip-text: var(--sev-1-chip-text); }
+[data-severity="2"] { --sev-accent: var(--sev-2-accent); --sev-chip-bg: var(--sev-2-chip-bg); --sev-chip-text: var(--sev-2-chip-text); }
+[data-severity="3"] { --sev-accent: var(--sev-3-accent); --sev-chip-bg: var(--sev-3-chip-bg); --sev-chip-text: var(--sev-3-chip-text); }
+[data-severity="4"] { --sev-accent: var(--sev-4-accent); --sev-chip-bg: var(--sev-4-chip-bg); --sev-chip-text: var(--sev-4-chip-text); }
+[data-severity="5"] { --sev-accent: var(--sev-5-accent); --sev-chip-bg: var(--sev-5-chip-bg); --sev-chip-text: var(--sev-5-chip-text); }
+.safety-bar__fill--sev { background: var(--sev-accent); }
+.icon-inline { vertical-align: -1px; margin-right: 4px; }
+.icon-inline-low { vertical-align: -2px; margin-right: 4px; }
+.icon-gap { margin-right: 6px; }
+.flex-fill { flex: 1; }
+.row-center { display: flex; align-items: center; gap: 8px; }
+.row-between { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.text-strong { font-weight: 700; }

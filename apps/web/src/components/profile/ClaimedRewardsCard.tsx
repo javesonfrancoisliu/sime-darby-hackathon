@@ -33,7 +33,7 @@ export function ClaimedRewardsCard({ claimed }: ClaimedRewardsCardProps) {
             description="Redeem a reward in Community Challenges and it will appear here."
           />
         ) : (
-          <ul className="community-list ui-stack" style={{ gap: "var(--space-2)" }}>
+          <ul className="community-list ui-stack ui-gap-2">
             {claimed.map((reward) => (
               <li key={reward.id} className="claimed-reward">
                 <div className="claimed-reward-body">
@@ -50,7 +50,7 @@ export function ClaimedRewardsCard({ claimed }: ClaimedRewardsCardProps) {
           </ul>
         )}
 
-        <p className="ui-helper" style={{ margin: 0 }}>
+        <p className="ui-helper ui-flush">
           Fictional demo rewards - no real voucher, code or payment is issued.{" "}
           <Link to="/community/challenges">See available rewards in Challenges</Link>.
         </p>

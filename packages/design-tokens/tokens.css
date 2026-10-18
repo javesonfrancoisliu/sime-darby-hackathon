@@ -21,6 +21,37 @@
   --danger-bg: #FEF2F2;
   --info-bg: #EFF6FF;
 
+  --brand-deep: #BA0000;
+  --warn-accent: #F59E0B;
+
+  /* Status tones for readings and chips: soft background with readable text. */
+  --tone-good-bg: #D1FAE5;
+  --tone-good-text: #065F46;
+  --tone-caution-bg: #FEF9C3;
+  --tone-caution-text: #713F12;
+  --tone-alert-bg: #FEE2E2;
+  --tone-alert-text: #991B1B;
+  --tone-extreme-bg: #4B0082;
+  --tone-solid-text: #FFFFFF;
+  --tone-bar-mid: #D97706;
+
+  /* Condition severity ramp, 1 safest to 5 most severe. */
+  --sev-1-accent: #22C55E;
+  --sev-1-chip-bg: #DCFCE7;
+  --sev-1-chip-text: #15803D;
+  --sev-2-accent: #16A34A;
+  --sev-2-chip-bg: var(--tone-good-bg);
+  --sev-2-chip-text: var(--tone-good-text);
+  --sev-3-accent: #EAB308;
+  --sev-3-chip-bg: var(--tone-caution-bg);
+  --sev-3-chip-text: var(--tone-caution-text);
+  --sev-4-accent: #F97316;
+  --sev-4-chip-bg: #FFEDD5;
+  --sev-4-chip-text: #9A3412;
+  --sev-5-accent: #DC2626;
+  --sev-5-chip-bg: var(--tone-alert-bg);
+  --sev-5-chip-text: var(--tone-alert-text);
+
   --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-body: 16px;
   --font-small: 14px;

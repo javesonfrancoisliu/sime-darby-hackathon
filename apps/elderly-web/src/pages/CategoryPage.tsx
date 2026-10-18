@@ -39,8 +39,7 @@ export function CategoryPage() {
                 <span className="category-choice-card__title">{cat.title}</span>
                 {cat.badge && (
                   <span
-                    className="safety-chip"
-                    style={{ background: "#FEF2F2", color: "#BA0000" }}
+                    className="safety-chip tone-brand"
                   >
                     {cat.badge}
                   </span>

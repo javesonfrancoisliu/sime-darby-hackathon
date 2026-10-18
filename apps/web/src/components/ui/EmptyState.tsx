@@ -16,7 +16,7 @@ export function EmptyState({ title, description, icon, action }: EmptyStateProps
     <div className="ui-empty" role="status">
       <Icon aria-hidden="true" />
       <p style={{ margin: 0, fontWeight: 600, color: "var(--text-primary)" }}>{title}</p>
-      {description && <p style={{ margin: 0 }}>{description}</p>}
+      {description && <p className="ui-flush">{description}</p>}
       {action}
     </div>
   );

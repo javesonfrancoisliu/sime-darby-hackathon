@@ -32,7 +32,7 @@ export function CommunityOverview({ townshipId }: { townshipId?: string }) {
         <ul className="ui-stack" style={{ listStyle: "none", margin: 0, padding: 0 }}>
           {items.map((item) => (
             <li key={item.id} className="overview-item">
-              <div className="inline-icon" style={{ gap: "var(--space-2)" }}>
+              <div className="inline-icon ui-gap-2">
                 <Pill>{CATEGORY_LABEL[item.category]}</Pill>
                 <span className="ui-meta-row">{formatRelative(item.updatedAt)}</span>
               </div>

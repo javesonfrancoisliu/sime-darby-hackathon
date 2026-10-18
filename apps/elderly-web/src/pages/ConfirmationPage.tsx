@@ -41,7 +41,7 @@ export function ConfirmationPage() {
       <div className="apple-inset-group" style={{ marginBottom: 28 }}>
         <div className="apple-inset-row">
           <span className="app-detail-label">Help with</span>
-          <span className="apple-inset-value" style={{ fontWeight: 700 }}>
+          <span className="apple-inset-value text-strong">
             {CATEGORY_TEXT[request.category]}
           </span>
         </div>
@@ -59,11 +59,11 @@ export function ConfirmationPage() {
 
       <div className="ui-stack" style={{ gap: 12 }}>
         <Button block onClick={() => navigate("/requests")}>
-          <IconList size={18} strokeWidth={2} aria-hidden="true" style={{ marginRight: 6 }} />
+          <IconList className="icon-gap" size={18} strokeWidth={2} aria-hidden="true" />
           View my requests
         </Button>
         <Button block variant="secondary" onClick={() => navigate("/")}>
-          <IconHome size={18} strokeWidth={2} aria-hidden="true" style={{ marginRight: 6 }} />
+          <IconHome className="icon-gap" size={18} strokeWidth={2} aria-hidden="true" />
           Back to home
         </Button>
       </div>

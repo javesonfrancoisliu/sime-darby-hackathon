@@ -84,15 +84,15 @@ export function ChallengesPage() {
   return (
     <div className="safety-page">
       <div className="safety-page__header">
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+        <div className="row-between">
           <div>
             <h1 className="safety-page__title">Community Play</h1>
             <p className="safety-page__subtitle">
-              <IconUsers size={13} strokeWidth={2} style={{ verticalAlign: "-2px", marginRight: 4 }} />
+              <IconUsers className="icon-inline-low" size={13} strokeWidth={2} />
               {neighbourhood.name} · {neighbourhood.members} neighbours
             </p>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div className="row-center">
             <span className="play-header-points" aria-label={`${points} neighbour points`}>
               <IconSparkles size={15} strokeWidth={2} aria-hidden="true" />
               {points}
@@ -198,7 +198,7 @@ export function ChallengesPage() {
               <div key={c.id} className="play-challenge">
                 <div className="play-challenge__top">
                   <PlayIcon name={c.icon} className="play-challenge__icon" />
-                  <div style={{ flex: 1 }}>
+                  <div className="flex-fill">
                     <p className="play-challenge__title">{c.title}</p>
                     <p className="play-challenge__desc">{c.description}</p>
                   </div>

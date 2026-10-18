@@ -13,7 +13,7 @@ function PillRow({ label, values }: { label: string; values: string[] }) {
   return (
     <div className="pref-row">
       <span className="pref-row-label">{label}</span>
-      <div className="ui-chip-row" style={{ gap: "var(--space-2)" }}>
+      <div className="ui-chip-row ui-gap-2">
         {values.length > 0 ? (
           values.map((v) => <Pill key={v}>{v}</Pill>)
         ) : (
@@ -49,7 +49,7 @@ export function PreferencesCard({ onEdit }: PreferencesCardProps) {
         <PillRow label="Availability" values={availability} />
         <PillRow label="Languages" values={prefs.languages.map((l) => LANGUAGE_LABEL[l])} />
 
-        <p className="ui-helper" style={{ margin: 0 }}>
+        <p className="ui-helper ui-flush">
           {isDemo
             ? "Saved on this device for the demo."
             : "Skills and availability feed volunteer matching."}

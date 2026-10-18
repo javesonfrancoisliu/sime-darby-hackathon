@@ -20,7 +20,7 @@ export type BadgeGridProps = {
 export function BadgeGrid({ badges, achievements }: BadgeGridProps) {
   return (
     <>
-      <h3 className="impact-subhead" style={{ marginTop: 0 }}>
+      <h3 className="impact-subhead ui-flush-top">
         Badges (points)
       </h3>
       <ul className="badge-grid">

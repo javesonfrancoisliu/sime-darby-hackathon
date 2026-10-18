@@ -25,14 +25,13 @@ import {
 } from "../ui/Icons";
 import {
   STATUS_TEXT,
+  HAZE_API_SCALE_MAX,
   STATUS_TONE,
-  SEVERITY_SCALE,
   apiSeverity,
   tempSeverity,
   facilitySeverity,
   type Severity,
 } from "../ui/status";
-import type { CSSProperties } from "react";
 import { useCommunityContent } from "../hooks/useCommunityContent";
 import { useSafetyData } from "../hooks/useSafetyData";
 
@@ -76,18 +75,6 @@ export function HomePage() {
   const localFacilityDamage =
     facilityReports.find((f) => f.status === "in_progress") ?? facilityReports[0];
 
-  // Severity → CSS custom properties so each card's chip, bar and left
-  // accent stripe all follow one colour from the shared 5-step ramp
-  // (light green → green → yellow → orange → red).
-  const sevVars = (sev: Severity): CSSProperties => {
-    const s = SEVERITY_SCALE[sev];
-    return {
-      ["--sev-accent" as string]: s.accent,
-      ["--sev-chip-bg" as string]: s.chipBg,
-      ["--sev-chip-text" as string]: s.chipText,
-    };
-  };
-
   // One condition card per carousel slide (shown one at a time).
   const conditionSlides: ReactNode[] = [];
   if (localHaze) {
@@ -98,7 +85,6 @@ export function HomePage() {
         type="button"
         className="apple-condition-card apple-condition-card--sev"
         data-severity={sev}
-        style={sevVars(sev)}
         onClick={() => navigate("/safety#haze")}
       >
         <div className="apple-condition-card__top">
@@ -116,8 +102,8 @@ export function HomePage() {
         </div>
         <div className="safety-bar">
           <div
-            className="safety-bar__fill"
-            style={{ width: `${Math.min((localHaze.api / 300) * 100, 100)}%`, background: "var(--sev-accent)" }}
+            className="safety-bar__fill safety-bar__fill--sev"
+            style={{ width: `${Math.min((localHaze.api / HAZE_API_SCALE_MAX) * 100, 100)}%` }}
           />
         </div>
         <span className="apple-condition-card__label">Air Quality (Haze)</span>
@@ -133,7 +119,6 @@ export function HomePage() {
         type="button"
         className="apple-condition-card apple-condition-card--sev"
         data-severity={sev}
-        style={sevVars(sev)}
         onClick={() => navigate("/safety#temp")}
       >
         <div className="apple-condition-card__top">
@@ -163,7 +148,6 @@ export function HomePage() {
         type="button"
         className="apple-condition-card apple-condition-card--sev"
         data-severity={sev}
-        style={sevVars(sev)}
         onClick={() => navigate("/community#maintenance")}
       >
         <div className="apple-condition-card__top">
@@ -192,7 +176,6 @@ export function HomePage() {
         type="button"
         className="apple-condition-card apple-condition-card--sev"
         data-severity={sev}
-        style={sevVars(sev)}
         onClick={() => navigate("/safety#facilities")}
       >
         <div className="apple-condition-card__top">

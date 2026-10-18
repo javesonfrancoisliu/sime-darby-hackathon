@@ -28,7 +28,7 @@ export function AnnouncementCard({ item }: AnnouncementCardProps) {
           <Pill>Maintenance</Pill>
         </div>
 
-        <div className="ui-stack" style={{ gap: "var(--space-2)" }}>
+        <div className="ui-stack ui-gap-2">
           <span className="inline-icon">
             <MapPin size={16} className="icon-dim" aria-hidden="true" />
             {item.location}

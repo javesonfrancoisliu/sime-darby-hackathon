@@ -311,7 +311,7 @@ export function VolunteerPage() {
           </AppButton>
         }
       >
-        <p style={{ margin: 0 }} role="alert">
+        <p className="ui-flush" role="alert">
           {failure?.message}
         </p>
       </Modal>

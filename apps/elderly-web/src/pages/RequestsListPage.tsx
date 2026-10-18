@@ -54,7 +54,7 @@ export function RequestsListPage() {
             You have no requests yet.
           </p>
           <Button block onClick={() => navigate("/request")}>
-            <IconPlus size={18} strokeWidth={2.4} aria-hidden="true" style={{ marginRight: 6 }} />
+            <IconPlus className="icon-gap" size={18} strokeWidth={2.4} aria-hidden="true" />
             Request help
           </Button>
         </div>

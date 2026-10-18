@@ -27,7 +27,7 @@ export function VolunteerCard({ item, joined, onJoin }: VolunteerCardProps) {
           <Pill>Volunteer</Pill>
         </div>
 
-        <div className="ui-stack" style={{ gap: "var(--space-2)" }}>
+        <div className="ui-stack ui-gap-2">
           <span>{item.organisation}</span>
           <span className="inline-icon">
             <CalendarDays size={16} className="icon-dim" aria-hidden="true" />
