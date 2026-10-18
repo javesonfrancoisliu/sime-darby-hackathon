@@ -30,7 +30,7 @@ export const userRoutes: Route[] = [
     handler: async (req) => {
       requireDemoAuthEnabled();
       const body = parse(CreateUserBody, req.body);
-      // Coordinators come only from the seed, never from a request.
+      // Coordinators are never created from a request.
       if (body.role === "coordinator") {
         throw new HttpError("FORBIDDEN", "Coordinator accounts cannot be created here");
       }

@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { DemoUsersResponse, User, VolunteersResponse } from "@sdh/contracts";
+import type { DemoUsersResponse, EventsResponse, User, VolunteersResponse } from "@sdh/contracts";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { call, createUser } from "../../test/api";
 import { useTestTable } from "../../test/table";
@@ -153,8 +153,38 @@ describe("users", () => {
     });
 
     it("stays off for any value other than the exact string true", async () => {
+      const elder = await createUser("elder");
       vi.stubEnv("DEMO_AUTH_ENABLED", "TRUE");
       expect((await call("GET", "/api/demo/users")).status).toBe(404);
+      expect((await call("GET", "/api/me", { as: elder.id })).status).toBe(401);
+    });
+
+    it("stays off when the variable is unset", async () => {
+      const elder = await createUser("elder");
+      vi.stubEnv("DEMO_AUTH_ENABLED", undefined);
+      expect((await call("GET", "/api/me", { as: elder.id })).status).toBe(401);
+    });
+
+    it("gives 404 for a coordinator body before the 403 role check", async () => {
+      vi.stubEnv("DEMO_AUTH_ENABLED", "false");
+      const res = await call("POST", "/api/users", {
+        body: {
+          role: "coordinator",
+          name: "Mallory",
+          area: "Precinct 1",
+          location: { lat: 3.0738, lng: 101.5183 },
+        },
+      });
+      expect(res.status).toBe(404);
+    });
+
+    it("lists events anonymously, with no joined flag, despite a bogus demo header", async () => {
+      vi.stubEnv("DEMO_AUTH_ENABLED", "false");
+      const res = await call("GET", "/api/events", { as: randomUUID() });
+      expect(res.status).toBe(200);
+      for (const event of (res.body as EventsResponse).events) {
+        expect(event.joined).toBeUndefined();
+      }
     });
   });
 
