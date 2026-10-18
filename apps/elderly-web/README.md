@@ -23,7 +23,7 @@ Set `API_PROXY_TARGET` to point the dev proxy somewhere other than `http://127.0
 
 ## Live and demo modes
 
-The first screen asks who is using the phone and lists residents from `GET /api/demo/users?role=elder`. The choice is stored by `@sdh/api-client` and sent as the `X-Demo-User` header. Build with `VITE_DEMO_SIGN_IN=false` to remove the picker (pair it with `ALLOW_DEMO_IDENTITY=false` on the API).
+The first screen asks who is using the phone and lists residents from `GET /api/demo/users?role=elder`. The choice is stored by `@sdh/api-client` and sent as the `X-Demo-User` header. Build with `VITE_DEMO_SIGN_IN=false` to remove the picker (pair it with an API run without `DEMO_AUTH_ENABLED=true`).
 
 - Live: requests (`/api/requests`), events (`/api/events`) and the resident name come from the API. The request and event lists refresh every 10 seconds while the page is visible.
 - Demo: set `VITE_USE_MOCK=true` to skip sign-in and use sample data from `src/mock`. Mock data is imported only by `api/`, `hooks/` and `session/`, and is tagged "Demo data" in the UI. A failed live call never falls back to mock data.
