@@ -13,7 +13,9 @@ if (!config.dynamodbEndpoint) {
 }
 
 if ((await listDemoUsers()).length > 0) {
-  console.info("Demo users already exist; nothing to seed. Recreate the table to reseed.");
+  console.info(
+    "Demo users already exist; nothing to seed. To pick up renamed demo data, run: docker compose down -v, then pnpm db:up, pnpm db:setup and pnpm db:seed.",
+  );
   process.exit(0);
 }
 

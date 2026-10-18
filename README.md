@@ -92,11 +92,14 @@ pnpm install
 pnpm db:up      # DynamoDB Local on 127.0.0.1:8000
 cp apps/api/.env.example apps/api/.env
 pnpm db:setup   # create the local table (once); refuses non-loopback DYNAMODB_ENDPOINT
+pnpm db:seed    # add demo people, requests and events; skips if demo people already exist
 pnpm dev        # API on http://127.0.0.1:3001
 pnpm test
 pnpm lint
 pnpm typecheck
 ```
+
+The seed never overwrites an existing table, so a table seeded before a demo-data rename keeps the old names. To reseed, run `docker compose down -v`, then `pnpm db:up`, `pnpm db:setup` and `pnpm db:seed` (this deletes the local table data).
 
 ## Deploy
 
