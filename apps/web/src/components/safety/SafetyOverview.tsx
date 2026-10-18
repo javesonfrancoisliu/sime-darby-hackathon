@@ -23,8 +23,7 @@ export function SafetyOverview({ townshipId }: SafetyOverviewProps) {
           </h2>
         </div>
         <p className="feature-card-desc">
-          Hazard conditions and facility reports appear here once the Health & Safety module is
-          connected.
+          Health and safety updates for your area are coming soon.
         </p>
         <div className="feature-card-foot">
           <AppLinkButton to="/safety" variant="secondary">

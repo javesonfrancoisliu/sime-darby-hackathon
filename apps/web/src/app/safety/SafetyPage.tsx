@@ -16,8 +16,8 @@ export function SafetyPage() {
       <InfoCard>
         <EmptyState
           icon={ShieldAlert}
-          title="Safety module coming soon"
-          description="Haze, water level, temperature alerts and facility reports are built by the Health & Safety team (Module 1)."
+          title="Health and safety updates are coming soon"
+          description="Haze, water level and temperature alerts, and reports on local facilities, will appear here."
         />
       </InfoCard>
     </>
