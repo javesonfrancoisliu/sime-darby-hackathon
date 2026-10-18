@@ -12,14 +12,15 @@ import type { VerificationStatus } from "../types/volunteer";
 import type { ProfilePrefs } from "../types/profile";
 import { DEMO_TOWNSHIP } from "../lib/township";
 import { useSession } from "@sdh/api-client";
+import { readJson, scopedKey, writeJson } from "../lib/storage";
 
 // Reusable, localStorage-backed Young-resident profile state. Held once at the
 // app root so every component sees the same values; persisted so edits survive
 // navigation and reload. FRONTEND-ONLY / demo — nothing here is saved to a
 // backend, and the toggles do NOT enforce real privacy or push notifications.
 
-const PREFS_KEY = "tc.profile.prefs";
-const SETTINGS_KEY = "tc.profile.settings";
+const prefsKey = scopedKey("tc.profile.prefs");
+const settingsKey = scopedKey("tc.profile.settings");
 
 /** Mock notification/privacy toggles. Demo only — no real enforcement. */
 export type ProfileSettings = {
@@ -48,14 +49,8 @@ const DEFAULT_SETTINGS: ProfileSettings = {
 // Verification shown when signed out (demo). Signed in, it comes from the API user.
 const DEMO_VERIFICATION: VerificationStatus = "verified";
 
-function readJson<T>(key: string, fallback: T): T {
-  if (typeof window === "undefined") return fallback;
-  try {
-    const raw = window.localStorage.getItem(key);
-    return raw ? ({ ...fallback, ...(JSON.parse(raw) as object) } as T) : fallback;
-  } catch {
-    return fallback;
-  }
+function readMerged<T extends object>(key: string, fallback: T): T {
+  return { ...fallback, ...readJson<Partial<T>>(key, {}) };
 }
 
 export type ProfileContextValue = {
@@ -70,23 +65,17 @@ export type ProfileContextValue = {
 const ProfileContext = createContext<ProfileContextValue | null>(null);
 
 export function ProfileProvider({ children }: { children: ReactNode }) {
-  const { user } = useSession();
+  const { user, userId } = useSession();
   const verification: VerificationStatus = user ? user.verification : DEMO_VERIFICATION;
-  const [prefs, setPrefs] = useState<ProfilePrefs>(() => readJson(PREFS_KEY, DEFAULT_PREFS));
+  const [prefs, setPrefs] = useState<ProfilePrefs>(() =>
+    readMerged(prefsKey(userId), DEFAULT_PREFS),
+  );
   const [settings, setSettings] = useState<ProfileSettings>(() =>
-    readJson(SETTINGS_KEY, DEFAULT_SETTINGS),
+    readMerged(settingsKey(userId), DEFAULT_SETTINGS),
   );
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
-    }
-  }, [prefs]);
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-    }
-  }, [settings]);
+  useEffect(() => writeJson(prefsKey(userId), prefs), [userId, prefs]);
+  useEffect(() => writeJson(settingsKey(userId), settings), [userId, settings]);
 
   const updatePrefs = useCallback((patch: Partial<ProfilePrefs>) => {
     setPrefs((prev) => ({ ...prev, ...patch }));

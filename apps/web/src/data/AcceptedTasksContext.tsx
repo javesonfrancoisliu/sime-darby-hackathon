@@ -11,11 +11,13 @@ import {
 import type { CommunityEvent, EventsResponse, HelpRequest, RequestsResponse } from "@sdh/contracts";
 
 import { apiFetch, errorMessage, useSession } from "@sdh/api-client";
+import { readJson, scopedKey, writeJson } from "../lib/storage";
 import type { Opportunity, OpportunityKind } from "../types/volunteer";
 
 // Tracks the volunteer's accepted Help-a-Neighbour tasks. Held once at the app
 // root (context) so Volunteer Nearby and Community Challenges share one instance.
 //
+// Mount with key={userId}: persisted state is per user and re-read on change.
 // Two modes, picked by the demo sign-in (@sdh/api-client session):
 //  - signed out: simulated and client-only, persisted to localStorage;
 //  - signed in:  accepted requests come from GET /api/requests/mine and joined
@@ -51,31 +53,13 @@ export type AcceptedTask = {
   dedupeKey?: string;
 };
 
-const STORAGE_KEY = "tc.acceptedTasks";
+const tasksKey = scopedKey("tc.acceptedTasks");
 // Live-mode tasks the simulated resident has confirmed (no API for this yet).
-const CONFIRMED_KEY = "tc.confirmedLiveTasks";
-
-function readJson<T>(key: string, fallback: T): T {
-  if (typeof window === "undefined") return fallback;
-  try {
-    const raw = window.localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function writeJson(key: string, value: unknown) {
-  try {
-    window.localStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    // Storage blocked: state just won't survive a reload.
-  }
-}
+const confirmedKey = scopedKey("tc.confirmedLiveTasks");
 
 // Tasks saved before `kind` existed were all requests.
-function readMockTasks(): AcceptedTask[] {
-  return readJson<AcceptedTask[]>(STORAGE_KEY, []).map((t) => ({
+function readMockTasks(userId: string | null): AcceptedTask[] {
+  return readJson<AcceptedTask[]>(tasksKey(userId), []).map((t) => ({
     ...t,
     kind: t.kind ?? "request",
   }));
@@ -141,8 +125,10 @@ export function AcceptedTasksProvider({ children }: { children: ReactNode }) {
   const { userId } = useSession();
   const live = userId !== null;
 
-  const [mockTasks, setMockTasks] = useState<AcceptedTask[]>(readMockTasks);
-  const [confirmed, setConfirmed] = useState<ConfirmedTasks>(() => readJson(CONFIRMED_KEY, {}));
+  const [mockTasks, setMockTasks] = useState<AcceptedTask[]>(() => readMockTasks(userId));
+  const [confirmed, setConfirmed] = useState<ConfirmedTasks>(() =>
+    readJson(confirmedKey(userId), {}),
+  );
   // `forUserId` marks whose tasks are loaded, so switching user shows loading
   // while a refresh after accept/complete keeps the current list on screen.
   const [liveData, setLiveData] = useState<{
@@ -153,8 +139,8 @@ export function AcceptedTasksProvider({ children }: { children: ReactNode }) {
   }>({ forUserId: null, requests: [], events: [], error: null });
   const [version, setVersion] = useState(0);
 
-  useEffect(() => writeJson(STORAGE_KEY, mockTasks), [mockTasks]);
-  useEffect(() => writeJson(CONFIRMED_KEY, confirmed), [confirmed]);
+  useEffect(() => writeJson(tasksKey(userId), mockTasks), [userId, mockTasks]);
+  useEffect(() => writeJson(confirmedKey(userId), confirmed), [userId, confirmed]);
 
   useEffect(() => {
     if (!userId) return;

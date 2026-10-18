@@ -20,6 +20,8 @@ import type {
   RewardRedemption,
   RewardStatus,
 } from "../types/gamification";
+import { useSession } from "@sdh/api-client";
+import { readJson, scopedKey, writeJson } from "../lib/storage";
 import { awardPoints, summarize, type AwardInput } from "../lib/points";
 import { claimReward, normaliseRedemptions } from "../lib/rewards";
 import {
@@ -45,26 +47,11 @@ import {
 // challenge and a volunteering task is paid points once (ledger de-dupe) but must
 // still count as one volunteering task toward milestones.
 
-const LEDGER_KEY = "tc.points.ledger";
-const PROGRESS_KEY = "tc.challenge.progress";
-const VOL_TASKS_KEY = "tc.verifiedVolunteerTasks";
-const REDEEMED_KEY = "tc.redeemedRewards";
+const ledgerKey = scopedKey("tc.points.ledger");
+const progressKey = scopedKey("tc.challenge.progress");
+const volTasksKey = scopedKey("tc.verifiedVolunteerTasks");
+const redeemedKey = scopedKey("tc.redeemedRewards");
 const CURRENT_USER_NAME = "You";
-
-function readJson<T>(key: string, fallback: T): T {
-  if (typeof window === "undefined") return fallback;
-  try {
-    const raw = window.localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function writeJson(key: string, value: unknown) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(key, JSON.stringify(value));
-}
 
 export type BadgeState = Badge & { earned: boolean; unlockHint: string };
 export type AchievementState = Achievement & { earned: boolean };
@@ -80,8 +67,8 @@ export type ClaimedReward = Reward & { redeemedAt?: string };
 // Reads persisted redemptions, migrating the legacy string[] shape. The actual
 // migration logic lives in lib/rewards.ts (normaliseRedemptions) so it is unit
 // tested directly.
-function readRedeemed(): Record<string, RewardRedemption> {
-  return normaliseRedemptions(readJson<unknown>(REDEEMED_KEY, {}));
+function readRedeemed(userId: string | null): Record<string, RewardRedemption> {
+  return normaliseRedemptions(readJson<unknown>(redeemedKey(userId), {}));
 }
 
 export type UseGamification = {
@@ -133,29 +120,26 @@ export type UseGamification = {
 
 const GamificationContext = createContext<UseGamification | null>(null);
 
-function useGamificationState(): UseGamification {
+function useGamificationState(userId: string | null): UseGamification {
   const challenges = MOCK_CHALLENGES;
-  const [ledger, setLedger] = useState<PointsLedgerEntry[]>(() => readJson(LEDGER_KEY, []));
+  const [ledger, setLedger] = useState<PointsLedgerEntry[]>(() => readJson(ledgerKey(userId), []));
   const [progress, setProgressState] = useState<Record<string, ChallengeProgress>>(() =>
-    readJson(PROGRESS_KEY, {}),
+    readJson(progressKey(userId), {}),
   );
   // Separate source of truth for verified volunteering task counting.
   const [verifiedVolTaskIds, setVerifiedVolTaskIds] = useState<string[]>(() =>
-    readJson(VOL_TASKS_KEY, []),
+    readJson(volTasksKey(userId), []),
   );
-  const [redeemedRewards, setRedeemedRewards] = useState<Record<string, RewardRedemption>>(
-    readRedeemed,
+  const [redeemedRewards, setRedeemedRewards] = useState<Record<string, RewardRedemption>>(() =>
+    readRedeemed(userId),
   );
 
-  useEffect(() => writeJson(LEDGER_KEY, ledger), [ledger]);
-  useEffect(() => writeJson(PROGRESS_KEY, progress), [progress]);
-  useEffect(() => writeJson(VOL_TASKS_KEY, verifiedVolTaskIds), [verifiedVolTaskIds]);
-  useEffect(() => writeJson(REDEEMED_KEY, redeemedRewards), [redeemedRewards]);
+  useEffect(() => writeJson(ledgerKey(userId), ledger), [userId, ledger]);
+  useEffect(() => writeJson(progressKey(userId), progress), [userId, progress]);
+  useEffect(() => writeJson(volTasksKey(userId), verifiedVolTaskIds), [userId, verifiedVolTaskIds]);
+  useEffect(() => writeJson(redeemedKey(userId), redeemedRewards), [userId, redeemedRewards]);
 
-  const challengeById = useMemo(
-    () => new Map(challenges.map((c) => [c.id, c])),
-    [challenges],
-  );
+  const challengeById = useMemo(() => new Map(challenges.map((c) => [c.id, c])), [challenges]);
 
   const award = useCallback((input: AwardInput) => {
     setLedger((prev) => awardPoints(prev, input));
@@ -290,15 +274,10 @@ function useGamificationState(): UseGamification {
       MOCK_REWARDS.map((r) => {
         const meetsPoints = summary.totalPoints >= r.pointsCost;
         const meetsTasks =
-          r.minVolunteerTasks == null ||
-          summary.completedVolunteerTasks >= r.minVolunteerTasks;
+          r.minVolunteerTasks == null || summary.completedVolunteerTasks >= r.minVolunteerTasks;
         const unlocked = meetsPoints && meetsTasks;
         const redemption = redeemedRewards[r.id];
-        const status: RewardStatus = redemption
-          ? "redeemed"
-          : unlocked
-            ? "available"
-            : "locked";
+        const status: RewardStatus = redemption ? "redeemed" : unlocked ? "available" : "locked";
         const needs: string[] = [];
         if (!meetsPoints) needs.push(`${r.pointsCost} points`);
         if (!meetsTasks && r.minVolunteerTasks != null) {
@@ -367,7 +346,9 @@ function useGamificationState(): UseGamification {
  * progress, verified-task count and reward state without reload-induced staleness.
  */
 export function GamificationProvider({ children }: { children: ReactNode }) {
-  const value = useGamificationState();
+  // Mount with key={userId} so persisted state is re-read for each user.
+  const { userId } = useSession();
+  const value = useGamificationState(userId);
   return <GamificationContext.Provider value={value}>{children}</GamificationContext.Provider>;
 }
 
