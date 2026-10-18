@@ -47,12 +47,12 @@ export function DemoSignInCard() {
       <InfoCard>
         <div className="feature-card">
           <div className="feature-card-head">
-            <h3 className="feature-card-title">
+            <h2 className="feature-card-title">
               <span className="inline-icon">
                 <UserRoundCheck size={18} aria-hidden="true" />
                 Demo sign-in
               </span>
-            </h3>
+            </h2>
             <StatusBadge
               label={status === "signed_in" ? "Live" : "Demo data"}
               variant={status === "signed_in" ? "success" : "info"}

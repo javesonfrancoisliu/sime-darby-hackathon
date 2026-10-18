@@ -226,10 +226,13 @@ export function CommunityPage() {
             </div>
           </section>
 
-          <section className="ui-section" aria-labelledby="results-heading" aria-live="polite">
+          <section className="ui-section" aria-labelledby="results-heading">
             <h2 className="ui-section-title" id="results-heading">
               {filter === "all" ? "All updates" : `Filtered: ${counts[filter]} item(s)`}
             </h2>
+            <p className="results-count" aria-live="polite">
+              {visible.length} update{visible.length === 1 ? "" : "s"} shown
+            </p>
             {visible.length === 0 ? (
               <InfoCard>
                 <EmptyState

@@ -39,12 +39,12 @@ export function DemoControls() {
       <InfoCard>
         <div className="feature-card">
           <div className="feature-card-head">
-            <h3 className="feature-card-title">
+            <h2 className="feature-card-title">
               <span className="inline-icon">
                 <Wrench size={18} aria-hidden="true" />
                 Demo controls
               </span>
-            </h3>
+            </h2>
           </div>
           <p className="ui-helper" style={{ marginTop: 0 }}>
             Development/demo only. Resets all simulated progress so the app returns

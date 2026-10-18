@@ -25,12 +25,12 @@ export function CommunityOverview({ townshipId }: { townshipId?: string }) {
     <InfoCard ariaLabel="Latest community updates">
       <div className="feature-card">
         <div className="feature-card-head">
-          <h3 className="feature-card-title">
+          <h2 className="feature-card-title">
             <span className="inline-icon">
               <Megaphone size={18} aria-hidden="true" />
               Latest community updates
             </span>
-          </h3>
+          </h2>
         </div>
 
         <ul className="ui-stack" style={{ listStyle: "none", margin: 0, padding: 0 }}>

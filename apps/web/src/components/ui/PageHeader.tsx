@@ -1,4 +1,6 @@
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
+
+const APP_NAME = "Township Connect";
 
 export type PageHeaderProps = {
   title: string;
@@ -9,6 +11,11 @@ export type PageHeaderProps = {
 
 /** Shared page header: heading + one-sentence subtitle + optional right-aligned action. */
 export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
+  // Every page renders one PageHeader, so this names the tab per route.
+  useEffect(() => {
+    document.title = `${title} - ${APP_NAME}`;
+  }, [title]);
+
   return (
     <header className="ui-page-header">
       <div>

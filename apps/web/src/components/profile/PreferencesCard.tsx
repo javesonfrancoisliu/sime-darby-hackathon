@@ -43,7 +43,7 @@ export function PreferencesCard({ onEdit }: PreferencesCardProps) {
     <InfoCard ariaLabel="Volunteering preferences">
       <div className="feature-card">
         <div className="feature-card-head">
-          <h3 className="feature-card-title">Volunteering preferences</h3>
+          <h2 className="feature-card-title">Volunteering preferences</h2>
           <AppButton variant="ghost" onClick={onEdit} aria-label="Edit volunteer preferences">
             <Pencil size={16} aria-hidden="true" />
             Edit

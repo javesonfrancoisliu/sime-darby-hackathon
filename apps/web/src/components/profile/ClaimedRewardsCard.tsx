@@ -19,12 +19,12 @@ export function ClaimedRewardsCard({ claimed }: ClaimedRewardsCardProps) {
     <InfoCard ariaLabel="My rewards">
       <div className="feature-card">
         <div className="feature-card-head">
-          <h3 className="feature-card-title">
+          <h2 className="feature-card-title">
             <span className="inline-icon">
               <Ticket size={18} aria-hidden="true" />
               My rewards
             </span>
-          </h3>
+          </h2>
           <DemoTag />
         </div>
 

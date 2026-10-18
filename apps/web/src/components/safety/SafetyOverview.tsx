@@ -17,12 +17,12 @@ export function SafetyOverview({ townshipId }: SafetyOverviewProps) {
     <InfoCard ariaLabel={`Safety summary${townshipId ? ` for ${townshipId}` : ""}`}>
       <div className="feature-card">
         <div className="feature-card-head">
-          <h3 className="feature-card-title">
+          <h2 className="feature-card-title">
             <span className="inline-icon">
               <ShieldAlert size={18} aria-hidden="true" />
               Health & Safety
             </span>
-          </h3>
+          </h2>
         </div>
         <p className="feature-card-desc">
           Hazard conditions and facility reports appear here once the Health & Safety

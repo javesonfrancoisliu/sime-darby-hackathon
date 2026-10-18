@@ -32,12 +32,12 @@ export function VolunteerOverview({ impact }: VolunteerOverviewProps) {
     <InfoCard className="reward-accent" ariaLabel="Your volunteering impact">
       <div className="feature-card">
         <div className="feature-card-head">
-          <h3 className="feature-card-title">
+          <h2 className="feature-card-title">
             <span className="inline-icon">
               <HandHeart size={18} aria-hidden="true" />
               My impact
             </span>
-          </h3>
+          </h2>
           {impact.isDemoData && <DemoTag />}
         </div>
 
