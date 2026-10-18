@@ -25,7 +25,6 @@ async function walkToConfirm(note = "Milk and bread") {
   await pick("Next");
   await pick("Today");
   await pick(/Afternoon/);
-  await pick("Next");
   await pick("1 hour");
   await pick("Next");
 }
@@ -38,7 +37,7 @@ beforeEach(() => {
 afterEach(() => vi.useRealTimers());
 
 describe("Request flow", () => {
-  it("walks note, day and time, length, confirm, then sends the contract body", async () => {
+  it("walks note, day and time and length, confirm, then sends the contract body", async () => {
     const { calls } = installFakeApi(createRoute());
     await walkToConfirm();
 
@@ -69,7 +68,6 @@ describe("Request flow", () => {
     await pick("Next");
     await pick("Tomorrow");
     await pick(/Morning/);
-    await pick("Next");
     await pick("2 hours");
     await pick("Next");
     await pick("Send request");
@@ -101,8 +99,6 @@ describe("Request flow", () => {
     await pick("Tomorrow");
     expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
     await pick(/Evening/);
-    expect(screen.getByRole("button", { name: "Next" })).toBeEnabled();
-    await pick("Next");
     expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
     await pick("30 minutes");
     expect(screen.getByRole("button", { name: "Next" })).toBeEnabled();
@@ -153,8 +149,10 @@ describe("Request flow", () => {
     await pick("Next");
     await pick("Tomorrow");
     await pick(/Evening/);
-    await pick("Next");
     expect(screen.getByText("Step 3 of 4")).toBeInTheDocument();
+    await pick("1 hour");
+    await pick("Next");
+    expect(screen.getByText("Step 4 of 4")).toBeInTheDocument();
     await pick(/back/i);
     expect(screen.getByRole("button", { name: /Evening/ })).toHaveAttribute("aria-pressed", "true");
     await pick(/back/i);
@@ -210,7 +208,7 @@ describe("Request flow", () => {
     await pick("Send request");
 
     expect(await screen.findByText(/That time has passed/)).toBeInTheDocument();
-    expect(screen.getByText("When?")).toBeInTheDocument();
+    expect(screen.getByText("When and how long?")).toBeInTheDocument();
     expect(calls.filter((c) => c.method === "POST")).toHaveLength(0);
   });
 

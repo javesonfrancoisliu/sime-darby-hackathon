@@ -15,6 +15,9 @@ export const EMPTY_CHOICES: FlowChoices = {
   durationMinutes: null,
 };
 
-export type FlowStep = "describe" | "when" | "length" | "confirm";
+export type FlowStep = "describe" | "when" | "confirm";
 
-export const FLOW_STEPS: FlowStep[] = ["describe", "when", "length", "confirm"];
+export const FLOW_STEPS: FlowStep[] = ["describe", "when", "confirm"];
+
+// Choosing the category is the first screen, so it counts as step 1.
+export const CATEGORY_STEPS = 1;

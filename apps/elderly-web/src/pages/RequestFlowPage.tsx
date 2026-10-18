@@ -8,19 +8,23 @@ import { Banner } from "../ui/Banner";
 import { BackLink } from "../ui/BackLink";
 import { ConfirmStep } from "./requestFlow/ConfirmStep";
 import { DescribeStep } from "./requestFlow/DescribeStep";
-import { LengthStep } from "./requestFlow/LengthStep";
 import { WhenStep } from "./requestFlow/WhenStep";
-import { EMPTY_CHOICES, FLOW_STEPS, type FlowChoices, type FlowStep } from "./requestFlow/types";
+import {
+  CATEGORY_STEPS,
+  EMPTY_CHOICES,
+  FLOW_STEPS,
+  type FlowChoices,
+  type FlowStep,
+} from "./requestFlow/types";
 
 const STEP_HEADING: Record<Exclude<FlowStep, "describe">, string> = {
-  when: "When?",
-  length: "How long?",
+  when: "When and how long?",
   confirm: "Is this right?",
 };
 
 const STALE_TIME_MESSAGE = "That time has passed. Please choose another time.";
 
-// Four short steps: note, day and time, length, then a plain summary to confirm.
+// Four short steps counting the category screen: category, note, day and time and length, then a plain summary to confirm.
 export function RequestFlowPage() {
   const { category } = useParams();
   const navigate = useNavigate();
@@ -100,7 +104,7 @@ export function RequestFlowPage() {
     <div className="apple-subpage">
       <BackLink onBack={previousStep ? () => goTo(previousStep) : undefined} />
       <p className="step-count">
-        Step {index + 1} of {FLOW_STEPS.length}
+        Step {index + 1 + CATEGORY_STEPS} of {FLOW_STEPS.length + CATEGORY_STEPS}
       </p>
       <h1 className="ui-page-title" ref={headingRef} tabIndex={-1}>
         {step === "describe" ? option.label : STEP_HEADING[step]}
@@ -119,16 +123,11 @@ export function RequestFlowPage() {
         <WhenStep
           day={choices.day}
           slot={choices.slot}
+          minutes={choices.durationMinutes}
           now={now}
           onDay={pickDay}
           onSlot={(slot: TimeSlot) => pick("slot", slot)}
-          onNext={() => goTo("length")}
-        />
-      ) : null}
-      {step === "length" ? (
-        <LengthStep
-          minutes={choices.durationMinutes}
-          onPick={(minutes) => pick("durationMinutes", minutes)}
+          onMinutes={(minutes) => pick("durationMinutes", minutes)}
           onNext={() => goTo("confirm")}
         />
       ) : null}

@@ -1,17 +1,35 @@
-import { isSlotPast, TIME_SLOTS, type DayChoice, type TimeSlot } from "../../requests/schedule";
+import {
+  DURATION_OPTIONS,
+  isSlotPast,
+  minutesLabel,
+  TIME_SLOTS,
+  type DayChoice,
+  type TimeSlot,
+} from "../../requests/schedule";
 import { Button } from "../../ui/Button";
 import { ChoiceButton } from "../../ui/ChoiceButton";
 
 interface WhenStepProps {
   day: DayChoice | null;
   slot: TimeSlot | null;
+  minutes: number | null;
   now: Date;
   onDay: (day: DayChoice) => void;
   onSlot: (slot: TimeSlot) => void;
+  onMinutes: (minutes: number) => void;
   onNext: () => void;
 }
 
-export function WhenStep({ day, slot, now, onDay, onSlot, onNext }: WhenStepProps) {
+export function WhenStep({
+  day,
+  slot,
+  minutes,
+  now,
+  onDay,
+  onSlot,
+  onMinutes,
+  onNext,
+}: WhenStepProps) {
   const noneLeftToday = day === "today" && TIME_SLOTS.every((s) => isSlotPast("today", s, now));
 
   return (
@@ -50,8 +68,25 @@ export function WhenStep({ day, slot, now, onDay, onSlot, onNext }: WhenStepProp
         </>
       ) : null}
 
+      {slot ? (
+        <>
+          <p className="step-question">How long?</p>
+          <div className="choice-grid" role="group" aria-label="How long?">
+            {DURATION_OPTIONS.map((option) => (
+              <ChoiceButton
+                key={option}
+                selected={minutes === option}
+                onClick={() => onMinutes(option)}
+              >
+                {minutesLabel(option)}
+              </ChoiceButton>
+            ))}
+          </div>
+        </>
+      ) : null}
+
       <div className="step-actions">
-        <Button block disabled={!day || !slot} onClick={onNext}>
+        <Button block disabled={!day || !slot || minutes === null} onClick={onNext}>
           Next
         </Button>
       </div>
