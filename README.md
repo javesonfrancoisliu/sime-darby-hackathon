@@ -33,10 +33,13 @@ apps/
         health/           Health check
       test/               Test helpers
     scripts/              Local table setup
-  <frontend>/             React frontends (added by the frontend team)
+  web/                    Volunteer app (React 19, PWA), see apps/web/README.md
+  elderly-web/            Elderly app (React 18, PWA), see apps/elderly-web/README.md
 packages/
   contracts/              Request and response schemas shared by frontends and API
-  config/                 Shared TypeScript config
+  config/                 Shared TypeScript config, Vite proxy and PWA settings
+  api-client/             Fetch wrapper, error mapping and demo sign-in session for both apps
+  design-tokens/          Shared tokens.css and design guidelines
 infra/terraform/
   bootstrap/              S3 bucket for Terraform state (run once)
   modules/                api (Lambda, API Gateway), data (DynamoDB), web-hosting (S3, CloudFront)
