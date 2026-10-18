@@ -42,3 +42,18 @@ module "web" {
   api_domain_name = replace(module.api.api_endpoint, "https://", "")
   price_class     = var.cloudfront_price_class
 }
+
+# Read-only role for developers; skipped until developer_principal_arns is set.
+module "developer_access" {
+  source = "../../modules/developer-access"
+
+  name_prefix            = local.name_prefix
+  trusted_principal_arns = var.developer_principal_arns
+  log_group_arns         = module.api.log_group_arns
+  table_arn              = module.data.table_arn
+  function_arn           = module.api.function_arn
+  api_id                 = module.api.api_id
+  user_pool_arn          = module.auth.user_pool_arn
+  distribution_arn       = module.web.distribution_arn
+  bucket_arn             = module.web.bucket_arn
+}

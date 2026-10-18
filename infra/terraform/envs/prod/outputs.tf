@@ -41,3 +41,8 @@ output "aws_region" {
   description = "Region the stack runs in (used by the deploy script for S3 uploads)."
   value       = var.aws_region
 }
+
+output "developer_role_arn" {
+  description = "Read-only developer role ARN, or null when no developers are set."
+  value       = module.developer_access.role_arn
+}
