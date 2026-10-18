@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { DemoUsersResponse, User, VolunteersResponse } from "@sdh/contracts";
-import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { call, createUser } from "../../test/api";
 import { useTestTable } from "../../test/table";
 
@@ -122,25 +122,5 @@ describe("users", () => {
       body: { decision: "verified" },
     });
     expect(badId.status).toBe(400);
-  });
-
-  describe("with demo sign-in switched off", () => {
-    afterEach(() => vi.unstubAllEnvs());
-
-    it("rejects the header, hides the demo list and refuses coordinators", async () => {
-      const elder = await createUser("elder");
-      vi.stubEnv("ALLOW_DEMO_IDENTITY", "false");
-      expect((await call("GET", "/api/me", { as: elder.id })).status).toBe(401);
-      expect((await call("GET", "/api/demo/users")).status).toBe(404);
-      const created = await call("POST", "/api/users", {
-        body: {
-          role: "coordinator",
-          name: "Nobody",
-          area: "Precinct 1",
-          location: { lat: 3.0738, lng: 101.5183 },
-        },
-      });
-      expect(created.status).toBe(403);
-    });
   });
 });

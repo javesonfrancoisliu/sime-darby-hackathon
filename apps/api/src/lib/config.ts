@@ -14,10 +14,6 @@ export const config = {
   get dynamodbEndpoint(): string | undefined {
     return process.env.DYNAMODB_ENDPOINT || undefined;
   },
-  // Kill switch for the simulated sign-in. On by default because the demo has no other login.
-  get allowDemoIdentity(): boolean {
-    return process.env.ALLOW_DEMO_IDENTITY !== "false";
-  },
   get matchingAiModelId(): string | undefined {
     return process.env.MATCHING_AI_MODEL_ID || undefined;
   },
