@@ -21,16 +21,7 @@ export default defineConfig(
     languageOptions: { globals: globals.browser },
   },
   {
-    files: ["apps/elderly-web/public/sw.js"],
-    languageOptions: { globals: globals.serviceworker },
-  },
-  {
-    files: [
-      "apps/api/**/*.ts",
-      "apps/web/scripts/**/*.{js,mjs}",
-      "packages/**/*.ts",
-      "**/*.config.{js,ts}",
-    ],
+    files: ["apps/api/**/*.ts", "packages/**/*.mjs", "packages/**/*.ts", "**/*.config.{js,ts}"],
     languageOptions: { globals: globals.node },
   },
 );

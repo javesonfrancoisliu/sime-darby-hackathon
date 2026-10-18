@@ -27,3 +27,28 @@ export function previewServer(env: Env, port: number) {
     allowedHosts,
   };
 }
+
+// Service worker settings shared by every PWA: precache the built app shell, never answer /api from the shell.
+export function pwaBase() {
+  return {
+    registerType: "autoUpdate" as const,
+    includeAssets: ["icons/apple-touch-icon.png"],
+    workbox: {
+      globPatterns: ["**/*.{js,css,html,svg,png,woff2}"],
+      navigateFallback: "index.html",
+      navigateFallbackDenylist: [/^\/api\//],
+      // Fresh workers take over on their own, so an old shell is not kept by open tabs.
+      cleanupOutdatedCaches: true,
+    },
+    devOptions: { enabled: false },
+  };
+}
+
+// The same four icons come out of packages/config/generate-icons.mjs for every app.
+export function pwaIcons() {
+  return [
+    { src: "icons/pwa-192.png", sizes: "192x192", type: "image/png" },
+    { src: "icons/pwa-512.png", sizes: "512x512", type: "image/png" },
+    { src: "icons/maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+  ];
+}

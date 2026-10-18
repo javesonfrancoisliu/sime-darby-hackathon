@@ -1,4 +1,4 @@
-import { apiProxy, previewServer } from "@sdh/config/vite.shared";
+import { apiProxy, previewServer, pwaBase, pwaIcons } from "@sdh/config/vite.shared";
 import react from "@vitejs/plugin-react";
 import { defineConfig, loadEnv } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
@@ -10,8 +10,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       VitePWA({
-        registerType: "autoUpdate",
-        includeAssets: ["icons/apple-touch-icon.png"],
+        ...pwaBase(),
         manifest: {
           name: "Township Connect",
           short_name: "Township",
@@ -24,21 +23,10 @@ export default defineConfig(({ mode }) => {
           orientation: "portrait",
           background_color: "#F8F9FA",
           theme_color: "#D71920",
-          icons: [
-            { src: "icons/pwa-192.png", sizes: "192x192", type: "image/png" },
-            { src: "icons/pwa-512.png", sizes: "512x512", type: "image/png" },
-            {
-              src: "icons/maskable-512.png",
-              sizes: "512x512",
-              type: "image/png",
-              purpose: "maskable",
-            },
-          ],
+          icons: pwaIcons(),
         },
         workbox: {
-          // Precache the built app shell + static assets for offline launch.
-          globPatterns: ["**/*.{js,css,html,svg,png,woff2}"],
-          navigateFallback: "index.html",
+          ...pwaBase().workbox,
           runtimeCaching: [
             {
               // Live safety / township / community API data: always try the network
@@ -71,10 +59,6 @@ export default defineConfig(({ mode }) => {
               },
             },
           ],
-        },
-        devOptions: {
-          // Lets you test the service worker with `vite dev` too (not just build).
-          enabled: false,
         },
       }),
     ],

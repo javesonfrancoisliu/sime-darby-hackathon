@@ -43,8 +43,8 @@ export function HeroHeader({
       <div className="app-hero__brand">
         <img
           className="app-hero__brand-icon"
-          src="/icons/icon-001.jpeg"
-          alt="Help a Neighbour"
+          src="/icons/pwa-192.png"
+          alt=""
           width={40}
           height={40}
         />

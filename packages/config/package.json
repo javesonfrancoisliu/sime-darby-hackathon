@@ -5,12 +5,14 @@
   "type": "module",
   "exports": {
     "./tsconfig.base.json": "./tsconfig.base.json",
-    "./vite.shared": "./vite.shared.ts"
+    "./vite.shared": "./vite.shared.ts",
+    "./generate-icons": "./generate-icons.mjs"
   },
   "scripts": {
     "test": "vitest run"
   },
   "devDependencies": {
+    "sharp": "^0.34.5",
     "vitest": "^5.0.4"
   }
 }

@@ -15,13 +15,3 @@ createRoot(container).render(
     </BrowserRouter>
   </StrictMode>,
 );
-
-// Register the service worker for offline support / installability.
-// Dev uses Vite's module server, so only register in production builds.
-if (import.meta.env.PROD && "serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch(() => {
-      // Non-fatal: the app still works without offline support.
-    });
-  });
-}

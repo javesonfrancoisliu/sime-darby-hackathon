@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
-    "icons": "node scripts/generate-icons.mjs"
+    "icons": "node ../../packages/config/generate-icons.mjs assets/app_icon.png public/icons"
   },
   "dependencies": {
     "@sdh/api-client": "workspace:*",
@@ -25,7 +25,6 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.0.0",
-    "sharp": "^0.34.0",
     "typescript": "6.0.3",
     "vite": "^7.1.0",
     "vite-plugin-pwa": "^1.0.0",

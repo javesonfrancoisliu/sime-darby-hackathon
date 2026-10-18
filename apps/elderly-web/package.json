@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "icons": "node ../../packages/config/generate-icons.mjs assets/app_icon.jpeg public/icons"
   },
   "dependencies": {
     "@sdh/api-client": "workspace:*",
@@ -31,6 +32,7 @@
     "jsdom": "^25.0.1",
     "typescript": "6.0.3",
     "vite": "^6.0.7",
+    "vite-plugin-pwa": "^1.3.0",
     "vitest": "^5.0.4"
   }
 }

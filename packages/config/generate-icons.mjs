@@ -1,5 +1,6 @@
-// One-off build tool: turns assets/app_icon.png into the PWA icon set.
-// Not shipped with the app. Run with: pnpm --filter @sdh/web icons
+// One-off build tool shared by both apps: turns a source icon into the PWA icon set.
+// Not shipped with the app. Run from an app folder: node ../../packages/config/generate-icons.mjs <source> <outDir>
+// Each app wires this as its `icons` script, e.g. pnpm --filter @sdh/web icons
 //
 // Steps:
 //  1. Trim the surrounding near-white margin so only the rounded icon remains.
@@ -8,14 +9,17 @@
 //     background, so Android's safe-zone mask never clips the artwork.
 //  4. Emit a 180 Apple touch icon (opaque background for iOS home screen).
 
-import { fileURLToPath } from "node:url";
-import { dirname, resolve } from "node:path";
+import { mkdir } from "node:fs/promises";
+import { resolve } from "node:path";
 import sharp from "sharp";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const webRoot = resolve(__dirname, "..");
-const source = resolve(webRoot, "assets/app_icon.png");
-const outDir = resolve(webRoot, "public/icons");
+const [sourceArg, outDirArg] = process.argv.slice(2);
+if (!sourceArg || !outDirArg) {
+  console.error("Usage: node generate-icons.mjs <source image> <output dir>");
+  process.exit(1);
+}
+const source = resolve(sourceArg);
+const outDir = resolve(outDirArg);
 
 const BRAND_RED = "#D71920";
 
@@ -33,8 +37,6 @@ async function run() {
     .png()
     .toBuffer();
 
-  await sharp(outDir).metadata().catch(() => {});
-  const { mkdir } = await import("node:fs/promises");
   await mkdir(outDir, { recursive: true });
 
   // 1. "any" icons — tight crop, transparent corners preserved.
