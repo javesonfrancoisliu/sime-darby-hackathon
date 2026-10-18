@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { useHelpRequests } from "../hooks/useHelpRequests";
-import { CATEGORY_TEXT } from "../ui/status";
+import { useMyRequests } from "../hooks/useRequests";
+import { formatWhen } from "../requests/schedule";
 import { BackLink } from "../ui/BackLink";
 import { Button } from "../ui/Button";
 import { Banner } from "../ui/Banner";
@@ -18,7 +18,7 @@ import { IconChevronRight, IconList, IconPlus } from "../ui/Icons";
  */
 export function RequestsListPage() {
   const navigate = useNavigate();
-  const { data, status, error, refetch } = useHelpRequests();
+  const { data, status, error, refetch } = useMyRequests();
 
   return (
     <div className="apple-subpage">
@@ -36,10 +36,7 @@ export function RequestsListPage() {
       {status === "loading" ? <Spinner label="Loading your requests" /> : null}
 
       {status === "error" ? (
-        <Banner
-          message={error?.message ?? "We could not load your requests."}
-          onRetry={refetch}
-        />
+        <Banner message={error?.message ?? "We could not load your requests."} onRetry={refetch} />
       ) : null}
 
       {status === "success" && data && data.length === 0 ? (
@@ -69,11 +66,14 @@ export function RequestsListPage() {
               <div className="apple-card-button__body">
                 <div className="apple-card-button__header">
                   <span className="ui-card-title" style={{ margin: 0 }}>
-                    {CATEGORY_TEXT[req.category]}
+                    {req.title}
                   </span>
                   <StatusBadge status={req.status} />
                 </div>
-                <p className="apple-card-button__desc">{req.description}</p>
+                <p className="apple-card-button__desc">{formatWhen(req.scheduledAt)}</p>
+                {req.description ? (
+                  <p className="apple-card-button__desc">{req.description}</p>
+                ) : null}
                 {req.volunteerName && (
                   <span className="apple-card-button__volunteer">
                     Volunteer: <strong>{req.volunteerName}</strong>

@@ -1,163 +1,221 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { act, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderApp } from "../test/renderRoute";
 import { installFakeApi, signInAs } from "../test/fakeApi";
-import { ApiRequestError, api } from "../api/client";
-import type { HelpRequest } from "../api/client";
+import { ELDER, makeRequest } from "../test/fixtures";
 
-const pending: HelpRequest = {
-  id: "1",
-  category: "groceries",
-  description: "Milk and bread",
-  status: "pending",
-};
-const matched: HelpRequest = {
-  id: "2",
+const open = makeRequest({ id: "9d2f5c74-8b2c-4e55-9f90-2c3b8e3f4a03" });
+const matched = makeRequest({
+  id: "1e3a6d85-9c3d-4f66-8a01-3d4c9f4a5b04",
   category: "transport",
+  title: "Transport",
   description: "Lift to clinic",
   status: "matched",
   volunteerName: "Aisha",
-};
-
-beforeEach(() => {
-  installFakeApi();
-  signInAs();
+});
+const checking = makeRequest({
+  id: "2f4b7e96-ad4e-4a77-9b12-4e5dad5b6c05",
+  status: "pending_review",
 });
 
-afterEach(() => vi.restoreAllMocks());
+const listOf = (...requests: unknown[]) => ({ "GET /api/requests/mine": { body: { requests } } });
 
-describe("Home + navigation (Req 4.1, 4.2)", () => {
-  it("home shows both primary actions", async () => {
+beforeEach(() => signInAs());
+afterEach(() => vi.useRealTimers());
+
+describe("Home + navigation", () => {
+  it("greets the signed-in resident and shows both primary actions", async () => {
+    installFakeApi(listOf());
     await renderApp("/");
+    expect(await screen.findByText(ELDER.name)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Request help" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "View my requests" })).toBeInTheDocument();
   });
 
+  it("shows the title and plain status of recent requests", async () => {
+    installFakeApi(listOf(open, matched));
+    await renderApp("/");
+    expect(await screen.findByText("Finding a volunteer")).toBeInTheDocument();
+    expect(screen.getByText("Volunteer coming")).toBeInTheDocument();
+  });
+
   it("non-home screen shows a back control", async () => {
+    installFakeApi();
     await renderApp("/request");
     expect(screen.getByRole("button", { name: /back/i })).toBeInTheDocument();
   });
 });
 
-describe("Category selection (Req 5.1)", () => {
-  it("renders exactly three categories and routes on selection", async () => {
+describe("Category selection", () => {
+  it("offers five categories with simple names and routes on selection", async () => {
+    installFakeApi();
     await renderApp("/request");
-    const groceries = screen.getByRole("button", { name: "Groceries" });
-    expect(groceries).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Transport" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Learning technology" })).toBeInTheDocument();
-    await userEvent.click(groceries);
+    for (const name of [
+      "Groceries",
+      "Transport",
+      "Phone and computer help",
+      "Help at home",
+      "Health help",
+    ]) {
+      expect(screen.getByRole("button", { name })).toBeInTheDocument();
+    }
+    await userEvent.click(screen.getByRole("button", { name: "Groceries" }));
     expect(screen.getByLabelText("Describe the help you need")).toBeInTheDocument();
   });
 });
 
-describe("Describe + submit (Req 5.3, 5.4, 5.5, 5.6)", () => {
-  it("blocks an empty description and does not call the API", async () => {
-    const spy = vi.spyOn(api, "createHelpRequest");
-    await renderApp("/request/groceries");
-    await userEvent.click(screen.getByRole("button", { name: "Send request" }));
-    expect(screen.getByRole("alert")).toHaveTextContent(/enter a description/i);
-    expect(spy).not.toHaveBeenCalled();
+describe("Requests list", () => {
+  it("shows the empty state with a create action", async () => {
+    installFakeApi(listOf());
+    await renderApp("/requests");
+    expect(await screen.findByText(/no requests yet/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Request help" })).toBeInTheDocument();
   });
 
-  it("submits a valid request and shows confirmation", async () => {
-    vi.spyOn(api, "createHelpRequest").mockResolvedValue(pending);
+  it("shows a friendly error with Try again, never the raw server text", async () => {
+    let attempts = 0;
+    installFakeApi({
+      "GET /api/requests/mine": () =>
+        ++attempts === 1
+          ? { status: 500, body: { error: { code: "INTERNAL", message: "stack trace here" } } }
+          : { body: { requests: [open] } },
+    });
+    await renderApp("/requests");
+    expect(await screen.findByText(/something went wrong/i)).toBeInTheDocument();
+    expect(screen.queryByText(/stack trace/)).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Try again" }));
+    expect(await screen.findByText("Groceries")).toBeInTheDocument();
+  });
+
+  it("renders title, time and plain status for each request", async () => {
+    installFakeApi(listOf(checking, matched));
+    await renderApp("/requests");
+    expect(await screen.findByText("Being checked")).toBeInTheDocument();
+    expect(screen.getByText("Volunteer coming")).toBeInTheDocument();
+    expect(screen.getByText("Lift to clinic")).toBeInTheDocument();
+    expect(screen.getByText("Aisha")).toBeInTheDocument();
+    expect(screen.getAllByText(/20 Oct/).length).toBe(2);
+  });
+
+  it("shows a volunteer accepting without a reload", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    let current = open;
+    installFakeApi({ "GET /api/requests/mine": () => ({ body: { requests: [current] } }) });
+    await renderApp("/requests");
+    expect(await screen.findByText("Finding a volunteer")).toBeInTheDocument();
+
+    current = makeRequest({ ...open, status: "matched", volunteerName: "Aisha" });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10_000);
+    });
+    expect(await screen.findByText("Volunteer coming")).toBeInTheDocument();
+    expect(screen.getByText("Aisha")).toBeInTheDocument();
+  });
+});
+
+describe("Request detail", () => {
+  it("shows the title, when and where, not the request id", async () => {
+    installFakeApi({ [`GET /api/requests/${open.id}`]: { body: open } });
+    await renderApp(`/requests/${open.id}`);
+    expect(await screen.findByRole("heading", { name: "Groceries" })).toBeInTheDocument();
+    expect(screen.queryByText(new RegExp(open.id))).not.toBeInTheDocument();
+    expect(screen.getByText(/At your home in Elmina Valley/)).toBeInTheDocument();
+    expect(screen.getByText("Not matched yet")).toBeInTheDocument();
+  });
+
+  it("shows the volunteer name when matched and hides Cancel", async () => {
+    installFakeApi({ [`GET /api/requests/${matched.id}`]: { body: matched } });
+    await renderApp(`/requests/${matched.id}`);
+    expect(await screen.findByText("Aisha")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Cancel request" })).not.toBeInTheDocument();
+  });
+
+  it("shows the team's note on a rejected request and hides Cancel", async () => {
+    const rejected = makeRequest({ status: "rejected", reviewNote: "Please add more detail" });
+    installFakeApi({ [`GET /api/requests/${rejected.id}`]: { body: rejected } });
+    await renderApp(`/requests/${rejected.id}`);
+    expect(await screen.findByText("Please add more detail")).toBeInTheDocument();
+    expect(screen.getByText("Not accepted")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Cancel request" })).not.toBeInTheDocument();
+  });
+
+  it("explains an unknown request in plain words", async () => {
+    installFakeApi({
+      [`GET /api/requests/${open.id}`]: {
+        status: 404,
+        body: { error: { code: "NOT_FOUND", message: "Request not found" } },
+      },
+    });
+    await renderApp(`/requests/${open.id}`);
+    expect(await screen.findByText(/could not find that/i)).toBeInTheDocument();
+  });
+});
+
+describe("Cancel flow", () => {
+  for (const status of ["pending_review", "open"] as const) {
+    it(`cancels a ${status} request after a confirmation`, async () => {
+      const req = makeRequest({ status });
+      const { calls } = installFakeApi({
+        [`GET /api/requests/${req.id}`]: { body: req },
+        [`POST /api/requests/${req.id}/cancel`]: { body: { ...req, status: "cancelled" } },
+      });
+      await renderApp(`/requests/${req.id}`);
+      await userEvent.click(await screen.findByRole("button", { name: "Cancel request" }));
+      expect(calls.some((c) => c.method === "POST")).toBe(false);
+
+      await userEvent.click(screen.getByRole("button", { name: "Yes, cancel request" }));
+      expect(await screen.findByText("Cancelled")).toBeInTheDocument();
+      expect(calls.filter((c) => c.method === "POST")).toHaveLength(1);
+      expect(screen.queryByRole("button", { name: "Cancel request" })).not.toBeInTheDocument();
+    });
+  }
+
+  it("keeps the status and explains in plain words when cancel is refused", async () => {
+    installFakeApi({
+      [`GET /api/requests/${open.id}`]: { body: open },
+      [`POST /api/requests/${open.id}/cancel`]: {
+        status: 409,
+        body: { error: { code: "CONFLICT", message: "Already matched" } },
+      },
+    });
+    await renderApp(`/requests/${open.id}`);
+    await userEvent.click(await screen.findByRole("button", { name: "Cancel request" }));
+    await userEvent.click(screen.getByRole("button", { name: "Yes, cancel request" }));
+    expect(await screen.findByText(/already changed/i)).toBeInTheDocument();
+    expect(screen.queryByText("Already matched")).not.toBeInTheDocument();
+    expect(screen.getByText("Finding a volunteer")).toBeInTheDocument();
+  });
+});
+
+describe("Demo data", () => {
+  it("shows a Demo data banner and demo requests only when switched on", async () => {
+    vi.stubEnv("VITE_USE_MOCK", "true");
+    window.localStorage.clear();
+    const { fetchMock } = installFakeApi();
+    await renderApp("/requests");
+    expect(await screen.findByText(/Demo data/)).toBeInTheDocument();
+    expect(await screen.findByText("Aisha Rahman")).toBeInTheDocument();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("shows no banner and no demo requests in live mode", async () => {
+    installFakeApi(listOf());
+    await renderApp("/requests");
+    await screen.findByText(/no requests yet/i);
+    expect(screen.queryByText(/Demo data/)).not.toBeInTheDocument();
+  });
+});
+
+describe("Describe page (before the full flow)", () => {
+  it("sends a request the server can accept and shows the confirmation", async () => {
+    const { calls } = installFakeApi({
+      "POST /api/requests": { status: 201, body: open },
+    });
     await renderApp("/request/groceries");
     await userEvent.type(screen.getByLabelText("Describe the help you need"), "Milk and bread");
     await userEvent.click(screen.getByRole("button", { name: "Send request" }));
     await waitFor(() => expect(screen.getByText("Request sent")).toBeInTheDocument());
-    expect(screen.getByText("Milk and bread")).toBeInTheDocument();
-  });
-
-  it("shows the API error message with retry (Req 5.6)", async () => {
-    vi.spyOn(api, "createHelpRequest").mockRejectedValue(
-      new ApiRequestError({ code: "INTERNAL", message: "Server exploded" }),
-    );
-    await renderApp("/request/groceries");
-    await userEvent.type(screen.getByLabelText("Describe the help you need"), "Milk");
-    await userEvent.click(screen.getByRole("button", { name: "Send request" }));
-    await waitFor(() => expect(screen.getByText("Server exploded")).toBeInTheDocument());
-    expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument();
-  });
-});
-
-describe("Requests list (Req 6)", () => {
-  it("shows the empty state with a create action (Req 6.4)", async () => {
-    vi.spyOn(api, "listHelpRequests").mockResolvedValue([]);
-    await renderApp("/requests");
-    await waitFor(() => expect(screen.getByText(/no requests yet/i)).toBeInTheDocument());
-    expect(screen.getByRole("button", { name: "Request help" })).toBeInTheDocument();
-  });
-
-  it("shows an error with retry (Req 6.5)", async () => {
-    vi.spyOn(api, "listHelpRequests").mockRejectedValue(
-      new ApiRequestError({ code: "INTERNAL", message: "List failed" }),
-    );
-    await renderApp("/requests");
-    await waitFor(() => expect(screen.getByText("List failed")).toBeInTheDocument());
-    expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument();
-  });
-
-  it("renders each request with category, description, and status (Req 6.2, 6.3)", async () => {
-    vi.spyOn(api, "listHelpRequests").mockResolvedValue([pending, matched]);
-    await renderApp("/requests");
-    await waitFor(() => expect(screen.getByText("Groceries")).toBeInTheDocument());
-    expect(screen.getByText("Lift to clinic")).toBeInTheDocument();
-    expect(screen.getByText("Waiting to be matched")).toBeInTheDocument();
-    expect(screen.getByText("Matched")).toBeInTheDocument();
-  });
-});
-
-describe("Request detail + volunteer (Req 7)", () => {
-  it("shows waiting text while pending", async () => {
-    vi.spyOn(api, "getHelpRequest").mockResolvedValue(pending);
-    await renderApp("/requests/1");
-    await waitFor(() => expect(screen.getByText("Groceries")).toBeInTheDocument());
-    expect(screen.getAllByText("Waiting to be matched").length).toBeGreaterThan(0);
-  });
-
-  it("shows the volunteer name when matched", async () => {
-    vi.spyOn(api, "getHelpRequest").mockResolvedValue(matched);
-    await renderApp("/requests/2");
-    await waitFor(() => expect(screen.getByText("Aisha")).toBeInTheDocument());
-  });
-});
-
-describe("Cancel flow (Req 8)", () => {
-  it("hides cancel for non-pending requests", async () => {
-    vi.spyOn(api, "getHelpRequest").mockResolvedValue(matched);
-    await renderApp("/requests/2");
-    await waitFor(() => expect(screen.getByText("Aisha")).toBeInTheDocument());
-    expect(screen.queryByRole("button", { name: "Cancel request" })).not.toBeInTheDocument();
-  });
-
-  it("requires confirmation then updates status to cancelled (Req 8.2, 8.3)", async () => {
-    vi.spyOn(api, "getHelpRequest").mockResolvedValue(pending);
-    const cancelSpy = vi
-      .spyOn(api, "cancelHelpRequest")
-      .mockResolvedValue({ ...pending, status: "cancelled" });
-    await renderApp("/requests/1");
-    await waitFor(() => expect(screen.getByText("Groceries")).toBeInTheDocument());
-
-    await userEvent.click(screen.getByRole("button", { name: "Cancel request" }));
-    expect(cancelSpy).not.toHaveBeenCalled(); // confirmation gates the call (Req 8.2)
-
-    await userEvent.click(screen.getByRole("button", { name: "Yes, cancel request" }));
-    await waitFor(() => expect(cancelSpy).toHaveBeenCalledWith("1"));
-    await waitFor(() => expect(screen.getByText("Cancelled")).toBeInTheDocument());
-  });
-
-  it("retains prior status and shows a message on cancel error (Req 8.4)", async () => {
-    vi.spyOn(api, "getHelpRequest").mockResolvedValue(pending);
-    vi.spyOn(api, "cancelHelpRequest").mockRejectedValue(
-      new ApiRequestError({ code: "CONFLICT", message: "Already matched" }),
-    );
-    await renderApp("/requests/1");
-    await waitFor(() => expect(screen.getByText("Groceries")).toBeInTheDocument());
-    await userEvent.click(screen.getByRole("button", { name: "Cancel request" }));
-    await userEvent.click(screen.getByRole("button", { name: "Yes, cancel request" }));
-    await waitFor(() => expect(screen.getByText("Already matched")).toBeInTheDocument());
-    expect(screen.getAllByText("Waiting to be matched").length).toBeGreaterThan(0);
+    expect(calls.filter((c) => c.method === "POST")).toHaveLength(1);
   });
 });

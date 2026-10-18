@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
-import type { HelpRequest } from "../api/client";
-import { useCancelHelpRequest, useHelpRequest } from "../hooks/useHelpRequests";
-import { CATEGORY_TEXT, canCancel, showsVolunteer } from "../ui/status";
+import { useCancelRequest, useRequest } from "../hooks/useRequests";
+import { CATEGORY_TEXT } from "../requests/categories";
+import { formatWhen, minutesLabel } from "../requests/schedule";
+import { canCancel, showsVolunteer } from "../ui/status";
 import { BackLink } from "../ui/BackLink";
 import { Button } from "../ui/Button";
 import { Banner } from "../ui/Banner";
@@ -10,22 +11,22 @@ import { Spinner } from "../ui/Spinner";
 import { StatusBadge } from "../ui/StatusBadge";
 import { IconShieldCheck, IconUser } from "../ui/Icons";
 
+// Plain words for the volunteer row before anyone has taken the request.
+function noVolunteerText(status: string): string {
+  return status === "cancelled" || status === "rejected" ? "No volunteer" : "Not matched yet";
+}
+
 /**
  * Request Detail — Apple Inset-Grouped Inspector layout.
- * Follows Apple HIG for inspection & destruction:
- * - Grouped metadata tiles (§12)
- * - Clear volunteer identity card (§16)
- * - Forgiving destructive confirmation flow (§16 Agency)
- * - Request detail with volunteer display (Req 7) and cancel flow (Req 8).
+ * Refreshes while open so a volunteer accepting shows up without a reload.
  */
 export function RequestDetailPage() {
   const { id = "" } = useParams();
-  const { data, status, error, refetch } = useHelpRequest(id);
-  const cancelMutation = useCancelHelpRequest();
-  const [local, setLocal] = useState<HelpRequest>();
+  const { data, status, error, refetch, update } = useRequest(id);
+  const cancelMutation = useCancelRequest();
   const [confirming, setConfirming] = useState(false);
 
-  if (status === "loading") {
+  if (status === "loading" && !data) {
     return (
       <div className="apple-subpage">
         <BackLink />
@@ -38,25 +39,17 @@ export function RequestDetailPage() {
     return (
       <div className="apple-subpage">
         <BackLink />
-        <Banner
-          message={error?.message ?? "We could not load this request."}
-          onRetry={refetch}
-        />
+        <Banner message={error?.message ?? "We could not load this request."} onRetry={refetch} />
       </div>
     );
   }
 
-  const req = local ?? data;
+  const req = data;
 
   async function onConfirmCancel() {
-    try {
-      const updated = await cancelMutation.cancel(req.id);
-      setLocal(updated); // reflect cancelled status (Req 8.3)
-      setConfirming(false);
-    } catch {
-      // prior status retained; error shown below (Req 8.4)
-      setConfirming(false);
-    }
+    const updated = await cancelMutation.run(req.id);
+    if (updated) update(() => updated);
+    setConfirming(false);
   }
 
   return (
@@ -65,10 +58,10 @@ export function RequestDetailPage() {
 
       <div className="apple-detail-hero">
         <h1 className="ui-page-title" style={{ marginBottom: 4 }}>
-          {CATEGORY_TEXT[req.category]}
+          {req.title}
         </h1>
         <div>
-          <span className="apple-meta-pill">Request #{req.id}</span>
+          <span className="apple-meta-pill">{CATEGORY_TEXT[req.category]}</span>
         </div>
       </div>
 
@@ -80,9 +73,30 @@ export function RequestDetailPage() {
         </div>
 
         <div className="apple-inset-row">
-          <span className="app-detail-label">Your description</span>
-          <span className="apple-inset-value">{req.description}</span>
+          <span className="app-detail-label">When</span>
+          <span className="apple-inset-value">
+            {formatWhen(req.scheduledAt)}, {minutesLabel(req.durationMinutes)}
+          </span>
         </div>
+
+        <div className="apple-inset-row">
+          <span className="app-detail-label">Where</span>
+          <span className="apple-inset-value">At your home in {req.location.area}</span>
+        </div>
+
+        {req.description ? (
+          <div className="apple-inset-row">
+            <span className="app-detail-label">Your description</span>
+            <span className="apple-inset-value">{req.description}</span>
+          </div>
+        ) : null}
+
+        {req.status === "rejected" && req.reviewNote ? (
+          <div className="apple-inset-row">
+            <span className="app-detail-label">Note from our team</span>
+            <span className="apple-inset-value">{req.reviewNote}</span>
+          </div>
+        ) : null}
 
         <div className="apple-inset-row">
           <span className="app-detail-label">Volunteer</span>
@@ -98,16 +112,14 @@ export function RequestDetailPage() {
             </div>
           ) : (
             <span className="apple-inset-value" style={{ color: "var(--text-secondary)" }}>
-              Waiting to be matched
+              {noVolunteerText(req.status)}
             </span>
           )}
         </div>
       </div>
 
       {cancelMutation.status === "error" ? (
-        <Banner
-          message={cancelMutation.error?.message ?? "We could not cancel this request."}
-        />
+        <Banner message={cancelMutation.error?.message ?? "We could not cancel this request."} />
       ) : null}
 
       {/* ── Cancel Request Flow (Apple destructive design) ─────── */}

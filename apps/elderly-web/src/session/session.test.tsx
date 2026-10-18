@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { DemoUsersResponse } from "@sdh/contracts";
@@ -46,7 +46,6 @@ describe("Who is using this phone", () => {
   });
 
   it("shows a friendly error with Try again when the list cannot load", async () => {
-    vi.spyOn(console, "error").mockImplementation(() => {});
     let attempts = 0;
     installFakeApi({
       "GET /api/demo/users": () =>

@@ -1,72 +1,8 @@
 import { useNavigate } from "react-router-dom";
-import type { HelpCategory } from "../api/client";
+import { CATEGORY_OPTIONS } from "../requests/categories";
 import { BackLink } from "../ui/BackLink";
-import {
-  IconShoppingBag,
-  IconCar,
-  IconDevice,
-  IconHeartHandshake,
-  IconHeartPulse,
-  IconChevronRight,
-} from "../ui/Icons";
-
-interface SupportCategoryItem {
-  id: HelpCategory;
-  ariaLabel: string;
-  title: string;
-  subtitle: string;
-  badge?: string;
-}
-
-const CATEGORIES: SupportCategoryItem[] = [
-  {
-    id: "groceries",
-    ariaLabel: "Groceries",
-    title: "Trip to Groceries",
-    subtitle: "A trip to groceries together with younger volunteers",
-    badge: "Most Requested",
-  },
-  {
-    id: "transport",
-    ariaLabel: "Transport",
-    title: "Transport to Amenities",
-    subtitle: "Transport to nearby clinic, groceries, or simple daily needs",
-  },
-  {
-    id: "digital_literacy",
-    ariaLabel: "Learning technology",
-    title: "Digital Literacy & AI",
-    subtitle: "Guidance on new technologies, e-wallets, video calls, AI taught by youth volunteers",
-    badge: "Youth Mentors",
-  },
-  {
-    id: "volunteer_support",
-    ariaLabel: "Volunteer Support",
-    title: "Youth Support & Household Fixes",
-    subtitle: "Volunteers from younger neighbourhoods support and help with home repairs & tasks",
-  },
-  {
-    id: "health_literacy",
-    ariaLabel: "Health Literacy and Events",
-    title: "Health Literacy & Wellness Events",
-    subtitle: "Understand medical notes, accompany to screenings, and join township wellness sessions",
-  },
-];
-
-function getCategoryIcon(id: HelpCategory) {
-  switch (id) {
-    case "groceries":
-      return <IconShoppingBag size={24} strokeWidth={1.8} />;
-    case "transport":
-      return <IconCar size={24} strokeWidth={1.8} />;
-    case "digital_literacy":
-      return <IconDevice size={24} strokeWidth={1.8} />;
-    case "volunteer_support":
-      return <IconHeartHandshake size={24} strokeWidth={1.8} />;
-    case "health_literacy":
-      return <IconHeartPulse size={24} strokeWidth={1.8} />;
-  }
-}
+import { CategoryIcon } from "../ui/CategoryIcon";
+import { IconChevronRight } from "../ui/Icons";
 
 /**
  * Help a Neighbour — Category Selection
@@ -89,22 +25,25 @@ export function CategoryPage() {
       </p>
 
       <div className="ui-stack">
-        {CATEGORIES.map((cat) => (
+        {CATEGORY_OPTIONS.map((cat) => (
           <button
             key={cat.id}
             type="button"
             className="category-choice-card"
-            aria-label={cat.ariaLabel}
+            aria-label={cat.label}
             onClick={() => navigate(`/request/${cat.id}`)}
           >
             <div className="category-choice-card__icon" aria-hidden="true">
-              {getCategoryIcon(cat.id)}
+              <CategoryIcon id={cat.id} size={24} />
             </div>
             <div className="category-choice-card__content">
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
                 <span className="category-choice-card__title">{cat.title}</span>
                 {cat.badge && (
-                  <span className="safety-chip" style={{ background: "#FEF2F2", color: "#D71920", fontSize: 11 }}>
+                  <span
+                    className="safety-chip"
+                    style={{ background: "#FEF2F2", color: "#D71920", fontSize: 11 }}
+                  >
                     {cat.badge}
                   </span>
                 )}

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { useSession } from "@sdh/api-client";
+import { logApiError } from "../api/errors";
 import { isMockMode } from "../config";
 import { AppShell } from "../ui/AppShell";
 import { WhoIsUsingPage } from "../pages/WhoIsUsingPage";
@@ -24,7 +25,7 @@ export function SessionGate({ children }: { children: ReactNode }) {
       </AppShell>
     );
   }
-  if (error) console.error("Could not load the signed-in profile:", error);
+  if (error) logApiError(error);
   return (
     <AppShell hideTabs>
       <Banner

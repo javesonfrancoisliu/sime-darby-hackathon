@@ -1,48 +1,37 @@
-import type { RequestStatus, HelpCategory } from "../api/client";
+import type { RequestStatus } from "@sdh/contracts";
 import type { AlertLevel } from "../mock/safetyData";
 
-/** Human-readable text for each status (Req 6.3, 7.2). */
+// Plain-language text for each status a resident can see.
 export const STATUS_TEXT: Record<RequestStatus, string> = {
-  pending: "Waiting to be matched",
-  matched: "Matched",
-  in_progress: "Help in progress",
+  pending_review: "Being checked",
+  open: "Finding a volunteer",
+  matched: "Volunteer coming",
   completed: "Completed",
+  rejected: "Not accepted",
   cancelled: "Cancelled",
 };
 
-/**
- * Shared StatusBadge colour family per status, matching the design doc's
- * status table. Values are the design system's semantic badge modifiers,
- * not new colours.
- */
+// Badge colour family per status. Green is kept for good news only.
 export type BadgeTone = "info" | "warning" | "success" | "danger";
 
 export const STATUS_TONE: Record<RequestStatus, BadgeTone> = {
-  pending: "info",
-  matched: "info",
-  in_progress: "warning",
+  pending_review: "info",
+  open: "warning",
+  matched: "success",
   completed: "success",
+  rejected: "danger",
   cancelled: "danger",
 };
 
-/** Volunteer name is shown iff status is matched/in_progress/completed (Req 7.1). */
+// A volunteer name is shown once one has taken the request.
 export function showsVolunteer(status: RequestStatus): boolean {
-  return status === "matched" || status === "in_progress" || status === "completed";
+  return status === "matched" || status === "completed";
 }
 
-/** Cancel is offered only while pending (Req 8.1). */
+// The server accepts a cancel while the request is being checked or still open.
 export function canCancel(status: RequestStatus): boolean {
-  return status === "pending";
+  return status === "pending_review" || status === "open";
 }
-
-export const CATEGORY_TEXT: Record<HelpCategory | "technology_learning", string> = {
-  groceries: "Groceries",
-  transport: "Transport",
-  technology_learning: "Digital Literacy",
-  digital_literacy: "Digital Literacy",
-  volunteer_support: "Volunteer Support & Home Fixes",
-  health_literacy: "Health Literacy & Events",
-};
 
 /* ─────────────────────────────────────────────────────────
    Township condition severity scale (used by the Home carousel).
@@ -92,43 +81,3 @@ export function facilitySeverity(status: "reported" | "in_progress" | "fixed"): 
   if (status === "in_progress") return 3;
   return 5; // reported but untouched
 }
-
-export interface CategoryDetail {
-  id: HelpCategory;
-  title: string;
-  subtitle: string;
-  description: string;
-}
-
-export const ELDERLY_SUPPORT_CATEGORIES: CategoryDetail[] = [
-  {
-    id: "groceries",
-    title: "Grocery Trip Together",
-    subtitle: "A trip to groceries together with younger volunteers",
-    description: "Get paired with a friendly neighbourhood youth volunteer to shop for fresh market produce or household essentials together.",
-  },
-  {
-    id: "transport",
-    title: "Transport to Amenities",
-    subtitle: "Transport to nearby clinic, groceries, or daily errands",
-    description: "Safe, guided rides to local clinics, pharmacies, post offices, or township community centres.",
-  },
-  {
-    id: "digital_literacy",
-    title: "Digital Literacy Guidance",
-    subtitle: "Learn smartphone apps, e-wallets, video calls & AI",
-    description: "Patient, one-on-one guidance from youth volunteers on using Touch 'n Go, WhatsApp video calls, online banking, and AI tools.",
-  },
-  {
-    id: "volunteer_support",
-    title: "Youth Support & Repairs",
-    subtitle: "Volunteers from younger neighbourhoods support & help",
-    description: "Assistance with light household fixes, bulb replacement, moving bulky items, gardening, or friendly companionship.",
-  },
-  {
-    id: "health_literacy",
-    title: "Health Literacy & Events",
-    subtitle: "Guidance on wellness, screenings & community sessions",
-    description: "Support understanding medication schedules, accompanying you to health screenings, and attending wellness sessions.",
-  },
-];

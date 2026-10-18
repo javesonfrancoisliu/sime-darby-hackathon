@@ -1,12 +1,12 @@
 import { IconShieldCheck } from "./Icons";
+import type { BadgeTone } from "./status";
 
 interface RequestCardProps {
   title: string;
   date: string;
   volunteerName?: string;
-  /** "Volunteer coming" | "Finding a volunteer" | etc. */
   statusLabel: string;
-  statusVariant: "success" | "warning" | "info";
+  statusVariant: BadgeTone;
   onClick?: () => void;
 }
 
@@ -14,6 +14,7 @@ const VARIANT_CLASSES: Record<RequestCardProps["statusVariant"], string> = {
   success: "app-request-card__badge--success",
   warning: "app-request-card__badge--warning",
   info: "app-request-card__badge--info",
+  danger: "app-request-card__badge--danger",
 };
 
 /**

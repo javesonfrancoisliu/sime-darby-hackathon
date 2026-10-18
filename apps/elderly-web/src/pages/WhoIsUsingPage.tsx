@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { DemoUser, DemoUsersResponse } from "@sdh/contracts";
 import { apiFetch, useSession } from "@sdh/api-client";
+import { logApiError } from "../api/errors";
 import { Banner } from "../ui/Banner";
 import { IconChevronRight, IconMapPin, IconUser } from "../ui/Icons";
 import { Spinner } from "../ui/Spinner";
@@ -20,7 +21,7 @@ export function WhoIsUsingPage() {
         if (!cancelled) setLoad({ status: "ready", users: res.users });
       })
       .catch((err: unknown) => {
-        console.error("Could not load the resident list:", err);
+        logApiError(err);
         if (!cancelled) setLoad({ status: "error" });
       });
     return () => {

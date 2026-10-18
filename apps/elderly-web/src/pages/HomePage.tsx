@@ -3,19 +3,18 @@ import { useNavigate } from "react-router-dom";
 import { HeroHeader } from "../ui/HeroHeader";
 import { Carousel } from "../ui/Carousel";
 import { RequestCard } from "../ui/RequestCard";
-import { useHelpRequests } from "../hooks/useHelpRequests";
+import { useMyRequests } from "../hooks/useRequests";
+import { CATEGORY_OPTIONS } from "../requests/categories";
+import { formatWhen } from "../requests/schedule";
+import { CategoryIcon } from "../ui/CategoryIcon";
 import { Spinner } from "../ui/Spinner";
+import { Banner } from "../ui/Banner";
 import { useResident } from "../session/useResident";
 import {
   IconWind,
   IconThermometer,
   IconAlertTriangle,
   IconWrench,
-  IconShoppingBag,
-  IconCar,
-  IconDevice,
-  IconHeartHandshake,
-  IconHeartPulse,
   IconPlus,
   IconList,
   IconChevronRight,
@@ -23,7 +22,8 @@ import {
   IconClock,
 } from "../ui/Icons";
 import {
-  ELDERLY_SUPPORT_CATEGORIES,
+  STATUS_TEXT,
+  STATUS_TONE,
   SEVERITY_SCALE,
   apiSeverity,
   tempSeverity,
@@ -56,31 +56,6 @@ const FACILITY_LABEL: Record<string, string> = {
   fixed: "Fixed",
 };
 
-const STATUS_MAP: Record<string, { label: string; variant: "success" | "warning" | "info" }> = {
-  pending: { label: "Finding a volunteer", variant: "warning" },
-  matched: { label: "Volunteer coming", variant: "success" },
-  in_progress: { label: "In progress", variant: "info" },
-  completed: { label: "Completed", variant: "success" },
-  cancelled: { label: "Cancelled", variant: "warning" },
-};
-
-function getShortcutIcon(id: string) {
-  switch (id) {
-    case "groceries":
-      return <IconShoppingBag size={20} strokeWidth={1.8} />;
-    case "transport":
-      return <IconCar size={20} strokeWidth={1.8} />;
-    case "digital_literacy":
-      return <IconDevice size={20} strokeWidth={1.8} />;
-    case "volunteer_support":
-      return <IconHeartHandshake size={20} strokeWidth={1.8} />;
-    case "health_literacy":
-      return <IconHeartPulse size={20} strokeWidth={1.8} />;
-    default:
-      return <IconPlus size={20} strokeWidth={1.8} />;
-  }
-}
-
 /**
  * Home page — Apple Design mobile-first dashboard for Silver Generation.
  * Displays:
@@ -92,7 +67,7 @@ function getShortcutIcon(id: string) {
  */
 export function HomePage() {
   const navigate = useNavigate();
-  const { data, status } = useHelpRequests();
+  const { data, status, error, refetch } = useMyRequests();
   const resident = useResident();
 
   // Local township data for Elmina West. Under noUncheckedIndexedAccess these
@@ -309,7 +284,7 @@ export function HomePage() {
         </div>
 
         <div className="daily-support-list">
-          {ELDERLY_SUPPORT_CATEGORIES.map((cat) => (
+          {CATEGORY_OPTIONS.map((cat) => (
             <button
               key={cat.id}
               type="button"
@@ -317,7 +292,7 @@ export function HomePage() {
               onClick={() => navigate(`/request/${cat.id}`)}
             >
               <div className="daily-support-item__icon" aria-hidden="true">
-                {getShortcutIcon(cat.id)}
+                <CategoryIcon id={cat.id} size={20} />
               </div>
               <div className="daily-support-item__text">
                 <span className="daily-support-item__title">{cat.title}</span>
@@ -346,6 +321,10 @@ export function HomePage() {
 
         {status === "loading" && <Spinner label="Loading requests" />}
 
+        {status === "error" && (
+          <Banner message={error?.message ?? "We could not load your requests."} onRetry={refetch} />
+        )}
+
         {status === "success" && (!data || data.length === 0) && (
           <p className="ui-page-subtitle" style={{ marginTop: 8 }}>
             You have no requests yet.
@@ -354,20 +333,17 @@ export function HomePage() {
 
         {status === "success" && data && data.length > 0 && (
           <div className="ui-stack">
-            {data.slice(0, 3).map((req) => {
-              const s = STATUS_MAP[req.status] ?? { label: req.status, variant: "info" as const };
-              return (
-                <RequestCard
-                  key={req.id}
-                  title={req.description}
-                  date=""
-                  statusLabel={s.label}
-                  statusVariant={s.variant}
-                  volunteerName={req.volunteerName}
-                  onClick={() => navigate(`/requests/${req.id}`)}
-                />
-              );
-            })}
+            {data.slice(0, 3).map((req) => (
+              <RequestCard
+                key={req.id}
+                title={req.title}
+                date={formatWhen(req.scheduledAt)}
+                statusLabel={STATUS_TEXT[req.status]}
+                statusVariant={STATUS_TONE[req.status]}
+                volunteerName={req.volunteerName}
+                onClick={() => navigate(`/requests/${req.id}`)}
+              />
+            ))}
           </div>
         )}
       </section>

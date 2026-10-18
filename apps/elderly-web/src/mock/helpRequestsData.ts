@@ -1,44 +1,69 @@
-/* ─────────────────────────────────────────────────────────
-   Mock "My Requests" data — used only as a DEV fallback when
-   the backend API is not running, so the elderly resident's
-   request history is visible in the demo. Replaced by the real
-   @sdh/contracts API in production.
-───────────────────────────────────────────────────────── */
-import type { HelpRequest } from "../api/client";
+import type { HelpRequest } from "@sdh/contracts";
+import { MOCK_RESIDENT } from "./residentData";
 
+const WHEN = "2026-10-15T08:00:00+08:00";
+
+function demoRequest(
+  n: number,
+  fields: Pick<
+    HelpRequest,
+    "category" | "title" | "description" | "scheduledAt" | "durationMinutes" | "status"
+  > &
+    Partial<Pick<HelpRequest, "volunteerName">>,
+): HelpRequest {
+  return {
+    id: `c0a80101-0000-4000-8000-00000000000${n}`,
+    elderId: MOCK_RESIDENT.id,
+    elderName: MOCK_RESIDENT.name,
+    location: { ...MOCK_RESIDENT.location, area: MOCK_RESIDENT.area },
+    createdAt: WHEN,
+    updatedAt: WHEN,
+    ...fields,
+  };
+}
+
+// Fictional requests, newest first, shown only while demo data is switched on.
 export const MOCK_HELP_REQUESTS: HelpRequest[] = [
-  {
-    id: "HR-1042",
+  demoRequest(1, {
     category: "groceries",
+    title: "Groceries",
     description: "Help carrying groceries up to my flat on the 3rd floor.",
+    scheduledAt: "2026-10-21T09:00:00+08:00",
+    durationMinutes: 60,
     status: "matched",
     volunteerName: "Aisha Rahman",
-  },
-  {
-    id: "HR-1038",
+  }),
+  demoRequest(2, {
     category: "transport",
-    description: "Ride to Klinik Komuniti Elmina for my 10am check-up on Tuesday.",
-    status: "in_progress",
-    volunteerName: "Daniel Tan",
-  },
-  {
-    id: "HR-1035",
+    title: "Transport",
+    description: "Ride to the clinic for my 10am check-up.",
+    scheduledAt: "2026-10-22T09:00:00+08:00",
+    durationMinutes: 90,
+    status: "open",
+  }),
+  demoRequest(3, {
     category: "digital_literacy",
-    description: "Teach me how to make a WhatsApp video call to my grandchildren.",
-    status: "pending",
-  },
-  {
-    id: "HR-1021",
-    category: "volunteer_support",
+    title: "Phone and computer help",
+    description: "Teach me how to make a video call to my grandchildren.",
+    scheduledAt: "2026-10-23T14:00:00+08:00",
+    durationMinutes: 60,
+    status: "pending_review",
+  }),
+  demoRequest(4, {
+    category: "home_help",
+    title: "Help at home",
     description: "Replace two ceiling light bulbs in the kitchen and hallway.",
+    scheduledAt: "2026-10-12T14:00:00+08:00",
+    durationMinutes: 30,
     status: "completed",
-    volunteerName: "Siti Nurhaliza",
-  },
-  {
-    id: "HR-1007",
+    volunteerName: "Siti Hanim",
+  }),
+  demoRequest(5, {
     category: "health_literacy",
-    description: "Explain my new blood-pressure medication schedule.",
-    status: "completed",
-    volunteerName: "Faizal Omar",
-  },
+    title: "Health help",
+    description: "Explain my new medication schedule.",
+    scheduledAt: "2026-10-10T09:00:00+08:00",
+    durationMinutes: 60,
+    status: "cancelled",
+  }),
 ];

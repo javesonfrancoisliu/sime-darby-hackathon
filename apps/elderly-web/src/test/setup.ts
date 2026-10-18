@@ -1,6 +1,11 @@
 import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
-import { afterEach, vi } from "vitest";
+import { afterEach, beforeEach, vi } from "vitest";
+
+// Raw API errors are logged for developers; keep test output readable.
+beforeEach(() => {
+  vi.spyOn(console, "warn").mockImplementation(() => {});
+});
 
 afterEach(() => {
   cleanup();

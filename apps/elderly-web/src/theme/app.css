@@ -309,6 +309,7 @@
 .app-request-card__badge--success { background: #D1FAE5; color: #065F46; }
 .app-request-card__badge--warning { background: #FEF9C3; color: #713F12; }
 .app-request-card__badge--info    { background: var(--info-bg); color: var(--info); }
+.app-request-card__badge--danger  { background: var(--danger-bg); color: var(--danger); }
 
 .app-request-card__title {
   margin: 0 0 var(--space-2);

@@ -7,8 +7,8 @@ import { StatusBadge } from "./StatusBadge";
 import { Banner } from "./Banner";
 import { Spinner } from "./Spinner";
 import { AppShell } from "./AppShell";
-import { STATUS_TEXT, canCancel, showsVolunteer } from "./status";
-import type { RequestStatus } from "../api/client";
+import { STATUS_TEXT, STATUS_TONE, canCancel, showsVolunteer } from "./status";
+import { RequestStatus } from "@sdh/contracts";
 
 describe("Button", () => {
   it("renders a text label and fires onClick", async () => {
@@ -27,7 +27,14 @@ describe("TextField", () => {
   });
 
   it("shows an error tied via aria-describedby (Req 5.5)", () => {
-    render(<TextField label="Description" value="" onChange={() => {}} error="Please enter a description" />);
+    render(
+      <TextField
+        label="Description"
+        value=""
+        onChange={() => {}}
+        error="Please enter a description"
+      />,
+    );
     const input = screen.getByLabelText("Description");
     expect(input).toHaveAttribute("aria-invalid", "true");
     expect(screen.getByRole("alert")).toHaveTextContent("Please enter a description");
@@ -35,28 +42,37 @@ describe("TextField", () => {
 });
 
 describe("status helpers", () => {
-  const statuses: RequestStatus[] = ["pending", "matched", "in_progress", "completed", "cancelled"];
+  const statuses = RequestStatus.options;
 
-  it("maps every status to human-readable text (Req 6.3)", () => {
+  it("maps all six statuses to plain text and a tone", () => {
+    expect(statuses).toHaveLength(6);
     for (const s of statuses) {
-      render(<StatusBadge status={s} />);
-      expect(screen.getAllByText(STATUS_TEXT[s]).length).toBeGreaterThan(0);
+      const { container, unmount } = render(<StatusBadge status={s} />);
+      expect(screen.getByText(STATUS_TEXT[s])).toBeInTheDocument();
+      expect(container.querySelector(".ui-badge")).toHaveClass(`ui-badge--${STATUS_TONE[s]}`);
+      unmount();
     }
   });
 
-  it("shows volunteer only for matched/in_progress/completed (Req 7.1, 7.2)", () => {
-    expect(showsVolunteer("pending")).toBe(false);
-    expect(showsVolunteer("cancelled")).toBe(false);
-    expect(showsVolunteer("matched")).toBe(true);
-    expect(showsVolunteer("in_progress")).toBe(true);
-    expect(showsVolunteer("completed")).toBe(true);
+  it("uses the agreed words and tones", () => {
+    expect(STATUS_TEXT).toEqual({
+      pending_review: "Being checked",
+      open: "Finding a volunteer",
+      matched: "Volunteer coming",
+      completed: "Completed",
+      rejected: "Not accepted",
+      cancelled: "Cancelled",
+    });
+    expect(STATUS_TONE.matched).toBe("success");
+    expect(STATUS_TONE.rejected).toBe("danger");
   });
 
-  it("allows cancel only when pending (Req 8.1)", () => {
-    expect(canCancel("pending")).toBe(true);
-    for (const s of ["matched", "in_progress", "completed", "cancelled"] as RequestStatus[]) {
-      expect(canCancel(s)).toBe(false);
-    }
+  it("shows the volunteer only once matched or completed", () => {
+    expect(statuses.filter(showsVolunteer)).toEqual(["matched", "completed"]);
+  });
+
+  it("allows cancel only while being checked or open", () => {
+    expect(statuses.filter(canCancel)).toEqual(["pending_review", "open"]);
   });
 });
 
@@ -93,22 +109,6 @@ describe("AppShell", () => {
       </AppShell>,
     );
     expect(container.querySelector(".app-root")).toHaveClass("easy-view");
-  });
-});
-
-describe("StatusBadge tone mapping (design-system conformance)", () => {
-  it("uses the shared ui-badge class with a semantic tone", () => {
-    const { container } = render(<StatusBadge status="completed" />);
-    const badge = container.querySelector(".ui-badge");
-    expect(badge).not.toBeNull();
-    expect(badge).toHaveClass("ui-badge--success");
-  });
-
-  it("maps pending to the info tone and cancelled to danger", () => {
-    const { container: c1 } = render(<StatusBadge status="pending" />);
-    expect(c1.querySelector(".ui-badge")).toHaveClass("ui-badge--info");
-    const { container: c2 } = render(<StatusBadge status="cancelled" />);
-    expect(c2.querySelector(".ui-badge")).toHaveClass("ui-badge--danger");
   });
 });
 

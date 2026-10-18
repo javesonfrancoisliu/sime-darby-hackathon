@@ -1,13 +1,9 @@
-import { useLocation, useNavigate } from "react-router-dom";
-import type { HelpCategory } from "../api/client";
-import { CATEGORY_TEXT } from "../ui/status";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import type { HelpRequest } from "@sdh/contracts";
+import { CATEGORY_TEXT } from "../requests/categories";
+import { formatWhen, minutesLabel } from "../requests/schedule";
 import { Button } from "../ui/Button";
 import { IconCheck, IconHome, IconList } from "../ui/Icons";
-
-interface ConfirmationState {
-  category?: HelpCategory;
-  description?: string;
-}
 
 /**
  * Request Confirmation — Apple Success Screen for Silver Generation.
@@ -18,7 +14,8 @@ interface ConfirmationState {
  */
 export function ConfirmationPage() {
   const navigate = useNavigate();
-  const state = (useLocation().state ?? {}) as ConfirmationState;
+  const request = (useLocation().state as { request?: HelpRequest } | null)?.request;
+  if (!request) return <Navigate to="/requests" replace />;
 
   return (
     <div className="apple-subpage apple-confirmation-page">
@@ -30,27 +27,31 @@ export function ConfirmationPage() {
       <h1 className="ui-page-title" style={{ textAlign: "center", marginTop: 12 }}>
         Request sent
       </h1>
-      <p className="ui-page-subtitle app-page-lead" style={{ textAlign: "center", marginBottom: 24 }}>
-        A volunteer will be matched to help you soon.
+      <p
+        className="ui-page-subtitle app-page-lead"
+        style={{ textAlign: "center", marginBottom: 24 }}
+      >
+        We will check it and then find a volunteer to help you.
       </p>
 
       {/* ── Inset Receipt Card ───────────────────────────────── */}
       <div className="apple-inset-group" style={{ marginBottom: 28 }}>
-        {state.category ? (
-          <div className="apple-inset-row">
-            <span className="app-detail-label">Category</span>
-            <span className="apple-inset-value" style={{ fontWeight: 700 }}>
-              {CATEGORY_TEXT[state.category]}
-            </span>
-          </div>
-        ) : null}
-
-        {state.description ? (
-          <div className="apple-inset-row">
-            <span className="app-detail-label">Your description</span>
-            <span className="apple-inset-value">{state.description}</span>
-          </div>
-        ) : null}
+        <div className="apple-inset-row">
+          <span className="app-detail-label">Help with</span>
+          <span className="apple-inset-value" style={{ fontWeight: 700 }}>
+            {CATEGORY_TEXT[request.category]}
+          </span>
+        </div>
+        <div className="apple-inset-row">
+          <span className="app-detail-label">When</span>
+          <span className="apple-inset-value">
+            {formatWhen(request.scheduledAt)}, {minutesLabel(request.durationMinutes)}
+          </span>
+        </div>
+        <div className="apple-inset-row">
+          <span className="app-detail-label">Where</span>
+          <span className="apple-inset-value">At your home in {request.location.area}</span>
+        </div>
       </div>
 
       {/* ── Action Buttons ───────────────────────────────────── */}
