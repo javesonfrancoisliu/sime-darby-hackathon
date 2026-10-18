@@ -1,108 +1,66 @@
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { useAccessibility } from "../context/AccessibilityContext";
+import { IconChevronLeft, IconChevronRight } from "./Icons";
 
 interface CarouselProps {
-  /** One ReactNode per slide (shown one at a time). */
+  // One node per slide, shown one at a time.
   slides: ReactNode[];
-  /** Auto-advance interval in ms. */
-  intervalMs?: number;
-  /** Accessible name for the carousel region. */
+  // Accessible name for the carousel region.
   ariaLabel: string;
 }
 
-/**
- * Carousel — shows one slide at a time and gently auto-rolls.
- *
- * apple-design notes: §14 warns against auto-advancing carousels, so this is
- * built conservatively for an elderly-first app:
- *  - auto-play is DISABLED under reduced motion (OS or in-app toggle);
- *  - auto-play PAUSES on hover, touch, and keyboard focus;
- *  - a slow interval (default 5s) so nothing disappears too quickly;
- *  - fully swipeable with 1:1 drag tracking (§2) and velocity-aware commit
- *    (§5/§6), plus dots and arrow-key control so the user is always in charge.
- */
-export function Carousel({ slides, intervalMs = 5000, ariaLabel }: CarouselProps) {
-  const { reducedMotion, triggerHaptic } = useAccessibility();
+// Never moves on its own. People change slide with Previous and Next, the arrow keys or a swipe.
+// Slides that are not showing are inert, so their buttons cannot be tabbed to or read out.
+export function Carousel({ slides, ariaLabel }: CarouselProps) {
+  const { triggerHaptic } = useAccessibility();
   const count = slides.length;
   const [index, setIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
 
-  // Drag state
-  const trackRef = useRef<HTMLDivElement>(null);
-  const dragRef = useRef<{ startX: number; dx: number; dragging: boolean; width: number }>({
-    startX: 0,
-    dx: 0,
-    dragging: false,
-    width: 0,
-  });
-  const [dragDx, setDragDx] = useState(0);
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const startX = useRef<number | null>(null);
+  const [dragPct, setDragPct] = useState(0);
+  const [dragging, setDragging] = useState(false);
 
-  const goTo = useCallback(
-    (next: number) => {
-      setIndex(((next % count) + count) % count);
-    },
-    [count],
-  );
+  function goTo(next: number) {
+    setIndex(((next % count) + count) % count);
+  }
 
-  // Auto-advance, respecting reduced motion and pause.
-  useEffect(() => {
-    if (reducedMotion || paused || count <= 1) return;
-    const id = window.setInterval(() => {
-      setIndex((i) => (i + 1) % count);
-    }, intervalMs);
-    return () => window.clearInterval(id);
-  }, [reducedMotion, paused, count, intervalMs]);
+  function step(delta: number) {
+    triggerHaptic(10);
+    goTo(index + delta);
+  }
 
-  // Pointer drag (1:1 tracking with velocity-aware commit).
   function onPointerDown(e: React.PointerEvent) {
-    const width = trackRef.current?.offsetWidth ?? 1;
-    dragRef.current = { startX: e.clientX, dx: 0, dragging: true, width };
-    setPaused(true);
+    startX.current = e.clientX;
+    setDragging(true);
     (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
   }
+
   function onPointerMove(e: React.PointerEvent) {
-    if (!dragRef.current.dragging) return;
-    const dx = e.clientX - dragRef.current.startX;
-    dragRef.current.dx = dx;
-    setDragDx(dx);
+    if (startX.current === null) return;
+    const width = viewportRef.current?.offsetWidth || 1;
+    setDragPct(((e.clientX - startX.current) / width) * 100);
   }
+
   function onPointerUp() {
-    const { dx, width, dragging } = dragRef.current;
-    if (!dragging) return;
-    dragRef.current.dragging = false;
-    setDragDx(0);
-    // Commit if dragged more than ~18% of the width.
-    const threshold = width * 0.18;
-    if (dx <= -threshold) {
-      triggerHaptic(10);
-      goTo(index + 1);
-    } else if (dx >= threshold) {
-      triggerHaptic(10);
-      goTo(index - 1);
-    }
-    // keep paused briefly, then resume
-    window.setTimeout(() => setPaused(false), 600);
+    if (startX.current === null) return;
+    startX.current = null;
+    setDragging(false);
+    // A drag past about a fifth of the width changes slide.
+    if (dragPct <= -18) step(1);
+    else if (dragPct >= 18) step(-1);
+    setDragPct(0);
   }
 
   function onKeyDown(e: React.KeyboardEvent) {
     if (e.key === "ArrowRight") {
       e.preventDefault();
-      goTo(index + 1);
+      step(1);
     } else if (e.key === "ArrowLeft") {
       e.preventDefault();
-      goTo(index - 1);
+      step(-1);
     }
   }
-
-  const dragging = dragRef.current.dragging;
-  const basePct = -index * 100;
-  const dragPct = dragRef.current.width ? (dragDx / dragRef.current.width) * 100 : 0;
 
   return (
     <div
@@ -110,13 +68,10 @@ export function Carousel({ slides, intervalMs = 5000, ariaLabel }: CarouselProps
       role="group"
       aria-roledescription="carousel"
       aria-label={ariaLabel}
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      onFocusCapture={() => setPaused(true)}
-      onBlurCapture={() => setPaused(false)}
       onKeyDown={onKeyDown}
     >
       <div
+        ref={viewportRef}
         className="carousel__viewport"
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
@@ -124,18 +79,17 @@ export function Carousel({ slides, intervalMs = 5000, ariaLabel }: CarouselProps
         onPointerCancel={onPointerUp}
       >
         <div
-          ref={trackRef}
           className={`carousel__track${dragging ? " carousel__track--dragging" : ""}`}
-          style={{ transform: `translate3d(${basePct + dragPct}%, 0, 0)` }}
+          style={{ transform: `translate3d(${-index * 100 + dragPct}%, 0, 0)` }}
         >
           {slides.map((slide, i) => (
             <div
               className="carousel__slide"
               key={i}
-              aria-hidden={i !== index}
               role="group"
               aria-roledescription="slide"
               aria-label={`${i + 1} of ${count}`}
+              {...(i === index ? {} : ({ inert: "" } as object))}
             >
               {slide}
             </div>
@@ -144,21 +98,26 @@ export function Carousel({ slides, intervalMs = 5000, ariaLabel }: CarouselProps
       </div>
 
       {count > 1 && (
-        <div className="carousel__dots" role="tablist" aria-label={`${ariaLabel} pages`}>
-          {slides.map((_, i) => (
-            <button
-              key={i}
-              type="button"
-              role="tab"
-              aria-selected={i === index}
-              aria-label={`Go to item ${i + 1}`}
-              className={`carousel__dot${i === index ? " carousel__dot--active" : ""}`}
-              onClick={() => {
-                triggerHaptic(10);
-                goTo(i);
-              }}
-            />
-          ))}
+        <div className="carousel__controls">
+          <button
+            type="button"
+            className="carousel__step"
+            onClick={() => step(-1)}
+            aria-label="Previous item"
+          >
+            <IconChevronLeft size={22} strokeWidth={2.4} aria-hidden="true" />
+          </button>
+          <span className="carousel__count" aria-live="polite">
+            {index + 1} of {count}
+          </span>
+          <button
+            type="button"
+            className="carousel__step"
+            onClick={() => step(1)}
+            aria-label="Next item"
+          >
+            <IconChevronRight size={22} strokeWidth={2.4} aria-hidden="true" />
+          </button>
         </div>
       )}
     </div>

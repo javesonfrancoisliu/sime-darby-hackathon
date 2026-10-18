@@ -92,7 +92,7 @@ export function HomePage() {
     };
   };
 
-  // One condition card per carousel slide (shown one at a time, auto-rolls).
+  // One condition card per carousel slide (shown one at a time).
   const conditionSlides: ReactNode[] = [];
   if (localHaze) {
     const sev = apiSeverity(localHaze.api);
@@ -247,7 +247,7 @@ export function HomePage() {
           </button>
         </div>
 
-        <Carousel ariaLabel="Township live conditions" intervalMs={5000} slides={conditionSlides} />
+        <Carousel ariaLabel="Township live conditions" slides={conditionSlides} />
       </section>
 
       {/* ── "Need a hand today?" CTA card ───────────────────── */}
