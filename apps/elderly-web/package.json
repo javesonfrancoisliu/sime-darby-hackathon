@@ -12,6 +12,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@sdh/api-client": "workspace:*",
     "@sdh/contracts": "workspace:*",
     "@sdh/design-tokens": "workspace:*",
     "react": "^18.3.1",

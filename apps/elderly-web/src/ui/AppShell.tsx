@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { useInRouterContext } from "react-router-dom";
 import { BottomTabBar } from "./BottomTabBar";
+import { DemoBanner } from "./DemoBanner";
 import { AccessibilitySheet } from "./AccessibilitySheet";
 import { useAccessibility } from "../context/AccessibilityContext";
 
@@ -13,7 +14,7 @@ import { useAccessibility } from "../context/AccessibilityContext";
  * - Accessibility control sheet (<AccessibilitySheet />)
  * - Easy View is applied at root (Option A, Req 1.1, 1.2, 2.3, 3.2).
  */
-export function AppShell({ children }: { children: ReactNode }) {
+export function AppShell({ children, hideTabs = false }: { children: ReactNode; hideTabs?: boolean }) {
   const inRouter = useInRouterContext();
   const { fontSize, highContrast, reducedMotion } = useAccessibility();
 
@@ -29,8 +30,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className={rootClasses}>
+      <DemoBanner />
       <main className="app-main">{children}</main>
-      {inRouter && <BottomTabBar />}
+      {inRouter && !hideTabs && <BottomTabBar />}
       <AccessibilitySheet />
     </div>
   );

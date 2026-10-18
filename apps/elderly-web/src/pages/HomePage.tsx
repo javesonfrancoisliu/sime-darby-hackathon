@@ -5,6 +5,7 @@ import { Carousel } from "../ui/Carousel";
 import { RequestCard } from "../ui/RequestCard";
 import { useHelpRequests } from "../hooks/useHelpRequests";
 import { Spinner } from "../ui/Spinner";
+import { useResident } from "../session/useResident";
 import {
   IconWind,
   IconThermometer,
@@ -92,6 +93,7 @@ function getShortcutIcon(id: string) {
 export function HomePage() {
   const navigate = useNavigate();
   const { data, status } = useHelpRequests();
+  const resident = useResident();
 
   // Local township data for Elmina West. Under noUncheckedIndexedAccess these
   // lookups are typed as possibly undefined, so each card below renders only
@@ -237,7 +239,7 @@ export function HomePage() {
   return (
     <div className="app-home">
       {/* ── Red hero header with location, Aa control, & voice assist ── */}
-      <HeroHeader name="Aminah" location="Elmina West" />
+      <HeroHeader name={resident?.name ?? ""} location={resident?.area} />
 
       {/* ── Township Live Conditions (Haze, Temp, Maintenance, Facility) ── */}
       <section className="app-home__section" aria-labelledby="township-conditions-heading">

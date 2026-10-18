@@ -7,6 +7,8 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, ".", "");
   return {
     plugins: [react()],
+    // Shared packages must use this app's React 18, not the copy installed for the other app.
+    resolve: { dedupe: ["react", "react-dom"] },
     server: { port: 5174, strictPort: true, proxy: apiProxy(env) },
     preview: previewServer(env, 4174),
     test: {

@@ -1,8 +1,8 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { App } from "../App";
-import { renderRoute } from "../test/renderRoute";
+import { renderApp } from "../test/renderRoute";
+import { installFakeApi, signInAs } from "../test/fakeApi";
 import { ApiRequestError, api } from "../api/client";
 import type { HelpRequest } from "../api/client";
 
@@ -20,24 +20,29 @@ const matched: HelpRequest = {
   volunteerName: "Aisha",
 };
 
+beforeEach(() => {
+  installFakeApi();
+  signInAs();
+});
+
 afterEach(() => vi.restoreAllMocks());
 
 describe("Home + navigation (Req 4.1, 4.2)", () => {
-  it("home shows both primary actions", () => {
-    renderRoute(<App />, "/");
+  it("home shows both primary actions", async () => {
+    await renderApp("/");
     expect(screen.getByRole("button", { name: "Request help" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "View my requests" })).toBeInTheDocument();
   });
 
-  it("non-home screen shows a back control", () => {
-    renderRoute(<App />, "/request");
+  it("non-home screen shows a back control", async () => {
+    await renderApp("/request");
     expect(screen.getByRole("button", { name: /back/i })).toBeInTheDocument();
   });
 });
 
 describe("Category selection (Req 5.1)", () => {
   it("renders exactly three categories and routes on selection", async () => {
-    renderRoute(<App />, "/request");
+    await renderApp("/request");
     const groceries = screen.getByRole("button", { name: "Groceries" });
     expect(groceries).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Transport" })).toBeInTheDocument();
@@ -50,7 +55,7 @@ describe("Category selection (Req 5.1)", () => {
 describe("Describe + submit (Req 5.3, 5.4, 5.5, 5.6)", () => {
   it("blocks an empty description and does not call the API", async () => {
     const spy = vi.spyOn(api, "createHelpRequest");
-    renderRoute(<App />, "/request/groceries");
+    await renderApp("/request/groceries");
     await userEvent.click(screen.getByRole("button", { name: "Send request" }));
     expect(screen.getByRole("alert")).toHaveTextContent(/enter a description/i);
     expect(spy).not.toHaveBeenCalled();
@@ -58,7 +63,7 @@ describe("Describe + submit (Req 5.3, 5.4, 5.5, 5.6)", () => {
 
   it("submits a valid request and shows confirmation", async () => {
     vi.spyOn(api, "createHelpRequest").mockResolvedValue(pending);
-    renderRoute(<App />, "/request/groceries");
+    await renderApp("/request/groceries");
     await userEvent.type(screen.getByLabelText("Describe the help you need"), "Milk and bread");
     await userEvent.click(screen.getByRole("button", { name: "Send request" }));
     await waitFor(() => expect(screen.getByText("Request sent")).toBeInTheDocument());
@@ -69,7 +74,7 @@ describe("Describe + submit (Req 5.3, 5.4, 5.5, 5.6)", () => {
     vi.spyOn(api, "createHelpRequest").mockRejectedValue(
       new ApiRequestError({ code: "INTERNAL", message: "Server exploded" }),
     );
-    renderRoute(<App />, "/request/groceries");
+    await renderApp("/request/groceries");
     await userEvent.type(screen.getByLabelText("Describe the help you need"), "Milk");
     await userEvent.click(screen.getByRole("button", { name: "Send request" }));
     await waitFor(() => expect(screen.getByText("Server exploded")).toBeInTheDocument());
@@ -80,7 +85,7 @@ describe("Describe + submit (Req 5.3, 5.4, 5.5, 5.6)", () => {
 describe("Requests list (Req 6)", () => {
   it("shows the empty state with a create action (Req 6.4)", async () => {
     vi.spyOn(api, "listHelpRequests").mockResolvedValue([]);
-    renderRoute(<App />, "/requests");
+    await renderApp("/requests");
     await waitFor(() => expect(screen.getByText(/no requests yet/i)).toBeInTheDocument());
     expect(screen.getByRole("button", { name: "Request help" })).toBeInTheDocument();
   });
@@ -89,14 +94,14 @@ describe("Requests list (Req 6)", () => {
     vi.spyOn(api, "listHelpRequests").mockRejectedValue(
       new ApiRequestError({ code: "INTERNAL", message: "List failed" }),
     );
-    renderRoute(<App />, "/requests");
+    await renderApp("/requests");
     await waitFor(() => expect(screen.getByText("List failed")).toBeInTheDocument());
     expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument();
   });
 
   it("renders each request with category, description, and status (Req 6.2, 6.3)", async () => {
     vi.spyOn(api, "listHelpRequests").mockResolvedValue([pending, matched]);
-    renderRoute(<App />, "/requests");
+    await renderApp("/requests");
     await waitFor(() => expect(screen.getByText("Groceries")).toBeInTheDocument());
     expect(screen.getByText("Lift to clinic")).toBeInTheDocument();
     expect(screen.getByText("Waiting to be matched")).toBeInTheDocument();
@@ -107,14 +112,14 @@ describe("Requests list (Req 6)", () => {
 describe("Request detail + volunteer (Req 7)", () => {
   it("shows waiting text while pending", async () => {
     vi.spyOn(api, "getHelpRequest").mockResolvedValue(pending);
-    renderRoute(<App />, "/requests/1");
+    await renderApp("/requests/1");
     await waitFor(() => expect(screen.getByText("Groceries")).toBeInTheDocument());
     expect(screen.getAllByText("Waiting to be matched").length).toBeGreaterThan(0);
   });
 
   it("shows the volunteer name when matched", async () => {
     vi.spyOn(api, "getHelpRequest").mockResolvedValue(matched);
-    renderRoute(<App />, "/requests/2");
+    await renderApp("/requests/2");
     await waitFor(() => expect(screen.getByText("Aisha")).toBeInTheDocument());
   });
 });
@@ -122,7 +127,7 @@ describe("Request detail + volunteer (Req 7)", () => {
 describe("Cancel flow (Req 8)", () => {
   it("hides cancel for non-pending requests", async () => {
     vi.spyOn(api, "getHelpRequest").mockResolvedValue(matched);
-    renderRoute(<App />, "/requests/2");
+    await renderApp("/requests/2");
     await waitFor(() => expect(screen.getByText("Aisha")).toBeInTheDocument());
     expect(screen.queryByRole("button", { name: "Cancel request" })).not.toBeInTheDocument();
   });
@@ -132,7 +137,7 @@ describe("Cancel flow (Req 8)", () => {
     const cancelSpy = vi
       .spyOn(api, "cancelHelpRequest")
       .mockResolvedValue({ ...pending, status: "cancelled" });
-    renderRoute(<App />, "/requests/1");
+    await renderApp("/requests/1");
     await waitFor(() => expect(screen.getByText("Groceries")).toBeInTheDocument());
 
     await userEvent.click(screen.getByRole("button", { name: "Cancel request" }));
@@ -148,7 +153,7 @@ describe("Cancel flow (Req 8)", () => {
     vi.spyOn(api, "cancelHelpRequest").mockRejectedValue(
       new ApiRequestError({ code: "CONFLICT", message: "Already matched" }),
     );
-    renderRoute(<App />, "/requests/1");
+    await renderApp("/requests/1");
     await waitFor(() => expect(screen.getByText("Groceries")).toBeInTheDocument());
     await userEvent.click(screen.getByRole("button", { name: "Cancel request" }));
     await userEvent.click(screen.getByRole("button", { name: "Yes, cancel request" }));

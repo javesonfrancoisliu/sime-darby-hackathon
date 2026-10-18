@@ -1,4 +1,9 @@
+import { useNavigate } from "react-router-dom";
+import { useSession } from "@sdh/api-client";
 import { useAccessibility } from "../context/AccessibilityContext";
+import { isMockMode } from "../config";
+import { DemoTag } from "../ui/DemoTag";
+import { useResident } from "../session/useResident";
 import {
   IconUser,
   IconMapPin,
@@ -7,6 +12,7 @@ import {
   IconPhone,
   IconHeartPulse,
   IconChevronRight,
+  IconUsers,
   IconVolume2,
 } from "../ui/Icons";
 
@@ -19,14 +25,24 @@ import {
  */
 export function MePage() {
   const { openSheet, fontSize, highContrast, voiceAssist, speak } = useAccessibility();
+  const resident = useResident();
+  const { signOut } = useSession();
+  const navigate = useNavigate();
+  const name = resident?.name ?? "";
+  const area = resident?.area ?? "";
+
+  function switchPerson() {
+    navigate("/");
+    signOut();
+  }
 
   function handleReadProfile() {
     speak(
-      "Profile for Aminah. Verified township resident at Elmina West, Shah Alam. Display settings: font size is set to " +
+      `Profile for ${name}. Township resident at ${area}. Display settings: font size is set to ` +
         fontSize +
         ", high contrast is " +
         (highContrast ? "on" : "off") +
-        ". Emergency contacts are ready.",
+        ".",
     );
   }
 
@@ -44,11 +60,11 @@ export function MePage() {
         </div>
 
         <h1 className="ui-page-title" style={{ marginTop: 12, marginBottom: 4 }}>
-          Aminah
+          {name}
         </h1>
         <p className="apple-profile-location">
           <IconMapPin size={14} strokeWidth={2} style={{ verticalAlign: "-2px", marginRight: 4 }} />
-          Elmina West, Shah Alam
+          {area}
         </p>
 
         <button
@@ -60,6 +76,13 @@ export function MePage() {
           <IconVolume2 size={16} strokeWidth={2} style={{ marginRight: 6 }} />
           <span>Read profile aloud</span>
         </button>
+
+        {isMockMode() ? null : (
+          <button type="button" className="ui-button ui-button--secondary" onClick={switchPerson}>
+            <IconUsers size={18} strokeWidth={2} style={{ marginRight: 6 }} />
+            <span>Switch person</span>
+          </button>
+        )}
       </div>
 
       {/* ── Section 1: Senior Display & Accessibility ─────────── */}
@@ -92,7 +115,10 @@ export function MePage() {
 
       {/* ── Section 2: Medical & Emergency Quick Access ────────── */}
       <div className="apple-profile-section">
-        <span className="apple-profile-section-title">Emergency &amp; Medical ID</span>
+        <span className="apple-profile-section-title">
+          Emergency &amp; Medical ID
+          <DemoTag />
+        </span>
         <div className="apple-inset-group">
           <div className="apple-inset-row">
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -139,7 +165,7 @@ export function MePage() {
           </div>
           <div className="apple-inset-row">
             <span className="app-detail-label">Township Sector</span>
-            <span className="apple-inset-value">Elmina West, Sector 3B</span>
+            <span className="apple-inset-value">{area}</span>
           </div>
         </div>
       </div>

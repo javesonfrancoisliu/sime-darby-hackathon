@@ -1,4 +1,6 @@
 import { Route, Routes } from "react-router-dom";
+import { SessionProvider } from "@sdh/api-client";
+import { SessionGate } from "./session/SessionGate";
 import { AppShell } from "./ui/AppShell";
 import { HomePage } from "./pages/HomePage";
 import { CategoryPage } from "./pages/CategoryPage";
@@ -24,7 +26,9 @@ import { AccessibilityProvider } from "./context/AccessibilityContext";
  */
 export function App() {
   return (
+    <SessionProvider>
     <AccessibilityProvider>
+      <SessionGate>
       <Routes>
         <Route
           path="/*"
@@ -49,6 +53,8 @@ export function App() {
           }
         />
       </Routes>
+      </SessionGate>
     </AccessibilityProvider>
+    </SessionProvider>
   );
 }
