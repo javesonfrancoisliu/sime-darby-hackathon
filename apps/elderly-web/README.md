@@ -26,7 +26,7 @@ Set `API_PROXY_TARGET` to point the dev proxy somewhere other than `http://127.0
 The first screen asks who is using the phone and lists residents from `GET /api/demo/users?role=elder`. The choice is stored by `@sdh/api-client` and sent as the `X-Demo-User` header.
 
 - Live: requests (`/api/requests`), events (`/api/events`) and the resident name come from the API. The request and event lists refresh every 10 seconds while the page is visible.
-- Demo: set `VITE_USE_MOCK=true` to skip sign-in and use sample data from `src/mock`. Mock data is read only through the data hooks and is tagged "Demo data" in the UI. A failed live call never falls back to mock data.
+- Demo: set `VITE_USE_MOCK=true` to skip sign-in and use sample data from `src/mock`. Mock data is imported only by `api/`, `hooks/` and `session/`, and is tagged "Demo data" in the UI. A failed live call never falls back to mock data.
 
 Notices, Volunteer, Updates, Safety, Play and Medical ID are still demo data.
 
@@ -36,8 +36,8 @@ Notices, Volunteer, Updates, Safety, Play and Medical ID are still demo data.
 src/
   pages/        Route pages, with request flow steps in pages/requestFlow
   ui/           Shared components
-  api/          Request and event calls and error messages
-  hooks/        Live query, mutation and data hooks; the only code that imports mock data
+  api/          Request and event calls and error messages (switch to mock in demo mode)
+  hooks/        Live query, mutation and demo content hooks
   session/      Resident picker and session gate
   context/      Accessibility settings
   requests/     Categories and scheduling rules

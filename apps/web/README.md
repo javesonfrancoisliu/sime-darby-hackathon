@@ -24,7 +24,7 @@ Set `API_PROXY_TARGET` to point the dev proxy somewhere other than `http://127.0
 Profile, Demo sign-in picks a seeded user from `GET /api/demo/users`. The id is sent as the `X-Demo-User` header by `@sdh/api-client`.
 
 - Signed in (live): `GET /api/me`, `/api/opportunities`, `/api/contributions/mine`, `/api/requests/mine`, `/api/events`, `PATCH /api/me`. Accept, complete and join call the matching endpoints. Errors show with Try again and never fall back to mock data. Try "Justina Tan" (verified volunteer) or "Aiman Hakim" (pending verification).
-- Signed out (demo): labelled sample data that lives under `src/data/*.mock.ts` and is read only through the data hooks.
+- Signed out (demo): labelled sample data that lives under `src/data/*.mock.ts` and is read only through the hooks in `src/data`.
 
 Still simulated on the device: points, badges, leaderboard, rewards, the resident confirm step and the settings toggles. Saved state is stored per user and cleared on sign out. The "Demo controls" card on Profile resets it; it shows in dev builds or when `VITE_DEMO_CONTROLS=true`.
 
