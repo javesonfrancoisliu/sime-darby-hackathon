@@ -1,6 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
 import { DEMO_SECURITY_LINE, EMERGENCY_NUMBER } from "../config";
-import { useAccessibility, type FontSizeLevel } from "../context/AccessibilityContext";
+import { FONT_LABEL, useAccessibility, type FontSizeLevel } from "../context/AccessibilityContext";
 import {
   IconX,
   IconSun,
@@ -10,20 +10,18 @@ import {
   IconCheck,
 } from "./Icons";
 
-/**
- * Apple-style Accessibility Control Sheet for the Silver Generation.
- *
- * Implements:
- * - Dynamic Type typography scaling (Normal, Large, X-Large)
- * - High Contrast mode for elderly vision clarity
- * - Built-in Voice Read-Aloud Assistant (Web Speech API)
- * - Reduced Motion setting
- * - One-tap Elmina Township Emergency Hotline & 999 quick dial
- * - Translucent material depth (blur + saturate + subtle rim border)
- */
+const FOCUSABLE =
+  'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+// Settings sheet. Focus moves to Close on open, Tab stays inside, Escape closes,
+// the page behind is inert, and focus returns to the control that opened it.
 export function AccessibilitySheet() {
+  const { isSheetOpen } = useAccessibility();
+  return isSheetOpen ? <SheetBody /> : null;
+}
+
+function SheetBody() {
   const {
-    isSheetOpen,
     closeSheet,
     fontSize,
     setFontSize,
@@ -39,27 +37,54 @@ export function AccessibilitySheet() {
     triggerHaptic,
   } = useAccessibility();
 
-  const sheetRef = useRef<HTMLDivElement>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const titleId = useId();
 
-  // Close on Escape key
   useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape" && isSheetOpen) {
-        closeSheet();
-      }
-    }
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isSheetOpen, closeSheet]);
+    const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    closeRef.current?.focus();
 
-  if (!isSheetOpen) return null;
+    const backdrop = backdropRef.current;
+    const background = backdrop
+      ? Array.from(backdrop.parentElement?.children ?? []).filter((el) => el !== backdrop)
+      : [];
+    background.forEach((el) => el.setAttribute("inert", ""));
+
+    return () => {
+      background.forEach((el) => el.removeAttribute("inert"));
+      if (trigger?.isConnected) trigger.focus();
+    };
+  }, []);
+
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key === "Escape") {
+      e.stopPropagation();
+      closeSheet();
+      return;
+    }
+    if (e.key !== "Tab") return;
+    const items = Array.from(panelRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? []);
+    const first = items[0];
+    const last = items[items.length - 1];
+    if (!first || !last) return;
+    const active = document.activeElement;
+    if (e.shiftKey && (active === first || !panelRef.current?.contains(active))) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && (active === last || !panelRef.current?.contains(active))) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
 
   function handleVoiceToggle() {
     triggerHaptic(20);
     const next = !voiceAssist;
     setVoiceAssist(next);
     if (next) {
-      speak("Voice assistance enabled. Text will be spoken aloud to guide you.");
+      speak("Read aloud is on.");
     } else {
       stopSpeaking();
     }
@@ -73,21 +98,18 @@ export function AccessibilitySheet() {
   function handleFontSizeChange(level: FontSizeLevel) {
     setFontSize(level);
     if (voiceAssist) {
-      speak(`Text size set to ${level}`);
+      speak(`Text size set to ${FONT_LABEL[level]}`);
     }
   }
 
   return (
-    <div
-      className="apple-sheet-backdrop"
-      onClick={closeSheet}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Accessibility and Senior Display Settings"
-    >
+    <div ref={backdropRef} className="apple-sheet-backdrop" onClick={closeSheet} onKeyDown={handleKeyDown}>
       <div
-        ref={sheetRef}
+        ref={panelRef}
         className="apple-sheet-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Drag handle / grabber pill */}
@@ -96,14 +118,15 @@ export function AccessibilitySheet() {
         {/* Sheet header */}
         <div className="apple-sheet-header">
           <div>
-            <h2 className="apple-sheet-title">Senior Display &amp; Audio Assist</h2>
-            <p className="apple-sheet-subtitle">Comfort settings for everyday ease</p>
+            <h2 id={titleId} className="apple-sheet-title">Reading and sound</h2>
+            <p className="apple-sheet-subtitle">Make the app easier to see and hear</p>
           </div>
           <button
             type="button"
+            ref={closeRef}
             className="apple-sheet-close-btn"
             onClick={closeSheet}
-            aria-label="Close accessibility settings"
+            aria-label="Close settings"
           >
             <IconX size={20} strokeWidth={2} />
           </button>
@@ -112,7 +135,7 @@ export function AccessibilitySheet() {
         <div className="apple-sheet-content">
           {/* ── 1. Dynamic Type (Text Sizing) ────────────────────── */}
           <div className="apple-control-group">
-            <span className="apple-control-label">Text Size</span>
+            <span className="apple-control-label">Text size</span>
             <div className="apple-segmented-control" role="radiogroup" aria-label="Text size">
               {(
                 [
@@ -139,22 +162,22 @@ export function AccessibilitySheet() {
             </div>
           </div>
 
-          {/* ── 2. High Contrast Mode ────────────────────────────── */}
+          {/* ── 2. Strong contrast ────────────────────────────── */}
           <div className="apple-control-row">
             <div className="apple-control-row__left">
               <span className="apple-control-row__icon" aria-hidden="true">
                 <IconSun size={22} strokeWidth={1.8} />
               </span>
               <div>
-                <span className="apple-control-row__title">High Contrast Mode</span>
-                <span className="apple-control-row__desc">Bold borders and rich black text for low vision</span>
+                <span className="apple-control-row__title">Strong contrast</span>
+                <span className="apple-control-row__desc">Bolder borders and darker text</span>
               </div>
             </div>
             <button
               type="button"
               role="switch"
               aria-checked={highContrast}
-              aria-label="High Contrast Mode"
+              aria-label="Strong contrast"
               className={`apple-switch${highContrast ? " apple-switch--on" : ""}`}
               onClick={handleContrastToggle}
             >
@@ -162,7 +185,7 @@ export function AccessibilitySheet() {
             </button>
           </div>
 
-          {/* ── 3. Voice Read-Aloud Assistant ───────────────────── */}
+          {/* ── 3. Read aloud ───────────────────── */}
           <div className="apple-control-row">
             <div className="apple-control-row__left">
               <span className="apple-control-row__icon" aria-hidden="true">
@@ -173,9 +196,9 @@ export function AccessibilitySheet() {
                 )}
               </span>
               <div>
-                <span className="apple-control-row__title">Voice Read-Aloud Assistant</span>
+                <span className="apple-control-row__title">Read aloud</span>
                 <span className="apple-control-row__desc">
-                  {isSpeaking ? "Speaking now… tap to pause" : "Spoken guidance for screen content"}
+                  {isSpeaking ? "Speaking now" : "Hear the screen spoken out loud"}
                 </span>
               </div>
             </div>
@@ -183,7 +206,7 @@ export function AccessibilitySheet() {
               type="button"
               role="switch"
               aria-checked={voiceAssist}
-              aria-label="Voice Read-Aloud Assistant"
+              aria-label="Read aloud"
               className={`apple-switch${voiceAssist ? " apple-switch--on" : ""}`}
               onClick={handleVoiceToggle}
             >
@@ -195,15 +218,15 @@ export function AccessibilitySheet() {
           <div className="apple-control-row">
             <div className="apple-control-row__left">
               <div>
-                <span className="apple-control-row__title">Gentle Transitions</span>
-                <span className="apple-control-row__desc">Soft cross-fades instead of slides</span>
+                <span className="apple-control-row__title">Less movement</span>
+                <span className="apple-control-row__desc">Fewer slides and animations</span>
               </div>
             </div>
             <button
               type="button"
               role="switch"
               aria-checked={reducedMotion}
-              aria-label="Gentle Transitions"
+              aria-label="Less movement"
               className={`apple-switch${reducedMotion ? " apple-switch--on" : ""}`}
               onClick={() => {
                 triggerHaptic(15);
@@ -218,7 +241,7 @@ export function AccessibilitySheet() {
           <div className="apple-emergency-box">
             <div className="apple-emergency-header">
               <IconPhone size={18} strokeWidth={2} />
-              <span>Township Emergency Quick Dial</span>
+              <span>Quick dial</span>
             </div>
             <div className="apple-emergency-grid">
               <a href={`tel:${DEMO_SECURITY_LINE.tel}`} className="apple-emergency-btn">
@@ -226,7 +249,7 @@ export function AccessibilitySheet() {
                 <span className="apple-emergency-btn__number">{DEMO_SECURITY_LINE.display}</span>
               </a>
               <a href={`tel:${EMERGENCY_NUMBER}`} className="apple-emergency-btn apple-emergency-btn--danger">
-                <span className="apple-emergency-btn__label">Medical &amp; Police (Emergency)</span>
+                <span className="apple-emergency-btn__label">Emergency (police, ambulance, fire)</span>
                 <span className="apple-emergency-btn__number">{EMERGENCY_NUMBER}</span>
               </a>
             </div>
@@ -240,7 +263,7 @@ export function AccessibilitySheet() {
             onClick={closeSheet}
           >
             <IconCheck size={18} strokeWidth={2} aria-hidden="true" />
-            <span>Apply Settings</span>
+            <span>Done</span>
           </button>
         </div>
       </div>

@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useSession } from "@sdh/api-client";
-import { useAccessibility } from "../context/AccessibilityContext";
+import { FONT_LABEL, useAccessibility } from "../context/AccessibilityContext";
 import { DEMO_SECURITY_LINE, isMockMode } from "../config";
 import { DemoTag } from "../ui/DemoTag";
 import { useResident } from "../session/useResident";
@@ -37,9 +37,9 @@ export function MePage() {
 
   function handleReadProfile() {
     speak(
-      `Profile for ${name}. Township resident at ${area}. Display settings: font size is set to ` +
-        fontSize +
-        ", high contrast is " +
+      `Profile for ${name}. Township resident at ${area}. Text size is ` +
+        FONT_LABEL[fontSize] +
+        ", strong contrast is " +
         (highContrast ? "on" : "off") +
         ".",
     );
@@ -86,22 +86,22 @@ export function MePage() {
 
       {/* ── Section 1: Senior Display & Accessibility ─────────── */}
       <div className="apple-profile-section">
-        <span className="apple-profile-section-title">Senior Display &amp; Audio</span>
+        <span className="apple-profile-section-title">Reading and sound</span>
         <div className="apple-inset-group">
           <button
             type="button"
             className="apple-inset-btn-row"
             onClick={openSheet}
-            aria-label="Open Senior Accessibility and Display Settings"
+            aria-label="Open text and sound settings"
           >
             <div className="apple-inset-btn-row__left">
               <span className="apple-inset-btn-row__icon" aria-hidden="true">
                 <IconSliders size={20} strokeWidth={1.8} />
               </span>
               <div>
-                <span className="apple-inset-btn-row__title">Accessibility Controls</span>
+                <span className="apple-inset-btn-row__title">Text and sound settings</span>
                 <span className="apple-inset-btn-row__subtitle">
-                  Size: {fontSize.toUpperCase()} · Contrast: {highContrast ? "High" : "Normal"} · Voice: {voiceAssist ? "On" : "Off"}
+                  Text size: {FONT_LABEL[fontSize]} · Strong contrast: {highContrast ? "On" : "Off"} · Read aloud: {voiceAssist ? "On" : "Off"}
                 </span>
               </div>
             </div>

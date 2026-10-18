@@ -64,7 +64,7 @@ export function HeroHeader({
           <h1 className="app-hero__name">{name}</h1>
         </div>
 
-        {/* Quick accessibility action buttons (Voice Read-Aloud & Aa Dynamic Type Sheet) */}
+        
         <div className="app-hero__actions">
           <button
             type="button"
@@ -84,8 +84,8 @@ export function HeroHeader({
             type="button"
             className="app-hero__aa-btn"
             onClick={openSheet}
-            aria-label="Open Senior Accessibility and Display Settings"
-            title="Senior Display & Accessibility"
+            aria-label="Open text and sound settings"
+            title="Text and sound settings"
           >
             Aa
           </button>

@@ -1,3 +1,4 @@
+import { readStorage, writeStorage } from "@sdh/api-client";
 import {
   createContext,
   useContext,
@@ -9,11 +10,58 @@ import {
 
 export type FontSizeLevel = "normal" | "large" | "xlarge";
 
+export const ACCESSIBILITY_STORAGE_KEY = "hn.accessibility";
+
+interface StoredSettings {
+  fontSize: FontSizeLevel;
+  highContrast: boolean;
+  reducedMotion: boolean;
+  voiceAssist: boolean;
+}
+
+const FONT_LEVELS: FontSizeLevel[] = ["normal", "large", "xlarge"];
+
+export const FONT_LABEL: Record<FontSizeLevel, string> = {
+  normal: "Normal",
+  large: "Large",
+  xlarge: "X-Large",
+};
+
+// Root font size in px for each text size, so every rem value scales together.
+export const ROOT_FONT_PX: Record<FontSizeLevel, number> = { normal: 16, large: 19, xlarge: 23 };
+
+function prefersReducedMotion(): boolean {
+  return typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+}
+
+// Reads saved settings. Anything missing or malformed falls back to the default for that setting.
+function loadSettings(): StoredSettings {
+  const defaults: StoredSettings = {
+    fontSize: "large",
+    highContrast: false,
+    reducedMotion: prefersReducedMotion(),
+    voiceAssist: false,
+  };
+  const raw = readStorage(ACCESSIBILITY_STORAGE_KEY);
+  if (!raw) return defaults;
+  try {
+    const saved = JSON.parse(raw) as Partial<StoredSettings>;
+    return {
+      fontSize: FONT_LEVELS.includes(saved.fontSize as FontSizeLevel)
+        ? (saved.fontSize as FontSizeLevel)
+        : defaults.fontSize,
+      highContrast: typeof saved.highContrast === "boolean" ? saved.highContrast : defaults.highContrast,
+      reducedMotion: typeof saved.reducedMotion === "boolean" ? saved.reducedMotion : defaults.reducedMotion,
+      voiceAssist: typeof saved.voiceAssist === "boolean" ? saved.voiceAssist : defaults.voiceAssist,
+    };
+  } catch {
+    return defaults;
+  }
+}
+
 interface AccessibilityContextValue {
   fontSize: FontSizeLevel;
   setFontSize: (size: FontSizeLevel) => void;
-  increaseFontSize: () => void;
-  decreaseFontSize: () => void;
   highContrast: boolean;
   setHighContrast: (val: boolean | ((prev: boolean) => boolean)) => void;
   reducedMotion: boolean;
@@ -26,22 +74,17 @@ interface AccessibilityContextValue {
   isSheetOpen: boolean;
   openSheet: () => void;
   closeSheet: () => void;
-  toggleSheet: () => void;
   triggerHaptic: (ms?: number) => void;
 }
 
 const AccessibilityContext = createContext<AccessibilityContextValue | null>(null);
 
 export function AccessibilityProvider({ children }: { children: ReactNode }) {
-  const [fontSize, setFontSizeState] = useState<FontSizeLevel>("large"); // Default "large" for elderly
-  const [highContrast, setHighContrast] = useState<boolean>(false);
-  const [reducedMotion, setReducedMotion] = useState<boolean>(() => {
-    if (typeof window !== "undefined" && window.matchMedia) {
-      return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    }
-    return false;
-  });
-  const [voiceAssist, setVoiceAssist] = useState<boolean>(false);
+  const [initial] = useState(loadSettings);
+  const [fontSize, setFontSizeState] = useState<FontSizeLevel>(initial.fontSize);
+  const [highContrast, setHighContrast] = useState<boolean>(initial.highContrast);
+  const [reducedMotion, setReducedMotion] = useState<boolean>(initial.reducedMotion);
+  const [voiceAssist, setVoiceAssist] = useState<boolean>(initial.voiceAssist);
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
   const [isSheetOpen, setIsSheetOpen] = useState<boolean>(false);
 
@@ -58,16 +101,6 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
   const setFontSize = useCallback((size: FontSizeLevel) => {
     triggerHaptic(12);
     setFontSizeState(size);
-  }, [triggerHaptic]);
-
-  const increaseFontSize = useCallback(() => {
-    triggerHaptic(15);
-    setFontSizeState((prev) => (prev === "normal" ? "large" : "xlarge"));
-  }, [triggerHaptic]);
-
-  const decreaseFontSize = useCallback(() => {
-    triggerHaptic(15);
-    setFontSizeState((prev) => (prev === "xlarge" ? "large" : "normal"));
   }, [triggerHaptic]);
 
   const stopSpeaking = useCallback(() => {
@@ -96,6 +129,12 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     [stopSpeaking, triggerHaptic],
   );
 
+  // Save every change so the settings survive a reload.
+  useEffect(() => {
+    const settings: StoredSettings = { fontSize, highContrast, reducedMotion, voiceAssist };
+    writeStorage(ACCESSIBILITY_STORAGE_KEY, JSON.stringify(settings));
+  }, [fontSize, highContrast, reducedMotion, voiceAssist]);
+
   // Stop speaking when navigating or unmounting
   useEffect(() => {
     return () => {
@@ -106,10 +145,10 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Drive the root <html> font-size so every rem-based size scales together
-  // with the Dynamic Type setting (apple-design §15: scale layout with text).
+  // with the Text size setting.
   useEffect(() => {
     if (typeof document === "undefined") return;
-    const px = fontSize === "normal" ? 16 : fontSize === "large" ? 19 : 23;
+    const px = ROOT_FONT_PX[fontSize];
     const prev = document.documentElement.style.fontSize;
     document.documentElement.style.fontSize = `${px}px`;
     return () => {
@@ -127,16 +166,9 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     setIsSheetOpen(false);
   }, [triggerHaptic]);
 
-  const toggleSheet = useCallback(() => {
-    triggerHaptic(15);
-    setIsSheetOpen((v) => !v);
-  }, [triggerHaptic]);
-
   const value: AccessibilityContextValue = {
     fontSize,
     setFontSize,
-    increaseFontSize,
-    decreaseFontSize,
     highContrast,
     setHighContrast,
     reducedMotion,
@@ -149,7 +181,6 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     isSheetOpen,
     openSheet,
     closeSheet,
-    toggleSheet,
     triggerHaptic,
   };
 
@@ -167,8 +198,6 @@ export function useAccessibility() {
     return {
       fontSize: "large" as FontSizeLevel,
       setFontSize: () => {},
-      increaseFontSize: () => {},
-      decreaseFontSize: () => {},
       highContrast: false,
       setHighContrast: () => {},
       reducedMotion: false,
@@ -181,7 +210,6 @@ export function useAccessibility() {
       isSheetOpen: false,
       openSheet: () => {},
       closeSheet: () => {},
-      toggleSheet: () => {},
       triggerHaptic: () => {},
     };
   }
