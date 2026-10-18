@@ -1,6 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ApiError, apiFetch, DEFAULT_TIMEOUT_MS, MUTATION_TIMEOUT_MS } from "./fetch";
+import {
+  ApiError,
+  apiFetch,
+  DEFAULT_TIMEOUT_MS,
+  MUTATION_TIMEOUT_MS,
+  setAccessTokenProvider,
+} from "./fetch";
 import { DEMO_USER_STORAGE_KEY } from "./storage";
 
 const json = (body: unknown, status = 200) =>
@@ -15,6 +21,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  setAccessTokenProvider(null);
   vi.unstubAllGlobals();
   vi.useRealTimers();
   vi.restoreAllMocks();
@@ -108,5 +115,48 @@ describe("apiFetch", () => {
     await expect(apiFetch("/api/x")).resolves.toEqual({ ok: 1 });
     const init = fetchMock.mock.calls[0]?.[1] as RequestInit;
     expect(init.headers).not.toHaveProperty("X-Demo-User");
+  });
+
+  describe("with an access token provider", () => {
+    const sentHeaders = () =>
+      (fetchMock.mock.calls[0]?.[1] as RequestInit).headers as Record<string, string>;
+
+    it("sends a bearer token and no demo header", async () => {
+      window.localStorage.setItem(DEMO_USER_STORAGE_KEY, "u1");
+      setAccessTokenProvider(async () => "tok");
+      fetchMock.mockResolvedValue(json({}));
+      await apiFetch("/api/x");
+      expect(sentHeaders().Authorization).toBe("Bearer tok");
+      expect(sentHeaders()).not.toHaveProperty("X-Demo-User");
+    });
+
+    it("sends no Authorization header when there is no token", async () => {
+      setAccessTokenProvider(async () => null);
+      fetchMock.mockResolvedValue(json({}));
+      await apiFetch("/api/x");
+      expect(sentHeaders()).not.toHaveProperty("Authorization");
+    });
+
+    it("waits for the token before the timeout starts", async () => {
+      vi.useFakeTimers();
+      const slowMs = DEFAULT_TIMEOUT_MS * 2;
+      setAccessTokenProvider(
+        () => new Promise((resolve) => setTimeout(() => resolve("tok"), slowMs)),
+      );
+      fetchMock.mockResolvedValue(json({ ok: true }));
+      const pending = apiFetch("/api/x");
+      await vi.advanceTimersByTimeAsync(slowMs);
+      await expect(pending).resolves.toEqual({ ok: true });
+      const init = fetchMock.mock.calls[0]?.[1] as RequestInit;
+      expect(init.signal?.aborted).toBe(false);
+    });
+
+    it("reports a failing provider as a network error", async () => {
+      setAccessTokenProvider(async () => {
+        throw new Error("refresh failed");
+      });
+      await expect(apiFetch("/api/x")).rejects.toMatchObject({ code: "NETWORK" });
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
   });
 });

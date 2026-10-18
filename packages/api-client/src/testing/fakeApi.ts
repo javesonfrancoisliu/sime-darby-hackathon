@@ -1,6 +1,10 @@
-import { vi } from "vitest";
+import { afterEach, vi } from "vitest";
 
+import { setAccessTokenProvider } from "../fetch";
 import { DEMO_USER_STORAGE_KEY } from "../storage";
+
+// Imported by test files at collection time, so this resets the token provider after every test.
+afterEach(() => setAccessTokenProvider(null));
 
 export type Call = {
   method: string;
@@ -42,4 +46,9 @@ export function installFakeApi(routes: Record<string, Handler> = {}) {
 
 export function signInAs(userId: string) {
   window.localStorage.setItem(DEMO_USER_STORAGE_KEY, userId);
+}
+
+// Switches apiFetch to bearer-token mode with a fixed fake token. Reset automatically after each test.
+export function signInWithToken(token = "test-token") {
+  setAccessTokenProvider(async () => token);
 }

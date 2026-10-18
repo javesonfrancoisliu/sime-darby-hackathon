@@ -7,8 +7,8 @@ export const GENERIC_ERROR_COPY = "Something went wrong. Please try again.";
 export const FRIENDLY_ERROR_COPY: Record<ApiErrorCode, string> = {
   NETWORK: "We cannot reach the server. Please check the internet and try again.",
   VALIDATION_FAILED: "Something in your request was not accepted. Please go back and check it.",
-  UNAUTHENTICATED: "Please choose who is using this phone again.",
-  FORBIDDEN: "This phone is not allowed to do that.",
+  UNAUTHENTICATED: "Please sign in again.",
+  FORBIDDEN: "Your account cannot do that.",
   NOT_FOUND: "We could not find that. It may have been removed.",
   CONFLICT: "This has already changed. Please look at your requests again.",
   PROFILE_REQUIRED: "Please finish setting up your account first.",

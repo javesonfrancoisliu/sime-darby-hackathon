@@ -1,1 +1,1 @@
-export { installFakeApi, signInAs, type Call } from "./fakeApi";
+export { installFakeApi, signInAs, signInWithToken, type Call } from "./fakeApi";

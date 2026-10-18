@@ -7,6 +7,7 @@ import { ErrorCode } from "@sdh/contracts";
 import { storedDemoUserId } from "./storage";
 
 const DEMO_USER_HEADER = "X-Demo-User";
+const AUTHORIZATION_HEADER = "Authorization";
 export const DEFAULT_TIMEOUT_MS = 8000;
 // Writes get longer: an abort after the server stored the change looks like a failure and invites a duplicate retry.
 export const MUTATION_TIMEOUT_MS = 30000;
@@ -33,6 +34,15 @@ export type ApiOptions = {
   timeoutMs?: number;
 };
 
+export type AccessTokenProvider = () => Promise<string | null>;
+
+let accessTokenProvider: AccessTokenProvider | null = null;
+
+// With a provider set, requests carry a Cognito bearer token instead of the demo header.
+export function setAccessTokenProvider(provider: AccessTokenProvider | null): void {
+  accessTokenProvider = provider;
+}
+
 function defaultTimeout(method: ApiOptions["method"]): number {
   return method && method !== "GET" ? MUTATION_TIMEOUT_MS : DEFAULT_TIMEOUT_MS;
 }
@@ -40,9 +50,20 @@ function defaultTimeout(method: ApiOptions["method"]): number {
 const NETWORK_MESSAGE = "Can't reach the server. Check your connection and try again.";
 
 export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promise<T> {
-  const userId = options.userId === undefined ? storedDemoUserId() : options.userId;
   const headers: Record<string, string> = { accept: "application/json" };
-  if (userId) headers[DEMO_USER_HEADER] = userId;
+  if (accessTokenProvider) {
+    // Awaited before the timeout starts so a slow token refresh cannot eat the request budget.
+    let token: string | null;
+    try {
+      token = await accessTokenProvider();
+    } catch {
+      throw new ApiError(0, "NETWORK", NETWORK_MESSAGE);
+    }
+    if (token) headers[AUTHORIZATION_HEADER] = `Bearer ${token}`;
+  } else {
+    const userId = options.userId === undefined ? storedDemoUserId() : options.userId;
+    if (userId) headers[DEMO_USER_HEADER] = userId;
+  }
   if (options.body !== undefined) headers["content-type"] = "application/json";
 
   const controller = new AbortController();
