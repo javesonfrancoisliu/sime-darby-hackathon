@@ -30,7 +30,7 @@ export function HomePage() {
 
       <section className="ui-section" aria-label="Township summary">
         <div className="home-cta-row">
-          <SafetyOverview townshipId={DEMO_TOWNSHIP.id} />
+          <SafetyOverview townshipId={DEMO_TOWNSHIP.id} townshipName={DEMO_TOWNSHIP.name} />
           <CommunityOverview townshipId={DEMO_TOWNSHIP.id} />
         </div>
       </section>

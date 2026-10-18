@@ -8,11 +8,12 @@ import { AppLinkButton, InfoCard } from "../ui";
 // same component name and the `townshipId` prop so Home does not need changes.
 // townshipId is accepted (and will scope the summary in the real implementation)
 // so Home does not need changes when the Health & Safety team replaces this stub.
-export type SafetyOverviewProps = { townshipId?: string };
+// townshipName is the spoken name for assistive tech, so the raw id is never read out.
+export type SafetyOverviewProps = { townshipId?: string; townshipName?: string };
 
-export function SafetyOverview({ townshipId }: SafetyOverviewProps) {
+export function SafetyOverview({ townshipName }: SafetyOverviewProps) {
   return (
-    <InfoCard ariaLabel={`Safety summary${townshipId ? ` for ${townshipId}` : ""}`}>
+    <InfoCard ariaLabel={`Safety summary${townshipName ? ` for ${townshipName}` : ""}`}>
       <div className="feature-card">
         <div className="feature-card-head">
           <h2 className="feature-card-title">

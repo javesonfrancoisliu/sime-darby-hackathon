@@ -25,4 +25,14 @@ describe("safety placeholder copy", () => {
     ).toBeInTheDocument();
     expect(screen.queryByText(INTERNAL_WORDING)).not.toBeInTheDocument();
   });
+
+  it("names the township for screen readers instead of its id", () => {
+    render(
+      <MemoryRouter>
+        <SafetyOverview townshipId="twp-elmina" townshipName="City of Elmina" />
+      </MemoryRouter>,
+    );
+    expect(screen.getByLabelText("Safety summary for City of Elmina")).toBeInTheDocument();
+    expect(screen.queryByLabelText(/twp-elmina/)).not.toBeInTheDocument();
+  });
 });
