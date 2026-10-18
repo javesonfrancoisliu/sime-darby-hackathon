@@ -7,6 +7,7 @@
 
   --page-bg: #f8f9fa;
   --surface: #ffffff;
+  --surface-muted: #f3f4f6;
   --text-primary: #1f2937;
   --text-secondary: #4b5563;
   --border: #e5e7eb;
@@ -29,6 +30,7 @@
   --tone-good-text: #065f46;
   --tone-caution-bg: #fef9c3;
   --tone-caution-text: #713f12;
+  --caution-ink: #3f2d00;
   --tone-alert-bg: #fee2e2;
   --tone-alert-text: #991b1b;
   --tone-extreme-bg: #4b0082;
@@ -185,7 +187,7 @@ textarea {
   color: var(--text-primary);
 }
 .ui-button--ghost:hover:not(:disabled) {
-  background: #f3f4f6;
+  background: var(--surface-muted);
 }
 .ui-button--danger {
   background: var(--danger);

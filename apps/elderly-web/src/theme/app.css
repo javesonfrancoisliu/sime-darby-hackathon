@@ -1,4 +1,4 @@
-/* App-level styles for the elderly frontend. The single source of truth for design tokens is the shared @sdh/design-tokens (tokens.css, imported in main.tsx). This file ONLY: 1. keeps the Easy View root always on (Option A), and 2. adds thin layout helpers specific to the elderly screens. It introduces no new colour/type/spacing token VALUES - everything resolves to the shared --brand-*, --space-*, --radius-* tokens. */
+/* App-level styles for the elderly frontend. Colours, type and spacing come from the shared @sdh/design-tokens (tokens.css, imported in main.tsx); this file keeps the Easy View root always on and adds layout helpers for the elderly screens. */
 
 /* Easy View is always on for the elderly app. */
 .app-root {
@@ -265,12 +265,12 @@
   margin-bottom: var(--space-3);
 }
 .app-request-card__badge--success {
-  background: #d1fae5;
-  color: #065f46;
+  background: var(--tone-good-bg);
+  color: var(--tone-good-text);
 }
 .app-request-card__badge--warning {
-  background: #fef9c3;
-  color: #713f12;
+  background: var(--tone-caution-bg);
+  color: var(--tone-caution-text);
 }
 .app-request-card__badge--info {
   background: var(--info-bg);
@@ -308,8 +308,8 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #fef9c3;
-  color: #713f12;
+  background: var(--tone-caution-bg);
+  color: var(--tone-caution-text);
   font-weight: 700;
   font-size: 1rem;
 }
@@ -446,7 +446,7 @@
 }
 
 .safety-card--pinned {
-  border-color: #f59e0b;
+  border-color: var(--warn-accent);
 }
 
 .safety-card--temperature {
@@ -493,7 +493,7 @@
   font-size: 1rem;
   font-weight: 600;
   color: var(--brand-primary);
-  background: #fef2f2;
+  background: var(--danger-bg);
   padding: 2px 8px;
   border-radius: var(--radius-pill);
 }
@@ -531,7 +531,7 @@
 /* ── Progress bar ────────────────────────────────────────────── */
 .safety-bar {
   height: 8px;
-  background: #f3f4f6;
+  background: var(--surface-muted);
   border-radius: var(--radius-pill);
   overflow: hidden;
   margin: var(--space-2) 0;
@@ -567,11 +567,11 @@
 .safety-advisory {
   margin-top: var(--space-3);
   padding: var(--space-3);
-  background: #fffbeb;
+  background: var(--warning-bg);
   border: 1px solid #fcd34d;
   border-radius: var(--radius-sm);
   font-size: 1rem;
-  color: #713f12;
+  color: var(--tone-caution-text);
   line-height: 1.5;
 }
 
@@ -629,7 +629,7 @@
   width: 32px;
   height: 32px;
   border-radius: 10px;
-  background: #f3f4f6;
+  background: var(--surface-muted);
   color: var(--text-secondary);
 }
 
@@ -849,7 +849,7 @@
   font-size: 1rem;
   font-weight: 600;
   color: var(--brand-primary);
-  background: #fef2f2;
+  background: var(--danger-bg);
   padding: 3px 8px;
   border-radius: var(--radius-pill);
   white-space: nowrap;
@@ -965,7 +965,7 @@
   width: 48px;
   height: 48px;
   border-radius: var(--radius-control);
-  background: #fef2f2;
+  background: var(--danger-bg);
   color: var(--brand-primary);
   flex-shrink: 0;
 }
@@ -1050,7 +1050,7 @@
 .choice-btn--selected {
   border-color: var(--brand-primary);
   background: #fff6f3;
-  color: #ba0000;
+  color: var(--brand-deep);
 }
 .choice-btn:disabled {
   opacity: 0.5;
@@ -1558,7 +1558,7 @@ button:active,
 }
 
 .apple-switch--on {
-  background: #15803d;
+  background: var(--success);
 }
 
 .apple-switch__thumb {
@@ -1577,7 +1577,7 @@ button:active,
 
 /* ── Emergency Box ───────────────────────────────────────────── */
 .apple-emergency-box {
-  background: #fef2f2;
+  background: var(--danger-bg);
   border: 1px solid #fecaca;
   border-radius: var(--radius-card);
   padding: var(--space-4);
@@ -1589,7 +1589,7 @@ button:active,
   gap: var(--space-2);
   font-size: 1rem;
   font-weight: 700;
-  color: #991b1b;
+  color: var(--tone-alert-text);
   margin-bottom: var(--space-3);
 }
 
@@ -1620,7 +1620,7 @@ button:active,
 
 .apple-emergency-btn__number {
   font-weight: 800;
-  color: #b91c1c;
+  color: var(--danger);
 }
 
 .apple-sheet-footer {
@@ -1670,7 +1670,7 @@ button:active,
   margin-top: var(--space-1);
   padding: 2px 10px;
   border-radius: var(--radius-pill);
-  background: #f3f4f6;
+  background: var(--surface-muted);
   color: var(--text-secondary);
   font-size: 1rem;
   font-weight: 600;
@@ -1744,7 +1744,7 @@ button:active,
   display: inline-block;
   padding: 3px 8px;
   border-radius: var(--radius-pill);
-  background: #f3f4f6;
+  background: var(--surface-muted);
   color: var(--text-secondary);
   font-size: 1rem;
   font-weight: 600;
@@ -1764,7 +1764,7 @@ button:active,
   align-items: center;
   justify-content: space-between;
   padding: var(--space-4);
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--surface-muted);
 }
 .apple-inset-row:last-child {
   border-bottom: none;
@@ -1782,8 +1782,8 @@ button:active,
   align-items: center;
   gap: 6px;
   padding: 4px 10px;
-  background: #fef9c3;
-  color: #713f12;
+  background: var(--tone-caution-bg);
+  color: var(--tone-caution-text);
   border-radius: var(--radius-pill);
   font-size: 1rem;
   font-weight: 700;
@@ -1796,19 +1796,19 @@ button:active,
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: #713f12;
+  background: var(--tone-caution-text);
   color: #fff;
 }
 
 .apple-volunteer-chip__badge {
-  color: #15803d;
+  color: var(--success);
   display: flex;
   align-items: center;
 }
 
 /* ── 11. Apple Destructive Confirm Card ──────────────────────── */
 .apple-confirm-card {
-  background: #fef2f2;
+  background: var(--danger-bg);
   border: 1px solid #fecaca;
   border-radius: var(--radius-card);
   padding: var(--space-6);
@@ -1819,7 +1819,7 @@ button:active,
   margin: 0 0 var(--space-1);
   font-size: 1.0625rem;
   font-weight: 800;
-  color: #991b1b;
+  color: var(--tone-alert-text);
 }
 
 .apple-confirm-card__sub {
@@ -1842,8 +1842,8 @@ button:active,
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: #d1fae5;
-  color: #065f46;
+  background: var(--tone-good-bg);
+  color: var(--tone-good-text);
   border: 2px solid #a7f3d0;
   margin-bottom: var(--space-2);
   animation: appleBadgePop 340ms cubic-bezier(0.18, 0.89, 0.32, 1.28);
@@ -1904,7 +1904,7 @@ button:active,
   width: 88px;
   height: 88px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #d71920 0%, #b91c1c 100%);
+  background: linear-gradient(135deg, #d71920 0%, var(--danger) 100%);
   color: #fff;
   display: flex;
   align-items: center;
@@ -1919,7 +1919,7 @@ button:active,
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  background: #15803d;
+  background: var(--success);
   color: #fff;
   display: flex;
   align-items: center;
@@ -1966,7 +1966,7 @@ button:active,
   text-align: left;
   background: transparent;
   border: none;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--surface-muted);
   cursor: pointer;
   transition: background 150ms ease;
 }
@@ -2312,10 +2312,10 @@ button:active,
 
 /* Facility damage - caution amber. */
 .apple-condition-card--facility {
-  background: linear-gradient(135deg, #fffbeb 0%, #fde8c8 100%);
+  background: linear-gradient(135deg, var(--warning-bg) 0%, #fde8c8 100%);
 }
 .apple-condition-card--facility::after {
-  background: radial-gradient(circle, #f59e0b 0%, rgba(245, 158, 11, 0) 70%);
+  background: radial-gradient(circle, var(--warn-accent) 0%, rgba(245, 158, 11, 0) 70%);
 }
 
 /* On the themed surfaces, give the icon chip a translucent white backing so it reads as a floating control (§12 material weight). */
@@ -2361,7 +2361,7 @@ button:active,
   background: linear-gradient(135deg, #fff7ed 0%, #ffe4d3 100%);
 }
 .play-summary__streak {
-  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  background: linear-gradient(135deg, var(--danger-bg) 0%, var(--tone-alert-bg) 100%);
 }
 .play-summary__points-icon,
 .play-summary__streak-flame {
@@ -2402,7 +2402,7 @@ button:active,
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background: #f3f4f6;
+  background: var(--surface-muted);
   color: #fff;
   border: 1.5px solid var(--border);
 }
@@ -2435,10 +2435,10 @@ button:active,
   margin: var(--space-3) 0 0;
   padding: var(--space-3);
   text-align: center;
-  background: #f0fdf4;
+  background: var(--success-bg);
   border: 1px solid #86efac;
   border-radius: var(--radius-sm);
-  color: #065f46;
+  color: var(--tone-good-text);
   font-weight: 600;
   font-size: 1rem;
   animation: seg-fade-in 260ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -2505,11 +2505,11 @@ button:active,
 .play-challenge__reward {
   margin: var(--space-3) 0 0;
   padding: 8px 12px;
-  background: #fffbeb;
+  background: var(--warning-bg);
   border-radius: var(--radius-sm);
   font-size: 1rem;
   font-weight: 600;
-  color: #713f12;
+  color: var(--tone-caution-text);
 }
 
 .play-badges {
@@ -2683,7 +2683,7 @@ button:active,
   min-height: 72px;
   padding: var(--space-3) var(--space-5);
   border-radius: var(--radius-card);
-  background: #ba0000;
+  background: var(--brand-deep);
   color: #fff;
   text-decoration: none;
   box-shadow: 0 2px 8px rgba(186, 0, 0, 0.35);

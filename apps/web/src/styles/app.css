@@ -1,4 +1,4 @@
-/* App-level layout styles for Township Connect. Builds ONLY on tokens from design-tokens.css - no new hex colors or spacing values. Shared shell + navigation live here so both modules render identically. */
+/* App-level layout styles for Township Connect. Colours and spacing come from the shared tokens in @sdh/design-tokens (tokens.css). Shared shell and navigation live here so both modules render identically. */
 
 /* ---------- App shell ---------- */
 .app-shell {
@@ -81,7 +81,7 @@
   font-size: var(--font-small);
 }
 .app-nav-link:hover {
-  background: #f3f4f6;
+  background: var(--surface-muted);
   color: var(--text-primary);
 }
 .app-nav-link[aria-current="page"] {
@@ -333,7 +333,7 @@
   cursor: pointer;
 }
 .ui-icon-button:hover {
-  background: #f3f4f6;
+  background: var(--surface-muted);
 }
 
 /* ---------- Empty / loading ---------- */
@@ -459,7 +459,7 @@
   gap: 4px;
   padding: 3px 10px;
   border-radius: var(--radius-pill);
-  background: #f3f4f6;
+  background: var(--surface-muted);
   color: var(--text-secondary);
   font-size: 13px;
   font-weight: 600;
@@ -540,7 +540,7 @@
   height: 44px;
   border-radius: var(--radius-pill);
   background: var(--brand-amber);
-  color: #3f2d00;
+  color: var(--caution-ink);
   flex: 0 0 auto;
 }
 .easy-view .reward-stat-value {
@@ -693,7 +693,7 @@
 .ui-progress-track {
   height: 10px;
   border-radius: var(--radius-pill);
-  background: #f3f4f6;
+  background: var(--surface-muted);
   overflow: hidden;
 }
 .ui-progress-fill {
@@ -717,7 +717,7 @@
   gap: var(--space-1);
   margin: var(--space-6) 0 0;
   padding: 4px;
-  background: #f3f4f6;
+  background: var(--surface-muted);
   border-radius: var(--radius-control);
 }
 .ui-tab {
@@ -757,7 +757,7 @@
   height: 44px;
   border-radius: var(--radius-control);
   background: var(--brand-amber);
-  color: #3f2d00;
+  color: var(--caution-ink);
   flex: 0 0 auto;
 }
 .challenges-entry-body {
@@ -878,12 +878,12 @@
   width: 40px;
   height: 40px;
   border-radius: var(--radius-pill);
-  background: #f3f4f6;
+  background: var(--surface-muted);
   color: var(--text-secondary);
 }
 .badge-tile--earned .badge-icon {
   background: var(--brand-amber);
-  color: #3f2d00;
+  color: var(--caution-ink);
 }
 .badge-label {
   font-size: var(--font-small);
