@@ -1,4 +1,4 @@
-import type { Category } from "@sdh/contracts";
+import type { Category, Verification } from "@sdh/contracts";
 
 // Young-role volunteering (Help a Neighbour) view models.
 // Derived from the backend contracts (@sdh/contracts) Opportunity / Contribution,
@@ -70,7 +70,7 @@ export type ImpactSummary = {
   isDemoData: boolean;
 };
 
-export type VerificationStatus = "verified" | "pending" | "rejected" | "not_required";
+export type VerificationStatus = Verification;
 
 export const TASK_CATEGORY_LABEL: Record<TaskCategory, string> = {
   groceries: "Groceries",

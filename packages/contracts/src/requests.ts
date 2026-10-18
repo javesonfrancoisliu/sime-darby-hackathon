@@ -13,10 +13,11 @@ export type RequestStatus = z.infer<typeof RequestStatus>;
 
 const MIN_DURATION_MINUTES = 15;
 const MAX_DURATION_MINUTES = 180;
-const MAX_MINUTES_SPENT = 600;
+export const MAX_MINUTES_SPENT = 600;
+export const MAX_DESCRIPTION_LENGTH = 500;
 
 const Title = z.string().trim().min(1).max(80);
-const Description = z.string().trim().max(500);
+const Description = z.string().trim().max(MAX_DESCRIPTION_LENGTH);
 const DurationMinutes = z.number().int().min(MIN_DURATION_MINUTES).max(MAX_DURATION_MINUTES);
 
 export const HelpRequest = z.object({

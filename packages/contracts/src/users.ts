@@ -1,5 +1,14 @@
 import { z } from "zod";
-import { Area, AvailabilitySlot, Category, Id, IsoDateTime, Location, Role } from "./common";
+import {
+  Area,
+  AvailabilitySlot,
+  Category,
+  Id,
+  IsoDateTime,
+  Location,
+  MAX_NAME_LENGTH,
+  Role,
+} from "./common";
 
 export const Verification = z.enum(["pending", "verified", "rejected", "not_required"]);
 export type Verification = z.infer<typeof Verification>;
@@ -8,7 +17,7 @@ const MAX_SKILLS = Category.options.length;
 const MAX_SLOTS = 21;
 
 const Profile = z.object({
-  name: z.string().trim().min(1).max(80),
+  name: z.string().trim().min(1).max(MAX_NAME_LENGTH),
   area: Area,
   location: Location,
   skills: z.array(Category).max(MAX_SKILLS),

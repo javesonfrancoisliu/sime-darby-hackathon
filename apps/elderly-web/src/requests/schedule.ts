@@ -25,8 +25,6 @@ export const TIME_SLOTS: TimeSlot[] = [
 
 export const DURATION_OPTIONS = [30, 60, 90, 120] as const;
 
-export const MAX_DESCRIPTION_LENGTH = 500;
-
 function pad(n: number): string {
   return String(n).padStart(2, "0");
 }

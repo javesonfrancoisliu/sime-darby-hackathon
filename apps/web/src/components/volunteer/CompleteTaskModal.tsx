@@ -1,11 +1,12 @@
 import { useState } from "react";
 
+import { MAX_MINUTES_SPENT } from "@sdh/contracts";
+
 import type { AcceptedTask } from "../../data/AcceptedTasksContext";
 import { AppButton, FormField, Modal } from "../ui";
 
 // Mirrors the API: at most twice the planned duration, and never over 10 hours.
 const MAX_OVERRUN_FACTOR = 2;
-const MAX_MINUTES = 600;
 
 export type CompleteTaskModalProps = {
   task: AcceptedTask | null;
@@ -29,7 +30,9 @@ export function CompleteTaskModal({
   onConfirm,
 }: CompleteTaskModalProps) {
   const [minutes, setMinutes] = useState(() => String(task?.durationMinutes ?? ""));
-  const max = task ? Math.min(task.durationMinutes * MAX_OVERRUN_FACTOR, MAX_MINUTES) : MAX_MINUTES;
+  const max = task
+    ? Math.min(task.durationMinutes * MAX_OVERRUN_FACTOR, MAX_MINUTES_SPENT)
+    : MAX_MINUTES_SPENT;
   const value = Number(minutes);
   const valid = Number.isInteger(value) && value >= 1 && value <= max;
 

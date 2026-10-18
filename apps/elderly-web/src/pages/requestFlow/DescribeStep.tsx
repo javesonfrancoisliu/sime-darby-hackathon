@@ -1,4 +1,5 @@
-import { MAX_DESCRIPTION_LENGTH } from "../../requests/schedule";
+import { MAX_DESCRIPTION_LENGTH } from "@sdh/contracts";
+
 import { Button } from "../../ui/Button";
 import { TextField } from "../../ui/TextField";
 
