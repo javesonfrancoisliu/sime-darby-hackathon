@@ -35,6 +35,7 @@ apps/
     scripts/              Local table setup
   web/                    Volunteer app (React 19, PWA), see apps/web/README.md
   elderly-web/            Elderly app (React 18, PWA), see apps/elderly-web/README.md
+  portal/                 Shared sign-in and account app (React 19), see apps/portal/README.md
 packages/
   contracts/              Request and response schemas shared by frontends and API
   config/                 Shared TypeScript config, Vite proxy and PWA settings
@@ -96,7 +97,7 @@ pnpm db:up      # DynamoDB Local on 127.0.0.1:8000
 cp apps/api/.env.example apps/api/.env
 pnpm db:setup   # create the local table (once); refuses non-loopback DYNAMODB_ENDPOINT
 pnpm db:seed    # add demo people, requests and events; skips if demo people already exist
-pnpm dev        # API on http://127.0.0.1:3001
+pnpm dev        # API on http://127.0.0.1:3001 and the apps; open http://localhost:5175 (sign-in app) for all three on one address
 pnpm test
 pnpm lint
 pnpm typecheck
