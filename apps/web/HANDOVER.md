@@ -85,27 +85,43 @@ challenges, points, rewards, profile prefs). Shown when `import.meta.env.DEV` OR
 `VITE_DEMO_CONTROLS=true` (see `.env.local.example`). It is a visibility flag only,
 NOT authentication or a security boundary.
 
-## 6. Frontend ↔ backend integration points
+## 6. Frontend ↔ backend integration (live mode)
 
-Real API wiring exists but currently falls back to mock because the demo user id
-(`tc.demoUserId`) is never set in the frontend and the backend is not run during
-the frontend demo:
-- `data/useCommunityItems.ts` — tries `GET /api/events`, else mock events.
-- `data/useVolunteer.ts` — tries `GET /api/opportunities` + `GET /api/contributions/mine`
-  (needs `X-Demo-User`), else mock. Maps backend `Opportunity`/`Contribution`.
+Profile → **Demo sign-in** picks a seeded user (`GET /api/demo/users`) and stores
+its id in `tc.demoUserId`; `lib/api.ts` sends it as `X-Demo-User`. Signed out,
+the app runs on labelled demo data as before. Signed in ("live mode"):
 
-To go live: set `tc.demoUserId` from a demo sign-in, run the API + DynamoDB Local,
-and the existing mappers take over. Import API types from `@sdh/contracts` (already done).
+- `data/SessionContext.tsx` loads `GET /api/me`; the user's role drives the app
+  role (`elder` → elderly, otherwise young) and the verification badge.
+- `data/useVolunteer.ts` — `GET /api/opportunities` + `GET /api/contributions/mine`.
+  Errors are shown (with Try again), never replaced by mock data. Urgency is
+  derived from how soon the task starts (the API has no urgency field).
+- `data/AcceptedTasksContext.tsx` — tasks from `GET /api/requests/mine` + joined
+  events from `GET /api/events`; accept → `POST /api/requests/{id}/accept`, join →
+  `POST /api/events/{id}/join`, complete → `POST /api/requests/{id}/complete`
+  with the minutes the volunteer enters (prefilled with the planned duration).
+- Community → event "Register to attend" → `POST /api/events/{id}/join` for API events.
+- "Confirm (Demo)" stays on-device in both modes: the API has no resident
+  confirmation step yet.
+
+Run it locally:
+
+```
+pnpm db:up && pnpm db:setup && pnpm db:seed   # DynamoDB Local + demo data
+pnpm --filter @sdh/api dev                     # API on :3001
+pnpm --filter @sdh/web dev                     # web on :5173, proxies /api
+```
+
+Then Profile → Demo sign-in → "Justina Tan — Volunteer" (verified). "Aiman Hakim"
+is a pending volunteer (shows the not-verified path); the residents use the elderly view.
 
 ## 7. Backend contract mismatches to resolve later
 
 Documented in `docs/FUTURE_REQUIREMENTS.md`. Summary:
-- **Assistance time simplification**: the frontend dropped the volunteer "minutes
-  spent" input and makes timing optional in the UX. BUT the backend contracts still
-  require `scheduledAt` + `durationMinutes` (`CreateRequestBody`) and `minutesSpent`
-  (`CompleteRequestBody`), and the rule-based matcher's availability score depends on
-  `scheduledAt` + `durationMinutes`. A real integration needs a coordinated backend +
-  `@sdh/contracts` change — do NOT fabricate these values silently.
+- **Assistance time**: completion asks for minutes spent again (prefilled with the
+  planned duration) because `CompleteRequestBody` requires `minutesSpent`.
+- **Resident confirmation**: the API completes a request on the volunteer's word;
+  the frontend's "Confirm (Demo)" step has no backend equivalent yet.
 - **Languages**: profile "preferred languages" is frontend-only; `User` in
   `@sdh/contracts` has no `languages` field yet. Promote it there before using it in
   real matching.

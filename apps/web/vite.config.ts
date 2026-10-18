@@ -40,8 +40,10 @@ export default defineConfig({
           {
             // Live safety / township / community API data: always try the network
             // first, fall back to a short-lived cache only when offline. Never
-            // served stale indefinitely.
-            urlPattern: ({ url }) => url.pathname.startsWith("/api/"),
+            // served stale indefinitely. Requests made as a demo user are left
+            // uncached: the cache keys on URL only, so it would mix users' data.
+            urlPattern: ({ url, request }) =>
+              url.pathname.startsWith("/api/") && !request.headers.has("X-Demo-User"),
             handler: "NetworkFirst",
             options: {
               cacheName: "api-cache",

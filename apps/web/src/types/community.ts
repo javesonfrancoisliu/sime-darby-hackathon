@@ -25,6 +25,8 @@ export type EventItem = DemoMetadata & {
   audience: string;
   capacity?: number;
   signupCount?: number;
+  /** Live events only: whether the signed-in demo user has joined. */
+  joined?: boolean;
 };
 
 export type MaintenanceItem = DemoMetadata & {

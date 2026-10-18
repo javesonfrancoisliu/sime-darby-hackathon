@@ -78,7 +78,7 @@ export type ImpactSummary = {
   isDemoData: boolean;
 };
 
-export type VerificationStatus = "verified" | "pending" | "not_required";
+export type VerificationStatus = "verified" | "pending" | "rejected" | "not_required";
 
 export const TASK_CATEGORY_LABEL: Record<TaskCategory, string> = {
   groceries: "Groceries",

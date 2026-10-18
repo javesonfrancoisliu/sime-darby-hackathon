@@ -3,6 +3,7 @@ import { useState } from "react";
 import { DemoControls } from "../../components/demo/DemoControls";
 import {
   ClaimedRewardsCard,
+  DemoSignInCard,
   EditPersonalModal,
   EditPreferencesModal,
   PreferencesCard,
@@ -45,6 +46,8 @@ export function ProfilePage() {
       <section className="ui-section" aria-label="Settings">
         <SettingsCard />
       </section>
+
+      <DemoSignInCard />
 
       {/* Demo-only reset (hidden unless demo controls are enabled). */}
       <DemoControls />

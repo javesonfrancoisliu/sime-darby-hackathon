@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import type { EventsResponse } from "@sdh/contracts";
 
 import type { CommunityItem, EventItem } from "../types/community";
+import { apiFetch } from "../lib/api";
 import { DEMO_TOWNSHIP } from "../lib/township";
+import { useSession } from "./SessionContext";
 import { COMMUNITY_ITEMS } from "./community.mock";
 
 type LoadState = {
@@ -11,6 +13,8 @@ type LoadState = {
   loading: boolean;
   error: string | null;
 };
+
+export type CommunityItemsState = LoadState & { reload: () => void };
 
 // Map a backend CommunityEvent to our EventItem card shape.
 // The events API exists (GET /api/events) and its contract covers title, startsAt,
@@ -31,6 +35,7 @@ function mapApiEvents(res: EventsResponse): EventItem[] {
       audience: "All residents",
       capacity: e.capacity,
       signupCount: e.signupCount,
+      joined: e.joined,
       updatedAt: e.updatedAt,
       sourceLabel: "Community events API",
       // Real API data — not a simulated reading.
@@ -41,9 +46,12 @@ function mapApiEvents(res: EventsResponse): EventItem[] {
 /**
  * Loads community items. Attempts the real events API and, on any failure
  * (API not running during the demo), falls back silently to mock events.
+ * Signed in, an empty API list is shown as empty and each event carries `joined`.
  * Maintenance / volunteer / township items are always mock for the prototype.
  */
-export function useCommunityItems(): LoadState {
+export function useCommunityItems(): CommunityItemsState {
+  const { userId } = useSession();
+  const [version, setVersion] = useState(0);
   const [state, setState] = useState<LoadState>({
     items: [],
     loading: true,
@@ -61,15 +69,9 @@ export function useCommunityItems(): LoadState {
 
       let events = mockEvents;
       try {
-        const res = await fetch("/api/events", {
-          headers: { accept: "application/json" },
-        });
-        if (res.ok) {
-          const data = (await res.json()) as EventsResponse;
-          const mapped = mapApiEvents(data);
-          // Only use the API list if it actually returned events.
-          if (mapped.length > 0) events = mapped;
-        }
+        const mapped = mapApiEvents(await apiFetch<EventsResponse>("/api/events", { userId }));
+        // Signed out, only use the API list if it actually returned events.
+        if (userId || mapped.length > 0) events = mapped;
       } catch {
         // API unavailable — keep the mock events. Expected in offline demo mode.
       }
@@ -85,7 +87,8 @@ export function useCommunityItems(): LoadState {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [userId, version]);
 
-  return state;
+  const reload = useCallback(() => setVersion((v) => v + 1), []);
+  return { ...state, reload };
 }

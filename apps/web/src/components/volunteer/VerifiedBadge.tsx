@@ -20,6 +20,14 @@ export function VerifiedBadge({ status }: VerifiedBadgeProps) {
       </span>
     );
   }
+  if (status === "rejected") {
+    return (
+      <span className="ui-badge ui-badge--danger">
+        <ShieldQuestion size={14} aria-hidden="true" />
+        Not verified
+      </span>
+    );
+  }
   return (
     <span className="ui-badge ui-badge--warning">
       <ShieldQuestion size={14} aria-hidden="true" />

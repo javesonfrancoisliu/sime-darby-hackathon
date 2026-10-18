@@ -12,18 +12,23 @@ import {
   type FilterValue,
 } from "../../components/community";
 import {
+  AppButton,
   ConfirmationDialog,
   DemoTag,
   EmptyState,
   FormField,
   InfoCard,
   LoadingState,
+  Modal,
   PageHeader,
   Pill,
 } from "../../components/ui";
 import { ChallengesEntryCard } from "../../components/challenges";
 import { useRole } from "../../components/layout";
+import { useAcceptedTasks } from "../../data/AcceptedTasksContext";
+import { useSession } from "../../data/SessionContext";
 import { useCommunityItems } from "../../data/useCommunityItems";
+import { apiFetch, errorMessage } from "../../lib/api";
 import { formatDate } from "../../lib/format";
 import { DEMO_TOWNSHIP } from "../../lib/township";
 import type {
@@ -42,7 +47,10 @@ const EMPTY_COUNTS: Record<FilterValue, number> = {
 };
 
 export function CommunityPage() {
-  const { items, loading } = useCommunityItems();
+  const { items, loading, reload } = useCommunityItems();
+  const { userId } = useSession();
+  // Joined events also show in Volunteer → My accepted tasks.
+  const { refresh: refreshTasks } = useAcceptedTasks();
   const { role } = useRole();
 
   const [filter, setFilter] = useState<FilterValue>("all");
@@ -55,6 +63,7 @@ export function CommunityPage() {
   const [confirmation, setConfirmation] = useState<{ title: string; message: string } | null>(
     null,
   );
+  const [failure, setFailure] = useState<string | null>(null);
 
   // Highest-priority township update, else the newest item, as the featured notice.
   const featured = useMemo<CommunityItem | undefined>(() => {
@@ -91,13 +100,26 @@ export function CommunityPage() {
     });
   }
 
-  function registerEvent(event: EventItem) {
-    setRegisteredEventIds((prev) => new Set(prev).add(event.id));
+  async function registerEvent(event: EventItem) {
+    // Live events need a signed-in demo user; otherwise it's a local demo sign-up.
+    const live = userId !== null && !event.isDemoData;
     // Close the details dialog so the success confirmation takes over.
     setActiveEvent(null);
+    if (live) {
+      try {
+        await apiFetch(`/api/events/${encodeURIComponent(event.id)}/join`, { method: "POST" });
+      } catch (err) {
+        setFailure(errorMessage(err));
+        return;
+      } finally {
+        reload();
+        refreshTasks();
+      }
+    }
+    setRegisteredEventIds((prev) => new Set(prev).add(event.id));
     setConfirmation({
       title: "You're registered",
-      message: `See you at "${event.title}" on ${formatDate(event.startsAt)}. This is a demo sign-up saved only in this browser session.`,
+      message: `See you at "${event.title}" on ${formatDate(event.startsAt)}.${live ? "" : " This is a demo sign-up saved only in this browser session."}`,
     });
   }
 
@@ -206,11 +228,27 @@ export function CommunityPage() {
 
       <EventDetailsModal
         event={activeEvent}
-        registered={activeEvent ? registeredEventIds.has(activeEvent.id) : false}
+        registered={
+          activeEvent ? registeredEventIds.has(activeEvent.id) || activeEvent.joined === true : false
+        }
         onClose={() => setActiveEvent(null)}
-        onRegister={registerEvent}
+        onRegister={(event) => void registerEvent(event)}
       />
       <TownshipUpdateModal item={activeUpdate} onClose={() => setActiveUpdate(null)} />
+      <Modal
+        open={failure !== null}
+        title="Couldn't register"
+        onClose={() => setFailure(null)}
+        footer={
+          <AppButton variant="primary" onClick={() => setFailure(null)}>
+            OK
+          </AppButton>
+        }
+      >
+        <p style={{ margin: 0 }} role="alert">
+          {failure}
+        </p>
+      </Modal>
       <ConfirmationDialog
         open={confirmation !== null}
         title={confirmation?.title ?? ""}

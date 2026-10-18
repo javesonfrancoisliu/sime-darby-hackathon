@@ -11,6 +11,7 @@ import {
 import type { VerificationStatus } from "../types/volunteer";
 import type { ProfilePrefs } from "../types/profile";
 import { DEMO_TOWNSHIP } from "../lib/township";
+import { useSession } from "./SessionContext";
 
 // Reusable, localStorage-backed Young-resident profile state. Held once at the
 // app root so every component sees the same values; persisted so edits survive
@@ -44,7 +45,7 @@ const DEFAULT_SETTINGS: ProfileSettings = {
   showOnLeaderboard: true,
 };
 
-// Demo verification status shown on the profile header (clearly demo-labelled).
+// Verification shown when signed out (demo). Signed in, it comes from the API user.
 const DEMO_VERIFICATION: VerificationStatus = "verified";
 
 function readJson<T>(key: string, fallback: T): T {
@@ -69,6 +70,8 @@ export type ProfileContextValue = {
 const ProfileContext = createContext<ProfileContextValue | null>(null);
 
 export function ProfileProvider({ children }: { children: ReactNode }) {
+  const { user } = useSession();
+  const verification: VerificationStatus = user ? user.verification : DEMO_VERIFICATION;
   const [prefs, setPrefs] = useState<ProfilePrefs>(() => readJson(PREFS_KEY, DEFAULT_PREFS));
   const [settings, setSettings] = useState<ProfileSettings>(() =>
     readJson(SETTINGS_KEY, DEFAULT_SETTINGS),
@@ -102,12 +105,12 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     () => ({
       prefs,
       settings,
-      verification: DEMO_VERIFICATION,
+      verification,
       updatePrefs,
       updateSettings,
       reset,
     }),
-    [prefs, settings, updatePrefs, updateSettings, reset],
+    [prefs, settings, verification, updatePrefs, updateSettings, reset],
   );
 
   return <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>;

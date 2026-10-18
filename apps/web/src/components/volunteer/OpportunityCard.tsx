@@ -11,6 +11,8 @@ export type OpportunityCardProps = {
   /** Live distance (km) computed from the user's location, when available. */
   liveDistanceKm?: number;
   joined: boolean;
+  /** True while this card's accept is being saved. */
+  accepting?: boolean;
   onAccept: (opportunity: Opportunity) => void;
 };
 
@@ -22,6 +24,7 @@ export function OpportunityCard({
   opportunity,
   liveDistanceKm,
   joined,
+  accepting = false,
   onAccept,
 }: OpportunityCardProps) {
   const distance = liveDistanceKm != null ? approxKm(liveDistanceKm) : opportunity.distanceKm;
@@ -66,6 +69,14 @@ export function OpportunityCard({
 
         <p className="feature-card-desc">{opportunity.summary}</p>
 
+        {opportunity.reasons.length > 0 && (
+          <ul className="match-reasons" aria-label="Why this matches you">
+            {opportunity.reasons.map((reason) => (
+              <li key={reason}>{reason}</li>
+            ))}
+          </ul>
+        )}
+
         <div className="ui-meta-row">
           <span>Source: {opportunity.sourceLabel}</span>
           {opportunity.isDemoData && <DemoTag />}
@@ -73,10 +84,13 @@ export function OpportunityCard({
 
         <div className="feature-card-foot">
           {joined ? (
-            <StatusBadge label="You accepted this" variant="success" />
+            <StatusBadge
+              label={opportunity.kind === "event" ? "You joined this" : "You accepted this"}
+              variant="success"
+            />
           ) : (
-            <AppButton variant="primary" onClick={() => onAccept(opportunity)}>
-              Accept &amp; help
+            <AppButton variant="primary" loading={accepting} onClick={() => onAccept(opportunity)}>
+              {opportunity.kind === "event" ? "Join event" : "Accept & help"}
             </AppButton>
           )}
         </div>

@@ -1,4 +1,5 @@
-import { MapPin, Navigation } from "lucide-react";
+import { CloudOff, MapPin, Navigation } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useMemo, useState } from "react";
 
 import {
@@ -9,10 +10,20 @@ import {
   VerifiedBadge,
   type SortOption,
 } from "../../components/volunteer";
-import { AppButton, ConfirmationDialog, EmptyState, InfoCard, LoadingState, PageHeader } from "../../components/ui";
+import {
+  AppButton,
+  ConfirmationDialog,
+  EmptyState,
+  InfoCard,
+  LoadingState,
+  Modal,
+  PageHeader,
+} from "../../components/ui";
 import { useAcceptedTasks, type AcceptedTask } from "../../data/AcceptedTasksContext";
+import { useProfile } from "../../data/ProfileContext";
 import { useGamification } from "../../data/useGamification";
 import { useVolunteerData } from "../../data/useVolunteer";
+import { errorMessage } from "../../lib/api";
 import { formatDate } from "../../lib/format";
 import { distanceKm } from "../../lib/geo";
 import { useGeolocation } from "../../lib/useGeolocation";
@@ -23,13 +34,27 @@ import { URGENCY_RANK, type Opportunity } from "../../types/volunteer";
 const VOLUNTEERING_POINTS = 60;
 
 export function VolunteerPage() {
-  const { opportunities, loading } = useVolunteerData();
+  const { opportunities, loading, error, live, reload } = useVolunteerData();
   const geo = useGeolocation();
-  const { tasks, isAccepted, accept, complete, verify } = useAcceptedTasks();
+  const {
+    tasks,
+    isAccepted,
+    accept,
+    complete,
+    verify,
+    loading: tasksLoading,
+    error: tasksError,
+    refresh: refreshTasks,
+  } = useAcceptedTasks();
   const { verifyVolunteering } = useGamification();
+  const { verification } = useProfile();
 
   const [sort, setSort] = useState<SortOption>("nearest");
   const [completing, setCompleting] = useState<AcceptedTask | null>(null);
+  const [completeBusy, setCompleteBusy] = useState(false);
+  const [completeError, setCompleteError] = useState<string | null>(null);
+  const [acceptingId, setAcceptingId] = useState<string | null>(null);
+  const [failure, setFailure] = useState<{ title: string; message: string } | null>(null);
   const [confirmation, setConfirmation] = useState<{ title: string; message: string } | null>(
     null,
   );
@@ -75,22 +100,45 @@ export function VolunteerPage() {
     return sorted;
   }, [opportunities, sort, distances]);
 
-  function handleAccept(opportunity: Opportunity) {
-    accept(opportunity);
-    setConfirmation({
-      title: "Thanks for stepping up",
-      message: `You accepted "${opportunity.title}" on ${formatDate(opportunity.scheduledAt)}. It's now in "My accepted tasks". This is a demo sign-up saved only in this browser session.`,
-    });
+  async function handleAccept(opportunity: Opportunity) {
+    setAcceptingId(opportunity.id);
+    try {
+      await accept(opportunity);
+      setConfirmation({
+        title: "Thanks for stepping up",
+        message: `You ${opportunity.kind === "event" ? "joined" : "accepted"} "${opportunity.title}" on ${formatDate(opportunity.scheduledAt)}. It's now in "My accepted tasks".${live ? "" : " This is a demo sign-up saved only in this browser."}`,
+      });
+    } catch (err) {
+      setFailure({ title: "Couldn't accept this task", message: errorMessage(err) });
+    } finally {
+      setAcceptingId(null);
+      // Someone else may have taken it; either way the feed has changed.
+      if (live) reload();
+    }
   }
 
-  function handleComplete(task: AcceptedTask) {
-    // Self-reported only — no points yet.
-    complete(task.id);
-    setCompleting(null);
-    setConfirmation({
-      title: "Marked as completed",
-      message: `You marked "${task.title}" as completed. It still needs the resident's confirmation before it counts as verified. Demo only.`,
-    });
+  function openComplete(task: AcceptedTask) {
+    setCompleteError(null);
+    setCompleting(task);
+  }
+
+  async function handleComplete(task: AcceptedTask, minutesSpent: number) {
+    // Volunteer-reported only — no points yet.
+    setCompleteBusy(true);
+    setCompleteError(null);
+    try {
+      await complete(task.id, minutesSpent);
+      setCompleting(null);
+      setConfirmation({
+        title: "Marked as completed",
+        message: `You marked "${task.title}" as completed (${minutesSpent} min). It still needs the resident's confirmation before it counts as verified.`,
+      });
+      if (live) reload(); // volunteer hours changed
+    } catch (err) {
+      setCompleteError(errorMessage(err));
+    } finally {
+      setCompleteBusy(false);
+    }
   }
 
   function handleVerify(task: AcceptedTask) {
@@ -114,13 +162,39 @@ export function VolunteerPage() {
 
   return (
     <>
-      <PageHeader title="Volunteer nearby" actions={<VerifiedBadge status="verified" />} />
+      <PageHeader title="Volunteer nearby" actions={<VerifiedBadge status={verification} />} />
 
-      {loading ? (
+      {!live && (
+        <p className="ui-helper live-hint">
+          Showing demo data. <Link to="/profile">Sign in as a demo user</Link> to use the live
+          service.
+        </p>
+      )}
+
+      {loading || tasksLoading ? (
         <LoadingState rows={3} label="Loading volunteering opportunities" />
+      ) : error || tasksError ? (
+        <InfoCard>
+          <EmptyState
+            icon={CloudOff}
+            title="Couldn't load volunteering"
+            description={error ?? tasksError ?? undefined}
+            action={
+              <AppButton
+                variant="secondary"
+                onClick={() => {
+                  reload();
+                  refreshTasks();
+                }}
+              >
+                Try again
+              </AppButton>
+            }
+          />
+        </InfoCard>
       ) : (
         <>
-          <MyTasksSection tasks={tasks} onComplete={setCompleting} onVerify={handleVerify} />
+          <MyTasksSection tasks={tasks} onComplete={openComplete} onVerify={handleVerify} />
 
           <section className="ui-section" aria-labelledby="browse-heading">
             <h2 className="ui-visually-hidden" id="browse-heading">
@@ -177,7 +251,8 @@ export function VolunteerPage() {
                       usingLive && opportunity.coords ? distances.get(opportunity.id) : undefined
                     }
                     joined={isAccepted(opportunity.id)}
-                    onAccept={handleAccept}
+                    accepting={acceptingId === opportunity.id}
+                    onAccept={(o) => void handleAccept(o)}
                   />
                 ))}
               </ul>
@@ -189,9 +264,26 @@ export function VolunteerPage() {
       <CompleteTaskModal
         key={completing?.id ?? "none"}
         task={completing}
+        busy={completeBusy}
+        error={completeError}
         onClose={() => setCompleting(null)}
-        onConfirm={handleComplete}
+        onConfirm={(task, minutes) => void handleComplete(task, minutes)}
       />
+
+      <Modal
+        open={failure !== null}
+        title={failure?.title ?? ""}
+        onClose={() => setFailure(null)}
+        footer={
+          <AppButton variant="primary" onClick={() => setFailure(null)}>
+            OK
+          </AppButton>
+        }
+      >
+        <p style={{ margin: 0 }} role="alert">
+          {failure?.message}
+        </p>
+      </Modal>
 
       <ConfirmationDialog
         open={confirmation !== null}

@@ -8,24 +8,34 @@ import {
   type ReactNode,
 } from "react";
 
-import type { Opportunity } from "../types/volunteer";
+import type { CommunityEvent, EventsResponse, HelpRequest, RequestsResponse } from "@sdh/contracts";
 
-// Tracks the volunteer's accepted Help-a-Neighbour tasks for the demo. Held once
-// at the app root (context) so Volunteer Nearby and Community Challenges share
-// one live instance; persisted to localStorage so it survives reloads.
+import { apiFetch, errorMessage } from "../lib/api";
+import type { Opportunity, OpportunityKind } from "../types/volunteer";
+import { useSession } from "./SessionContext";
+
+// Tracks the volunteer's accepted Help-a-Neighbour tasks. Held once at the app
+// root (context) so Volunteer Nearby and Community Challenges share one instance.
 //
-// Simulated, client-only — no backend calls. Status model here is FRONTEND-ONLY
-// and deliberately separate from the backend request status machine:
-//   accepted  -> volunteer took the task
-//   completed -> volunteer SELF-REPORTED completion (NOT verified)
+// Two modes, picked by the demo sign-in (data/SessionContext.tsx):
+//  - signed out: simulated and client-only, persisted to localStorage;
+//  - signed in:  accepted requests come from GET /api/requests/mine and joined
+//    events from GET /api/events; accept/join/complete call the API.
+//
+// Status model (frontend view):
+//   accepted  -> volunteer took the task (API: request "matched", or event joined)
+//   completed -> volunteer reported completion (API: request "completed")
 //   verified  -> a simulated confirmation stands in for the elderly resident
 //                confirming; only then does it count toward volunteering rewards.
-// See docs/FRONTEND_HANDOVER notes for the mapping to the backend API.
+//                The API has no resident-confirmation step yet, so this stays
+//                on-device in both modes.
 
 export type AcceptedTaskStatus = "accepted" | "completed" | "verified";
 
 export type AcceptedTask = {
   id: string;
+  /** Requests can be completed by the volunteer; events are closed by a coordinator. */
+  kind: OpportunityKind;
   title: string;
   area: string;
   category: Opportunity["category"];
@@ -43,25 +53,85 @@ export type AcceptedTask = {
 };
 
 const STORAGE_KEY = "tc.acceptedTasks";
+// Live-mode tasks the simulated resident has confirmed (no API for this yet).
+const CONFIRMED_KEY = "tc.confirmedLiveTasks";
 
-function read(): AcceptedTask[] {
-  if (typeof window === "undefined") return [];
+function readJson<T>(key: string, fallback: T): T {
+  if (typeof window === "undefined") return fallback;
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as AcceptedTask[]) : [];
+    const raw = window.localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : fallback;
   } catch {
-    return [];
+    return fallback;
   }
+}
+
+function writeJson(key: string, value: unknown) {
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // Storage blocked: state just won't survive a reload.
+  }
+}
+
+// Tasks saved before `kind` existed were all requests.
+function readMockTasks(): AcceptedTask[] {
+  return readJson<AcceptedTask[]>(STORAGE_KEY, []).map((t) => ({
+    ...t,
+    kind: t.kind ?? "request",
+  }));
+}
+
+type ConfirmedTasks = Record<string, string>; // task id -> confirmedAt
+
+function requestToTask(request: HelpRequest, confirmed: ConfirmedTasks): AcceptedTask | null {
+  if (request.status !== "matched" && request.status !== "completed") return null;
+  const confirmedAt = confirmed[request.id];
+  return {
+    id: request.id,
+    kind: "request",
+    title: request.title,
+    area: request.location.area,
+    category: request.category,
+    scheduledAt: request.scheduledAt,
+    durationMinutes: request.durationMinutes,
+    status: request.status === "matched" ? "accepted" : confirmedAt ? "verified" : "completed",
+    // The API doesn't record when a request was accepted; updatedAt is the closest.
+    acceptedAt: request.updatedAt,
+    completedAt: request.status === "completed" ? request.updatedAt : undefined,
+    verifiedAt: confirmedAt,
+  };
+}
+
+function eventToTask(event: CommunityEvent): AcceptedTask {
+  return {
+    id: event.id,
+    kind: "event",
+    title: event.title,
+    area: event.location.area,
+    category: event.category,
+    scheduledAt: event.startsAt,
+    durationMinutes: event.durationMinutes,
+    status: "accepted",
+    acceptedAt: event.updatedAt,
+  };
 }
 
 export type AcceptedTasksContextValue = {
   tasks: AcceptedTask[];
+  /** True when tasks come from the API (a demo user is signed in). */
+  live: boolean;
+  loading: boolean;
+  error: string | null;
   isAccepted: (id: string) => boolean;
-  accept: (opportunity: Opportunity) => void;
-  /** Self-reported completion. Does NOT award points or count as verified. */
-  complete: (id: string) => void;
+  /** Accept a request or join an event. Rejects with an ApiError in live mode. */
+  accept: (opportunity: Opportunity) => Promise<void>;
+  /** Volunteer-reported completion. Does NOT award points or count as verified. */
+  complete: (id: string, minutesSpent: number) => Promise<void>;
   /** Simulated resident confirmation. Marks the task verified. */
   verify: (id: string) => void;
+  /** Re-reads live tasks from the API. No-op when signed out. */
+  refresh: () => void;
   /** Clears all accepted-task demo state. */
   reset: () => void;
 };
@@ -69,64 +139,155 @@ export type AcceptedTasksContextValue = {
 const AcceptedTasksContext = createContext<AcceptedTasksContextValue | null>(null);
 
 export function AcceptedTasksProvider({ children }: { children: ReactNode }) {
-  const [tasks, setTasks] = useState<AcceptedTask[]>(read);
+  const { userId } = useSession();
+  const live = userId !== null;
+
+  const [mockTasks, setMockTasks] = useState<AcceptedTask[]>(readMockTasks);
+  const [confirmed, setConfirmed] = useState<ConfirmedTasks>(() => readJson(CONFIRMED_KEY, {}));
+  // `forUserId` marks whose tasks are loaded, so switching user shows loading
+  // while a refresh after accept/complete keeps the current list on screen.
+  const [liveData, setLiveData] = useState<{
+    forUserId: string | null;
+    requests: HelpRequest[];
+    events: CommunityEvent[];
+    error: string | null;
+  }>({ forUserId: null, requests: [], events: [], error: null });
+  const [version, setVersion] = useState(0);
+
+  useEffect(() => writeJson(STORAGE_KEY, mockTasks), [mockTasks]);
+  useEffect(() => writeJson(CONFIRMED_KEY, confirmed), [confirmed]);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
-    }
-  }, [tasks]);
+    if (!userId) return;
+    let cancelled = false;
+    Promise.all([
+      apiFetch<RequestsResponse>("/api/requests/mine", { userId }),
+      apiFetch<EventsResponse>("/api/events", { userId }),
+    ])
+      .then(([requests, events]) => {
+        if (cancelled) return;
+        setLiveData({
+          forUserId: userId,
+          requests: requests.requests,
+          events: events.events.filter((e) => e.joined),
+          error: null,
+        });
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        setLiveData({ forUserId: userId, requests: [], events: [], error: errorMessage(err) });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, version]);
+
+  const refresh = useCallback(() => setVersion((v) => v + 1), []);
+
+  const tasks = useMemo<AcceptedTask[]>(() => {
+    if (!live) return mockTasks;
+    const fromRequests = liveData.requests
+      .map((r) => requestToTask(r, confirmed))
+      .filter((t): t is AcceptedTask => t !== null);
+    return [...fromRequests, ...liveData.events.map(eventToTask)].sort((a, b) =>
+      a.scheduledAt.localeCompare(b.scheduledAt),
+    );
+  }, [live, mockTasks, liveData, confirmed]);
 
   const isAccepted = useCallback((id: string) => tasks.some((t) => t.id === id), [tasks]);
 
-  const accept = useCallback((opportunity: Opportunity) => {
-    setTasks((prev) => {
-      if (prev.some((t) => t.id === opportunity.id)) return prev; // no duplicate accepts
-      const task: AcceptedTask = {
-        id: opportunity.id,
-        title: opportunity.title,
-        area: opportunity.area,
-        category: opportunity.category,
-        scheduledAt: opportunity.scheduledAt,
-        durationMinutes: opportunity.durationMinutes,
-        status: "accepted",
-        acceptedAt: new Date().toISOString(),
-        dedupeKey: opportunity.dedupeKey,
-      };
-      return [task, ...prev];
-    });
-  }, []);
+  const accept = useCallback(
+    async (opportunity: Opportunity) => {
+      if (userId) {
+        const path =
+          opportunity.kind === "event"
+            ? `/api/events/${encodeURIComponent(opportunity.id)}/join`
+            : `/api/requests/${encodeURIComponent(opportunity.id)}/accept`;
+        await apiFetch(path, { method: "POST", userId });
+        refresh();
+        return;
+      }
+      setMockTasks((prev) => {
+        if (prev.some((t) => t.id === opportunity.id)) return prev; // no duplicate accepts
+        const task: AcceptedTask = {
+          id: opportunity.id,
+          kind: opportunity.kind,
+          title: opportunity.title,
+          area: opportunity.area,
+          category: opportunity.category,
+          scheduledAt: opportunity.scheduledAt,
+          durationMinutes: opportunity.durationMinutes,
+          status: "accepted",
+          acceptedAt: new Date().toISOString(),
+          dedupeKey: opportunity.dedupeKey,
+        };
+        return [task, ...prev];
+      });
+    },
+    [userId, refresh],
+  );
 
-  const complete = useCallback((id: string) => {
-    setTasks((prev) =>
-      prev.map((t) =>
-        t.id === id && t.status === "accepted"
-          ? { ...t, status: "completed", completedAt: new Date().toISOString() }
-          : t,
-      ),
-    );
-  }, []);
+  const complete = useCallback(
+    async (id: string, minutesSpent: number) => {
+      if (userId) {
+        await apiFetch(`/api/requests/${encodeURIComponent(id)}/complete`, {
+          method: "POST",
+          body: { minutesSpent },
+          userId,
+        });
+        refresh();
+        return;
+      }
+      setMockTasks((prev) =>
+        prev.map((t) =>
+          t.id === id && t.status === "accepted"
+            ? { ...t, status: "completed", completedAt: new Date().toISOString() }
+            : t,
+        ),
+      );
+    },
+    [userId, refresh],
+  );
 
-  const verify = useCallback((id: string) => {
-    setTasks((prev) =>
-      prev.map((t) =>
-        t.id === id && t.status === "completed"
-          ? { ...t, status: "verified", verifiedAt: new Date().toISOString() }
-          : t,
-      ),
-    );
-  }, []);
+  const verify = useCallback(
+    (id: string) => {
+      if (live) {
+        setConfirmed((prev) => (prev[id] ? prev : { ...prev, [id]: new Date().toISOString() }));
+        return;
+      }
+      setMockTasks((prev) =>
+        prev.map((t) =>
+          t.id === id && t.status === "completed"
+            ? { ...t, status: "verified", verifiedAt: new Date().toISOString() }
+            : t,
+        ),
+      );
+    },
+    [live],
+  );
 
-  const reset = useCallback(() => setTasks([]), []);
+  const reset = useCallback(() => {
+    setMockTasks([]);
+    setConfirmed({});
+  }, []);
 
   const value = useMemo<AcceptedTasksContextValue>(
-    () => ({ tasks, isAccepted, accept, complete, verify, reset }),
-    [tasks, isAccepted, accept, complete, verify, reset],
+    () => ({
+      tasks,
+      live,
+      loading: live && liveData.forUserId !== userId,
+      error: live ? liveData.error : null,
+      isAccepted,
+      accept,
+      complete,
+      verify,
+      refresh,
+      reset,
+    }),
+    [tasks, live, userId, liveData, isAccepted, accept, complete, verify, refresh, reset],
   );
 
-  return (
-    <AcceptedTasksContext.Provider value={value}>{children}</AcceptedTasksContext.Provider>
-  );
+  return <AcceptedTasksContext.Provider value={value}>{children}</AcceptedTasksContext.Provider>;
 }
 
 export function useAcceptedTasks(): AcceptedTasksContextValue {

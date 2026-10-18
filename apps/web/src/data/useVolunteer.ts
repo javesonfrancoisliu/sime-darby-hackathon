@@ -1,27 +1,33 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-import type {
-  ContributionsResponse,
-  OpportunitiesResponse,
-} from "@sdh/contracts";
+import type { ContributionsResponse, OpportunitiesResponse } from "@sdh/contracts";
 
 import type {
   Contribution,
   ImpactSummary,
   Opportunity,
   TaskCategory,
+  Urgency,
 } from "../types/volunteer";
+import { apiFetch, errorMessage } from "../lib/api";
+import { useSession } from "./SessionContext";
 import { MOCK_IMPACT, MOCK_OPPORTUNITIES } from "./volunteer.mock";
 
-// The opportunities/contributions APIs need a signed-in volunteer (the
-// X-Demo-User header). For the prototype we try the API and fall back to mock
-// data on any failure — same resilient pattern as the events feed. No backend
-// changes are made here.
-const DEMO_USER_HEADER = "X-Demo-User";
+const EMPTY_IMPACT: ImpactSummary = {
+  totalMinutes: 0,
+  completedCount: 0,
+  peopleHelped: 0,
+  items: [],
+  isDemoData: false,
+};
 
-function demoUserId(): string | null {
-  if (typeof window === "undefined") return null;
-  return window.localStorage.getItem("tc.demoUserId");
+// The API has no urgency field, so derive it from how soon the help is needed.
+const HOUR_MS = 3_600_000;
+function urgencyFor(startsAt: string): Urgency {
+  const hoursAway = (Date.parse(startsAt) - Date.now()) / HOUR_MS;
+  if (hoursAway <= 24) return "high";
+  if (hoursAway <= 72) return "medium";
+  return "low";
 }
 
 function mapOpportunities(res: OpportunitiesResponse): Opportunity[] {
@@ -39,7 +45,7 @@ function mapOpportunities(res: OpportunitiesResponse): Opportunity[] {
         area: r.area,
         scheduledAt: r.scheduledAt,
         durationMinutes: r.durationMinutes,
-        urgency: "medium" as const,
+        urgency: urgencyFor(r.scheduledAt),
         matchScore: item.matchScore,
         reasons: item.reasons,
         fitsMySchedule: false,
@@ -59,7 +65,7 @@ function mapOpportunities(res: OpportunitiesResponse): Opportunity[] {
       area: e.location.area,
       scheduledAt: e.startsAt,
       durationMinutes: e.durationMinutes,
-      urgency: "low" as const,
+      urgency: urgencyFor(e.startsAt),
       matchScore: item.matchScore,
       reasons: item.reasons,
       fitsMySchedule: false,
@@ -91,51 +97,79 @@ export type VolunteerData = {
   opportunities: Opportunity[];
   impact: ImpactSummary;
   loading: boolean;
+  /** Set when live mode could not load; the UI shows it instead of falling back to mock. */
+  error: string | null;
+  /** True when the data came from the API (a demo user is signed in). */
+  live: boolean;
+  reload: () => void;
 };
 
+/**
+ * Signed out: labelled demo data, so the prototype still works offline.
+ * Signed in (demo user chosen on Profile): the live opportunities and
+ * contributions APIs, with errors shown rather than hidden behind mock data.
+ */
 export function useVolunteerData(): VolunteerData {
-  const [state, setState] = useState<VolunteerData>({
-    opportunities: [],
-    impact: MOCK_IMPACT,
-    loading: true,
-  });
+  const { userId } = useSession();
+  const [version, setVersion] = useState(0);
+  // `forUserId` marks whose data is loaded, so switching user shows loading
+  // while a reload after accept/complete keeps the current list on screen.
+  const [liveState, setLiveState] = useState<{
+    forUserId: string | null;
+    opportunities: Opportunity[];
+    impact: ImpactSummary;
+    error: string | null;
+  }>({ forUserId: null, opportunities: [], impact: EMPTY_IMPACT, error: null });
 
   useEffect(() => {
+    if (!userId) return;
     let cancelled = false;
-
-    async function load() {
-      let opportunities = MOCK_OPPORTUNITIES;
-      let impact = MOCK_IMPACT;
-
-      const userId = demoUserId();
-      if (userId) {
-        const headers = { accept: "application/json", [DEMO_USER_HEADER]: userId };
-        try {
-          const [oppRes, conRes] = await Promise.all([
-            fetch("/api/opportunities", { headers }),
-            fetch("/api/contributions/mine", { headers }),
-          ]);
-          if (oppRes.ok) {
-            const mapped = mapOpportunities((await oppRes.json()) as OpportunitiesResponse);
-            if (mapped.length > 0) opportunities = mapped;
-          }
-          if (conRes.ok) {
-            impact = mapContributions((await conRes.json()) as ContributionsResponse);
-          }
-        } catch {
-          // API unavailable — keep mock data. Expected in offline demo mode.
-        }
-      }
-
-      if (cancelled) return;
-      setState({ opportunities, impact, loading: false });
-    }
-
-    void load();
+    Promise.all([
+      apiFetch<OpportunitiesResponse>("/api/opportunities", { userId }),
+      apiFetch<ContributionsResponse>("/api/contributions/mine", { userId }),
+    ])
+      .then(([opportunities, contributions]) => {
+        if (cancelled) return;
+        setLiveState({
+          forUserId: userId,
+          opportunities: mapOpportunities(opportunities),
+          impact: mapContributions(contributions),
+          error: null,
+        });
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        setLiveState({
+          forUserId: userId,
+          opportunities: [],
+          impact: EMPTY_IMPACT,
+          error: errorMessage(err),
+        });
+      });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [userId, version]);
 
-  return state;
+  const reload = useCallback(() => setVersion((v) => v + 1), []);
+
+  if (!userId) {
+    return {
+      opportunities: MOCK_OPPORTUNITIES,
+      impact: MOCK_IMPACT,
+      loading: false,
+      error: null,
+      live: false,
+      reload,
+    };
+  }
+  const loaded = liveState.forUserId === userId;
+  return {
+    opportunities: loaded ? liveState.opportunities : [],
+    impact: loaded ? liveState.impact : EMPTY_IMPACT,
+    loading: !loaded,
+    error: loaded ? liveState.error : null,
+    live: true,
+    reload,
+  };
 }

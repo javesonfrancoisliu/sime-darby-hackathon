@@ -13,7 +13,7 @@ export type MyTasksSectionProps = {
 
 /**
  * Compact tracking list of accepted Help-a-Neighbour tasks. Status flow:
- *   accepted  → "Mark complete" (self-reported)
+ *   accepted  → "Mark complete" (self-reported); joined events wait for the organiser
  *   completed → "Verify (demo)" simulated resident confirmation → awards points
  *   verified  → verified badge
  * Hidden entirely when there are no accepted tasks.
@@ -47,7 +47,16 @@ export function MyTasksSection({ tasks, onComplete, onVerify }: MyTasksSectionPr
               </div>
 
               <div className="feature-card-foot task-foot">
-                {task.status === "accepted" && (
+                {task.status === "accepted" && task.kind === "event" && (
+                  <>
+                    <StatusBadge label="Joined" variant="info" />
+                    <p className="ui-helper">
+                      The organiser closes the event afterwards and records your hours.
+                    </p>
+                  </>
+                )}
+
+                {task.status === "accepted" && task.kind === "request" && (
                   <>
                     <StatusBadge label="Accepted" variant="info" />
                     <AppButton variant="secondary" onClick={() => onComplete(task)}>
