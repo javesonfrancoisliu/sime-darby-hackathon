@@ -1,7 +1,8 @@
 import type { ContributionsResponse, OpportunitiesResponse } from "@sdh/contracts";
 
-import type { Contribution, ImpactSummary, Opportunity, Urgency } from "../types/volunteer";
+import type { Contribution, ImpactSummary, Opportunity } from "../types/volunteer";
 import { ApiError, apiFetch, errorMessage, useSession } from "@sdh/api-client";
+import { urgencyFor } from "../lib/urgency";
 import { useLoader } from "../lib/useLoader";
 import { MOCK_IMPACT, MOCK_OPPORTUNITIES } from "./volunteer.mock";
 
@@ -12,15 +13,6 @@ const EMPTY_IMPACT: ImpactSummary = {
   items: [],
   isDemoData: false,
 };
-
-// The API has no urgency field, so derive it from how soon the help is needed.
-const HOUR_MS = 3_600_000;
-function urgencyFor(startsAt: string): Urgency {
-  const hoursAway = (Date.parse(startsAt) - Date.now()) / HOUR_MS;
-  if (hoursAway <= 24) return "high";
-  if (hoursAway <= 72) return "medium";
-  return "low";
-}
 
 function mapOpportunities(res: OpportunitiesResponse): Opportunity[] {
   return res.items.map((item) => {

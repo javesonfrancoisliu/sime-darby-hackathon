@@ -12,7 +12,7 @@ const ROLE_LABEL: Record<DemoUser["role"], string> = {
   coordinator: "Coordinator",
 };
 
-// Demo sign-in: pick one of the seeded users (pnpm db:seed) to use the live API.
+// Demo sign-in: pick one of the demo users to use the live API.
 // Signed out, the app runs on labelled demo data. This picks an identity for
 // the X-Demo-User header - it is NOT authentication.
 export function DemoSignInCard() {
@@ -81,7 +81,7 @@ export function DemoSignInCard() {
             <p className="ui-helper ui-flush-top">Looking for demo users…</p>
           ) : users.length === 0 ? (
             <p className="ui-helper ui-flush-top">
-              No demo users yet. Run <code>pnpm db:seed</code> to create them.
+              No demo people are set up yet. Please ask the team to add them.
             </p>
           ) : (
             <>

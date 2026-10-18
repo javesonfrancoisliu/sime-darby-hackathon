@@ -98,8 +98,8 @@ export function SettingsCard() {
           />
         ))}
         <p className="ui-helper" style={{ margin: "var(--space-2) 0 0" }}>
-          Demo only: these toggles are saved on this device and do not control real notifications or
-          enforce backend privacy.
+          Demo only: these toggles are saved on this device and do not send real notifications or
+          change who can see your information.
         </p>
 
         <h3 className="impact-subhead">Help &amp; support</h3>

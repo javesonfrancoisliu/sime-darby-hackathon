@@ -25,7 +25,7 @@ describe("useVolunteerData", () => {
   });
 
   it("maps requests and events from the API", async () => {
-    const soon = new Date(Date.now() + 5 * HOUR_MS).toISOString();
+    const soon = new Date(Date.now() + 2 * HOUR_MS).toISOString();
     const later = new Date(Date.now() + 100 * HOUR_MS).toISOString();
     installFakeApi({
       "GET /api/me": { body: VOLUNTEER },
