@@ -21,10 +21,31 @@ export function homePathForRole(role: AppRole): string {
   return APP_PATHS.account;
 }
 
+// Browsers drop tabs and newlines in URLs, so "/\t/evil" would become "//evil"; reject them up front.
+const LAST_CONTROL_CHAR = 0x1f;
+const DELETE_CHAR = 0x7f;
+const PLACEHOLDER_ORIGIN = "https://same-origin.invalid";
+
+function hasUnsafeChar(path: string): boolean {
+  for (let i = 0; i < path.length; i += 1) {
+    const code = path.charCodeAt(i);
+    if (code <= LAST_CONTROL_CHAR || code === DELETE_CHAR || path[i] === "\\") return true;
+  }
+  return false;
+}
+
 // Only same-origin paths are allowed after sign-in, so a crafted link cannot send people elsewhere.
 export function safeNextPath(raw: string | null | undefined): string | null {
-  if (!raw || !raw.startsWith("/") || raw.startsWith("//") || raw.includes("\\")) return null;
-  return raw;
+  if (!raw || !raw.startsWith("/") || raw.startsWith("//") || hasUnsafeChar(raw)) {
+    return null;
+  }
+  try {
+    const url = new URL(raw, PLACEHOLDER_ORIGIN);
+    if (url.origin !== PLACEHOLDER_ORIGIN) return null;
+    return url.pathname + url.search + url.hash;
+  } catch {
+    return null;
+  }
 }
 
 export function signInUrl(nextPath?: string): string {
