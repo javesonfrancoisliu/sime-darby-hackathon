@@ -14,7 +14,8 @@
   --control-border: #6b7280; /* 4.8:1 on white, for input, chip and switch edges */
 
   --success: #15803d;
-  --warning: #9a6700;
+  --warning-ink: var(--text-primary); /* warning text stays dark, never amber or brown */
+  --warning-fill: #f59e0b; /* icon, dot, bar and fill roles only */
   --danger: #b91c1c;
   --info: #1d4ed8;
   --success-bg: #f0fdf4;
@@ -29,13 +30,14 @@
   --tone-good-bg: #d1fae5;
   --tone-good-text: #065f46;
   --tone-caution-bg: #fef9c3;
-  --tone-caution-text: #713f12;
-  --caution-ink: #3f2d00;
+  --tone-caution-text: var(--text-primary);
+  --caution-ink: var(--text-primary);
   --tone-alert-bg: #fee2e2;
   --tone-alert-text: #991b1b;
   --tone-extreme-bg: #4b0082;
   --tone-solid-text: #ffffff;
-  --tone-bar-mid: #d97706;
+  --tone-bar-mid: var(--warning-fill);
+  --bar-track-amber: #4b5563; /* 3.5:1 against --warning-fill */
 
   /* Condition severity ramp, 1 safest to 5 most severe. */
   --sev-1-accent: #22c55e;
@@ -49,7 +51,7 @@
   --sev-3-chip-text: var(--tone-caution-text);
   --sev-4-accent: #f97316;
   --sev-4-chip-bg: #ffedd5;
-  --sev-4-chip-text: #9a3412;
+  --sev-4-chip-text: var(--text-primary);
   --sev-5-accent: #dc2626;
   --sev-5-chip-bg: var(--tone-alert-bg);
   --sev-5-chip-text: var(--tone-alert-text);
@@ -238,7 +240,7 @@ textarea {
 }
 .ui-badge--warning {
   background: var(--warning-bg);
-  color: var(--warning);
+  color: var(--warning-ink);
 }
 .ui-badge--danger {
   background: var(--danger-bg);

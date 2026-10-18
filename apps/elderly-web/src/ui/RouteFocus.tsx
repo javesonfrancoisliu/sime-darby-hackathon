@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { scrollToTop } from "./scrollToTop";
 
 const APP_NAME = "Help a Neighbour";
 
@@ -19,12 +20,13 @@ function titleFor(pathname: string): string {
   return match ? match[1] : "Home";
 }
 
-// On every page change, name the page and move focus to its main heading.
+// On every page change, name the page, start at the top and move focus to its main heading.
 export function RouteFocus() {
   const { pathname } = useLocation();
 
   useEffect(() => {
     document.title = `${titleFor(pathname)} - ${APP_NAME}`;
+    scrollToTop();
     const heading = document.querySelector<HTMLElement>("main h1");
     const target = heading ?? document.querySelector<HTMLElement>("main");
     if (!target) return;

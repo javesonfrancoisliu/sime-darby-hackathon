@@ -160,7 +160,7 @@ export function SafetyPage() {
                       </div>
                     </div>
                     <div
-                      className="safety-bar"
+                      className={`safety-bar${s.tone === "caution" ? " safety-bar--amber" : ""}`}
                       aria-label={`API level ${r.api} out of ${HAZE_API_SCALE_MAX}`}
                     >
                       <div
@@ -206,7 +206,7 @@ export function SafetyPage() {
                       <span className={`safety-chip tone-${s.tone}`}>{s.label}</span>
                     </div>
                     <div
-                      className="safety-bar"
+                      className={`safety-bar${waterBarLevel(pct) === "mid" ? " safety-bar--amber" : ""}`}
                       aria-label={`Water level ${r.levelM}m of ${r.normalMaxM}m`}
                     >
                       <div

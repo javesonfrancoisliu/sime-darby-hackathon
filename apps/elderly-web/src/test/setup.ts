@@ -3,8 +3,10 @@ import { cleanup } from "@testing-library/react";
 import { afterEach, beforeEach, vi } from "vitest";
 
 // Raw API errors are logged for developers; keep test output readable.
+// jsdom does not implement window.scrollTo; the spy lets tests assert it.
 beforeEach(() => {
   vi.spyOn(console, "warn").mockImplementation(() => {});
+  window.scrollTo = vi.fn();
 });
 
 afterEach(() => {
