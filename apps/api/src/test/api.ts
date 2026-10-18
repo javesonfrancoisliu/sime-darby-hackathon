@@ -1,7 +1,7 @@
 import type { CreateUserBody, Role, User } from "@sdh/contracts";
 import { DEMO_USER_HEADER } from "../lib/identity";
 import { createUser as insertUser } from "../modules/users/service";
-import { dispatch } from "../router";
+import { dispatch } from "../app";
 
 interface CallOptions {
   as?: string;

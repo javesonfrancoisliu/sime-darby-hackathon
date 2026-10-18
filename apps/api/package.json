@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "DEMO_AUTH_ENABLED=true tsx watch --env-file-if-exists=.env src/local.ts",
-    "build": "esbuild src/handler.ts --bundle --platform=node --target=node24 --format=esm --sourcemap --outfile=dist/handler.mjs --banner:js=\"import{createRequire}from'node:module';const require=createRequire(import.meta.url);\"",
+    "build": "rm -rf dist && pnpm run build:core && pnpm run build:matching",
+    "build:core": "esbuild src/handler.ts --bundle --platform=node --target=node24 --format=esm --sourcemap --banner:js=\"import{createRequire}from'node:module';const require=createRequire(import.meta.url);\" --outfile=dist/core/handler.mjs",
+    "build:matching": "esbuild src/matchingHandler.ts --bundle --platform=node --target=node24 --format=esm --sourcemap --banner:js=\"import{createRequire}from'node:module';const require=createRequire(import.meta.url);\" --outfile=dist/matching/handler.mjs",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json",
     "db:setup": "tsx --env-file-if-exists=.env scripts/setup-local-table.ts",

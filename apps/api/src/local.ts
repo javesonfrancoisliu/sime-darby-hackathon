@@ -1,7 +1,7 @@
-// Local dev server: wraps the same dispatch the Lambda handler uses.
+// Local dev server: serves every route, core and matching, in one process.
 import { createServer } from "node:http";
 import { logger } from "./lib/logger";
-import { dispatch } from "./router";
+import { dispatch } from "./app";
 
 const DEFAULT_PORT = 3001;
 const HOST = "127.0.0.1";
