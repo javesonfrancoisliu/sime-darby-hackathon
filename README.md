@@ -42,9 +42,9 @@ packages/
   design-tokens/          Shared tokens.css and design guidelines
 infra/terraform/
   bootstrap/              S3 bucket for Terraform state (run once)
-  modules/                api (Lambda, API Gateway), data (DynamoDB), web-hosting (S3, CloudFront)
-  envs/dev, envs/prod     Settings for each environment; each hosts the volunteer and elderly sites
-infra/scripts/deploy.sh   Build, apply Terraform and publish both frontends
+  modules/                api (Lambda, API Gateway), auth (Cognito), data (DynamoDB), web-hosting (S3, CloudFront)
+  envs/dev, envs/prod     Settings for each environment; each serves all three apps from one site
+infra/scripts/deploy.sh   Build, apply Terraform and publish the three frontends
 compose.yaml              DynamoDB Local for development
 ```
 
@@ -110,7 +110,7 @@ Runs from your machine; there is no CI/CD. Needs the AWS CLI, Terraform 1.10+ an
 
 1. Once per account: `terraform -chdir=infra/terraform/bootstrap init`, then `apply` with `bootstrap/terraform.tfvars` filled in from the example. It creates the state bucket.
 2. Copy `envs/dev/terraform.tfvars.example` and `envs/dev/backend.hcl.example` (drop `.example`) and fill them in. Set `demo_auth_enabled = true` only while the demo needs sign-in, because anyone with the URL can then pick any demo user.
-3. Run `infra/scripts/deploy.sh dev <aws-profile>` (add `--yes` to skip both prompts). It builds everything, shows the Terraform plan and asks before applying, then uploads both apps to S3 and clears the CloudFront caches. It prints the volunteer and elderly URLs at the end.
+3. Run `infra/scripts/deploy.sh dev <aws-profile>` (add `--yes` to skip both prompts). It builds the API, shows the Terraform plan and asks before applying, then reads the Cognito pool and client ids from the Terraform outputs and builds the three frontends with them. It uploads everything to one S3 bucket, clears the CloudFront cache once and prints the three URLs: `/` (sign in), `/elder/` (elderly app) and `/volunteer/` (volunteer app).
 
 Hashed files in `assets/` are cached for a year; `index.html`, `sw.js` and the manifest are always revalidated so installed PWAs pick up new releases.
 
