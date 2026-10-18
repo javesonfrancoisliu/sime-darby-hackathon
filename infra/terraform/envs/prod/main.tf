@@ -53,6 +53,7 @@ module "developer_access" {
   trusted_sso_role_arns    = var.developer_sso_role_arns
   user_names               = var.developer_user_names
   editor_enabled           = var.developer_editor_enabled
+  require_mfa              = var.developer_require_mfa
   log_group_arns           = module.api.log_group_arns
   table_arn                = module.data.table_arn
   function_arn             = module.api.function_arn

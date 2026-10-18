@@ -100,3 +100,9 @@ variable "bucket_arn" {
   description = "Site S3 bucket ARN."
   type        = string
 }
+
+variable "require_mfa" {
+  description = "Require IAM users to sign in with MFA before they can use any permission or role."
+  type        = bool
+  default     = true
+}

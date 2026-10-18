@@ -14,14 +14,14 @@ locals {
   mfa_user_arns     = concat(var.trusted_principal_arns, [for user in aws_iam_user.developer : user.arn])
 }
 
-# IAM users must have signed in with MFA. SSO roles carry no MFA key, so their
-# Identity Center enforces MFA instead.
+# IAM users must have signed in with MFA when require_mfa is on. SSO roles carry no MFA key, so
+# their Identity Center enforces MFA instead.
 data "aws_iam_policy_document" "assume" {
   dynamic "statement" {
     for_each = length(local.mfa_user_arns) > 0 ? [1] : []
 
     content {
-      sid     = "IamUsersWithMfa"
+      sid     = "IamUsers"
       actions = ["sts:AssumeRole"]
 
       principals {
@@ -29,10 +29,14 @@ data "aws_iam_policy_document" "assume" {
         identifiers = local.mfa_user_arns
       }
 
-      condition {
-        test     = "Bool"
-        variable = "aws:MultiFactorAuthPresent"
-        values   = ["true"]
+      dynamic "condition" {
+        for_each = var.require_mfa ? [1] : []
+
+        content {
+          test     = "Bool"
+          variable = "aws:MultiFactorAuthPresent"
+          values   = ["true"]
+        }
       }
     }
   }

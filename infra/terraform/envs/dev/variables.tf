@@ -94,3 +94,9 @@ variable "api_bedrock_invoke_enabled" {
   type        = bool
   default     = true
 }
+
+variable "developer_require_mfa" {
+  description = "Require teammates to sign in with MFA before they can use any permission."
+  type        = bool
+  default     = true
+}
