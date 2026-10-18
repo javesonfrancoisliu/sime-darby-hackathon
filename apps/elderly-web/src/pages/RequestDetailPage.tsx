@@ -16,10 +16,8 @@ function noVolunteerText(status: string): string {
   return status === "cancelled" || status === "rejected" ? "No volunteer" : "Not matched yet";
 }
 
-/**
- * Request Detail — Apple Inset-Grouped Inspector layout.
- * Refreshes while open so a volunteer accepting shows up without a reload.
- */
+// Request Detail - Apple Inset-Grouped Inspector layout.
+// Refreshes while open so a volunteer accepting shows up without a reload.
 export function RequestDetailPage() {
   const { id = "" } = useParams();
   const { data, status, error, refetch, update } = useRequest(id);
@@ -65,7 +63,6 @@ export function RequestDetailPage() {
         </div>
       </div>
 
-      {/* ── Grouped Detail Container (Apple Inset Style) ─────── */}
       <div className="apple-inset-group">
         <div className="apple-inset-row">
           <span className="app-detail-label">Status</span>
@@ -122,7 +119,6 @@ export function RequestDetailPage() {
         <Banner message={cancelMutation.error?.message ?? "We could not cancel this request."} />
       ) : null}
 
-      {/* ── Cancel Request Flow (Apple destructive design) ─────── */}
       {canCancel(req.status) ? (
         confirming ? (
           <div className="apple-confirm-card">

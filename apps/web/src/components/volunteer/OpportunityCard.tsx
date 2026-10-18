@@ -8,18 +8,16 @@ import { AppButton, DemoTag, InfoCard, Pill, StatusBadge } from "../ui";
 
 export type OpportunityCardProps = {
   opportunity: Opportunity;
-  /** Live distance (km) computed from the user's location, when available. */
+  // Live distance (km) computed from the user's location, when available.
   liveDistanceKm?: number;
   joined: boolean;
-  /** True while this card's accept is being saved. */
+  // True while this card's accept is being saved.
   accepting?: boolean;
   onAccept: (opportunity: Opportunity) => void;
 };
 
-/**
- * One volunteering opportunity: category, urgency, distance, schedule, duration,
- * a rule-based match score and reasons, plus an accept action.
- */
+// One volunteering opportunity: category, urgency, distance, schedule, duration,
+// a rule-based match score and reasons, plus an accept action.
 export function OpportunityCard({
   opportunity,
   liveDistanceKm,

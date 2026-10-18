@@ -10,7 +10,7 @@ export type EventCardProps = {
   onViewDetails: (event: EventItem) => void;
 };
 
-/** Event card: title, date/time, location, short description, View details CTA. */
+// Event card: title, date/time, location, short description, View details CTA.
 export function EventCard({ event, onViewDetails }: EventCardProps) {
   return (
     <InfoCard as="li" ariaLabel={`Event: ${event.title}`}>

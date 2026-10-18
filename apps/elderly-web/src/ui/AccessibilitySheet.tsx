@@ -112,10 +112,8 @@ function SheetBody() {
         aria-labelledby={titleId}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Drag handle / grabber pill */}
         <div className="apple-sheet-grabber" aria-hidden="true" />
 
-        {/* Sheet header */}
         <div className="apple-sheet-header">
           <div>
             <h2 id={titleId} className="apple-sheet-title">Reading and sound</h2>
@@ -133,7 +131,6 @@ function SheetBody() {
         </div>
 
         <div className="apple-sheet-content">
-          {/* ── 1. Dynamic Type (Text Sizing) ────────────────────── */}
           <div className="apple-control-group">
             <span className="apple-control-label">Text size</span>
             <div className="apple-segmented-control" role="radiogroup" aria-label="Text size">
@@ -162,7 +159,6 @@ function SheetBody() {
             </div>
           </div>
 
-          {/* ── 2. Strong contrast ────────────────────────────── */}
           <div className="apple-control-row">
             <div className="apple-control-row__left">
               <span className="apple-control-row__icon" aria-hidden="true">
@@ -185,7 +181,6 @@ function SheetBody() {
             </button>
           </div>
 
-          {/* ── 3. Read aloud ───────────────────── */}
           <div className="apple-control-row">
             <div className="apple-control-row__left">
               <span className="apple-control-row__icon" aria-hidden="true">
@@ -214,7 +209,6 @@ function SheetBody() {
             </button>
           </div>
 
-          {/* ── 4. Reduced Motion ───────────────────────────────── */}
           <div className="apple-control-row">
             <div className="apple-control-row__left">
               <div>
@@ -237,7 +231,6 @@ function SheetBody() {
             </button>
           </div>
 
-          {/* ── 5. Emergency Quick Dial for Silver Generation ─────── */}
           <div className="apple-emergency-box">
             <div className="apple-emergency-header">
               <IconPhone size={18} strokeWidth={2} />

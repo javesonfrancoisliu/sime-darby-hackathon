@@ -10,11 +10,9 @@ export type AnnouncementCardProps = {
   item: MaintenanceItem;
 };
 
-/**
- * Facility maintenance announcement: affected area, scheduled window, service
- * impact and status (Scheduled / In Progress / Completed).
- * NOTE: distinct from safety facility reports (Reported / In Progress / Resolved).
- */
+// Facility maintenance announcement: affected area, scheduled window, service
+// impact and status (Scheduled / In Progress / Completed).
+// NOTE: distinct from safety facility reports (Reported / In Progress / Resolved).
 export function AnnouncementCard({ item }: AnnouncementCardProps) {
   const status = maintenanceStatus(item.status);
   return (

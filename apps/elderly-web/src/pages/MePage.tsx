@@ -15,13 +15,11 @@ import {
   IconVolume2,
 } from "../ui/Icons";
 
-/**
- * Me / Senior Profile Page — Apple Health & Apple ID style for Silver Generation.
- * Incorporates:
- * - Inset-grouped settings cards (§12)
- * - One-tap access to Accessibility Control Center
- * - Township resident credentials & safety emergency numbers
- */
+// Me / Senior Profile Page - Apple Health & Apple ID style for Silver Generation.
+// Incorporates:
+// - Inset-grouped settings cards (§12)
+// - One-tap access to Accessibility Control Center
+// - Township resident credentials & safety emergency numbers
 export function MePage() {
   const { openSheet, fontSize, highContrast, voiceAssist, speak } = useAccessibility();
   const resident = useResident();
@@ -47,7 +45,6 @@ export function MePage() {
 
   return (
     <div className="apple-subpage apple-profile-page">
-      {/* ── Apple-style Profile Header ───────────────────────── */}
       <div className="apple-profile-hero">
         <div className="apple-profile-avatar-wrap">
           <div className="apple-profile-avatar" aria-hidden="true">
@@ -84,7 +81,6 @@ export function MePage() {
         )}
       </div>
 
-      {/* ── Section 1: Senior Display & Accessibility ─────────── */}
       <div className="apple-profile-section">
         <span className="apple-profile-section-title">Reading and sound</span>
         <div className="apple-inset-group">
@@ -112,7 +108,6 @@ export function MePage() {
         </div>
       </div>
 
-      {/* ── Section 2: Medical & Emergency Quick Access ────────── */}
       <div className="apple-profile-section">
         <span className="apple-profile-section-title">
           Emergency &amp; Medical ID
@@ -145,7 +140,6 @@ export function MePage() {
         </div>
       </div>
 
-      {/* ── Section 3: Township Community Stats ───────────────── */}
       <div className="apple-profile-section" style={{ marginBottom: 32 }}>
         <span className="apple-profile-section-title">Township Community</span>
         <div className="apple-inset-group">

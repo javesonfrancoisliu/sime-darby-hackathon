@@ -9,20 +9,18 @@ const MAX_MINUTES = 600;
 
 export type CompleteTaskModalProps = {
   task: AcceptedTask | null;
-  /** True while the completion is being saved. */
+  // True while the completion is being saved.
   busy?: boolean;
-  /** Error from the last save attempt, shown under the field. */
+  // Error from the last save attempt, shown under the field.
   error?: string | null;
   onClose: () => void;
   onConfirm: (task: AcceptedTask, minutesSpent: number) => void;
 };
 
-/**
- * Volunteer-reported completion with the time actually spent (the API records
- * it as volunteer hours). Prefilled with the planned duration so the common case
- * is one tap. This is NOT verified: it does not award points. Points come only
- * after the simulated resident confirmation step.
- */
+// Volunteer-reported completion with the time actually spent (the API records
+// it as volunteer hours). Prefilled with the planned duration so the common case
+// is one tap. This is NOT verified: it does not award points. Points come only
+// after the simulated resident confirmation step.
 export function CompleteTaskModal({
   task,
   busy = false,
@@ -76,7 +74,7 @@ export function CompleteTaskModal({
             }
           />
           <p className="ui-helper">
-            This is your own report. It is not yet verified and does not award points — the resident
+            This is your own report. It is not yet verified and does not award points - the resident
             still needs to confirm.
           </p>
         </>

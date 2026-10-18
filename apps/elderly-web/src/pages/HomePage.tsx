@@ -40,7 +40,7 @@ import {
 } from "../mock/safetyData";
 import { MAINTENANCE_ANNOUNCEMENTS } from "../mock/communityData";
 
-/** Short chip labels for the live-condition carousel cards. */
+// Short chip labels for the live-condition carousel cards.
 const HAZE_LABEL: Record<string, string> = {
   good: "Good",
   moderate: "Moderate",
@@ -58,15 +58,13 @@ const FACILITY_LABEL: Record<string, string> = {
   fixed: "Fixed",
 };
 
-/**
- * Home page — Apple Design mobile-first dashboard for Silver Generation.
- * Displays:
- * 1. Red hero header with greeting, resident location & Voice read-aloud assist
- * 2. Township Live Hazard & Facility conditions (Haze API, Temperature Alert, Maintenance Notice, Facility Damage)
- * 3. Help a Neighbour primary call-to-action
- * 4. 5 Daily Support Pillars for Elderly
- * 5. Recent help requests
- */
+// Home page - Apple Design mobile-first dashboard for Silver Generation.
+// Displays:
+// 1. Red hero header with greeting, resident location & Voice read-aloud assist
+// 2. Township Live Hazard & Facility conditions (Haze API, Temperature Alert, Maintenance Notice, Facility Damage)
+// 3. Help a Neighbour primary call-to-action
+// 4. 5 Daily Support Pillars for Elderly
+// 5. Recent help requests
 export function HomePage() {
   const navigate = useNavigate();
   const { data, status, error, refetch } = useMyRequests();
@@ -159,7 +157,7 @@ export function HomePage() {
     );
   }
   if (localMaintenance) {
-    // Planned maintenance is informational, not a hazard — keep it calm (sev 2).
+    // Planned maintenance is informational, not a hazard - keep it calm (sev 2).
     const sev: Severity = 2;
     conditionSlides.push(
       <button
@@ -219,14 +217,12 @@ export function HomePage() {
 
   return (
     <div className="app-home">
-      {/* ── Red hero header with location, Aa control, & voice assist ── */}
       <HeroHeader name={resident?.name ?? ""} location={resident?.area} />
 
       <section className="app-home__section" aria-label="Emergency">
         <EmergencyCallButton />
       </section>
 
-      {/* ── Township Live Conditions (Haze, Temp, Maintenance, Facility) ── */}
       <section className="app-home__section" aria-labelledby="township-conditions-heading">
         <div className="app-home__section-header">
           <div>
@@ -250,7 +246,6 @@ export function HomePage() {
         <Carousel ariaLabel="Township live conditions" slides={conditionSlides} />
       </section>
 
-      {/* ── "Need a hand today?" CTA card ───────────────────── */}
       <section className="app-home__section">
         <div className="app-cta-card">
           <h2 className="app-cta-card__title">Need a hand today?</h2>
@@ -278,7 +273,6 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* ── 5 Daily Support Pillars for Elderly ────────────────── */}
       <section className="app-home__section" aria-labelledby="daily-support-heading">
         <div className="app-home__section-header">
           <h2 id="daily-support-heading" className="app-home__section-title">
@@ -316,7 +310,6 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* ── My requests ─────────────────────────────────────── */}
       <section className="app-home__section">
         <div className="app-home__section-header">
           <h2 className="app-home__section-title">My requests</h2>

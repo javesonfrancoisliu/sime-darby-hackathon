@@ -1,18 +1,16 @@
 export type ProgressBarProps = {
-  /** Current value. */
+  // Current value.
   value: number;
-  /** Target value (max). */
+  // Target value (max).
   max: number;
-  /** Accessible label describing what is progressing. */
+  // Accessible label describing what is progressing.
   label: string;
-  /** Show a "value / max" caption above the bar. */
+  // Show a "value / max" caption above the bar.
   caption?: string;
 };
 
-/**
- * Accessible progress indicator. Reusable across features (challenges, future
- * goals). Styled with design tokens; the fill uses the amber reward accent.
- */
+// Accessible progress indicator. Reusable across features (challenges, future
+// goals). Styled with design tokens; the fill uses the amber reward accent.
 export function ProgressBar({ value, max, label, caption }: ProgressBarProps) {
   const safeMax = max > 0 ? max : 1;
   const pct = Math.min(100, Math.max(0, Math.round((value / safeMax) * 100)));

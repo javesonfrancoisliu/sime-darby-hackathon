@@ -1,10 +1,10 @@
 export type LoadingStateProps = {
-  /** Number of skeleton cards to show. */
+  // Number of skeleton cards to show.
   rows?: number;
   label?: string;
 };
 
-/** Skeleton placeholder that mirrors the card grid so layout does not jump. */
+// Skeleton placeholder that mirrors the card grid so layout does not jump.
 export function LoadingState({ rows = 3, label = "Loading" }: LoadingStateProps) {
   return (
     <div className="ui-grid" role="status" aria-label={label} aria-busy="true">

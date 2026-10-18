@@ -28,7 +28,7 @@ import { useAccessibility } from "../context/AccessibilityContext";
 
 type CommunityTab = "events" | "maintenance" | "volunteer" | "updates";
 
-/** Shared section heading with standardized outline icon */
+// Shared section heading with standardized outline icon
 function SectionHeading({
   icon,
   title,
@@ -51,14 +51,12 @@ function SectionHeading({
   );
 }
 
-/**
- * Centralised Neighbourhood Information page with standardized monochrome outline icons.
- * Sections:
- * a. Community activities and upcoming events
- * b. Facility maintenance announcements
- * c. Community volunteering opportunities
- * d. Important township updates
- */
+// Centralised Neighbourhood Information page with standardized monochrome outline icons.
+// Sections:
+// a. Community activities and upcoming events
+// b. Facility maintenance announcements
+// c. Community volunteering opportunities
+// d. Important township updates
 export function CommunityPage() {
   const { speak, voiceAssist, triggerHaptic } = useAccessibility();
   const [tab, setTab] = useState<CommunityTab>("events");
@@ -137,7 +135,6 @@ export function CommunityPage() {
         </div>
       </div>
 
-      {/* ── Segmented tabs: one category at a time ─────────── */}
       <SegmentedTabs
         tabs={TABS}
         active={tab}
@@ -145,7 +142,6 @@ export function CommunityPage() {
         ariaLabel="Choose a community category"
       />
 
-      {/* ── 1. Community Activities & Events ──────────────── */}
       {tab === "events" && (
         <TabPanel id="events" groupId={groupId}>
           <section
@@ -247,7 +243,6 @@ export function CommunityPage() {
         </TabPanel>
       )}
 
-      {/* ── 2. Facility Maintenance Announcements ─────────── */}
       {tab === "maintenance" && (
         <TabPanel id="maintenance" groupId={groupId}>
           <section
@@ -295,7 +290,6 @@ export function CommunityPage() {
         </TabPanel>
       )}
 
-      {/* ── 3. Community Volunteering Opportunities ────────── */}
       {tab === "volunteer" && (
         <TabPanel id="volunteer" groupId={groupId}>
           <section
@@ -339,7 +333,6 @@ export function CommunityPage() {
                         </p>
                       </div>
                     </div>
-                    {/* Progress bar for volunteer sign-ups */}
                     <div className="community-vol-progress">
                       <div className="safety-bar">
                         <div
@@ -374,7 +367,6 @@ export function CommunityPage() {
         </TabPanel>
       )}
 
-      {/* ── 4. Important Township Updates ─────────────────── */}
       {tab === "updates" && (
         <TabPanel id="updates" groupId={groupId}>
           <section

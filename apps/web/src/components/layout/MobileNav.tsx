@@ -3,7 +3,7 @@ import { NavLink } from "react-router-dom";
 import { navItemsForRole } from "../../lib/navigation";
 import { useRole } from "./RoleContext";
 
-/** Mobile bottom navigation (shown under 640px). Max 5 destinations, 56px tall. */
+// Mobile bottom navigation (shown under 640px). Max 5 destinations, 56px tall.
 export function MobileNav() {
   const { role } = useRole();
   const items = navItemsForRole(role);

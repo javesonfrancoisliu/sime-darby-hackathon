@@ -4,15 +4,13 @@ import { BackLink } from "../ui/BackLink";
 import { CategoryIcon } from "../ui/CategoryIcon";
 import { IconChevronRight } from "../ui/Icons";
 
-/**
- * Help a Neighbour — Category Selection
- * Covers the 5 daily support areas requested for Elderly:
- * a. A trip to groceries together with younger volunteers
- * b. Transport to nearby amenities (clinic, groceries or any other simple daily needs)
- * c. Digital Literacy help, with short guidance on new technologies, e-wallets, video calls, AI taught by youth volunteers
- * d. Volunteers from younger neighbourhoods support and help the elderly community.
- * e. Health Literacy and Events
- */
+// Help a Neighbour - Category Selection
+// Covers the 5 daily support areas requested for Elderly:
+// a. A trip to groceries together with younger volunteers
+// b. Transport to nearby amenities (clinic, groceries or any other simple daily needs)
+// c. Digital Literacy help, with short guidance on new technologies, e-wallets, video calls, AI taught by youth volunteers
+// d. Volunteers from younger neighbourhoods support and help the elderly community.
+// e. Health Literacy and Events
 export function CategoryPage() {
   const navigate = useNavigate();
 

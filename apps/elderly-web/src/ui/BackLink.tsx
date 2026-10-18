@@ -7,14 +7,12 @@ interface BackLinkProps {
   onBack?: () => void;
 }
 
-/**
- * Apple-style Back Navigation Control for sub-pages.
- * Features:
- * - Fluid pointer-down response (§1)
- * - Minimum 44px Apple touch target (§10)
- * - Standardized monochrome outline chevron icon
- * - Accessible name preserved for unit tests (/back/i)
- */
+// Apple-style Back Navigation Control for sub-pages.
+// Features:
+// - Fluid pointer-down response (§1)
+// - Minimum 44px Apple touch target (§10)
+// - Standardized monochrome outline chevron icon
+// - Accessible name preserved for unit tests (/back/i)
 export function BackLink({ label = "Back", onBack }: BackLinkProps) {
   const navigate = useNavigate();
 

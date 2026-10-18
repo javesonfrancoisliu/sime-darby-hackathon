@@ -1,12 +1,10 @@
-/* ─────────────────────────────────────────────────────────
-   Mock Safety Data — Health & Safety Hazards
-   Example values only, shown with a Demo data label.
-───────────────────────────────────────────────────────── */
+// Mock Safety Data - Health & Safety Hazards
+// Example values only, shown with a Demo data label.
 
 export type HazardLevel = "good" | "moderate" | "unhealthy" | "hazardous";
 export type AlertLevel  = "normal" | "warning" | "danger";
 
-/* ── Haze / Air Quality ─────────────────────────────── */
+// ── Haze / Air Quality ───────────────────────────────
 export interface HazeReading {
   location: string;
   api: number;          // Air Pollutant Index (Malaysia standard)
@@ -39,7 +37,7 @@ export const HAZE_DATA: HazeReading[] = [
   },
 ];
 
-/* ── Water Levels ───────────────────────────────────── */
+// ── Water Levels ─────────────────────────────────────
 export type WaterStatus = "normal" | "watch" | "warning" | "danger";
 
 export interface WaterLevelReading {
@@ -78,7 +76,7 @@ export const WATER_LEVELS: WaterLevelReading[] = [
   },
 ];
 
-/* ── Temperature ────────────────────────────────────── */
+// ── Temperature ──────────────────────────────────────
 export interface TemperatureAlert {
   location: string;
   tempC: number;
@@ -99,7 +97,7 @@ export const TEMPERATURE_DATA: TemperatureAlert = {
   advisory: "Heat advisory in effect. Stay hydrated and avoid prolonged sun exposure between 11 am–3 pm.",
 };
 
-/* ── Broken / Damaged Facilities ────────────────────── */
+// ── Broken / Damaged Facilities ──────────────────────
 export type FacilityStatus = "reported" | "in_progress" | "fixed";
 
 export interface FacilityReport {

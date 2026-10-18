@@ -6,10 +6,8 @@ interface BannerProps {
   retryLabel?: string;
 }
 
-/**
- * ErrorNotice — composes the shared ui-card with a danger message and an
- * optional retry action. (Req 5.6, 6.5, 8.4, 9.4)
- */
+// ErrorNotice - composes the shared ui-card with a danger message and an
+// optional retry action.
 export function Banner({ message, onRetry, retryLabel = "Try again" }: BannerProps) {
   return (
     <div

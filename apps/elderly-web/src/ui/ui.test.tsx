@@ -21,12 +21,12 @@ describe("Button", () => {
 });
 
 describe("TextField", () => {
-  it("associates a visible label with the input (Req 1.6)", () => {
+  it("associates a visible label with the input", () => {
     render(<TextField label="Description" value="" onChange={() => {}} />);
     expect(screen.getByLabelText("Description")).toBeInTheDocument();
   });
 
-  it("shows an error tied via aria-describedby (Req 5.5)", () => {
+  it("shows an error tied via aria-describedby", () => {
     render(
       <TextField
         label="Description"
@@ -77,7 +77,7 @@ describe("status helpers", () => {
 });
 
 describe("Banner", () => {
-  it("invokes the retry callback (Req 5.6)", async () => {
+  it("invokes the retry callback", async () => {
     const onRetry = vi.fn();
     render(<Banner message="It failed" onRetry={onRetry} />);
     await userEvent.click(screen.getByRole("button", { name: "Try again" }));
@@ -86,7 +86,7 @@ describe("Banner", () => {
 });
 
 describe("Spinner", () => {
-  it("exposes a live status region (Req 6.6)", () => {
+  it("exposes a live status region", () => {
     render(<Spinner />);
     expect(screen.getByRole("status")).toBeInTheDocument();
   });
@@ -102,7 +102,7 @@ describe("AppShell", () => {
     expect(screen.getByText("content")).toBeInTheDocument();
   });
 
-  it("applies Easy View always on at the root (Option A, Req 1.1, 1.2)", () => {
+  it("applies Easy View always on at the root", () => {
     const { container } = render(
       <AppShell>
         <p>content</p>

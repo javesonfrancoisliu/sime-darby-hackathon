@@ -9,7 +9,7 @@ import {
   useAccessibility,
 } from "./AccessibilityContext";
 
-/** A tiny harness that opens the accessibility sheet on mount. */
+// A tiny harness that opens the accessibility sheet on mount.
 function OpenSheet() {
   const { openSheet } = useAccessibility();
   return (

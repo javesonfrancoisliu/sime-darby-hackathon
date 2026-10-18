@@ -1,4 +1,4 @@
-# Township Community Platform — Shared Frontend Design System (v1.1)
+# Township Community Platform - Shared Frontend Design System (v1.1)
 
 **Project:** Sime Darby Property University Hackathon 2026  
 **Design direction:** Modern, trusted, inclusive township living  
@@ -172,7 +172,7 @@ src/
 
 Use `npm`/`pnpm` consistently; choose one package manager and lockfile for the entire repo. Choose one icon set (e.g. `lucide-react`) and use its regular/outline style uniformly. If using Tailwind, map these exact tokens into your Tailwind theme once.
 
-**Division of work (confirmed):** You own **Module 2 — Centralised Neighbourhood Information**. Your teammate owns **Module 1 — Health & Safety Hazards**. First merge the shared design tokens, application shell, navigation and base components. Each developer then builds only their owned feature directory and route, while the Home page composes components from both modules. Integrate early and compare screens at mobile and desktop widths. Additional youth/elderly experiences may be added later without changing this division.
+**Division of work (confirmed):** You own **Module 2 - Centralised Neighbourhood Information**. Your teammate owns **Module 1 - Health & Safety Hazards**. First merge the shared design tokens, application shell, navigation and base components. Each developer then builds only their owned feature directory and route, while the Home page composes components from both modules. Integrate early and compare screens at mobile and desktop widths. Additional youth/elderly experiences may be added later without changing this division.
 
 ## 10. Minimum prototype acceptance checklist
 
@@ -192,7 +192,7 @@ Use `npm`/`pnpm` consistently; choose one package manager and lockfile for the e
 
 ## 11. Confirmed general dashboard ownership (October 2026)
 
-| Responsibility | Module 1 — teammate | Module 2 — you |
+| Responsibility | Module 1 - teammate | Module 2 - you |
 | --- | --- | --- |
 | Purpose | Help residents understand and respond to local risks | Help residents discover what is happening and get involved |
 | Route | `/safety` | `/community` |
@@ -213,7 +213,7 @@ Use `npm`/`pnpm` consistently; choose one package manager and lockfile for the e
 4. Include `lastUpdated`, `sourceLabel`, and a visible `Demo data` indicator on simulated feeds. Do not present mock water levels or hazard readings as live observations.
 5. For shared announcements involving hazard warnings, link to the safety module instead of implementing a second hazard system inside the community module.
 
-### Your page: `/community` — layout
+### Your page: `/community` - layout
 
 - **Page header:** `Neighbourhood Hub` with a one-line description and optional township selector (fixed demo township is acceptable).
 - **Featured update:** newest/high-priority township notice, with date and source.
@@ -225,7 +225,7 @@ Use `npm`/`pnpm` consistently; choose one package manager and lockfile for the e
 - **Township update:** official/general news, publication date, category, `Read more` CTA.
 - **One meaningful demo interaction:** filter categories **and** view event details or join a volunteer activity in a modal (stateful, not a dead button).
 
-### Teammate's page: `/safety` — layout
+### Teammate's page: `/safety` - layout
 
 - **Page header:** `Health & Safety` with a short explanation and data recency/source.
 - **Haze card:** AQI/API value and named risk level, location, timestamp and clear advisory.

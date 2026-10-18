@@ -7,7 +7,7 @@ export type TownshipUpdateModalProps = {
   onClose: () => void;
 };
 
-/** Read-more dialog for a township update. */
+// Read-more dialog for a township update.
 export function TownshipUpdateModal({ item, onClose }: TownshipUpdateModalProps) {
   return (
     <Modal

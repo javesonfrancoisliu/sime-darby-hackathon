@@ -11,13 +11,11 @@ export type MyTasksSectionProps = {
   onVerify: (task: AcceptedTask) => void;
 };
 
-/**
- * Compact tracking list of accepted Help-a-Neighbour tasks. Status flow:
- *   accepted  → "Mark complete" (self-reported); joined events wait for the organiser
- *   completed → "Verify (demo)" simulated resident confirmation → awards points
- *   verified  → verified badge
- * Hidden entirely when there are no accepted tasks.
- */
+// Compact tracking list of accepted Help-a-Neighbour tasks. Status flow:
+//   accepted  → "Mark complete" (self-reported); joined events wait for the organiser
+//   completed → "Verify (demo)" simulated resident confirmation → awards points
+//   verified  → verified badge
+// Hidden entirely when there are no accepted tasks.
 export function MyTasksSection({ tasks, onComplete, onVerify }: MyTasksSectionProps) {
   if (tasks.length === 0) return null;
 
@@ -68,10 +66,7 @@ export function MyTasksSection({ tasks, onComplete, onVerify }: MyTasksSectionPr
                 {task.status === "completed" && (
                   <>
                     <StatusBadge label="Completed (self-reported)" variant="warning" />
-                    {/* Simulated resident confirmation — stands in for the elderly
-                        resident confirming. Only this awards verified points.
-                        DEMO ONLY: in a real system a volunteer must never verify
-                        their own task; the resident confirms it. */}
+                    {/* Demo only: simulated resident confirmation; a volunteer must never verify their own task. */}
                     <AppButton variant="primary" onClick={() => onVerify(task)}>
                       Confirm (Demo)
                     </AppButton>

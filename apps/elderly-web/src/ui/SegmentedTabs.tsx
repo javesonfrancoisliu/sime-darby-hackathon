@@ -11,19 +11,17 @@ interface SegmentedTabsProps {
   tabs: TabItem[];
   active: string;
   onChange: (id: string) => void;
-  /** Accessible name for the tablist. */
+  // Accessible name for the tablist.
   ariaLabel: string;
 }
 
-/**
- * SegmentedTabs — iOS-style segmented control (apple-design §16.4 Familiarity).
- *
- * One category visible at a time so the user never has to scroll past every
- * section. The active pill is a sliding indicator that moves with a short,
- * critically-damped curve (§1 Response, §4 behaviour-over-animation). Press
- * feedback is instant on pointer-down; motion is dropped under reduced motion
- * (§14). Full ARIA tablist semantics with roving focus.
- */
+// SegmentedTabs - iOS-style segmented control (apple-design §16.4 Familiarity).
+//
+// One category visible at a time so the user never has to scroll past every
+// section. The active pill is a sliding indicator that moves with a short,
+// critically-damped curve (§1 Response, §4 behaviour-over-animation). Press
+// feedback is instant on pointer-down; motion is dropped under reduced motion
+// (§14). Full ARIA tablist semantics with roving focus.
 export function SegmentedTabs({ tabs, active, onChange, ariaLabel }: SegmentedTabsProps) {
   const groupId = useId();
   const { triggerHaptic } = useAccessibility();
@@ -59,7 +57,6 @@ export function SegmentedTabs({ tabs, active, onChange, ariaLabel }: SegmentedTa
       onKeyDown={onKeyDown}
       style={{ ["--seg-count" as string]: tabs.length, ["--seg-active" as string]: activeIndex }}
     >
-      {/* Sliding active indicator sits behind the buttons. */}
       <span className="seg-tabs__indicator" aria-hidden="true" />
       {tabs.map((tab) => {
         const selected = tab.id === active;
@@ -88,7 +85,7 @@ export function SegmentedTabs({ tabs, active, onChange, ariaLabel }: SegmentedTa
   );
 }
 
-/** Panel wrapper that ties content to its tab for ARIA + focus. */
+// Panel wrapper that ties content to its tab for ARIA + focus.
 export function TabPanel({
   id,
   groupId,

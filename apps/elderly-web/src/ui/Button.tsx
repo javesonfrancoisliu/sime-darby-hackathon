@@ -9,11 +9,8 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
 }
 
-/**
- * AppButton — text-labelled button using shared ui-button classes.
- * Height/radius/colour come from the shared tokens; 56px under Easy View.
- * (Req 1.2, 1.5)
- */
+// AppButton - text-labelled button using shared ui-button classes.
+// Height/radius/colour come from the shared tokens; 56px under Easy View.
 export function Button({ variant = "primary", block = false, children, className, style, ...rest }: ButtonProps) {
   const classes = ["ui-button", `ui-button--${variant}`];
   if (className) classes.push(className);

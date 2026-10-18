@@ -36,7 +36,7 @@ const TABS: Tab[] = [
   },
 ];
 
-/** Mobile bottom tab bar with standardized monochrome line icons */
+// Mobile bottom tab bar with standardized monochrome line icons
 export function BottomTabBar() {
   const navigate = useNavigate();
   const { pathname } = useLocation();

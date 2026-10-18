@@ -1,9 +1,7 @@
 import { FlaskConical } from "lucide-react";
 
-/**
- * "Demo data" indicator required by the integration contract: simulated feeds
- * must never be presented as live observations.
- */
+// "Demo data" indicator required by the integration contract: simulated feeds
+// must never be presented as live observations.
 export function DemoTag() {
   return (
     <span className="ui-demo-tag">

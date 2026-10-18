@@ -11,7 +11,7 @@ export type OpportunitySortProps = {
   onChange: (next: SortOption) => void;
 };
 
-/** Compact results bar control: a single Sort dropdown. */
+// Compact results bar control: a single Sort dropdown.
 export function OpportunitySort({ value, onChange }: OpportunitySortProps) {
   return (
     <div className="sort-control">

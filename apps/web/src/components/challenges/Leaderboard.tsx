@@ -5,10 +5,8 @@ export type LeaderboardProps = {
   entries: LeaderboardEntry[];
 };
 
-/**
- * Compact neighbourhood leaderboard. Fictional residents + simulated scores; the
- * current user's row is highlighted. Display names only — no personal data.
- */
+// Compact neighbourhood leaderboard. Fictional residents + simulated scores; the
+// current user's row is highlighted. Display names only - no personal data.
 export function Leaderboard({ entries }: LeaderboardProps) {
   return (
     <InfoCard ariaLabel="Neighbourhood leaderboard">

@@ -1,7 +1,4 @@
-/* App-level layout styles for Township Connect.
- * Builds ONLY on tokens from design-tokens.css — no new hex colors or spacing values.
- * Shared shell + navigation live here so both modules render identically.
- */
+/* App-level layout styles for Township Connect. Builds ONLY on tokens from design-tokens.css - no new hex colors or spacing values. Shared shell + navigation live here so both modules render identically. */
 
 /* ---------- App shell ---------- */
 .app-shell {
@@ -496,8 +493,7 @@
   /* Page header CTA drops below the title instead of squeezing beside it. */
   .ui-page-header { flex-direction: column; align-items: stretch; }
   .ui-page-header-actions { width: 100%; }
-  /* A lone small control (e.g. a badge) in the actions slot should sit left,
-     not stretch full width. Full-width buttons still stretch via .ui-button. */
+  /* A lone small control (e.g. a badge) in the actions slot should sit left, not stretch full width. Full-width buttons still stretch via .ui-button. */
   .ui-page-header-actions { justify-content: flex-start; }
   /* Modal sits flush to the bottom-ish with comfortable reach; full width. */
   .ui-modal { width: 100%; }
@@ -579,8 +575,7 @@
 .challenges-entry-body { flex: 1; min-width: 0; }
 .challenges-entry-body p { margin: 2px 0 0; color: var(--text-secondary); font-size: var(--font-small); }
 .challenges-entry .ui-button { flex: 0 0 auto; }
-/* On the narrowest phones the button drops to its own full-width row so the
-   icon + text never get cramped. */
+/* On the narrowest phones the button drops to its own full-width row so the icon + text never get cramped. */
 @media (max-width: 400px) {
   .challenges-entry .ui-button { flex: 1 1 100%; }
 }
@@ -741,8 +736,7 @@
 .settings-row:last-of-type { border-bottom: 0; }
 .settings-row-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; cursor: pointer; }
 .settings-row-label { font-weight: 600; }
-/* Mobile-style switch built on a native checkbox (keeps a11y + keyboard).
-   The input is the 44px+ touch target; the visible track/thumb is drawn on it. */
+/* Mobile-style switch built on a native checkbox (keeps a11y + keyboard). The input is the 44px+ touch target; the visible track/thumb is drawn on it. */
 .settings-switch {
   appearance: none;
   -webkit-appearance: none;

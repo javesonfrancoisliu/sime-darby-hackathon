@@ -3,14 +3,12 @@ import type { RewardRedemption } from "../types/gamification";
 // Pure, storage-agnostic reward-redemption helpers. Kept out of the React hook
 // so they can be unit tested directly.
 
-/**
- * Normalises persisted redemption state into the current record shape.
- *
- * Migration-safe: the old shape was a string[] of redeemed reward ids. Those are
- * converted to records WITHOUT a redeemedAt, so previously-claimed rewards are
- * preserved but never get an invented historical date. The new shape (a record)
- * is returned as-is. Anything unrecognised yields an empty record.
- */
+// Normalises persisted redemption state into the current record shape.
+//
+// Migration-safe: the old shape was a string[] of redeemed reward ids. Those are
+// converted to records WITHOUT a redeemedAt, so previously-claimed rewards are
+// preserved but never get an invented historical date. The new shape (a record)
+// is returned as-is. Anything unrecognised yields an empty record.
 export function normaliseRedemptions(raw: unknown): Record<string, RewardRedemption> {
   if (Array.isArray(raw)) {
     const migrated: Record<string, RewardRedemption> = {};
@@ -23,10 +21,8 @@ export function normaliseRedemptions(raw: unknown): Record<string, RewardRedempt
   return {};
 }
 
-/**
- * Returns a new redemption record with `rewardId` claimed at `at`. Idempotent:
- * an already-claimed reward keeps its original record (no timestamp overwrite).
- */
+// Returns a new redemption record with `rewardId` claimed at `at`. Idempotent:
+// an already-claimed reward keeps its original record (no timestamp overwrite).
 export function claimReward(
   redemptions: Record<string, RewardRedemption>,
   rewardId: string,

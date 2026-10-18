@@ -14,12 +14,10 @@ function getTimeOfDay(): string {
   return "Good evening";
 }
 
-/**
- * Red hero card at the top of the home screen.
- * Incorporates Apple design optical typography and quick-accessibility controls:
- * - Aa button opens the Silver Generation Accessibility Sheet
- * - Speaker button reads aloud current screen summary for visually impaired elders
- */
+// Red hero card at the top of the home screen.
+// Incorporates Apple design optical typography and quick-accessibility controls:
+// - Aa button opens the Silver Generation Accessibility Sheet
+// - Speaker button reads aloud current screen summary for visually impaired elders
 export function HeroHeader({
   name,
   location = "Elmina West",
@@ -39,7 +37,6 @@ export function HeroHeader({
 
   return (
     <div className="app-hero">
-      {/* App icon + wordmark at the very top */}
       <div className="app-hero__brand">
         <img
           className="app-hero__brand-icon"
@@ -51,13 +48,11 @@ export function HeroHeader({
         <span className="app-hero__brand-name">Help a Neighbour</span>
       </div>
 
-      {/* Location chip with outline pin icon */}
       <div className="app-hero__location">
         <IconMapPin size={14} strokeWidth={2.2} className="app-hero__location-icon" />
         <span>{location.toUpperCase()}</span>
       </div>
 
-      {/* Greeting row */}
       <div className="app-hero__greeting-row">
         <div>
           <p className="app-hero__greeting">{getTimeOfDay()},</p>

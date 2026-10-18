@@ -14,7 +14,7 @@ export type DemoMetadata = {
 
 export type CommunityCategory = "event" | "maintenance" | "volunteer" | "township";
 
-// Maintenance announcements — DISTINCT from safety facility reports.
+// Maintenance announcements - DISTINCT from safety facility reports.
 export type MaintenanceStatus = "scheduled" | "in_progress" | "completed";
 
 export type EventItem = DemoMetadata & {
@@ -25,15 +25,15 @@ export type EventItem = DemoMetadata & {
   audience: string;
   capacity?: number;
   signupCount?: number;
-  /** Live events only: whether the signed-in demo user has joined. */
+  // Live events only: whether the signed-in demo user has joined.
   joined?: boolean;
 };
 
 export type MaintenanceItem = DemoMetadata & {
   category: "maintenance";
   location: string; // affected area
-  windowStart: string; // ISO 8601 — scheduled window start
-  windowEnd: string; // ISO 8601 — scheduled window end
+  windowStart: string; // ISO 8601 - scheduled window start
+  windowEnd: string; // ISO 8601 - scheduled window end
   serviceImpact: string;
   status: MaintenanceStatus;
 };

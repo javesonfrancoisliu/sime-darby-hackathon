@@ -11,7 +11,7 @@ export type EventDetailsModalProps = {
   onRegister: (event: EventItem) => void;
 };
 
-/** Stateful event-details dialog with venue, time and a register action. */
+// Stateful event-details dialog with venue, time and a register action.
 export function EventDetailsModal({
   event,
   registered,

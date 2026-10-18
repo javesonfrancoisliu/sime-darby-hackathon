@@ -7,10 +7,8 @@ export type ChallengeStatsStripProps = {
   summary: GamificationSummary;
 };
 
-/**
- * Compact points / completed / badges summary. Reuses the amber reward styling
- * and the impact-grid layout so it matches the Home impact card.
- */
+// Compact points / completed / badges summary. Reuses the amber reward styling
+// and the impact-grid layout so it matches the Home impact card.
 export function ChallengeStatsStrip({ summary }: ChallengeStatsStripProps) {
   const stats = [
     { icon: Star, value: summary.totalPoints, label: "Points" },

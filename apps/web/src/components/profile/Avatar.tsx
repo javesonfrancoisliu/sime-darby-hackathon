@@ -10,7 +10,7 @@ function initials(name: string): string {
   return (parts[0]![0]! + parts[parts.length - 1]![0]!).toUpperCase();
 }
 
-/** Initials-based avatar. No image upload / external dependency. */
+// Initials-based avatar. No image upload / external dependency.
 export function Avatar({ name, size = 56 }: AvatarProps) {
   return (
     <span

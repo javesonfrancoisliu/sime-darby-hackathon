@@ -1,15 +1,6 @@
-/*
- * App-level styles for the elderly frontend.
- *
- * The single source of truth for design tokens is the shared
- * @sdh/design-tokens (tokens.css, imported in main.tsx). This file ONLY:
- *   1. keeps the Easy View root always on (Option A), and
- *   2. adds thin layout helpers specific to the elderly screens.
- * It introduces no new colour/type/spacing token VALUES — everything
- * resolves to the shared --brand-*, --space-*, --radius-* tokens.
- */
+/* App-level styles for the elderly frontend. The single source of truth for design tokens is the shared @sdh/design-tokens (tokens.css, imported in main.tsx). This file ONLY: 1. keeps the Easy View root always on (Option A), and 2. adds thin layout helpers specific to the elderly screens. It introduces no new colour/type/spacing token VALUES - everything resolves to the shared --brand-*, --space-*, --radius-* tokens. */
 
-/* Easy View is always on for the elderly app (Req 1.1, 1.2). */
+/* Easy View is always on for the elderly app. */
 .app-root {
   min-height: 100vh;
   background: var(--page-bg);
@@ -17,7 +8,7 @@
   padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
 }
 
-/* One readable column, centred — no horizontal padding on home (hero bleeds full width). */
+/* One readable column, centred - no horizontal padding on home (hero bleeds full width). */
 .app-main {
   width: 100%;
   max-width: 480px;
@@ -110,12 +101,7 @@
 
 /* ── Hero header ─────────────────────────────────────────────── */
 .app-hero {
-  /* Layered background (top → bottom):
-     1. a faint township skyline watermark (SVG data-URI, licence-free),
-     2. the brand-red gradient.
-     The skyline sits at low opacity so white text stays >=4.5:1 (§8/§12).
-     To use a real Sime Darby township photo instead, replace the first
-     background layer with url("/img/township.jpg"). */
+  /* Layered background (top → bottom): 1. a faint township skyline watermark (SVG data-URI, licence-free), 2. the brand-red gradient. The skyline sits at low opacity so white text stays >=4.5:1 (§8/§12). To use a real Sime Darby township photo instead, replace the first background layer with url("/img/township.jpg"). */
   background:
     linear-gradient(180deg, rgba(167, 14, 20, 0.86) 0%, rgba(183, 18, 26, 0.92) 55%, rgba(215, 25, 32, 0.96) 100%),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='220' viewBox='0 0 420 220'%3E%3Cg fill='none' stroke='%23ffffff' stroke-width='3' stroke-linejoin='round' opacity='0.9'%3E%3Cpath d='M0 180 h40 v-40 h30 v40 h26 v-66 l20 -16 l20 16 v66 h30 v-52 h34 v52 h30 v-30 h26 v30 h40 v-48 l18 -14 l18 14 v48 h38 v-60 h30 v60 h0' /%3E%3Cpath d='M150 98 l20 -16 l20 16' /%3E%3Cpath d='M300 134 l18 -14 l18 14' /%3E%3Ccircle cx='350' cy='40' r='16'/%3E%3Cpath d='M70 180 v-40 M196 180 v-52 M352 180 v-60'/%3E%3C/g%3E%3Cg fill='%23ffffff' opacity='0.9'%3E%3Ccircle cx='48' cy='168' r='7'/%3E%3Ccircle cx='250' cy='170' r='7'/%3E%3Ccircle cx='392' cy='164' r='7'/%3E%3C/g%3E%3C/svg%3E");
@@ -399,8 +385,7 @@
   font-size: 1rem;
 }
 
-/* Keep the header title from pushing the right-side controls off-screen on
-   narrow phones. */
+/* Keep the header title from pushing the right-side controls off-screen on narrow phones. */
 @media (max-width: 380px) {
   .safety-page__title {
     font-size: 1.5rem;
@@ -568,13 +553,7 @@
   line-height: 1.5;
 }
 
-/* ─────────────────────────────────────────────────────────────
-   Township Live Conditions — dashboard condition cards
-   Apple-design pass: clear hierarchy & spacing (§6, §16),
-   optical typography (§15), material depth (§12), press
-   response on pointer-down (§1). Brand tokens stay from the
-   SDP/Township kit.
-───────────────────────────────────────────────────────────── */
+/* Township Live Conditions - dashboard condition cards Apple-design pass: clear hierarchy & spacing (§6, §16), optical typography (§15), material depth (§12), press response on pointer-down (§1). Brand tokens stay from the SDP/Township kit. */
 .apple-conditions-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -628,7 +607,7 @@
   color: var(--text-secondary);
 }
 
-/* The hero value — big, tabular, tight optical tracking (§15). */
+/* The hero value - big, tabular, tight optical tracking (§15). */
 .apple-condition-card__main {
   display: flex;
   align-items: baseline;
@@ -649,8 +628,7 @@
   color: var(--text-secondary);
 }
 
-/* Primary label + supporting line, clearly separated (fixes the
-   run-together text in the old layout). */
+/* Primary label + supporting line, clearly separated (fixes the run-together text in the old layout). */
 .apple-condition-card__label {
   margin-top: auto;
   font-size: 1rem;
@@ -698,8 +676,7 @@
   font-size: 1rem;
 }
 
-/* Narrow phones: keep two columns but allow a single column if the
-   content would overflow at 360px. */
+/* Narrow phones: keep two columns but allow a single column if the content would overflow at 360px. */
 @media (max-width: 360px) {
   .apple-conditions-grid {
     grid-template-columns: 1fr;
@@ -891,7 +868,7 @@
   transform: scale(0.96);
 }
 
-/* Confirmed / completed state — success green with a check (§16 feedback). */
+/* Confirmed / completed state - success green with a check (§16 feedback). */
 .community-register-btn--done {
   background: var(--success);
 }
@@ -1088,9 +1065,7 @@
   min-height: 48px;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   APPLE DESIGN & SILVER GENERATION ACCESSIBILITY SYSTEM
-   ═══════════════════════════════════════════════════════════════ */
+/* APPLE DESIGN & SILVER GENERATION ACCESSIBILITY SYSTEM */
 
 /* ── 1. Apple Instant Press Response (§1, §10) ───────────────── */
 button:active,
@@ -1146,12 +1121,8 @@ button:active,
 }
 
 /* ── 4. Dynamic Type Scaling (§15 - Silver Generation) ────────── */
-/* Scoped to .app-root (which always also carries .easy-view) so these win
-   the cascade over easy-view's base font-size without !important. Each level
-   sets font-size explicitly so it never depends on another class. */
-/* The root <html> font-size is driven by the Dynamic Type setting (see
-   AccessibilityContext), so all rem-based text scales uniformly. These
-   blocks keep the control-height tokens and let the root div follow html. */
+/* Scoped to .app-root (which always also carries .easy-view) so these win the cascade over easy-view's base font-size without !important. Each level sets font-size explicitly so it never depends on another class. */
+/* The root <html> font-size is driven by the Dynamic Type setting (see AccessibilityContext), so all rem-based text scales uniformly. These blocks keep the control-height tokens and let the root div follow html. */
 .app-root.text-size-normal {
   --font-body: 1rem;
   --font-small: 1rem;
@@ -1932,10 +1903,7 @@ button:active,
   font-size: 1rem;
 }
 
-/* On very narrow screens the header can run out of room. The voice button
-   keeps its aria-label, so hiding just the visible "Listen" word is safe and
-   prevents the button from overflowing the hero. (Tabs keep their labels;
-   only this already-labelled control collapses.) */
+/* On very narrow screens the header can run out of room. The voice button keeps its aria-label, so hiding just the visible "Listen" word is safe and prevents the button from overflowing the hero. (Tabs keep their labels; only this already-labelled control collapses.) */
 @media (max-width: 380px) {
   .apple-header-voice-text {
     display: none;
@@ -1949,11 +1917,7 @@ button:active,
 
 
 
-/* ─────────────────────────────────────────────────────────────
-   Segmented tabs — iOS-style control for Safety / Community pages
-   (apple-design §1 Response, §4 springy-but-damped, §7 spatial,
-   §12 material, §14 reduced-motion). Brand red from SDP tokens.
-───────────────────────────────────────────────────────────── */
+/* Segmented tabs - iOS-style control for Safety / Community pages (apple-design §1 Response, §4 springy-but-damped, §7 spatial, §12 material, §14 reduced-motion). Brand red from SDP tokens. */
 .seg-tabs {
   position: relative;
   display: grid;
@@ -1969,9 +1933,7 @@ button:active,
   display: none;
 }
 
-/* Sliding active pill — animates from its current position, no bounce.
-   The track inset is 4px on each side; with no column gap the indicator is
-   exactly 1/count of the inner width and steps by its own width per index. */
+/* Sliding active pill - animates from its current position, no bounce. The track inset is 4px on each side; with no column gap the indicator is exactly 1/count of the inner width and steps by its own width per index. */
 .seg-tabs__indicator {
   position: absolute;
   top: 4px;
@@ -2051,7 +2013,7 @@ button:active,
   transform: none;
 }
 
-/* Tab panel enter — a gentle, non-vestibular cross-fade (§14). */
+/* Tab panel enter - a gentle, non-vestibular cross-fade (§14). */
 .seg-panel-enter {
   animation: seg-fade-in 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -2082,10 +2044,7 @@ button:active,
   }
 }
 
-/* ─────────────────────────────────────────────────────────────
-   Carousel — one card at a time, gentle auto-roll (apple-design
-   §2 1:1 drag, §4 damped slide, §14 reduced-motion & pause).
-───────────────────────────────────────────────────────────── */
+/* Carousel - one card at a time, gentle auto-roll (apple-design §2 1:1 drag, §4 damped slide, §14 reduced-motion & pause). */
 .carousel {
   touch-action: pan-y;
 }
@@ -2114,16 +2073,14 @@ button:active,
   padding: 4px;
   box-sizing: border-box;
 }
-/* Every carousel card is the SAME fixed size so the carousel height never
-   jumps between slides, regardless of how many content rows a card has. */
+/* Every carousel card is the SAME fixed size so the carousel height never jumps between slides, regardless of how many content rows a card has. */
 .carousel__slide .apple-condition-card {
   width: 100%;
   height: 212px;
   min-height: 0;
   justify-content: flex-start;
 }
-/* The primary label sits just above the supporting line; the top block and
-   the label/sub block are pushed apart so all cards align consistently. */
+/* The primary label sits just above the supporting line; the top block and the label/sub block are pushed apart so all cards align consistently. */
 .carousel__slide .apple-condition-card__label,
 .carousel__slide .apple-condition-card__title-line {
   margin-top: auto;
@@ -2175,12 +2132,7 @@ button:active,
   transition: none;
 }
 
-/* ─────────────────────────────────────────────────────────────
-   Carousel condition cards — themed backgrounds per type.
-   CSS-only gradients (no external images): fast, crisp at any DPR,
-   licence-free, and tuned so dark text keeps >=4.5:1 contrast
-   (apple-design §12 materials & legibility, §16 craft).
-───────────────────────────────────────────────────────────── */
+/* Carousel condition cards - themed backgrounds per type. CSS-only gradients (no external images): fast, crisp at any DPR, licence-free, and tuned so dark text keeps >=4.5:1 contrast (apple-design §12 materials & legibility, §16 craft). */
 .carousel__slide .apple-condition-card {
   position: relative;
   overflow: hidden;
@@ -2205,7 +2157,7 @@ button:active,
   z-index: 1;
 }
 
-/* Haze / Air quality — hazy amber sky. */
+/* Haze / Air quality - hazy amber sky. */
 .apple-condition-card--haze {
   background: linear-gradient(135deg, #FFFDF5 0%, #FEF3C7 100%);
 }
@@ -2213,7 +2165,7 @@ button:active,
   background: radial-gradient(circle, #FCD34D 0%, rgba(252, 211, 77, 0) 70%);
 }
 
-/* Temperature — warm heat. */
+/* Temperature - warm heat. */
 .apple-condition-card--temp {
   background: linear-gradient(135deg, #FFF7ED 0%, #FFE4D3 100%);
 }
@@ -2221,7 +2173,7 @@ button:active,
   background: radial-gradient(circle, #FB923C 0%, rgba(251, 146, 60, 0) 70%);
 }
 
-/* Maintenance — calm blue. */
+/* Maintenance - calm blue. */
 .apple-condition-card--maintenance {
   background: linear-gradient(135deg, #F5FAFF 0%, #DBEAFE 100%);
 }
@@ -2229,7 +2181,7 @@ button:active,
   background: radial-gradient(circle, #60A5FA 0%, rgba(96, 165, 250, 0) 70%);
 }
 
-/* Facility damage — caution amber. */
+/* Facility damage - caution amber. */
 .apple-condition-card--facility {
   background: linear-gradient(135deg, #FFFBEB 0%, #FDE8C8 100%);
 }
@@ -2237,16 +2189,14 @@ button:active,
   background: radial-gradient(circle, #F59E0B 0%, rgba(245, 158, 11, 0) 70%);
 }
 
-/* On the themed surfaces, give the icon chip a translucent white backing so
-   it reads as a floating control (§12 material weight). */
+/* On the themed surfaces, give the icon chip a translucent white backing so it reads as a floating control (§12 material weight). */
 .carousel__slide .apple-condition-card .apple-condition-card__icon {
   background: rgba(255, 255, 255, 0.7);
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
 }
 
-/* High-contrast mode: drop the decorative art, use a solid white surface
-   with a hard border so text stays maximally legible (§14). */
+/* High-contrast mode: drop the decorative art, use a solid white surface with a hard border so text stays maximally legible (§14). */
 .high-contrast .carousel__slide .apple-condition-card {
   background: #FFFFFF;
 }
@@ -2262,11 +2212,7 @@ button:active,
   }
 }
 
-/* ─────────────────────────────────────────────────────────────
-   Community Play — gamification (challenges, streak, badges,
-   rewards). Brand tokens + apple-design feedback, rem text so it
-   scales with Dynamic Type, reduced-motion aware.
-───────────────────────────────────────────────────────────── */
+/* Community Play - gamification (challenges, streak, badges, rewards). Brand tokens + apple-design feedback, rem text so it scales with Dynamic Type, reduced-motion aware. */
 .play-summary {
   display: flex;
   gap: var(--space-3);
@@ -2556,21 +2502,11 @@ button:active,
 }
 
 
-/* ─────────────────────────────────────────────────────────────
-   Live-condition carousel cards — severity-driven accent.
-   One shared 5-step ramp (light green → green → yellow → orange →
-   red). The card exposes --sev-accent / --sev-chip-bg /
-   --sev-chip-text (set inline from SEVERITY_SCALE); the chip, the
-   progress bar and a left accent stripe all read from them so the
-   severity is obvious at a glance. apple-design §16 (clear status),
-   §8 (colour is reinforced by the text label on the chip, never
-   colour alone).
-───────────────────────────────────────────────────────────── */
+/* Live-condition carousel cards - severity-driven accent. One shared 5-step ramp (light green → green → yellow → orange → red). The card exposes --sev-accent / --sev-chip-bg / --sev-chip-text (set inline from SEVERITY_SCALE); the chip, the progress bar and a left accent stripe all read from them so the severity is obvious at a glance. apple-design §16 (clear status), §8 (colour is reinforced by the text label on the chip, never colour alone). */
 .apple-condition-card--sev {
   position: relative;
   overflow: hidden;
-  /* A gentle top-to-bottom severity gradient (stronger tint at the bottom),
-     so a glance reads calm-vs-alarm while text stays on near-white. */
+  /* A gentle top-to-bottom severity gradient (stronger tint at the bottom), so a glance reads calm-vs-alarm while text stays on near-white. */
   background:
     linear-gradient(180deg, #ffffff 0%, color-mix(in srgb, var(--sev-accent) 14%, #ffffff) 100%);
   border-color: color-mix(in srgb, var(--sev-accent) 22%, rgba(17, 24, 39, 0.08));
@@ -2594,8 +2530,7 @@ button:active,
   z-index: 1;
 }
 
-/* High-contrast mode: drop the soft tint, keep a solid white surface and a
-   hard border. Severity stays legible via the labelled chip. */
+/* High-contrast mode: drop the soft tint, keep a solid white surface and a hard border. Severity stays legible via the labelled chip. */
 .high-contrast .apple-condition-card--sev {
   background: #ffffff;
   border: 2px solid #000000;

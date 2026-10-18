@@ -1,10 +1,8 @@
-/* ─────────────────────────────────────────────────────────
-   Mock Gamification Data — Community Challenges, Badges,
-   Streaks & Rewards (FOR FUN, elderly-friendly, demo only).
-   Goals are team/neighbourhood-based, never individual rankings.
-───────────────────────────────────────────────────────── */
+// Mock Gamification Data - Community Challenges, Badges,
+// Streaks & Rewards (FOR FUN, elderly-friendly, demo only).
+// Goals are team/neighbourhood-based, never individual rankings.
 
-/* ── Neighbourhood team the resident belongs to ─────── */
+// ── Neighbourhood team the resident belongs to ───────
 export interface Neighbourhood {
   id: string;
   name: string;
@@ -17,18 +15,18 @@ export const MY_NEIGHBOURHOOD: Neighbourhood = {
   members: 128,
 };
 
-/* ── Team / neighbourhood challenges ────────────────── */
+// ── Team / neighbourhood challenges ──────────────────
 export interface CommunityChallenge {
   id: string;
   title: string;
   description: string;
   emoji: string;
-  /* Shared team goal, e.g. 500 steps logged by the whole neighbourhood. */
+  // Shared team goal, e.g. 500 steps logged by the whole neighbourhood.
   goal: number;
   progress: number;
   unit: string;
   endsOn: string;
-  /* Reward granted to the team when the goal is reached. */
+  // Reward granted to the team when the goal is reached.
   teamReward: string;
 }
 
@@ -71,7 +69,7 @@ export const COMMUNITY_CHALLENGES: CommunityChallenge[] = [
   },
 ];
 
-/* ── Participation badges ───────────────────────────── */
+// ── Participation badges ─────────────────────────────
 export interface Badge {
   id: string;
   name: string;
@@ -89,11 +87,11 @@ export const BADGES: Badge[] = [
   { id: "B006", name: "Month Streak", description: "Checked in 30 days in a row", emoji: "🏅", earned: false },
 ];
 
-/* ── Daily check-in streak ──────────────────────────── */
+// ── Daily check-in streak ────────────────────────────
 export interface StreakState {
   current: number;
   best: number;
-  /* Last 7 days: true = checked in. Index 6 is today. */
+  // Last 7 days: true = checked in. Index 6 is today.
   week: boolean[];
 }
 
@@ -103,7 +101,7 @@ export const INITIAL_STREAK: StreakState = {
   week: [true, true, true, true, true, true, false],
 };
 
-/* ── Rewards & vouchers (township shops / clinics) ──── */
+// ── Rewards & vouchers (township shops / clinics) ────
 export interface Reward {
   id: string;
   title: string;
@@ -121,5 +119,5 @@ export const REWARDS: Reward[] = [
   { id: "R005", title: "Free haircut", partner: "Gunting Rakyat Barber", cost: 100, emoji: "💈", category: "shop" },
 ];
 
-/* Points the resident has earned so far (demo). */
+// Points the resident has earned so far (demo).
 export const INITIAL_POINTS = 260;

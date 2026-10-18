@@ -15,10 +15,8 @@ export type BadgeGridProps = {
   achievements: AchievementState[];
 };
 
-/**
- * Earned and locked badges + achievements. Each tile states how it is unlocked,
- * and locked tiles are visibly dimmed with a lock icon (not colour alone).
- */
+// Earned and locked badges + achievements. Each tile states how it is unlocked,
+// and locked tiles are visibly dimmed with a lock icon (not colour alone).
 export function BadgeGrid({ badges, achievements }: BadgeGridProps) {
   return (
     <>

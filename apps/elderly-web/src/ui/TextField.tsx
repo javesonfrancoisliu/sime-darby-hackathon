@@ -11,11 +11,9 @@ interface TextFieldProps {
   maxLength?: number;
 }
 
-/**
- * FormField — input with a persistent visible label, helper/error text,
- * built on the shared ui-label / ui-input / ui-helper / ui-error classes.
- * Error is tied via aria-describedby. (Req 1.6, 5.5)
- */
+// FormField - input with a persistent visible label, helper/error text,
+// built on the shared ui-label / ui-input / ui-helper / ui-error classes.
+// Error is tied via aria-describedby.
 export function TextField({
   label,
   value,

@@ -17,10 +17,8 @@ const VARIANT_CLASSES: Record<RequestCardProps["statusVariant"], string> = {
   danger: "app-request-card__badge--danger",
 };
 
-/**
- * Request summary card matching the design's "My requests" list items.
- * Shows a status chip, title, date and verified volunteer badge.
- */
+// Request summary card matching the design's "My requests" list items.
+// Shows a status chip, title, date and verified volunteer badge.
 export function RequestCard({
   title,
   date,

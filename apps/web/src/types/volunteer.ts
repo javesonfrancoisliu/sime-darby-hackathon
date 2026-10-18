@@ -20,31 +20,27 @@ export type Opportunity = {
   title: string;
   summary: string;
   category: TaskCategory;
-  /**
-   * Approximate area centroid (never an exact residential address). Used to
-   * compute distance from the volunteer's live location when permission is
-   * granted. Optional: API-sourced items omit it for privacy, falling back to
-   * the baked `distanceKm`.
-   */
+  // Approximate area centroid (never an exact residential address). Used to
+  // compute distance from the volunteer's live location when permission is
+  // granted. Optional: API-sourced items omit it for privacy, falling back to
+  // the baked `distanceKm`.
   coords?: { lat: number; lng: number };
-  /** Approximate fallback distance in km (0.5 km steps) when geolocation is off. */
+  // Approximate fallback distance in km (0.5 km steps) when geolocation is off.
   distanceKm: number;
   area: string;
   scheduledAt: string; // ISO 8601
   durationMinutes: number;
-  /** How time-sensitive the request is. Drives the "Most urgent" sort. */
+  // How time-sensitive the request is. Drives the "Most urgent" sort.
   urgency: Urgency;
-  /** 0–100 rule-based fit score from the matching module. */
+  // 0–100 rule-based fit score from the matching module.
   matchScore: number;
-  /** Short human reasons for the match, e.g. "Matches your Saturdays". */
+  // Short human reasons for the match, e.g. "Matches your Saturdays".
   reasons: string[];
-  /** Kept for future scheduling features; no longer surfaced as a filter. */
+  // Kept for future scheduling features; no longer surfaced as a filter.
   fitsMySchedule: boolean;
-  /**
-   * Optional shared identity for the underlying real-world activity. When this
-   * matches a Challenge's dedupeKey, verifying this volunteering task and
-   * completing that challenge award points only once (counted as one task).
-   */
+  // Optional shared identity for the underlying real-world activity. When this
+  // matches a Challenge's dedupeKey, verifying this volunteering task and
+  // completing that challenge award points only once (counted as one task).
   dedupeKey?: string;
   isDemoData: boolean;
   sourceLabel: string;
@@ -72,7 +68,7 @@ export type Contribution = {
 export type ImpactSummary = {
   totalMinutes: number;
   completedCount: number;
-  /** Distinct neighbours helped (may differ from completedCount for group tasks). */
+  // Distinct neighbours helped (may differ from completedCount for group tasks).
   peopleHelped: number;
   items: Contribution[];
   isDemoData: boolean;

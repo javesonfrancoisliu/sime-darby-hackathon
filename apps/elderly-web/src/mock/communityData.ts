@@ -1,9 +1,7 @@
-/* ─────────────────────────────────────────────────────────
-   Mock Community Data — Centralised Neighbourhood Information
-   All values are illustrative only.
-───────────────────────────────────────────────────────── */
+// Mock Community Data - Centralised Neighbourhood Information
+// All values are illustrative only.
 
-/* ── Facility Maintenance Announcements ─────────────── */
+// ── Facility Maintenance Announcements ───────────────
 export interface MaintenanceAnnouncement {
   id: string;
   title: string;
@@ -40,7 +38,7 @@ export const MAINTENANCE_ANNOUNCEMENTS: MaintenanceAnnouncement[] = [
   },
 ];
 
-/* ── Volunteering Opportunities ─────────────────────── */
+// ── Volunteering Opportunities ───────────────────────
 export interface VolunteerOpportunity {
   id: string;
   title: string;
@@ -75,7 +73,7 @@ export const VOLUNTEER_OPPORTUNITIES: VolunteerOpportunity[] = [
   },
   {
     id: "V003",
-    title: "Companion Visit — Elderly Home",
+    title: "Companion Visit - Elderly Home",
     date: "Fri 24 Oct",
     duration: "2 hrs",
     location: "Rumah Ehsan, Elmina",
@@ -85,7 +83,7 @@ export const VOLUNTEER_OPPORTUNITIES: VolunteerOpportunity[] = [
   },
 ];
 
-/* ── Township Updates ───────────────────────────────── */
+// ── Township Updates ─────────────────────────────────
 export interface TownshipUpdate {
   id: string;
   title: string;
@@ -116,7 +114,7 @@ export const TOWNSHIP_UPDATES: TownshipUpdate[] = [
   },
   {
     id: "U003",
-    title: "Free Health Screening — 25 Oct",
+    title: "Free Health Screening - 25 Oct",
     body: "Sime Darby Property partners with Klinik Komuniti for free blood pressure, cholesterol and diabetes screening at the Community Centre.",
     date: "12 Oct 2026",
     category: "Health",

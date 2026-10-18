@@ -2,12 +2,10 @@ import { ShieldAlert } from "lucide-react";
 
 import { EmptyState, InfoCard, PageHeader } from "../../components/ui";
 
-/**
- * PLACEHOLDER ONLY — Module 1 (Health & Safety Hazards) is owned by the teammate.
- * This stub exists so shared navigation and the Home integration resolve.
- * Do not implement real safety functionality here; the teammate builds
- * src/components/safety/* and the real content of this page.
- */
+// PLACEHOLDER ONLY - Module 1 (Health & Safety Hazards) is owned by the teammate.
+// This stub exists so shared navigation and the Home integration resolve.
+// Do not implement real safety functionality here; the teammate builds
+// src/components/safety/* and the real content of this page.
 export function SafetyPage() {
   return (
     <>

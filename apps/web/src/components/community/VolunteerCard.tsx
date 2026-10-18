@@ -11,10 +11,8 @@ export type VolunteerCardProps = {
   onJoin: (item: VolunteerItem) => void;
 };
 
-/**
- * Volunteer opportunity: organisation/activity, date, location, slots (if known),
- * and a stateful Join action with a visible confirmation.
- */
+// Volunteer opportunity: organisation/activity, date, location, slots (if known),
+// and a stateful Join action with a visible confirmation.
 export function VolunteerCard({ item, joined, onJoin }: VolunteerCardProps) {
   return (
     <InfoCard as="li" ariaLabel={`Volunteering: ${item.title}`}>

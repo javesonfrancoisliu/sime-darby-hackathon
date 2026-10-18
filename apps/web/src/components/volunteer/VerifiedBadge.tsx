@@ -6,10 +6,8 @@ export type VerifiedBadgeProps = {
   status: VerificationStatus;
 };
 
-/**
- * Volunteer verification indicator. Text + icon (never color alone).
- * "not_required" renders nothing.
- */
+// Volunteer verification indicator. Text + icon (never color alone).
+// "not_required" renders nothing.
 export function VerifiedBadge({ status }: VerifiedBadgeProps) {
   if (status === "not_required") return null;
   if (status === "verified") {

@@ -25,7 +25,7 @@ import { DemoTag } from "../ui/DemoTag";
 
 type SafetyTab = "haze" | "water" | "temp" | "facilities";
 
-/* ── Colour helpers ──────────────────────────────────── */
+// ── Colour helpers ────────────────────────────────────
 const HAZARD_COLOR: Record<HazardLevel, { bg: string; text: string; label: string }> = {
   good:      { bg: "#D1FAE5", text: "#065F46", label: "Good" },
   moderate:  { bg: "#FEF9C3", text: "#713F12", label: "Moderate" },
@@ -54,7 +54,7 @@ const FACILITY_COLOR: Record<FacilityStatus, { bg: string; text: string; label: 
 
 type FilterStatus = "all" | FacilityStatus;
 
-/** Section heading with Apple design optical typography and outline icon */
+// Section heading with Apple design optical typography and outline icon
 function SectionHeading({ icon, title }: { icon: ReactNode; title: string }) {
   return (
     <div className="safety-section__heading">
@@ -66,14 +66,12 @@ function SectionHeading({ icon, title }: { icon: ReactNode; title: string }) {
   );
 }
 
-/**
- * Health & Safety Hazards page with Apple Design and Silver Generation Accessibility.
- * Sections:
- * a. Haze API
- * b. Water Level of Rivers and Lakes within the township
- * c. Temperature Alerts
- * d. Broken or Damaged Facilities within the Township (Reported, In progress, Fixed)
- */
+// Health & Safety Hazards page with Apple Design and Silver Generation Accessibility.
+// Sections:
+// a. Haze API
+// b. Water Level of Rivers and Lakes within the township
+// c. Temperature Alerts
+// d. Broken or Damaged Facilities within the Township (Reported, In progress, Fixed)
 export function SafetyPage() {
   const [facilityFilter, setFacilityFilter] = useState<FilterStatus>("all");
   const [tab, setTab] = useState<SafetyTab>("haze");
@@ -111,7 +109,6 @@ export function SafetyPage() {
 
   return (
     <div className="safety-page">
-      {/* ── Apple-style Frosted Header with Voice Trigger ───── */}
       <div className="safety-page__header">
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
           <div>
@@ -134,7 +131,6 @@ export function SafetyPage() {
         </div>
       </div>
 
-      {/* ── Segmented tabs: one hazard category at a time ──── */}
       <SegmentedTabs
         tabs={TABS}
         active={tab}
@@ -142,7 +138,6 @@ export function SafetyPage() {
         ariaLabel="Choose a safety category"
       />
 
-      {/* ── 1. Haze / Air Quality API ─────────────────────── */}
       {tab === "haze" && (
       <TabPanel id="haze" groupId={groupId}>
       <section className="safety-section seg-panel-enter" aria-labelledby="haze-heading" id="haze">
@@ -166,7 +161,6 @@ export function SafetyPage() {
                     <span className="safety-card__badge-label">API · {s.label}</span>
                   </div>
                 </div>
-                {/* Progress bar */}
                 <div className="safety-bar" aria-label={`API level ${r.api} out of 300`}>
                   <div
                     className="safety-bar__fill"
@@ -186,7 +180,6 @@ export function SafetyPage() {
       </TabPanel>
       )}
 
-      {/* ── 2. Water Levels of Rivers and Lakes ────────────── */}
       {tab === "water" && (
       <TabPanel id="water" groupId={groupId}>
       <section className="safety-section seg-panel-enter" aria-labelledby="water-heading">
@@ -229,7 +222,6 @@ export function SafetyPage() {
       </TabPanel>
       )}
 
-      {/* ── 3. Temperature Alerts ─────────────────────────── */}
       {tab === "temp" && (
       <TabPanel id="temp" groupId={groupId}>
       <section className="safety-section seg-panel-enter" aria-labelledby="temp-heading" id="temp">
@@ -278,7 +270,6 @@ export function SafetyPage() {
       </TabPanel>
       )}
 
-      {/* ── 4. Broken or Damaged Facilities within Township ─── */}
       {tab === "facilities" && (
       <TabPanel id="facilities" groupId={groupId}>
       <section className="safety-section seg-panel-enter" aria-labelledby="facilities-heading" id="facilities">
@@ -287,7 +278,6 @@ export function SafetyPage() {
           title="Facility Reports (Reported · In Progress · Fixed)"
         />
 
-        {/* Filter tabs - Apple Segmented Style */}
         <div className="safety-filter" role="group" aria-label="Filter by status">
           {(["all", "reported", "in_progress", "fixed"] as FilterStatus[]).map((f) => (
             <button
@@ -336,7 +326,6 @@ export function SafetyPage() {
           })}
         </div>
 
-        {/* Summary counts */}
         <div className="safety-facility-summary">
           {(["reported", "in_progress", "fixed"] as FacilityStatus[]).map((s) => {
             const c = FACILITY_COLOR[s];

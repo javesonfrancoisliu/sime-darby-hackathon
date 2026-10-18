@@ -9,10 +9,8 @@ export type AppButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   children: ReactNode;
 };
 
-/**
- * Shared button. Variants and states come straight from design-tokens.css
- * (.ui-button--*). Do not add new colors here.
- */
+// Shared button. Variants and states come straight from design-tokens.css
+// (.ui-button--*). Do not add new colors here.
 export function AppButton({
   variant = "primary",
   loading = false,

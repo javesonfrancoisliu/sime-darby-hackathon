@@ -6,15 +6,13 @@ import { SafetyOverview } from "../components/safety/SafetyOverview";
 import { AppLinkButton, PageHeader } from "../components/ui";
 import { DEMO_TOWNSHIP } from "../lib/township";
 
-/**
- * Shared Home — the integrated General Dashboard. Prioritises the three primary
- * dashboard functions: Health & Safety, Community updates, and (for the young
- * role) a slim Help a Neighbour entry point.
- *
- * The My Impact summary (VolunteerOverview) was intentionally removed from Home
- * to keep it compact; that component and its data are preserved for a future
- * Profile → My Contributions page.
- */
+// Shared Home - the integrated General Dashboard. Prioritises the three primary
+// dashboard functions: Health & Safety, Community updates, and (for the young
+// role) a slim Help a Neighbour entry point.
+//
+// The My Impact summary (VolunteerOverview) was intentionally removed from Home
+// to keep it compact; that component and its data are preserved for a future
+// Profile → My Contributions page.
 export function HomePage() {
   const { role } = useRole();
   const young = role === "young";
@@ -25,8 +23,8 @@ export function HomePage() {
         title={`Welcome to ${DEMO_TOWNSHIP.name}`}
         subtitle={
           young
-            ? "Your neighbourhood at a glance — find a quick way to help, stay safe and stay connected."
-            : "Your neighbourhood at a glance — stay safe, stay connected and get involved."
+            ? "Your neighbourhood at a glance - find a quick way to help, stay safe and stay connected."
+            : "Your neighbourhood at a glance - stay safe, stay connected and get involved."
         }
       />
 

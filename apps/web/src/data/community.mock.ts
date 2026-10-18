@@ -82,7 +82,7 @@ const maintenance: MaintenanceItem[] = [
     id: "mnt-lift-blockc",
     townshipId: T,
     category: "maintenance",
-    title: "Lift servicing — Block C",
+    title: "Lift servicing - Block C",
     summary: "The left lift is being serviced; the right lift stays in use.",
     location: "Block C lobby",
     windowStart: "2026-10-16T10:00:00+08:00",
@@ -184,7 +184,7 @@ const township: TownshipUpdateItem[] = [
   },
 ];
 
-/** All community items, newest first by updatedAt. */
+// All community items, newest first by updatedAt.
 export const COMMUNITY_ITEMS: CommunityItem[] = [
   ...events,
   ...maintenance,

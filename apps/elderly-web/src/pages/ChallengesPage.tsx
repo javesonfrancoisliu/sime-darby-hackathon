@@ -22,12 +22,10 @@ import { useAccessibility } from "../context/AccessibilityContext";
 
 type PlayTab = "streak" | "challenges" | "badges" | "rewards";
 
-/**
- * Challenges — gamified community features for the Silver Generation (FOR FUN).
- * Team/neighbourhood goals (never individual rankings), participation badges &
- * a daily check-in streak, and rewards/vouchers for township shops & clinics.
- * Stateful demo; apple-design feedback (§13 causal feedback, §16 completion).
- */
+// Challenges - gamified community features for the Silver Generation (FOR FUN).
+// Team/neighbourhood goals (never individual rankings), participation badges &
+// a daily check-in streak, and rewards/vouchers for township shops & clinics.
+// Stateful demo; apple-design feedback (§13 causal feedback, §16 completion).
 export function ChallengesPage() {
   const { speak, voiceAssist, triggerHaptic } = useAccessibility();
 
@@ -117,7 +115,6 @@ export function ChallengesPage() {
         </div>
       </div>
 
-      {/* ── Segmented tabs: one play area at a time ────────── */}
       <SegmentedTabs
         tabs={TABS}
         active={tab}
@@ -125,7 +122,6 @@ export function ChallengesPage() {
         ariaLabel="Choose a community play area"
       />
 
-      {/* ── Points + daily check-in streak ─────────────────── */}
       {tab === "streak" && (
       <TabPanel id="streak" groupId={groupId}>
       <section className="safety-section seg-panel-enter" aria-label="Your points and streak">
@@ -148,7 +144,6 @@ export function ChallengesPage() {
           </div>
         </div>
 
-        {/* Week dots */}
         <div className="play-week" role="img" aria-label={`Checked in ${streak.week.filter(Boolean).length} of the last 7 days`}>
           {streak.week.map((done, i) => (
             <div key={i} className="play-week__day">
@@ -185,7 +180,6 @@ export function ChallengesPage() {
       </TabPanel>
       )}
 
-      {/* ── Team / neighbourhood challenges ────────────────── */}
       {tab === "challenges" && (
       <TabPanel id="challenges" groupId={groupId}>
       <section className="safety-section seg-panel-enter" aria-label="Neighbourhood challenges">
@@ -196,7 +190,7 @@ export function ChallengesPage() {
           <h2 className="safety-section__heading-text">Neighbourhood Challenges</h2>
         </div>
         <p className="play-section-note">
-          We reach these goals <strong>together</strong> — every neighbour&rsquo;s check-in counts.
+          We reach these goals <strong>together</strong> - every neighbour&rsquo;s check-in counts.
         </p>
         <div className="ui-stack">
           {COMMUNITY_CHALLENGES.map((c) => {
@@ -237,7 +231,6 @@ export function ChallengesPage() {
       </TabPanel>
       )}
 
-      {/* ── Participation badges ───────────────────────────── */}
       {tab === "badges" && (
       <TabPanel id="badges" groupId={groupId}>
       <section className="safety-section seg-panel-enter" aria-label="Your badges">
@@ -261,7 +254,6 @@ export function ChallengesPage() {
       </TabPanel>
       )}
 
-      {/* ── Rewards & vouchers ─────────────────────────────── */}
       {tab === "rewards" && (
       <TabPanel id="rewards" groupId={groupId}>
       <section className="safety-section seg-panel-enter" aria-label="Rewards and vouchers">

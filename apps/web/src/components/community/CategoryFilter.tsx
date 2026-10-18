@@ -20,7 +20,7 @@ export type CategoryFilterProps = {
   onChange: (value: FilterValue) => void;
 };
 
-/** Quick-category row. Each chip toggles which cards are visible (stateful). */
+// Quick-category row. Each chip toggles which cards are visible (stateful).
 export function CategoryFilter({ value, counts, onChange }: CategoryFilterProps) {
   return (
     <div className="ui-chip-row" role="group" aria-label="Filter community updates by category">

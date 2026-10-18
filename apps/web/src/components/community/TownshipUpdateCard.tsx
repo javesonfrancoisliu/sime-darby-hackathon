@@ -10,7 +10,7 @@ export type TownshipUpdateCardProps = {
   onReadMore: (item: TownshipUpdateItem) => void;
 };
 
-/** Township update: official news, published date, topic, Read more CTA. */
+// Township update: official news, published date, topic, Read more CTA.
 export function TownshipUpdateCard({ item, onReadMore }: TownshipUpdateCardProps) {
   return (
     <InfoCard as="li" ariaLabel={`Township update: ${item.title}`}>

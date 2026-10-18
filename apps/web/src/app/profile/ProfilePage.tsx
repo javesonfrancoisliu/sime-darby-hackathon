@@ -13,12 +13,10 @@ import {
 import { PageHeader } from "../../components/ui";
 import { useGamification } from "../../data/useGamification";
 
-/**
- * Young-resident Profile — account management, not an activity dashboard.
- * Sections: Personal information, Volunteering preferences, My rewards (claimed),
- * Settings. Volunteering tasks live in Volunteer Nearby; points/badges/
- * leaderboard live in Community Challenges — not repeated here.
- */
+// Young-resident Profile - account management, not an activity dashboard.
+// Sections: Personal information, Volunteering preferences, My rewards (claimed),
+// Settings. Volunteering tasks live in Volunteer Nearby; points/badges/
+// leaderboard live in Community Challenges - not repeated here.
 export function ProfilePage() {
   const { claimedRewards } = useGamification();
   const [editPersonal, setEditPersonal] = useState(false);

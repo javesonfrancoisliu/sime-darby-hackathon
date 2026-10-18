@@ -7,13 +7,11 @@ import { useAnnounce } from "../ui/Announcer";
 import { Button } from "../ui/Button";
 import { IconCheck, IconHome, IconList } from "../ui/Icons";
 
-/**
- * Request Confirmation — Apple Success Screen for Silver Generation.
- * Features:
- * - Clear visual completion feedback (§16 Feedback)
- * - Inset receipt card with high-contrast text (§12, §15)
- * - Confirm a submitted request, echoing category and description (Req 5.4).
- */
+// Request Confirmation - Apple Success Screen for Silver Generation.
+// Features:
+// - Clear visual completion feedback (§16 Feedback)
+// - Inset receipt card with high-contrast text (§12, §15)
+// - Confirm a submitted request, echoing category and description.
 export function ConfirmationPage() {
   const navigate = useNavigate();
   const request = (useLocation().state as { request?: HelpRequest } | null)?.request;
@@ -26,7 +24,6 @@ export function ConfirmationPage() {
 
   return (
     <div className="apple-subpage apple-confirmation-page">
-      {/* ── Apple Success Medallion ───────────────────────────── */}
       <div className="apple-success-badge" aria-hidden="true">
         <IconCheck size={36} strokeWidth={2.4} />
       </div>
@@ -41,7 +38,6 @@ export function ConfirmationPage() {
         We will check it and then find a volunteer to help you.
       </p>
 
-      {/* ── Inset Receipt Card ───────────────────────────────── */}
       <div className="apple-inset-group" style={{ marginBottom: 28 }}>
         <div className="apple-inset-row">
           <span className="app-detail-label">Help with</span>
@@ -61,7 +57,6 @@ export function ConfirmationPage() {
         </div>
       </div>
 
-      {/* ── Action Buttons ───────────────────────────────────── */}
       <div className="ui-stack" style={{ gap: 12 }}>
         <Button block onClick={() => navigate("/requests")}>
           <IconList size={18} strokeWidth={2} aria-hidden="true" style={{ marginRight: 6 }} />

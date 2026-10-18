@@ -4,15 +4,11 @@ export type Role = "young" | "elderly";
 
 type RoleContextValue = {
   role: Role;
-  /**
-   * Larger-text comfort sizing (design system "Easy View": body 18px+, taller
-   * controls). Enabled for the elderly role. Applied via the .easy-view class.
-   */
+  // Larger-text comfort sizing (design system "Easy View": body 18px+, taller
+  // controls). Enabled for the elderly role. Applied via the .easy-view class.
   easyView: boolean;
-  /**
-   * Elderly confirms before performing actions (extra reassurance for older
-   * residents). Young gets a snappier success-after-action flow instead.
-   */
+  // Elderly confirms before performing actions (extra reassurance for older
+  // residents). Young gets a snappier success-after-action flow instead.
   confirmActions: boolean;
 };
 
@@ -22,13 +18,11 @@ function isRole(value: string | null | undefined): value is Role {
   return value === "young" || value === "elderly";
 }
 
-/**
- * Dev-only role override, so both roles can be previewed without shipping a
- * production toggle. Checked ONLY in dev builds (import.meta.env.DEV):
- *   - URL query:   ?role=elderly
- *   - Env var:     VITE_DEV_ROLE=elderly  (in apps/web/.env.local)
- * In production this always returns null and the provided default is used.
- */
+// Dev-only role override, so both roles can be previewed without shipping a
+// production toggle. Checked ONLY in dev builds (import.meta.env.DEV):
+//   - URL query:   ?role=elderly
+//   - Env var:     VITE_DEV_ROLE=elderly  (in apps/web/.env.local)
+// In production this always returns null and the provided default is used.
 function devRoleOverride(): Role | null {
   if (!import.meta.env.DEV) return null;
   if (typeof window !== "undefined") {
@@ -40,15 +34,13 @@ function devRoleOverride(): Role | null {
   return null;
 }
 
-/**
- * Shared resident-role mode. The role drives which features/emphasis appear and
- * the elderly comfort sizing, so the whole app reads from this one source.
- *
- * There is no in-app role toggle — the role comes from role-based authentication.
- * Until auth is wired, `role` defaults to "young"; when auth lands, feed the
- * authenticated user's role into the `role` prop and nothing downstream changes.
- * A dev-only override (see devRoleOverride) allows previewing elderly.
- */
+// Shared resident-role mode. The role drives which features/emphasis appear and
+// the elderly comfort sizing, so the whole app reads from this one source.
+//
+// There is no in-app role toggle - the role comes from role-based authentication.
+// Until auth is wired, `role` defaults to "young"; when auth lands, feed the
+// authenticated user's role into the `role` prop and nothing downstream changes.
+// A dev-only override (see devRoleOverride) allows previewing elderly.
 export function RoleProvider({ role = "young", children }: { role?: Role; children: ReactNode }) {
   const effectiveRole = devRoleOverride() ?? role;
 

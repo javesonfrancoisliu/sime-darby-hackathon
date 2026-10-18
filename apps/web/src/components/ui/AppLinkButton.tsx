@@ -8,10 +8,8 @@ export type AppLinkButtonProps = LinkProps & {
   children: ReactNode;
 };
 
-/**
- * Router link styled as a button, for navigation CTAs (e.g. "View details").
- * Shares the exact .ui-button--* styles so links and buttons look identical.
- */
+// Router link styled as a button, for navigation CTAs (e.g. "View details").
+// Shares the exact .ui-button--* styles so links and buttons look identical.
 export function AppLinkButton({
   variant = "primary",
   className,
