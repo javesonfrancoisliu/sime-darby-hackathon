@@ -1,3 +1,4 @@
+import { urgencyFor } from "../lib/urgency";
 import type { Contribution, ImpactSummary, Opportunity } from "../types/volunteer";
 
 // Demo volunteering data for the young role. Dates are ISO 8601 with the
@@ -12,7 +13,8 @@ const BASE = { lat: 3.0738, lng: 101.5183 };
 // ~0.009 degrees latitude ≈ 1 km here; good enough for demo scatter.
 const KM = 0.009;
 
-export const MOCK_OPPORTUNITIES: Opportunity[] = [
+// Urgency is derived from the start time (same rule as live data), not hand-set.
+const MOCK_OPPORTUNITY_BASE: Omit<Opportunity, "urgency">[] = [
   {
     id: "opp-grocery-ahmad",
     kind: "request",
@@ -24,7 +26,6 @@ export const MOCK_OPPORTUNITIES: Opportunity[] = [
     area: "Block A, Bandar Serai",
     scheduledAt: "2026-10-18T09:30:00+08:00",
     durationMinutes: 45,
-    urgency: "medium",
     matchScore: 92,
     reasons: ["Very close to you", "Matches your Saturday mornings"],
     fitsMySchedule: true,
@@ -42,7 +43,6 @@ export const MOCK_OPPORTUNITIES: Opportunity[] = [
     area: "Block C, Bandar Serai",
     scheduledAt: "2026-10-18T16:00:00+08:00",
     durationMinutes: 30,
-    urgency: "low",
     matchScore: 88,
     reasons: ["Matches your tech help skill", "Short task"],
     fitsMySchedule: true,
@@ -60,7 +60,6 @@ export const MOCK_OPPORTUNITIES: Opportunity[] = [
     area: "Bandar Serai",
     scheduledAt: "2026-10-20T08:00:00+08:00",
     durationMinutes: 90,
-    urgency: "high",
     matchScore: 74,
     reasons: ["Within your travel radius"],
     fitsMySchedule: false,
@@ -78,7 +77,6 @@ export const MOCK_OPPORTUNITIES: Opportunity[] = [
     area: "Reading Room, Block C",
     scheduledAt: "2026-10-22T17:00:00+08:00",
     durationMinutes: 60,
-    urgency: "low",
     matchScore: 69,
     reasons: ["Popular community activity"],
     fitsMySchedule: true,
@@ -96,7 +94,6 @@ export const MOCK_OPPORTUNITIES: Opportunity[] = [
     area: "Block B, Bandar Serai",
     scheduledAt: "2026-10-19T11:00:00+08:00",
     durationMinutes: 20,
-    urgency: "high",
     matchScore: 81,
     reasons: ["Very close to you", "Short task"],
     fitsMySchedule: true,
@@ -114,7 +111,6 @@ export const MOCK_OPPORTUNITIES: Opportunity[] = [
     area: "Block D, Bandar Serai",
     scheduledAt: "2026-10-21T15:30:00+08:00",
     durationMinutes: 25,
-    urgency: "medium",
     matchScore: 63,
     reasons: ["Short task"],
     fitsMySchedule: false,
@@ -135,7 +131,6 @@ export const MOCK_OPPORTUNITIES: Opportunity[] = [
     area: "Central Green, Bandar Serai",
     scheduledAt: "2026-10-24T08:30:00+08:00",
     durationMinutes: 120,
-    urgency: "medium",
     matchScore: 70,
     reasons: ["Popular community activity"],
     fitsMySchedule: true,
@@ -144,6 +139,11 @@ export const MOCK_OPPORTUNITIES: Opportunity[] = [
     sourceLabel: "Help a Neighbour",
   },
 ];
+
+export const MOCK_OPPORTUNITIES: Opportunity[] = MOCK_OPPORTUNITY_BASE.map((o) => ({
+  ...o,
+  urgency: urgencyFor(o.scheduledAt),
+}));
 
 const MOCK_CONTRIBUTIONS: Contribution[] = [
   {
