@@ -19,7 +19,7 @@ variable "environment" {
 }
 
 variable "demo_auth_enabled" {
-  description = "Enable the simulated demo sign-in on the API. Dev tfvars sets true; keep false elsewhere."
+  description = "Enable the simulated demo sign-in on the API. Only set true on a throwaway demo stack; keep false elsewhere."
   type        = bool
   default     = false
 }
