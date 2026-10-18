@@ -23,6 +23,12 @@ variable "table_arn" {
   type        = string
 }
 
+variable "demo_auth_enabled" {
+  description = "Enable the simulated demo sign-in (x-demo-user header, demo user list, user creation). Keep false on any publicly reachable API."
+  type        = bool
+  default     = false
+}
+
 variable "log_retention_days" {
   description = "CloudWatch log retention in days."
   type        = number

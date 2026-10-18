@@ -17,6 +17,7 @@ module "api" {
   output_path          = "${path.root}/../../build/${var.environment}-api.zip"
   table_name           = module.data.table_name
   table_arn            = module.data.table_arn
+  demo_auth_enabled    = var.demo_auth_enabled
   log_retention_days   = var.log_retention_days
   throttle_burst_limit = var.api_throttle_burst_limit
   throttle_rate_limit  = var.api_throttle_rate_limit

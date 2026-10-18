@@ -13,6 +13,7 @@ export function useTestTable(): void {
   beforeAll(async () => {
     process.env.DYNAMODB_ENDPOINT = process.env.DYNAMODB_ENDPOINT || DEFAULT_LOCAL_ENDPOINT;
     process.env.TABLE_NAME = tableName;
+    process.env.DEMO_AUTH_ENABLED = "true";
     try {
       await baseClient().send(new CreateTableCommand(tableDefinition(tableName)));
     } catch (error) {

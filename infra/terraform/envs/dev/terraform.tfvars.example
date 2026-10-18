@@ -3,6 +3,8 @@ aws_profile               = "<profile>"
 project                   = "sime-darby-hackathon"
 environment               = "dev"
 table_deletion_protection = false
+# Set true only for a throwaway demo stack: the dev API is public and sign-in is simulated.
+demo_auth_enabled         = false
 
 # Optional overrides (defaults shown)
 # log_retention_days       = 14

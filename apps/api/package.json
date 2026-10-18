@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch --env-file-if-exists=.env src/local.ts",
+    "dev": "DEMO_AUTH_ENABLED=true tsx watch --env-file-if-exists=.env src/local.ts",
     "build": "esbuild src/handler.ts --bundle --platform=node --target=node24 --format=esm --sourcemap --outfile=dist/handler.mjs --banner:js=\"import{createRequire}from'node:module';const require=createRequire(import.meta.url);\"",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json",

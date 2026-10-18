@@ -18,6 +18,17 @@ variable "environment" {
   type        = string
 }
 
+variable "demo_auth_enabled" {
+  description = "Enable the simulated demo sign-in on the API. Must stay false in prod."
+  type        = bool
+  default     = false
+
+  validation {
+    condition     = var.demo_auth_enabled == false
+    error_message = "demo auth must stay disabled in prod"
+  }
+}
+
 variable "log_retention_days" {
   description = "CloudWatch log retention in days."
   type        = number

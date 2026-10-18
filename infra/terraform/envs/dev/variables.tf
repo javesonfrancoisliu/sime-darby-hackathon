@@ -18,6 +18,12 @@ variable "environment" {
   type        = string
 }
 
+variable "demo_auth_enabled" {
+  description = "Enable the simulated demo sign-in on the API. Only set true on a throwaway demo stack; keep false elsewhere."
+  type        = bool
+  default     = false
+}
+
 variable "log_retention_days" {
   description = "CloudWatch log retention in days."
   type        = number

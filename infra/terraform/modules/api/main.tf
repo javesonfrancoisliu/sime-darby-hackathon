@@ -76,9 +76,10 @@ resource "aws_lambda_function" "api" {
 
   environment {
     variables = {
-      TABLE_NAME   = var.table_name
-      SERVICE_NAME = "${var.name_prefix}-api"
-      NODE_OPTIONS = "--enable-source-maps"
+      TABLE_NAME        = var.table_name
+      SERVICE_NAME      = "${var.name_prefix}-api"
+      NODE_OPTIONS      = "--enable-source-maps"
+      DEMO_AUTH_ENABLED = var.demo_auth_enabled ? "true" : "false"
     }
   }
 
