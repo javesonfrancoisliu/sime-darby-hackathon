@@ -19,6 +19,7 @@ export default defineConfig(
     files: [
       "apps/web/src/**/*.{ts,tsx}",
       "apps/elderly-web/src/**/*.{ts,tsx}",
+      "apps/portal/src/**/*.{ts,tsx}",
       "packages/api-client/src/**/*.{ts,tsx}",
       "packages/auth/src/**/*.{ts,tsx}",
     ],
