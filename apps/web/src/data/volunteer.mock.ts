@@ -1,4 +1,3 @@
-import { urgencyFor } from "../lib/urgency";
 import type { Contribution, ImpactSummary, Opportunity } from "../types/volunteer";
 
 // Demo volunteering data for the young role. Dates are ISO 8601 with the
@@ -13,8 +12,20 @@ const BASE = { lat: 3.0738, lng: 101.5183 };
 // ~0.009 degrees latitude ≈ 1 km here; good enough for demo scatter.
 const KM = 0.009;
 
-// Urgency is derived from the start time (same rule as live data), not hand-set.
-const MOCK_OPPORTUNITY_BASE: Omit<Opportunity, "urgency">[] = [
+const HOUR_MS = 3_600_000;
+const HALF_HOUR_MS = 1_800_000;
+const LOADED_AT = Date.now();
+
+// A start time `hours` after the page loads, rounded up to the next half hour. The demo feed
+// is always upcoming, with one item inside the urgent window, whatever day it is opened.
+function startsIn(hours: number): string {
+  return new Date(
+    Math.ceil((LOADED_AT + hours * HOUR_MS) / HALF_HOUR_MS) * HALF_HOUR_MS,
+  ).toISOString();
+}
+
+// Urgency is not stored here: the page works it out from the start time as the clock moves.
+export const MOCK_OPPORTUNITIES: Opportunity[] = [
   {
     id: "opp-grocery-ahmad",
     kind: "request",
@@ -24,10 +35,10 @@ const MOCK_OPPORTUNITY_BASE: Omit<Opportunity, "urgency">[] = [
     coords: { lat: BASE.lat + 0.3 * KM, lng: BASE.lng + 0.4 * KM },
     distanceKm: 0.5,
     area: "Block A, Elmina West",
-    scheduledAt: "2026-10-18T09:30:00+08:00",
+    scheduledAt: startsIn(2),
     durationMinutes: 45,
     matchScore: 92,
-    reasons: ["Very close to you", "Matches your Saturday mornings"],
+    reasons: ["Very close to you", "Matches your free mornings"],
     fitsMySchedule: true,
     isDemoData: true,
     sourceLabel: "Help a Neighbour",
@@ -41,7 +52,7 @@ const MOCK_OPPORTUNITY_BASE: Omit<Opportunity, "urgency">[] = [
     coords: { lat: BASE.lat + 0.9 * KM, lng: BASE.lng - 0.5 * KM },
     distanceKm: 1,
     area: "Block C, Elmina West",
-    scheduledAt: "2026-10-18T16:00:00+08:00",
+    scheduledAt: startsIn(6),
     durationMinutes: 30,
     matchScore: 88,
     reasons: ["Matches your tech help skill", "Short task"],
@@ -57,8 +68,8 @@ const MOCK_OPPORTUNITY_BASE: Omit<Opportunity, "urgency">[] = [
     category: "transport",
     coords: { lat: BASE.lat - 1.6 * KM, lng: BASE.lng + 1.1 * KM },
     distanceKm: 2,
-    area: "City of Elmina",
-    scheduledAt: "2026-10-20T08:00:00+08:00",
+    area: "Elmina Valley",
+    scheduledAt: startsIn(26),
     durationMinutes: 90,
     matchScore: 74,
     reasons: ["Within your travel radius"],
@@ -75,7 +86,7 @@ const MOCK_OPPORTUNITY_BASE: Omit<Opportunity, "urgency">[] = [
     coords: { lat: BASE.lat + 1.2 * KM, lng: BASE.lng + 0.9 * KM },
     distanceKm: 1.5,
     area: "Reading Room, Block C",
-    scheduledAt: "2026-10-22T17:00:00+08:00",
+    scheduledAt: startsIn(52),
     durationMinutes: 60,
     matchScore: 69,
     reasons: ["Popular community activity"],
@@ -92,7 +103,7 @@ const MOCK_OPPORTUNITY_BASE: Omit<Opportunity, "urgency">[] = [
     coords: { lat: BASE.lat - 0.3 * KM, lng: BASE.lng - 0.4 * KM },
     distanceKm: 0.5,
     area: "Block B, Elmina West",
-    scheduledAt: "2026-10-19T11:00:00+08:00",
+    scheduledAt: startsIn(30),
     durationMinutes: 20,
     matchScore: 81,
     reasons: ["Very close to you", "Short task"],
@@ -109,7 +120,7 @@ const MOCK_OPPORTUNITY_BASE: Omit<Opportunity, "urgency">[] = [
     coords: { lat: BASE.lat + 2.4 * KM, lng: BASE.lng - 1.8 * KM },
     distanceKm: 3,
     area: "Block D, Elmina West",
-    scheduledAt: "2026-10-21T15:30:00+08:00",
+    scheduledAt: startsIn(80),
     durationMinutes: 25,
     matchScore: 63,
     reasons: ["Short task"],
@@ -124,12 +135,12 @@ const MOCK_OPPORTUNITY_BASE: Omit<Opportunity, "urgency">[] = [
     id: "opp-cleanup-central-green",
     kind: "event",
     title: "Central Park clean-up",
-    summary: "Join the Saturday neighbourhood clean-up at Central Park.",
+    summary: "Join the neighbourhood clean-up at Central Park.",
     category: "community_activity",
     coords: { lat: BASE.lat + 1.1 * KM, lng: BASE.lng + 1.0 * KM },
     distanceKm: 1.5,
     area: "Central Park, City of Elmina",
-    scheduledAt: "2026-10-24T08:30:00+08:00",
+    scheduledAt: startsIn(120),
     durationMinutes: 120,
     matchScore: 70,
     reasons: ["Popular community activity"],
@@ -139,11 +150,6 @@ const MOCK_OPPORTUNITY_BASE: Omit<Opportunity, "urgency">[] = [
     sourceLabel: "Help a Neighbour",
   },
 ];
-
-export const MOCK_OPPORTUNITIES: Opportunity[] = MOCK_OPPORTUNITY_BASE.map((o) => ({
-  ...o,
-  urgency: urgencyFor(o.scheduledAt),
-}));
 
 const MOCK_CONTRIBUTIONS: Contribution[] = [
   {

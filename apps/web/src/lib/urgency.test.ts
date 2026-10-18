@@ -15,8 +15,8 @@ describe("urgencyFor", () => {
     expect(urgencyFor(inHours(2), NOW)).toBe("high");
   });
 
-  it("is not urgent once the start time has passed", () => {
-    expect(urgencyFor(inHours(-1), NOW)).toBe("low");
+  it("is its own state once the start time has passed", () => {
+    expect(urgencyFor(inHours(-1), NOW)).toBe("past");
   });
 
   it("is urgent exactly at the boundary and not just beyond it", () => {

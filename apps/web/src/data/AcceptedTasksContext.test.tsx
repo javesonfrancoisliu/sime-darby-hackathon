@@ -30,7 +30,6 @@ function opportunity(overrides: Partial<Opportunity> = {}): Opportunity {
     area: "Elmina Valley",
     scheduledAt: "2026-10-20T09:00:00+08:00",
     durationMinutes: 60,
-    urgency: "low",
     matchScore: 70,
     reasons: [],
     fitsMySchedule: false,

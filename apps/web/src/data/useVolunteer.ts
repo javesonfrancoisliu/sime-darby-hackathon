@@ -2,7 +2,6 @@ import type { ContributionsResponse, OpportunitiesResponse } from "@sdh/contract
 
 import type { Contribution, ImpactSummary, Opportunity } from "../types/volunteer";
 import { ApiError, apiFetch, errorMessage, useSession } from "@sdh/api-client";
-import { urgencyFor } from "../lib/urgency";
 import { useLoader } from "../lib/useLoader";
 import { MOCK_IMPACT, MOCK_OPPORTUNITIES } from "./volunteer.mock";
 
@@ -29,7 +28,6 @@ function mapOpportunities(res: OpportunitiesResponse): Opportunity[] {
         area: r.area,
         scheduledAt: r.scheduledAt,
         durationMinutes: r.durationMinutes,
-        urgency: urgencyFor(r.scheduledAt),
         matchScore: item.matchScore,
         reasons: item.reasons,
         fitsMySchedule: false,
@@ -49,7 +47,6 @@ function mapOpportunities(res: OpportunitiesResponse): Opportunity[] {
       area: e.location.area,
       scheduledAt: e.startsAt,
       durationMinutes: e.durationMinutes,
-      urgency: urgencyFor(e.startsAt),
       matchScore: item.matchScore,
       reasons: item.reasons,
       fitsMySchedule: false,

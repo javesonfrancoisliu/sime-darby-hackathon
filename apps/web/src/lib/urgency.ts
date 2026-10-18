@@ -8,9 +8,11 @@ export const URGENT_WITHIN_HOURS = 3;
 export const SOON_WITHIN_HOURS = 72;
 
 // The single place that decides how time-sensitive an opportunity is, from its start time.
+// Callers work it out at render time with a ticking `now`, never store the result.
 export function urgencyFor(startsAt: string, now: number = Date.now()): Urgency {
   const hoursAway = (Date.parse(startsAt) - now) / HOUR_MS;
-  if (Number.isNaN(hoursAway) || hoursAway < 0) return "low";
+  if (Number.isNaN(hoursAway)) return "low";
+  if (hoursAway < 0) return "past";
   if (hoursAway <= URGENT_WITHIN_HOURS) return "high";
   if (hoursAway <= SOON_WITHIN_HOURS) return "medium";
   return "low";

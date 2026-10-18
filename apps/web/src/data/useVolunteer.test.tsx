@@ -59,10 +59,9 @@ describe("useVolunteerData", () => {
     expect(request).toMatchObject({
       kind: "request",
       distanceKm: 2.5,
-      urgency: "high",
       isDemoData: false,
     });
-    expect(event).toMatchObject({ kind: "event", distanceKm: 4, urgency: "low" });
+    expect(event).toMatchObject({ kind: "event", distanceKm: 4 });
     expect(event?.coords).toEqual({ lat: 3.2, lng: 101.5 });
     expect(result.current.impact).toMatchObject({ totalMinutes: 90, completedCount: 2 });
     expect(result.current.live).toBe(true);
