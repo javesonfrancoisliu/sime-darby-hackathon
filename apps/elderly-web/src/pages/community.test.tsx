@@ -160,3 +160,11 @@ describe("Other community sections stay demo data", () => {
     );
   });
 });
+
+describe("Community deep link", () => {
+  it("opens the Notices tab from the Home maintenance card link", async () => {
+    installFakeApi({ "GET /api/events": { body: { events: [] } } });
+    await renderApp("/community#maintenance");
+    expect(screen.getByRole("tab", { name: /Notices/ })).toHaveAttribute("aria-selected", "true");
+  });
+});

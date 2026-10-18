@@ -7,7 +7,6 @@ import { useResident } from "../session/useResident";
 import {
   IconUser,
   IconMapPin,
-  IconShieldCheck,
   IconSliders,
   IconPhone,
   IconChevronRight,
@@ -15,11 +14,8 @@ import {
   IconVolume2,
 } from "../ui/Icons";
 
-// Me / Senior Profile Page - Apple Health & Apple ID style for Silver Generation.
-// Incorporates:
-// - Inset-grouped settings cards (§12)
-// - One-tap access to Accessibility Control Center
-// - Township resident credentials & safety emergency numbers
+// Me page: who is signed in, one-tap text and sound settings, and the township
+// security number. Medical details are not stored in this version.
 export function MePage() {
   const { openSheet, fontSize, highContrast, voiceAssist, speak } = useAccessibility();
   const resident = useResident();
@@ -50,9 +46,6 @@ export function MePage() {
           <div className="apple-profile-avatar" aria-hidden="true">
             <IconUser size={38} strokeWidth={1.8} />
           </div>
-          <span className="apple-profile-verified-badge" title="Verified Elmina Resident">
-            <IconShieldCheck size={16} strokeWidth={2.4} />
-          </span>
         </div>
 
         <h1 className="ui-page-title" style={{ marginTop: 12, marginBottom: 4 }}>
@@ -110,18 +103,15 @@ export function MePage() {
       </div>
 
       <div className="apple-profile-section">
-        <span className="apple-profile-section-title">
-          Emergency &amp; Medical ID
-          <DemoTag />
-        </span>
+        <span className="apple-profile-section-title">Emergency &amp; Medical ID</span>
         <div className="apple-inset-group">
           <div className="apple-inset-row medical-empty">
             <div>
               <span className="app-detail-label" style={{ margin: 0 }}>
-                Add your medical details
+                Medical details
               </span>
               <span className="medical-empty__hint">
-                Blood group and next of kin have not been added yet.
+                Not available yet. Blood group and next of kin cannot be saved in this version.
               </span>
             </div>
           </div>
@@ -136,7 +126,10 @@ export function MePage() {
                 <IconPhone size={18} strokeWidth={2} />
               </span>
               <div>
-                <span className="apple-inset-btn-row__title">Township security</span>
+                <span className="apple-inset-btn-row__title">
+                  Township security
+                  <DemoTag />
+                </span>
                 <span className="apple-inset-btn-row__subtitle">Demo number, not a real line</span>
               </div>
             </div>
@@ -150,10 +143,6 @@ export function MePage() {
       <div className="apple-profile-section" style={{ marginBottom: 32 }}>
         <span className="apple-profile-section-title">Township Community</span>
         <div className="apple-inset-group">
-          <div className="apple-inset-row">
-            <span className="app-detail-label">Community Status</span>
-            <span className="apple-meta-pill tone-good">Active Elder Resident</span>
-          </div>
           <div className="apple-inset-row">
             <span className="app-detail-label">Township Sector</span>
             <span className="apple-inset-value">{area}</span>

@@ -1,6 +1,6 @@
 import { useId, useState, type ReactNode } from "react";
 import { useSafetyData } from "../hooks/useSafetyData";
-import type { AlertLevel, FacilityStatus, HazardLevel, WaterStatus } from "../types/safety";
+import type { FacilityStatus } from "../types/safety";
 import {
   IconWind,
   IconWaves,
@@ -14,39 +14,18 @@ import {
 import { SegmentedTabs, TabPanel, type TabItem } from "../ui/SegmentedTabs";
 import { useAccessibility } from "../context/AccessibilityContext";
 import { DemoTag } from "../ui/DemoTag";
-import { HAZE_API_SCALE_MAX } from "../ui/status";
+import { useHashTab } from "../ui/useHashTab";
+import {
+  ALERT_LEVEL,
+  FACILITY_STATUS,
+  HAZARD_LEVEL,
+  HAZE_API_SCALE_MAX,
+  WATER_STATUS,
+} from "../safety/levels";
+import { EmergencyCallButton } from "../ui/EmergencyCallButton";
 
 type SafetyTab = "haze" | "water" | "temp" | "facilities";
-
-// ── Colour helpers ────────────────────────────────────
-type Tone = "good" | "caution" | "alert" | "extreme" | "solid-danger";
-type ToneLabel = { tone: Tone; label: string };
-
-const HAZARD_COLOR: Record<HazardLevel, ToneLabel> = {
-  good: { tone: "good", label: "Good" },
-  moderate: { tone: "caution", label: "Moderate" },
-  unhealthy: { tone: "alert", label: "Unhealthy" },
-  hazardous: { tone: "extreme", label: "Hazardous" },
-};
-
-const WATER_COLOR: Record<WaterStatus, ToneLabel> = {
-  normal: { tone: "good", label: "Normal" },
-  watch: { tone: "caution", label: "Watch" },
-  warning: { tone: "alert", label: "Warning" },
-  danger: { tone: "solid-danger", label: "Danger" },
-};
-
-const ALERT_COLOR: Record<AlertLevel, ToneLabel> = {
-  normal: { tone: "good", label: "Normal" },
-  warning: { tone: "caution", label: "Heat Advisory" },
-  danger: { tone: "alert", label: "Extreme Heat" },
-};
-
-const FACILITY_COLOR: Record<FacilityStatus, ToneLabel> = {
-  reported: { tone: "alert", label: "Reported" },
-  in_progress: { tone: "caution", label: "In Progress" },
-  fixed: { tone: "good", label: "Fixed" },
-};
+const SAFETY_TABS: readonly SafetyTab[] = ["haze", "water", "temp", "facilities"];
 
 // Water bar turns amber, then red, as the level nears the normal maximum.
 const WATER_WARN_PCT = 70;
@@ -61,13 +40,15 @@ const FACILITY_STATUSES: FacilityStatus[] = ["reported", "in_progress", "fixed"]
 const FILTER_STATUSES: FilterStatus[] = ["all", ...FACILITY_STATUSES];
 
 // Section heading with Apple design optical typography and outline icon
-function SectionHeading({ icon, title }: { icon: ReactNode; title: string }) {
+function SectionHeading({ id, icon, title }: { id: string; icon: ReactNode; title: string }) {
   return (
     <div className="safety-section__heading">
       <span className="safety-section__heading-icon" aria-hidden="true">
         {icon}
       </span>
-      <h2 className="safety-section__heading-text">{title}</h2>
+      <h2 id={id} className="safety-section__heading-text">
+        {title}
+      </h2>
     </div>
   );
 }
@@ -81,7 +62,7 @@ function SectionHeading({ icon, title }: { icon: ReactNode; title: string }) {
 export function SafetyPage() {
   const { hazeReadings, waterReadings, temperatureAlert, facilityReports } = useSafetyData();
   const [facilityFilter, setFacilityFilter] = useState<FilterStatus>("all");
-  const [tab, setTab] = useState<SafetyTab>("haze");
+  const [tab, setTab] = useHashTab<SafetyTab>(SAFETY_TABS, "haze");
   const groupId = useId();
   const { speak, triggerHaptic } = useAccessibility();
 
@@ -97,7 +78,7 @@ export function SafetyPage() {
       ? facilityReports
       : facilityReports.filter((f) => f.status === facilityFilter);
 
-  const tempStyle = ALERT_COLOR[temperatureAlert.level];
+  const tempStyle = ALERT_LEVEL[temperatureAlert.level];
   const localHaze = hazeReadings[0] ?? { location: "Elmina West", level: "good", api: 0 };
 
   function handleReadSafetySummary() {
@@ -138,7 +119,12 @@ export function SafetyPage() {
         </div>
       </div>
 
+      <div className="safety-page__call">
+        <EmergencyCallButton compact />
+      </div>
+
       <SegmentedTabs
+        groupId={groupId}
         tabs={TABS}
         active={tab}
         onChange={setTab}
@@ -153,12 +139,13 @@ export function SafetyPage() {
             id="haze"
           >
             <SectionHeading
+              id="haze-heading"
               icon={<IconWind size={22} strokeWidth={1.8} />}
               title="Air Quality &amp; Haze API"
             />
             <div className="ui-stack">
               {hazeReadings.map((r) => {
-                const s = HAZARD_COLOR[r.level];
+                const s = HAZARD_LEVEL[r.level];
                 const pct = Math.min((r.api / HAZE_API_SCALE_MAX) * 100, 100);
                 return (
                   <div key={r.location} className="safety-card">
@@ -189,9 +176,7 @@ export function SafetyPage() {
                 );
               })}
             </div>
-            <p className="safety-source">
-              Source: Department of Environment Malaysia (DoE) · API Mock
-            </p>
+            <p className="safety-source">Example data, not from any agency</p>
           </section>
         </TabPanel>
       )}
@@ -200,12 +185,13 @@ export function SafetyPage() {
         <TabPanel id="water" groupId={groupId}>
           <section className="safety-section seg-panel-enter" aria-labelledby="water-heading">
             <SectionHeading
+              id="water-heading"
               icon={<IconWaves size={22} strokeWidth={1.8} />}
               title="River &amp; Lake Water Levels"
             />
             <div className="ui-stack">
               {waterReadings.map((r) => {
-                const s = WATER_COLOR[r.status];
+                const s = WATER_STATUS[r.status];
                 const pct = Math.min((r.levelM / r.normalMaxM) * 100, 100);
                 return (
                   <div key={r.name} className="safety-card">
@@ -232,7 +218,7 @@ export function SafetyPage() {
                 );
               })}
             </div>
-            <p className="safety-source">Source: DID Malaysia Township Gauges · Mock data</p>
+            <p className="safety-source">Example data, not from any agency</p>
           </section>
         </TabPanel>
       )}
@@ -245,6 +231,7 @@ export function SafetyPage() {
             id="temp"
           >
             <SectionHeading
+              id="temp-heading"
               icon={<IconThermometer size={22} strokeWidth={1.8} />}
               title="Temperature Alerts"
             />
@@ -273,16 +260,12 @@ export function SafetyPage() {
               </div>
               {temperatureAlert.advisory && (
                 <div className="safety-advisory">
-                  <IconAlertTriangle
-                    size={16}
-                    strokeWidth={2}
-                    style={{ verticalAlign: "-2px", marginRight: 6 }}
-                  />
+                  <IconAlertTriangle className="icon-inline-low" size={16} strokeWidth={2} />
                   {temperatureAlert.advisory}
                 </div>
               )}
             </div>
-            <p className="safety-source">Source: Malaysia Meteorological Dept · Mock data</p>
+            <p className="safety-source">Example data, not from any agency</p>
           </section>
         </TabPanel>
       )}
@@ -295,6 +278,7 @@ export function SafetyPage() {
             id="facilities"
           >
             <SectionHeading
+              id="facilities-heading"
               icon={<IconWrench size={22} strokeWidth={1.8} />}
               title="Facility Reports (Reported · In Progress · Fixed)"
             />
@@ -307,7 +291,7 @@ export function SafetyPage() {
                   className={`safety-filter__btn${facilityFilter === f ? " safety-filter__btn--active" : ""}`}
                   onClick={() => handleFilterClick(f)}
                 >
-                  {f === "all" ? "All" : FACILITY_COLOR[f].label}
+                  {f === "all" ? "All" : FACILITY_STATUS[f].label}
                   <span className="safety-filter__count">
                     {f === "all"
                       ? facilityReports.length
@@ -319,7 +303,7 @@ export function SafetyPage() {
 
             <div className="ui-stack">
               {filteredFacilities.map((r) => {
-                const s = FACILITY_COLOR[r.status];
+                const s = FACILITY_STATUS[r.status];
                 return (
                   <div key={r.id} className="safety-card">
                     <div className="safety-card__row">
@@ -347,7 +331,7 @@ export function SafetyPage() {
 
             <div className="safety-facility-summary">
               {FACILITY_STATUSES.map((s) => {
-                const c = FACILITY_COLOR[s];
+                const c = FACILITY_STATUS[s];
                 const count = facilityReports.filter((r) => r.status === s).length;
                 return (
                   <div key={s} className={`safety-facility-summary__item tone-${c.tone}`}>

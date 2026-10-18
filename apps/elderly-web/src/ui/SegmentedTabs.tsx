@@ -1,4 +1,4 @@
-import { useId, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { useAccessibility } from "../context/AccessibilityContext";
 
 export interface TabItem<T extends string = string> {
@@ -8,6 +8,8 @@ export interface TabItem<T extends string = string> {
 }
 
 interface SegmentedTabsProps<T extends string> {
+  // Shared with the page's TabPanel elements so tab and panel ids point at each other.
+  groupId: string;
   tabs: TabItem<T>[];
   active: T;
   onChange: (id: T) => void;
@@ -15,20 +17,19 @@ interface SegmentedTabsProps<T extends string> {
   ariaLabel: string;
 }
 
-// SegmentedTabs - iOS-style segmented control (apple-design §16.4 Familiarity).
+// SegmentedTabs - iOS-style segmented control.
 //
 // One category visible at a time so the user never has to scroll past every
-// section. The active pill is a sliding indicator that moves with a short,
-// critically-damped curve (§1 Response, §4 behaviour-over-animation). Press
-// feedback is instant on pointer-down; motion is dropped under reduced motion
-// (§14). Full ARIA tablist semantics with roving focus.
+// section. The active pill is a sliding indicator with a short, damped curve.
+// Press feedback is instant on pointer-down; motion is dropped under reduced
+// motion. Full ARIA tablist semantics with roving focus.
 export function SegmentedTabs<T extends string>({
+  groupId,
   tabs,
   active,
   onChange,
   ariaLabel,
 }: SegmentedTabsProps<T>) {
-  const groupId = useId();
   const { triggerHaptic } = useAccessibility();
   const activeIndex = Math.max(
     0,

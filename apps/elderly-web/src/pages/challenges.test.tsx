@@ -21,6 +21,13 @@ afterEach(() => {
 });
 
 describe("Community Play gamification", () => {
+  it("labels the points, streak and rewards as example data", async () => {
+    renderPage();
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Demo data");
+    await userEvent.click(screen.getByRole("tab", { name: /Rewards/i }));
+    expect(screen.getByText(/Example rewards/)).toBeInTheDocument();
+  });
+
   it("checks in on the Streak tab: streak increments, points grow, button confirms", async () => {
     renderPage();
     // Points appear in the header chip and the streak summary.

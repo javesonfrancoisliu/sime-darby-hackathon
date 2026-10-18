@@ -13,13 +13,14 @@ import {
 } from "../ui/Icons";
 import { SegmentedTabs, TabPanel, type TabItem } from "../ui/SegmentedTabs";
 import { useAccessibility } from "../context/AccessibilityContext";
+import { DemoTag } from "../ui/DemoTag";
 
 type PlayTab = "streak" | "challenges" | "badges" | "rewards";
 
 // Challenges - gamified community features for the Silver Generation (FOR FUN).
 // Team/neighbourhood goals (never individual rankings), participation badges &
 // a daily check-in streak, and rewards/vouchers for township shops & clinics.
-// Stateful demo; apple-design feedback (§13 causal feedback, §16 completion).
+// Stateful demo: nothing here is saved or granted, so the page says so.
 export function ChallengesPage() {
   const {
     neighbourhood,
@@ -67,7 +68,7 @@ export function ChallengesPage() {
     window.setTimeout(() => setJustEarnedBadge(false), 2200);
     if (voiceAssist) {
       speak(
-        `Checked in. Your streak is now ${streak.current + 1} days. You earned 10 points for the neighbourhood.`,
+        `Checked in for the demo. The example streak is now ${streak.current + 1} days, with 10 example points added.`,
       );
     }
   }
@@ -77,13 +78,14 @@ export function ChallengesPage() {
     triggerHaptic(20);
     setPoints((p) => p - cost);
     setRedeemed((prev) => new Set(prev).add(id));
-    if (voiceAssist) speak(`Voucher redeemed: ${title} at ${partner}.`);
+    if (voiceAssist)
+      speak(`Example voucher redeemed: ${title} at ${partner}. Nothing real was spent.`);
   }
 
   function handleReadSummary() {
     const earned = badgeList.filter((b) => b.earned).length + (justEarnedBadge ? 0 : 0);
     speak(
-      `Community play for ${neighbourhood.name}. You have ${points} points and a ${streak.current} day check-in streak. ${earned} badges earned. Join a neighbourhood challenge or redeem a reward at a township shop or clinic.`,
+      `Community play for ${neighbourhood.name}. These are example values, not real points. The demo shows ${points} points and a ${streak.current} day check-in streak. ${earned} badges earned. Join a neighbourhood challenge or redeem a reward at a township shop or clinic.`,
     );
   }
 
@@ -94,7 +96,10 @@ export function ChallengesPage() {
       <div className="safety-page__header">
         <div className="row-between">
           <div>
-            <h1 className="safety-page__title">Community Play</h1>
+            <h1 className="safety-page__title">
+              Community Play
+              <DemoTag />
+            </h1>
             <p className="safety-page__subtitle">
               <IconUsers className="icon-inline-low" size={13} strokeWidth={2} />
               {neighbourhood.name} · {neighbourhood.members} neighbours
@@ -120,6 +125,7 @@ export function ChallengesPage() {
       </div>
 
       <SegmentedTabs
+        groupId={groupId}
         tabs={TABS}
         active={tab}
         onChange={setTab}
@@ -136,7 +142,9 @@ export function ChallengesPage() {
                 </span>
                 <div>
                   <span className="play-summary__points-value">{points}</span>
-                  <span className="play-summary__points-label">neighbour points</span>
+                  <span className="play-summary__points-label">
+                    neighbour points <DemoTag />
+                  </span>
                 </div>
               </div>
               <div
@@ -238,11 +246,7 @@ export function ChallengesPage() {
                       <span className="play-challenge__ends">Ends {c.endsOn}</span>
                     </div>
                     <p className="play-challenge__reward">
-                      <IconGift
-                        size={14}
-                        strokeWidth={2}
-                        style={{ verticalAlign: "-2px", marginRight: 5 }}
-                      />
+                      <IconGift className="icon-inline-low" size={14} strokeWidth={2} />
                       Team reward: {c.teamReward}
                     </p>
                   </div>
@@ -284,9 +288,10 @@ export function ChallengesPage() {
                 <IconGift size={22} strokeWidth={1.8} />
               </span>
               <h2 className="safety-section__heading-text">Rewards &amp; Vouchers</h2>
+              <DemoTag />
             </div>
             <p className="play-section-note">
-              Use your neighbour points at township shops &amp; clinics.
+              Example rewards. Redeeming here only changes this demo and gives nothing real.
             </p>
             <div className="ui-stack">
               {rewardList.map((r) => {

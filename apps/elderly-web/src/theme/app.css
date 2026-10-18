@@ -2881,3 +2881,26 @@ main:focus {
 .text-strong {
   font-weight: 700;
 }
+
+/* Controls on red surfaces get a white focus ring, since the default ring is the same red. */
+.app-hero__btn-icon:focus-visible,
+.app-hero__aa-btn:focus-visible,
+.apple-header-voice-btn:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 2px;
+}
+
+/* Slim Call 999 bar for hazard and request screens. */
+.emergency-call--compact {
+  min-height: 48px;
+  padding: var(--space-2) var(--space-4);
+}
+.emergency-call--compact .emergency-call__title {
+  font-size: 1.25rem;
+}
+.safety-page__call {
+  margin: 0 var(--space-4) var(--space-4);
+}
+.request-detail__call {
+  margin-top: var(--space-4);
+}

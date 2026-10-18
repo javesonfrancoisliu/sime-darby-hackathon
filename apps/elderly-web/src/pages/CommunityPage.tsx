@@ -20,9 +20,11 @@ import {
   IconCheck,
 } from "../ui/Icons";
 import { SegmentedTabs, TabPanel, type TabItem } from "../ui/SegmentedTabs";
+import { useHashTab } from "../ui/useHashTab";
 import { useAccessibility } from "../context/AccessibilityContext";
 
 type CommunityTab = "events" | "maintenance" | "volunteer" | "updates";
+const COMMUNITY_TABS: readonly CommunityTab[] = ["events", "maintenance", "volunteer", "updates"];
 
 // Shared section heading with standardized outline icon
 function SectionHeading({
@@ -56,7 +58,7 @@ function SectionHeading({
 export function CommunityPage() {
   const { maintenanceNotices, volunteerOpportunities, townshipUpdates } = useCommunityContent();
   const { speak, voiceAssist, triggerHaptic } = useAccessibility();
-  const [tab, setTab] = useState<CommunityTab>("events");
+  const [tab, setTab] = useHashTab<CommunityTab>(COMMUNITY_TABS, "events");
   const groupId = useId();
 
   const resident = useResident();
@@ -126,6 +128,7 @@ export function CommunityPage() {
       </div>
 
       <SegmentedTabs
+        groupId={groupId}
         tabs={TABS}
         active={tab}
         onChange={setTab}
@@ -359,11 +362,7 @@ export function CommunityPage() {
                         </p>
                         {u.pinned && (
                           <span className="safety-chip tone-alert" style={{ flexShrink: 0 }}>
-                            <IconPin
-                              size={11}
-                              strokeWidth={2}
-                              style={{ verticalAlign: "-1px", marginRight: 3 }}
-                            />
+                            <IconPin className="icon-inline" size={11} strokeWidth={2} />
                             Pinned
                           </span>
                         )}

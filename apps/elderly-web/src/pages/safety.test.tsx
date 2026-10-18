@@ -33,12 +33,39 @@ describe("Demo data honesty", () => {
   it("shows an empty Medical ID with no invented details and a fictional number", async () => {
     installFakeApi();
     await renderApp("/me");
-    expect(screen.getByText("Add your medical details")).toBeInTheDocument();
+    expect(screen.getByText("Medical details")).toBeInTheDocument();
     expect(screen.queryByText(/Blood Group|Positive|Zainal/)).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Township security/ })).toHaveAttribute(
       "href",
       "tel:0355500100",
     );
     expect(screen.getByText("03-5550 0100")).toBeInTheDocument();
+  });
+});
+
+describe("Safety page", () => {
+  it("opens on the tab named in the link and names the panel", async () => {
+    installFakeApi();
+    await renderApp("/safety#temp");
+    const tab = screen.getByRole("tab", { name: /Heat/ });
+    expect(tab).toHaveAttribute("aria-selected", "true");
+    const panel = screen.getByRole("tabpanel");
+    expect(panel).toHaveAttribute("aria-labelledby", tab.id);
+    expect(tab).toHaveAttribute("aria-controls", panel.id);
+    const section = screen.getByRole("region", { name: "Temperature Alerts" });
+    expect(panel).toContainElement(section);
+  });
+
+  it("keeps a Call 999 link in view", async () => {
+    installFakeApi();
+    await renderApp("/safety");
+    expect(screen.getByRole("link", { name: /Call 999/ })).toHaveAttribute("href", "tel:999");
+  });
+
+  it("does not name real agencies for example readings", async () => {
+    installFakeApi();
+    await renderApp("/safety");
+    expect(screen.queryByText(/Department of Environment/)).not.toBeInTheDocument();
+    expect(screen.getByText(/not from any agency/)).toBeInTheDocument();
   });
 });

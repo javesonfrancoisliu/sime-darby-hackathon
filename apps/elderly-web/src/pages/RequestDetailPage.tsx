@@ -8,6 +8,7 @@ import { canCancel, showsVolunteer } from "../ui/status";
 import { BackLink } from "../ui/BackLink";
 import { Button } from "../ui/Button";
 import { Banner } from "../ui/Banner";
+import { EmergencyCallButton } from "../ui/EmergencyCallButton";
 import { Spinner } from "../ui/Spinner";
 import { StatusBadge } from "../ui/StatusBadge";
 import { IconShieldCheck, IconUser } from "../ui/Icons";
@@ -126,6 +127,10 @@ export function RequestDetailPage() {
             </span>
           )}
         </div>
+      </div>
+
+      <div className="request-detail__call">
+        <EmergencyCallButton compact />
       </div>
 
       {cancelMutation.status === "error" ? (

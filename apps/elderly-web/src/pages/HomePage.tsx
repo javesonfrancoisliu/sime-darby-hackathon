@@ -23,35 +23,17 @@ import {
   IconMapPin,
   IconClock,
 } from "../ui/Icons";
+import { STATUS_TEXT, STATUS_TONE } from "../ui/status";
 import {
-  STATUS_TEXT,
+  ALERT_LEVEL,
+  FACILITY_STATUS,
+  HAZARD_LEVEL,
   HAZE_API_SCALE_MAX,
-  STATUS_TONE,
-  apiSeverity,
-  tempSeverity,
-  facilitySeverity,
+  severityOf,
   type Severity,
-} from "../ui/status";
+} from "../safety/levels";
 import { useCommunityContent } from "../hooks/useCommunityContent";
 import { useSafetyData } from "../hooks/useSafetyData";
-
-// Short chip labels for the live-condition carousel cards.
-const HAZE_LABEL: Record<string, string> = {
-  good: "Good",
-  moderate: "Moderate",
-  unhealthy: "Unhealthy",
-  hazardous: "Hazardous",
-};
-const TEMP_LABEL: Record<string, string> = {
-  normal: "Normal",
-  warning: "Heat Advisory",
-  danger: "Extreme Heat",
-};
-const FACILITY_LABEL: Record<string, string> = {
-  reported: "Reported",
-  in_progress: "In Progress",
-  fixed: "Fixed",
-};
 
 // Home page - Apple Design mobile-first dashboard for Silver Generation.
 // Displays:
@@ -78,7 +60,8 @@ export function HomePage() {
   // One condition card per carousel slide (shown one at a time).
   const conditionSlides: ReactNode[] = [];
   if (localHaze) {
-    const sev = apiSeverity(localHaze.api);
+    const haze = HAZARD_LEVEL[localHaze.level];
+    const sev = severityOf(haze);
     conditionSlides.push(
       <button
         key="haze"
@@ -92,7 +75,7 @@ export function HomePage() {
             <IconWind size={20} strokeWidth={1.8} />
           </span>
           <span className="safety-chip safety-chip--sm apple-condition-card__chip">
-            {HAZE_LABEL[localHaze.level] ?? "Moderate"}
+            {haze.label}
           </span>
           <DemoTag />
         </div>
@@ -112,7 +95,8 @@ export function HomePage() {
     );
   }
   {
-    const sev = tempSeverity(temperatureAlert.level);
+    const temp = ALERT_LEVEL[temperatureAlert.level];
+    const sev = severityOf(temp);
     conditionSlides.push(
       <button
         key="temp"
@@ -126,7 +110,7 @@ export function HomePage() {
             <IconThermometer size={20} strokeWidth={1.8} />
           </span>
           <span className="safety-chip safety-chip--sm apple-condition-card__chip">
-            {TEMP_LABEL[temperatureAlert.level]}
+            {temp.label}
           </span>
           <DemoTag />
         </div>
@@ -162,14 +146,15 @@ export function HomePage() {
         <span className="apple-condition-card__title-line">{localMaintenance.title}</span>
         <span className="apple-condition-card__location">{localMaintenance.affectedArea}</span>
         <span className="apple-condition-card__sub">
-          <IconClock size={11} strokeWidth={2} style={{ verticalAlign: "-1px", marginRight: 2 }} />
+          <IconClock className="icon-inline" size={11} strokeWidth={2} />
           {localMaintenance.dateRange}
         </span>
       </button>,
     );
   }
   if (localFacilityDamage) {
-    const sev = facilitySeverity(localFacilityDamage.status);
+    const facility = FACILITY_STATUS[localFacilityDamage.status];
+    const sev = severityOf(facility);
     conditionSlides.push(
       <button
         key="facility"
@@ -183,14 +168,15 @@ export function HomePage() {
             <IconWrench size={20} strokeWidth={1.8} />
           </span>
           <span className="safety-chip safety-chip--sm apple-condition-card__chip">
-            {FACILITY_LABEL[localFacilityDamage.status]}
+            {facility.label}
           </span>
           <DemoTag />
         </div>
         <span className="apple-condition-card__title-line">{localFacilityDamage.title}</span>
         <span className="apple-condition-card__location">{localFacilityDamage.location}</span>
         <span className="apple-condition-card__sub">
-          Crew dispatched · {localFacilityDamage.category}
+          {localFacilityDamage.status === "in_progress" ? "Crew dispatched" : facility.label} ·{" "}
+          {localFacilityDamage.category}
         </span>
       </button>,
     );
@@ -211,11 +197,7 @@ export function HomePage() {
               Township Live Conditions
             </h2>
             <p className="app-home__section-subtitle">
-              <IconMapPin
-                size={12}
-                strokeWidth={2}
-                style={{ verticalAlign: "-1px", marginRight: 3 }}
-              />
+              <IconMapPin className="icon-inline" size={12} strokeWidth={2} />
               Elmina West · Example readings
             </p>
           </div>
