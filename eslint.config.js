@@ -16,12 +16,17 @@ export default defineConfig(
   js.configs.recommended,
   tseslint.configs.recommended,
   {
-    files: ["apps/web/src/**/*.{ts,tsx}", "apps/elderly-web/src/**/*.{ts,tsx}"],
+    files: [
+      "apps/web/src/**/*.{ts,tsx}",
+      "apps/elderly-web/src/**/*.{ts,tsx}",
+      "packages/api-client/src/**/*.{ts,tsx}",
+    ],
     extends: [reactHooks.configs.flat.recommended],
     languageOptions: { globals: globals.browser },
   },
   {
     files: ["apps/api/**/*.ts", "packages/**/*.mjs", "packages/**/*.ts", "**/*.config.{js,ts}"],
+    ignores: ["packages/api-client/**"],
     languageOptions: { globals: globals.node },
   },
 );
