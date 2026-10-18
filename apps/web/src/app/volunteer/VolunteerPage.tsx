@@ -1,4 +1,4 @@
-import { CloudOff, MapPin, Navigation } from "lucide-react";
+import { CloudOff, MapPin, Navigation, ShieldQuestion } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useMemo, useState } from "react";
 
@@ -13,6 +13,7 @@ import {
 import {
   AppButton,
   ConfirmationDialog,
+  AppLinkButton,
   EmptyState,
   InfoCard,
   LoadingState,
@@ -34,7 +35,7 @@ import { URGENCY_RANK, type Opportunity } from "../../types/volunteer";
 const VOLUNTEERING_POINTS = 60;
 
 export function VolunteerPage() {
-  const { opportunities, loading, error, live, reload } = useVolunteerData();
+  const { opportunities, loading, error, notVerified, live, reload } = useVolunteerData();
   const geo = useGeolocation();
   const {
     tasks,
@@ -55,24 +56,26 @@ export function VolunteerPage() {
   const [completeError, setCompleteError] = useState<string | null>(null);
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
   const [failure, setFailure] = useState<{ title: string; message: string } | null>(null);
-  const [confirmation, setConfirmation] = useState<{ title: string; message: string } | null>(
-    null,
-  );
+  const [confirmation, setConfirmation] = useState<{ title: string; message: string } | null>(null);
 
-  // Effective distance per opportunity: live (from user coords) when we have
-  // both a granted location and the item's approximate coords; else the baked
-  // fallback. Keyed by id so the card and the sort agree.
+  // Signed in, distances come from the server only: it measures from the saved
+  // profile location, and mixing in the device position would disagree with it.
+  const useDevice = !live && geo.status === "granted";
+
+  // Effective distance per opportunity: from the device when allowed and the
+  // item has approximate coords; else the distance on the item. Keyed by id so
+  // the card and the sort agree.
   const distances = useMemo(() => {
     const map = new Map<string, number>();
     for (const o of opportunities) {
-      if (geo.status === "granted" && geo.coords && o.coords) {
+      if (useDevice && geo.coords && o.coords) {
         map.set(o.id, distanceKm(geo.coords, o.coords));
       } else {
         map.set(o.id, o.distanceKm);
       }
     }
     return map;
-  }, [opportunities, geo.status, geo.coords]);
+  }, [opportunities, useDevice, geo.coords]);
 
   const visible = useMemo(() => {
     const dist = (o: Opportunity) => distances.get(o.id) ?? o.distanceKm;
@@ -91,8 +94,7 @@ export function VolunteerPage() {
           const byUrgency = URGENCY_RANK[a.urgency] - URGENCY_RANK[b.urgency];
           if (byUrgency !== 0) return byUrgency;
           // Tie-break urgent items by soonest, then nearest.
-          const byTime =
-            new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime();
+          const byTime = new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime();
           return byTime !== 0 ? byTime : dist(a) - dist(b);
         });
         break;
@@ -104,16 +106,18 @@ export function VolunteerPage() {
     setAcceptingId(opportunity.id);
     try {
       await accept(opportunity);
+      // Refresh the feed first so the accepted card is already gone from it.
+      if (live) await reload();
       setConfirmation({
         title: "Thanks for stepping up",
         message: `You ${opportunity.kind === "event" ? "joined" : "accepted"} "${opportunity.title}" on ${formatDate(opportunity.scheduledAt)}. It's now in "My accepted tasks".${live ? "" : " This is a demo sign-up saved only in this browser."}`,
       });
     } catch (err) {
       setFailure({ title: "Couldn't accept this task", message: errorMessage(err) });
+      // Someone else may have taken it, so the feed has changed.
+      if (live) await reload();
     } finally {
       setAcceptingId(null);
-      // Someone else may have taken it; either way the feed has changed.
-      if (live) reload();
     }
   }
 
@@ -128,12 +132,12 @@ export function VolunteerPage() {
     setCompleteError(null);
     try {
       await complete(task.id, minutesSpent);
+      if (live) await reload(); // volunteer hours changed
       setCompleting(null);
       setConfirmation({
         title: "Marked as completed",
         message: `You marked "${task.title}" as completed (${minutesSpent} min). It still needs the resident's confirmation before it counts as verified.`,
       });
-      if (live) reload(); // volunteer hours changed
     } catch (err) {
       setCompleteError(errorMessage(err));
     } finally {
@@ -158,8 +162,6 @@ export function VolunteerPage() {
     });
   }
 
-  const usingLive = geo.status === "granted";
-
   return (
     <>
       <PageHeader title="Volunteer nearby" actions={<VerifiedBadge status={verification} />} />
@@ -173,91 +175,120 @@ export function VolunteerPage() {
 
       {loading || tasksLoading ? (
         <LoadingState rows={3} label="Loading volunteering opportunities" />
-      ) : error || tasksError ? (
-        <InfoCard>
-          <EmptyState
-            icon={CloudOff}
-            title="Couldn't load volunteering"
-            description={error ?? tasksError ?? undefined}
-            action={
-              <AppButton
-                variant="secondary"
-                onClick={() => {
-                  reload();
-                  refreshTasks();
-                }}
-              >
-                Try again
-              </AppButton>
-            }
-          />
-        </InfoCard>
       ) : (
         <>
+          {tasksError && (
+            <InfoCard>
+              <EmptyState
+                icon={CloudOff}
+                title="Couldn't load your accepted tasks"
+                description={tasksError}
+                action={
+                  <AppButton variant="secondary" onClick={() => void refreshTasks()}>
+                    Try again
+                  </AppButton>
+                }
+              />
+            </InfoCard>
+          )}
           <MyTasksSection tasks={tasks} onComplete={openComplete} onVerify={handleVerify} />
 
-          <section className="ui-section" aria-labelledby="browse-heading">
-            <h2 className="ui-visually-hidden" id="browse-heading">
-              Browse opportunities
-            </h2>
+          {notVerified ? (
+            <InfoCard>
+              <EmptyState
+                icon={ShieldQuestion}
+                title={
+                  verification === "rejected"
+                    ? "Your volunteer profile was not approved"
+                    : "Your volunteer profile is waiting for approval"
+                }
+                description={
+                  verification === "rejected"
+                    ? "A coordinator did not approve your profile, so requests stay hidden. You can still join community events."
+                    : "A coordinator needs to verify your profile before you can see neighbours' requests. You can still join community events while you wait."
+                }
+                action={<AppLinkButton to="/community">See community events</AppLinkButton>}
+              />
+            </InfoCard>
+          ) : error ? (
+            <InfoCard>
+              <EmptyState
+                icon={CloudOff}
+                title="Couldn't load opportunities"
+                description={error}
+                action={
+                  <AppButton variant="secondary" onClick={() => void reload()}>
+                    Try again
+                  </AppButton>
+                }
+              />
+            </InfoCard>
+          ) : (
+            <section className="ui-section" aria-labelledby="browse-heading">
+              <h2 className="ui-visually-hidden" id="browse-heading">
+                Browse opportunities
+              </h2>
 
-            <div className="geo-hint">
-              <MapPin size={16} aria-hidden="true" />
-              {usingLive ? (
-                <span>Sorted by your current location.</span>
-              ) : (
-                <>
-                  <span>
-                    {geo.status === "denied" || geo.status === "unavailable"
-                      ? "Using demo locations."
-                      : "Using demo locations until you share your location."}
-                  </span>
-                  {geo.status !== "unavailable" && (
-                    <AppButton
-                      variant="ghost"
-                      onClick={geo.request}
-                      loading={geo.status === "locating"}
-                    >
-                      <Navigation size={16} aria-hidden="true" />
-                      Use my location
-                    </AppButton>
-                  )}
-                </>
-              )}
-            </div>
+              <div className="geo-hint">
+                <MapPin size={16} aria-hidden="true" />
+                {live ? (
+                  <span>Distances are measured from your saved area.</span>
+                ) : useDevice ? (
+                  <span>Sorted by your current location.</span>
+                ) : (
+                  <>
+                    <span>
+                      {geo.status === "denied" || geo.status === "unavailable"
+                        ? "Using demo locations."
+                        : "Using demo locations until you share your location."}
+                    </span>
+                    {geo.status !== "unavailable" && (
+                      <AppButton
+                        variant="ghost"
+                        onClick={geo.request}
+                        loading={geo.status === "locating"}
+                      >
+                        <Navigation size={16} aria-hidden="true" />
+                        Use my location
+                      </AppButton>
+                    )}
+                  </>
+                )}
+              </div>
 
-            <div className="results-bar">
-              <span className="results-count" aria-live="polite">
-                {visible.length} opportunit{visible.length === 1 ? "y" : "ies"}
-              </span>
-              <OpportunitySort value={sort} onChange={setSort} />
-            </div>
+              <div className="results-bar">
+                <span className="results-count" aria-live="polite">
+                  {visible.length} opportunit{visible.length === 1 ? "y" : "ies"}
+                </span>
+                <OpportunitySort value={sort} onChange={setSort} />
+              </div>
 
-            {visible.length === 0 ? (
-              <InfoCard>
-                <EmptyState
-                  icon={MapPin}
-                  title="No opportunities right now"
-                  description="Please check back later for new ways to help your neighbours."
-                />
-              </InfoCard>
-            ) : (
-              <ul className="ui-grid community-list">
-                {visible.map((opportunity) => (
-                  <OpportunityCard
-                    key={opportunity.id}
-                    opportunity={opportunity}
-                    liveDistanceKm={
-                      usingLive && opportunity.coords ? distances.get(opportunity.id) : undefined
-                    }
-                    joined={isAccepted(opportunity.id)}
-                    accepting={acceptingId === opportunity.id}
-                    onAccept={(o) => void handleAccept(o)}
+              {visible.length === 0 ? (
+                <InfoCard>
+                  <EmptyState
+                    icon={MapPin}
+                    title="No opportunities right now"
+                    description="Please check back later for new ways to help your neighbours."
                   />
-                ))}
-              </ul>
-            )}
-          </section>
+                </InfoCard>
+              ) : (
+                <ul className="ui-grid community-list">
+                  {visible.map((opportunity) => (
+                    <OpportunityCard
+                      key={opportunity.id}
+                      opportunity={opportunity}
+                      liveDistanceKm={
+                        useDevice && opportunity.coords ? distances.get(opportunity.id) : undefined
+                      }
+                      joined={isAccepted(opportunity.id)}
+                      accepting={acceptingId === opportunity.id}
+                      onAccept={(o) => void handleAccept(o)}
+                    />
+                  ))}
+                </ul>
+              )}
+            </section>
+          )}
         </>
       )}
 

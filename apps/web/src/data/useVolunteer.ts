@@ -1,5 +1,3 @@
-import { useCallback, useEffect, useState } from "react";
-
 import type { ContributionsResponse, OpportunitiesResponse } from "@sdh/contracts";
 
 import type {
@@ -9,7 +7,8 @@ import type {
   TaskCategory,
   Urgency,
 } from "../types/volunteer";
-import { apiFetch, errorMessage, useSession } from "@sdh/api-client";
+import { ApiError, apiFetch, errorMessage, useSession } from "@sdh/api-client";
+import { useLoader } from "../lib/useLoader";
 import { MOCK_IMPACT, MOCK_OPPORTUNITIES } from "./volunteer.mock";
 
 const EMPTY_IMPACT: ImpactSummary = {
@@ -96,61 +95,50 @@ export type VolunteerData = {
   opportunities: Opportunity[];
   impact: ImpactSummary;
   loading: boolean;
-  /** Set when live mode could not load; the UI shows it instead of falling back to mock. */
+  // Set when live mode could not load; the UI shows it instead of falling back to mock.
   error: string | null;
-  /** True when the data came from the API (a demo user is signed in). */
+  // The API refused the feed because the volunteer is not verified yet.
+  notVerified: boolean;
+  // Set when only the volunteer-hours summary failed; the feed still works.
+  impactError: string | null;
+  // True when the data came from the API (a demo user is signed in).
   live: boolean;
-  reload: () => void;
+  reload: () => Promise<void>;
 };
 
-/**
- * Signed out: labelled demo data, so the prototype still works offline.
- * Signed in (demo user chosen on Profile): the live opportunities and
- * contributions APIs, with errors shown rather than hidden behind mock data.
- */
+type LiveResult = {
+  opportunities: Opportunity[];
+  impact: ImpactSummary;
+  error: string | null;
+  notVerified: boolean;
+  impactError: string | null;
+};
+
+// One failing call must not blank the other, so both are settled separately.
+async function loadLive(userId: string | null): Promise<LiveResult> {
+  const [feed, hours] = await Promise.allSettled([
+    apiFetch<OpportunitiesResponse>("/api/opportunities", { userId }),
+    apiFetch<ContributionsResponse>("/api/contributions/mine", { userId }),
+  ]);
+  const notVerified =
+    feed.status === "rejected" &&
+    feed.reason instanceof ApiError &&
+    feed.reason.code === "FORBIDDEN";
+  return {
+    opportunities: feed.status === "fulfilled" ? mapOpportunities(feed.value) : [],
+    impact: hours.status === "fulfilled" ? mapContributions(hours.value) : EMPTY_IMPACT,
+    error: feed.status === "rejected" && !notVerified ? errorMessage(feed.reason) : null,
+    notVerified,
+    impactError: hours.status === "rejected" ? errorMessage(hours.reason) : null,
+  };
+}
+
+// Signed out: labelled demo data, so the prototype still works offline.
+// Signed in (demo user chosen on Profile): the live opportunities and
+// contributions APIs, with errors shown rather than hidden behind mock data.
 export function useVolunteerData(): VolunteerData {
   const { userId } = useSession();
-  const [version, setVersion] = useState(0);
-  // `forUserId` marks whose data is loaded, so switching user shows loading
-  // while a reload after accept/complete keeps the current list on screen.
-  const [liveState, setLiveState] = useState<{
-    forUserId: string | null;
-    opportunities: Opportunity[];
-    impact: ImpactSummary;
-    error: string | null;
-  }>({ forUserId: null, opportunities: [], impact: EMPTY_IMPACT, error: null });
-
-  useEffect(() => {
-    if (!userId) return;
-    let cancelled = false;
-    Promise.all([
-      apiFetch<OpportunitiesResponse>("/api/opportunities", { userId }),
-      apiFetch<ContributionsResponse>("/api/contributions/mine", { userId }),
-    ])
-      .then(([opportunities, contributions]) => {
-        if (cancelled) return;
-        setLiveState({
-          forUserId: userId,
-          opportunities: mapOpportunities(opportunities),
-          impact: mapContributions(contributions),
-          error: null,
-        });
-      })
-      .catch((err: unknown) => {
-        if (cancelled) return;
-        setLiveState({
-          forUserId: userId,
-          opportunities: [],
-          impact: EMPTY_IMPACT,
-          error: errorMessage(err),
-        });
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [userId, version]);
-
-  const reload = useCallback(() => setVersion((v) => v + 1), []);
+  const { loaded, reload } = useLoader(userId, loadLive, userId !== null);
 
   if (!userId) {
     return {
@@ -158,16 +146,22 @@ export function useVolunteerData(): VolunteerData {
       impact: MOCK_IMPACT,
       loading: false,
       error: null,
+      notVerified: false,
+      impactError: null,
       live: false,
       reload,
     };
   }
-  const loaded = liveState.forUserId === userId;
+  // A reload after accept or complete keeps the current list on screen; only a
+  // different user shows loading.
+  const ready = loaded !== null && loaded.scope === userId ? loaded.value : null;
   return {
-    opportunities: loaded ? liveState.opportunities : [],
-    impact: loaded ? liveState.impact : EMPTY_IMPACT,
-    loading: !loaded,
-    error: loaded ? liveState.error : null,
+    opportunities: ready?.opportunities ?? [],
+    impact: ready?.impact ?? EMPTY_IMPACT,
+    loading: ready === null,
+    error: ready?.error ?? null,
+    notVerified: ready?.notVerified ?? false,
+    impactError: ready?.impactError ?? null,
     live: true,
     reload,
   };
