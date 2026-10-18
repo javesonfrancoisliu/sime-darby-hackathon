@@ -939,15 +939,8 @@
 }
 
 /* Labels for example data */
-.demo-tag {
-  display: inline-block;
+.app-root .ui-demo-tag {
   margin-left: 8px;
-  padding: 2px 10px;
-  border-radius: var(--radius-pill);
-  background: var(--info-bg);
-  color: var(--info);
-  font-size: 1rem;
-  font-weight: 700;
   vertical-align: middle;
 }
 .demo-banner {

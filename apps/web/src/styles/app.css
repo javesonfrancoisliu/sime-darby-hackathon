@@ -179,18 +179,6 @@
   color: var(--border);
 }
 
-.ui-demo-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  border-radius: var(--radius-pill);
-  background: var(--warning-bg);
-  color: var(--warning);
-  font-size: 13px;
-  font-weight: 600;
-}
-
 .ui-badge svg {
   width: 14px;
   height: 14px;
