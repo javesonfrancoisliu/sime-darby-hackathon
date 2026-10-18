@@ -38,6 +38,7 @@ module "web" {
 
   name_prefix     = local.name_prefix
   site_name       = "app"
+  force_destroy   = var.web_bucket_force_destroy
   api_domain_name = replace(module.api.api_endpoint, "https://", "")
   price_class     = var.cloudfront_price_class
 }

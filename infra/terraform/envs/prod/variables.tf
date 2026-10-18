@@ -63,3 +63,9 @@ variable "cognito_deletion_protection" {
   type        = bool
   default     = true
 }
+
+variable "web_bucket_force_destroy" {
+  description = "Let Terraform delete the site bucket with its files. Built files only, redeployable from git."
+  type        = bool
+  default     = false
+}
