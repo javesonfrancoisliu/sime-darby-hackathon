@@ -21,3 +21,10 @@ export const EMERGENCY_NUMBER = "999";
 
 // Fictional township security line for the demo. Replace with the real line before launch.
 export const DEMO_SECURITY_LINE = { display: "03-5550 0100", tel: "0355500100" };
+
+// Fictional Medical ID shown to every resident until medical details can be saved.
+export const DEMO_MEDICAL_ID = {
+  bloodGroup: "O Positive",
+  nextOfKin: "Zainal (Son)",
+  nextOfKinPhone: "012-345 6789",
+};

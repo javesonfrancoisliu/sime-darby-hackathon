@@ -30,11 +30,13 @@ describe("Demo data honesty", () => {
     expect(within(section).getAllByText("Demo data").length).toBeGreaterThan(0);
   });
 
-  it("shows an empty Medical ID with no invented details and a fictional number", async () => {
+  it("shows the demo Medical ID and a fictional security number", async () => {
     installFakeApi();
     await renderApp("/me");
-    expect(screen.getByText("Medical details")).toBeInTheDocument();
-    expect(screen.queryByText(/Blood Group|Positive|Zainal/)).not.toBeInTheDocument();
+    expect(screen.getByText("Blood Group")).toBeInTheDocument();
+    expect(screen.getByText("O Positive")).toBeInTheDocument();
+    expect(screen.getByText("012-345 6789")).toHaveClass("text-nowrap");
+    expect(screen.getByText(/Zainal \(Son\)/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Township security/ })).toHaveAttribute(
       "href",
       "tel:0355500100",

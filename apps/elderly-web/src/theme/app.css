@@ -2590,11 +2590,13 @@ button:active,
   font-size: 1rem;
   font-weight: 600;
 }
-.medical-empty__hint {
-  display: block;
-  margin-top: 4px;
-  font-size: 1rem;
-  color: var(--text-secondary);
+.text-nowrap {
+  white-space: nowrap;
+}
+.medical-row__label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 @media (prefers-reduced-motion: reduce) {
   .emergency-call {
