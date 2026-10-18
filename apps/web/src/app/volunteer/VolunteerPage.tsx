@@ -23,7 +23,7 @@ import { useAcceptedTasks, type AcceptedTask } from "../../data/AcceptedTasksCon
 import { useProfile } from "../../data/ProfileContext";
 import { useGamification } from "../../data/useGamification";
 import { useVolunteerData } from "../../data/useVolunteer";
-import { errorMessage } from "../../lib/api";
+import { errorMessage } from "@sdh/api-client";
 import { formatDate } from "../../lib/format";
 import { distanceKm } from "../../lib/geo";
 import { useGeolocation } from "../../lib/useGeolocation";

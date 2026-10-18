@@ -9,8 +9,7 @@ import type {
   TaskCategory,
   Urgency,
 } from "../types/volunteer";
-import { apiFetch, errorMessage } from "../lib/api";
-import { useSession } from "./SessionContext";
+import { apiFetch, errorMessage, useSession } from "@sdh/api-client";
 import { MOCK_IMPACT, MOCK_OPPORTUNITIES } from "./volunteer.mock";
 
 const EMPTY_IMPACT: ImpactSummary = {

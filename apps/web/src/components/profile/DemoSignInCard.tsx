@@ -3,8 +3,7 @@ import { useEffect, useId, useState } from "react";
 
 import type { DemoUser, DemoUsersResponse } from "@sdh/contracts";
 
-import { useSession } from "../../data/SessionContext";
-import { apiFetch, errorMessage } from "../../lib/api";
+import { apiFetch, errorMessage, useSession } from "@sdh/api-client";
 import { AppButton, InfoCard, StatusBadge } from "../ui";
 
 const ROLE_LABEL: Record<DemoUser["role"], string> = {

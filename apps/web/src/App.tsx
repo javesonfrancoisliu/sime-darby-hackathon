@@ -10,7 +10,7 @@ import { VolunteerPage } from "./app/volunteer/VolunteerPage";
 import { AcceptedTasksProvider } from "./data/AcceptedTasksContext";
 import { GamificationProvider } from "./data/useGamification";
 import { ProfileProvider } from "./data/ProfileContext";
-import { SessionProvider, useSession } from "./data/SessionContext";
+import { SessionProvider, useSession } from "@sdh/api-client";
 import { AppShell, RoleProvider, useRole } from "./components/layout";
 import { LoadingState } from "./components/ui";
 

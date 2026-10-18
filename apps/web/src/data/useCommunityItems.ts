@@ -3,9 +3,8 @@ import { useCallback, useEffect, useState } from "react";
 import type { EventsResponse } from "@sdh/contracts";
 
 import type { CommunityItem, EventItem } from "../types/community";
-import { apiFetch } from "../lib/api";
+import { apiFetch, useSession } from "@sdh/api-client";
 import { DEMO_TOWNSHIP } from "../lib/township";
-import { useSession } from "./SessionContext";
 import { COMMUNITY_ITEMS } from "./community.mock";
 
 type LoadState = {

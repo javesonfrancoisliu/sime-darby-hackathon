@@ -11,7 +11,7 @@ import {
 import type { VerificationStatus } from "../types/volunteer";
 import type { ProfilePrefs } from "../types/profile";
 import { DEMO_TOWNSHIP } from "../lib/township";
-import { useSession } from "./SessionContext";
+import { useSession } from "@sdh/api-client";
 
 // Reusable, localStorage-backed Young-resident profile state. Held once at the
 // app root so every component sees the same values; persisted so edits survive

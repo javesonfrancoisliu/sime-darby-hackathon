@@ -12,6 +12,7 @@
     "icons": "node scripts/generate-icons.mjs"
   },
   "dependencies": {
+    "@sdh/api-client": "workspace:*",
     "@sdh/contracts": "workspace:*",
     "lucide-react": "^0.550.0",
     "react": "^19.2.0",

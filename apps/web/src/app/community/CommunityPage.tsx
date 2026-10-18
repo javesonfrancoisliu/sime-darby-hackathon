@@ -26,9 +26,8 @@ import {
 import { ChallengesEntryCard } from "../../components/challenges";
 import { useRole } from "../../components/layout";
 import { useAcceptedTasks } from "../../data/AcceptedTasksContext";
-import { useSession } from "../../data/SessionContext";
+import { apiFetch, errorMessage, useSession } from "@sdh/api-client";
 import { useCommunityItems } from "../../data/useCommunityItems";
-import { apiFetch, errorMessage } from "../../lib/api";
 import { formatDate } from "../../lib/format";
 import { DEMO_TOWNSHIP } from "../../lib/township";
 import type {

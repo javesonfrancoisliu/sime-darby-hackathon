@@ -10,14 +10,13 @@ import {
 
 import type { CommunityEvent, EventsResponse, HelpRequest, RequestsResponse } from "@sdh/contracts";
 
-import { apiFetch, errorMessage } from "../lib/api";
+import { apiFetch, errorMessage, useSession } from "@sdh/api-client";
 import type { Opportunity, OpportunityKind } from "../types/volunteer";
-import { useSession } from "./SessionContext";
 
 // Tracks the volunteer's accepted Help-a-Neighbour tasks. Held once at the app
 // root (context) so Volunteer Nearby and Community Challenges share one instance.
 //
-// Two modes, picked by the demo sign-in (data/SessionContext.tsx):
+// Two modes, picked by the demo sign-in (@sdh/api-client session):
 //  - signed out: simulated and client-only, persisted to localStorage;
 //  - signed in:  accepted requests come from GET /api/requests/mine and joined
 //    events from GET /api/events; accept/join/complete call the API.

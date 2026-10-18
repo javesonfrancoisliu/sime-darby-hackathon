@@ -10,7 +10,8 @@ import {
 
 import type { User } from "@sdh/contracts";
 
-import { ApiError, apiFetch, DEMO_USER_STORAGE_KEY, storedDemoUserId } from "../lib/api";
+import { ApiError, apiFetch } from "./fetch";
+import { clearScopedKeys, DEMO_USER_STORAGE_KEY, storedDemoUserId, writeStorage } from "./storage";
 
 // Demo sign-in. The backend identifies callers by an X-Demo-User header holding
 // a seeded user id (not real authentication). Choosing a user here switches the
@@ -19,7 +20,7 @@ import { ApiError, apiFetch, DEMO_USER_STORAGE_KEY, storedDemoUserId } from "../
 export type SessionStatus = "signed_out" | "loading" | "signed_in" | "error";
 
 export type SessionContextValue = {
-  /** Chosen demo user id. Non-null means "live mode": data comes from the API. */
+  // Chosen demo user id. Non-null means "live mode": data comes from the API.
   userId: string | null;
   user: User | null;
   status: SessionStatus;
@@ -31,12 +32,7 @@ export type SessionContextValue = {
 const SessionContext = createContext<SessionContextValue | null>(null);
 
 function persist(userId: string | null) {
-  try {
-    if (userId) window.localStorage.setItem(DEMO_USER_STORAGE_KEY, userId);
-    else window.localStorage.removeItem(DEMO_USER_STORAGE_KEY);
-  } catch {
-    // Storage blocked (private mode): the session just won't survive a reload.
-  }
+  writeStorage(DEMO_USER_STORAGE_KEY, userId);
 }
 
 export function SessionProvider({ children }: { children: ReactNode }) {
@@ -58,6 +54,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         if (err instanceof ApiError && err.code === "UNAUTHENTICATED") {
           // The stored user no longer exists (e.g. the table was reseeded).
           persist(null);
+          clearScopedKeys();
           setUserId(null);
           setUser(null);
           setError(null);
@@ -79,6 +76,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(() => {
     persist(null);
+    clearScopedKeys();
     setUser(null);
     setError(null);
     setUserId(null);
