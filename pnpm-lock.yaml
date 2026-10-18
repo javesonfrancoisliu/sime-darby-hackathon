@@ -106,9 +106,6 @@ importers:
       '@testing-library/user-event':
         specifier: ^14.6.1
         version: 14.6.8(@testing-library/dom@10.4.2)
-      '@types/node':
-        specifier: ^24.19.2
-        version: 24.19.2
       '@types/react':
         specifier: ^18.3.12
         version: 18.3.31
