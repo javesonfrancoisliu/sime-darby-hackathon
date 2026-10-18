@@ -48,6 +48,31 @@ export const UpdateMeBody = Profile.partial()
   .refine((body) => Object.keys(body).length > 0, { message: "Nothing to update" });
 export type UpdateMeBody = z.infer<typeof UpdateMeBody>;
 
+// Roles a person may pick for themselves at sign-up; coordinators are set by an administrator.
+export const SelfRole = z.enum(["elder", "volunteer"]);
+export type SelfRole = z.infer<typeof SelfRole>;
+
+export const Precinct = z.enum(["Elmina West", "Elmina Valley", "Elmina East", "Central Park"]);
+export type Precinct = z.infer<typeof Precinct>;
+
+// Fictional demo coordinates for each precinct; the exact home is never collected.
+export const PRECINCT_LOCATIONS: Record<Precinct, Location> = {
+  "Elmina West": { lat: 3.0738, lng: 101.5183 },
+  "Elmina Valley": { lat: 3.0594, lng: 101.5282 },
+  "Elmina East": { lat: 3.0783, lng: 101.5318 },
+  "Central Park": { lat: 3.0837, lng: 101.5273 },
+};
+
+// Created once after the first sign-in; the id comes from the verified token, never the body.
+export const CreateMeBody = z
+  .object({
+    role: SelfRole,
+    name: Profile.shape.name,
+    precinct: Precinct,
+  })
+  .strict();
+export type CreateMeBody = z.infer<typeof CreateMeBody>;
+
 export const DemoUser = User.pick({
   id: true,
   name: true,
