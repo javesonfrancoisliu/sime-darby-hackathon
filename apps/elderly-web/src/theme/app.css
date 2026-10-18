@@ -2783,3 +2783,63 @@ main:focus {
 .request-detail__call {
   margin-top: var(--space-4);
 }
+
+/* Small spacing and text helpers on the shared scale. */
+.m-0 {
+  margin: 0;
+}
+.mt-2 {
+  margin-top: var(--space-2);
+}
+.mt-3 {
+  margin-top: var(--space-3);
+}
+.mt-4 {
+  margin-top: var(--space-4);
+}
+.mt-8 {
+  margin-top: var(--space-8);
+}
+.mb-1 {
+  margin-bottom: var(--space-1);
+}
+.mb-6 {
+  margin-bottom: var(--space-6);
+}
+.mb-8 {
+  margin-bottom: var(--space-8);
+}
+.stack-gap-3 {
+  gap: var(--space-3);
+}
+.text-center {
+  text-align: center;
+}
+.text-secondary {
+  color: var(--text-secondary);
+}
+.text-brand {
+  color: var(--brand-primary);
+}
+.no-shrink {
+  flex-shrink: 0;
+}
+.no-underline {
+  text-decoration: none;
+}
+.category-choice-card__heading {
+  margin-bottom: 2px;
+}
+.app-banner {
+  border-color: var(--danger);
+  color: var(--danger);
+  margin-bottom: var(--space-6);
+}
+.app-banner__message {
+  margin: 0;
+  font-weight: 600;
+}
+.app-spinner-text {
+  color: var(--text-secondary);
+  font-weight: 600;
+}

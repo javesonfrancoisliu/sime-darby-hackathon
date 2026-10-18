@@ -48,9 +48,7 @@ export function MePage() {
           </div>
         </div>
 
-        <h1 className="ui-page-title" style={{ marginTop: 12, marginBottom: 4 }}>
-          {name}
-        </h1>
+        <h1 className="ui-page-title mt-3 mb-1">{name}</h1>
         <p className="apple-profile-location">
           <IconMapPin className="icon-inline-low" size={14} strokeWidth={2} />
           {area}
@@ -79,7 +77,7 @@ export function MePage() {
         <div className="apple-inset-group">
           <button
             type="button"
-            className="apple-inset-btn-row"
+            className="apple-inset-btn-row no-underline"
             onClick={openSheet}
             aria-label="Open text and sound settings"
           >
@@ -107,22 +105,16 @@ export function MePage() {
         <div className="apple-inset-group">
           <div className="apple-inset-row medical-empty">
             <div>
-              <span className="app-detail-label" style={{ margin: 0 }}>
-                Medical details
-              </span>
+              <span className="app-detail-label m-0">Medical details</span>
               <span className="medical-empty__hint">
                 Not available yet. Blood group and next of kin cannot be saved in this version.
               </span>
             </div>
           </div>
 
-          <a
-            href={`tel:${DEMO_SECURITY_LINE.tel}`}
-            className="apple-inset-btn-row"
-            style={{ textDecoration: "none" }}
-          >
+          <a href={`tel:${DEMO_SECURITY_LINE.tel}`} className="apple-inset-btn-row">
             <div className="apple-inset-btn-row__left">
-              <span className="apple-inset-btn-row__icon" style={{ color: "var(--brand-primary)" }}>
+              <span className="apple-inset-btn-row__icon text-brand">
                 <IconPhone size={18} strokeWidth={2} />
               </span>
               <div>
@@ -133,14 +125,12 @@ export function MePage() {
                 <span className="apple-inset-btn-row__subtitle">Demo number, not a real line</span>
               </div>
             </div>
-            <span style={{ fontWeight: 700, color: "var(--brand-primary)" }}>
-              {DEMO_SECURITY_LINE.display}
-            </span>
+            <span className="text-strong text-brand">{DEMO_SECURITY_LINE.display}</span>
           </a>
         </div>
       </div>
 
-      <div className="apple-profile-section" style={{ marginBottom: 32 }}>
+      <div className="apple-profile-section mb-8">
         <span className="apple-profile-section-title">Township Community</span>
         <div className="apple-inset-group">
           <div className="apple-inset-row">

@@ -69,7 +69,7 @@ export function RequestDetailPage() {
       <BackLink />
 
       <div className="apple-detail-hero">
-        <h1 ref={titleRef} tabIndex={-1} className="ui-page-title" style={{ marginBottom: 4 }}>
+        <h1 ref={titleRef} tabIndex={-1} className="ui-page-title mb-1">
           {req.title}
         </h1>
         <div>
@@ -122,9 +122,7 @@ export function RequestDetailPage() {
               </span>
             </div>
           ) : (
-            <span className="apple-inset-value" style={{ color: "var(--text-secondary)" }}>
-              {noVolunteerText(req.status)}
-            </span>
+            <span className="apple-inset-value text-secondary">{noVolunteerText(req.status)}</span>
           )}
         </div>
       </div>
@@ -144,7 +142,7 @@ export function RequestDetailPage() {
               Are you sure you want to cancel this request?
             </p>
             <p className="apple-confirm-card__sub">This request will be closed.</p>
-            <div className="ui-stack" style={{ gap: 10, marginTop: 16 }}>
+            <div className="ui-stack stack-gap-3 mt-4">
               <Button
                 block
                 variant="danger"
@@ -159,7 +157,7 @@ export function RequestDetailPage() {
             </div>
           </div>
         ) : (
-          <div style={{ marginTop: 28 }}>
+          <div className="mt-8">
             <Button block variant="danger" onClick={() => setConfirming(true)}>
               Cancel request
             </Button>

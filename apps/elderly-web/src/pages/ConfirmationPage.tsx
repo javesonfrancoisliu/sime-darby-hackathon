@@ -28,17 +28,12 @@ export function ConfirmationPage() {
         <IconCheck size={36} strokeWidth={2.4} />
       </div>
 
-      <h1 className="ui-page-title" style={{ textAlign: "center", marginTop: 12 }}>
-        Request sent
-      </h1>
-      <p
-        className="ui-page-subtitle app-page-lead"
-        style={{ textAlign: "center", marginBottom: 24 }}
-      >
+      <h1 className="ui-page-title text-center mt-3">Request sent</h1>
+      <p className="ui-page-subtitle app-page-lead text-center mb-6">
         We will check it and then find a volunteer to help you.
       </p>
 
-      <div className="apple-inset-group" style={{ marginBottom: 28 }}>
+      <div className="apple-inset-group mb-6">
         <div className="apple-inset-row">
           <span className="app-detail-label">Help with</span>
           <span className="apple-inset-value text-strong">{CATEGORY_TEXT[request.category]}</span>
@@ -55,7 +50,7 @@ export function ConfirmationPage() {
         </div>
       </div>
 
-      <div className="ui-stack" style={{ gap: 12 }}>
+      <div className="ui-stack stack-gap-3">
         <Button block onClick={() => navigate("/requests")}>
           <IconList className="icon-gap" size={18} strokeWidth={2} aria-hidden="true" />
           View my requests

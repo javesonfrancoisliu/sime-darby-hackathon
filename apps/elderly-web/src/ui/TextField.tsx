@@ -40,7 +40,7 @@ export function TextField({
       onChange(e.target.value),
   };
   return (
-    <div style={{ marginBottom: "var(--space-6)" }}>
+    <div className="mb-6">
       <label className="ui-label" htmlFor={id}>
         {label}
       </label>

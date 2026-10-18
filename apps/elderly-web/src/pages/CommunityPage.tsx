@@ -357,11 +357,9 @@ export function CommunityPage() {
                     </div>
                     <div className="flex-fill">
                       <div className="row-center">
-                        <p className="safety-card__location" style={{ margin: 0 }}>
-                          {u.title}
-                        </p>
+                        <p className="safety-card__location m-0">{u.title}</p>
                         {u.pinned && (
-                          <span className="safety-chip tone-alert" style={{ flexShrink: 0 }}>
+                          <span className="safety-chip tone-alert no-shrink">
                             <IconPin className="icon-inline" size={11} strokeWidth={2} />
                             Pinned
                           </span>

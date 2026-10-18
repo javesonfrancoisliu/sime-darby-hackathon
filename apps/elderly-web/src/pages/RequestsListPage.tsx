@@ -50,9 +50,7 @@ export function RequestsListPage() {
           <div className="apple-empty-state__icon" aria-hidden="true">
             <IconList size={36} strokeWidth={1.5} />
           </div>
-          <p className="ui-page-subtitle app-page-lead" style={{ margin: "8px 0 20px" }}>
-            You have no requests yet.
-          </p>
+          <p className="ui-page-subtitle app-page-lead mt-2 mb-6">You have no requests yet.</p>
           <Button block onClick={() => navigate("/request")}>
             <IconPlus className="icon-gap" size={18} strokeWidth={2.4} aria-hidden="true" />
             Request help
@@ -71,9 +69,7 @@ export function RequestsListPage() {
             >
               <div className="apple-card-button__body">
                 <div className="apple-card-button__header">
-                  <span className="ui-card-title" style={{ margin: 0 }}>
-                    {req.title}
-                  </span>
+                  <span className="ui-card-title m-0">{req.title}</span>
                   <StatusBadge status={req.status} />
                 </div>
                 <p className="apple-card-button__desc">{formatWhen(req.scheduledAt)}</p>

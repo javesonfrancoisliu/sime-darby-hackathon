@@ -10,18 +10,10 @@ interface BannerProps {
 // optional retry action.
 export function Banner({ message, onRetry, retryLabel = "Try again" }: BannerProps) {
   return (
-    <div
-      className="ui-card"
-      role="alert"
-      style={{
-        borderColor: "var(--danger)",
-        color: "var(--danger)",
-        marginBottom: "var(--space-6)",
-      }}
-    >
-      <p style={{ margin: 0, fontWeight: 600 }}>{message}</p>
+    <div className="ui-card app-banner" role="alert">
+      <p className="app-banner__message">{message}</p>
       {onRetry ? (
-        <div style={{ marginTop: "var(--space-4)" }}>
+        <div className="mt-4">
           <Button variant="secondary" onClick={onRetry}>
             {retryLabel}
           </Button>

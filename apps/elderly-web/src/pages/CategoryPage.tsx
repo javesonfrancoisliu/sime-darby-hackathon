@@ -35,7 +35,7 @@ export function CategoryPage() {
               <CategoryIcon id={cat.id} size={24} />
             </div>
             <div className="category-choice-card__content">
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
+              <div className="row-center category-choice-card__heading">
                 <span className="category-choice-card__title">{cat.title}</span>
                 {cat.badge && <span className="safety-chip tone-brand">{cat.badge}</span>}
               </div>

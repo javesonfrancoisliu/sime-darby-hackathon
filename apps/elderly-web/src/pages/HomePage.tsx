@@ -287,9 +287,7 @@ export function HomePage() {
         )}
 
         {status === "success" && (!data || data.length === 0) && (
-          <p className="ui-page-subtitle" style={{ marginTop: 8 }}>
-            You have no requests yet.
-          </p>
+          <p className="ui-page-subtitle mt-2">You have no requests yet.</p>
         )}
 
         {status === "success" && data && data.length > 0 && (
