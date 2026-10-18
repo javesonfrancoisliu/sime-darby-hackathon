@@ -3,59 +3,6 @@
    All values are illustrative only.
 ───────────────────────────────────────────────────────── */
 
-/* ── Community Activities & Events ─────────────────── */
-export interface CommunityEvent {
-  id: string;
-  title: string;
-  date: string;
-  time: string;
-  location: string;
-  category: string;
-  icon: string;
-  spotsLeft?: number;
-}
-
-export const COMMUNITY_EVENTS: CommunityEvent[] = [
-  {
-    id: "E001",
-    title: "Morning Yoga at Central Park",
-    date: "Sat 18 Oct",
-    time: "7:00 am",
-    location: "Central Park, Zone A",
-    category: "Wellness",
-    icon: "🧘",
-    spotsLeft: 12,
-  },
-  {
-    id: "E002",
-    title: "Elmina Farmers' Market",
-    date: "Sun 19 Oct",
-    time: "8:00 am – 12:00 pm",
-    location: "Elmina Boulevard",
-    category: "Market",
-    icon: "🥦",
-  },
-  {
-    id: "E003",
-    title: "Senior Digital Literacy Class",
-    date: "Tue 21 Oct",
-    time: "10:00 am",
-    location: "Community Centre, Room 2",
-    category: "Education",
-    icon: "💻",
-    spotsLeft: 5,
-  },
-  {
-    id: "E004",
-    title: "Neighbourhood Watch Briefing",
-    date: "Wed 22 Oct",
-    time: "8:00 pm",
-    location: "Dewan Komuniti Elmina",
-    category: "Safety",
-    icon: "🔦",
-  },
-];
-
 /* ── Facility Maintenance Announcements ─────────────── */
 export interface MaintenanceAnnouncement {
   id: string;
