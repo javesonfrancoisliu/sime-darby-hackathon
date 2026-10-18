@@ -10,12 +10,14 @@ From the repo root, with the API running (see the root README):
 pnpm install
 pnpm db:up && pnpm db:setup && pnpm --filter @sdh/api db:seed
 pnpm --filter @sdh/api dev            # API on http://127.0.0.1:3001
-pnpm --filter @sdh/web dev            # web on http://localhost:5173, proxies /api
+pnpm --filter @sdh/web dev            # web on http://localhost:5173/volunteer/, proxies /api
 pnpm --filter @sdh/web build          # production build in dist/
-pnpm --filter @sdh/web preview        # built app on http://localhost:4173
+pnpm --filter @sdh/web preview        # built app on http://localhost:4173/volunteer/
 pnpm --filter @sdh/web test
 pnpm --filter @sdh/web typecheck
 ```
+
+On one origin the app runs behind the sign-in app (http://localhost:5175).
 
 Set `API_PROXY_TARGET` to point the dev proxy somewhere other than `http://127.0.0.1:3001`. For a tunnel to the preview server set `PREVIEW_HOST` and `PREVIEW_ALLOWED_HOSTS`.
 

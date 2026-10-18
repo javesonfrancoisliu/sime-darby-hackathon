@@ -15,6 +15,8 @@ import { VitePWA } from "vite-plugin-pwa";
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, ".", "");
   return {
+    // The apps share one origin; each is served under its own path.
+    base: "/volunteer/",
     plugins: [
       react(),
       VitePWA({
@@ -24,9 +26,9 @@ export default defineConfig(({ mode }) => {
           short_name: "Volunteer",
           description:
             "Neighbourhood hub for community events, volunteering, and township updates.",
-          id: "/",
-          start_url: "/",
-          scope: "/",
+          id: "/volunteer/",
+          start_url: "/volunteer/",
+          scope: "/volunteer/",
           display: "standalone",
           orientation: "portrait",
           background_color: "#F8F9FA",
@@ -55,7 +57,7 @@ export default defineConfig(({ mode }) => {
     ],
     // Shared packages must use this app's React 19, not the copy installed for the other app.
     resolve: { dedupe: ["react", "react-dom"] },
-    server: { port: 5173, proxy: apiProxy(env) },
+    server: { port: 5173, strictPort: true, proxy: apiProxy(env) },
     preview: previewServer(env, 4173),
     test: {
       globals: true,

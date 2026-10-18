@@ -81,6 +81,9 @@ importers:
       '@sdh/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
+      '@sdh/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
       '@sdh/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
@@ -142,6 +145,9 @@ importers:
       '@sdh/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
+      '@sdh/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
       '@sdh/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts

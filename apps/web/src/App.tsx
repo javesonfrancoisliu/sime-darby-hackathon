@@ -1,6 +1,6 @@
 import { Route, Routes } from "react-router-dom";
 
-import { SessionProvider } from "@sdh/api-client";
+import { SessionProvider, type SessionAuth } from "@sdh/api-client";
 
 import { ChallengesPage } from "./app/community/ChallengesPage";
 import { CommunityPage } from "./app/community/CommunityPage";
@@ -19,9 +19,10 @@ import { AcceptedTasksProvider } from "./data/AcceptedTasksContext";
 import { ProfileProvider } from "./data/ProfileContext";
 import { GamificationProvider } from "./data/useGamification";
 
-export function App() {
+// auth is set only when Cognito is configured; otherwise the local demo sign-in is used.
+export function App({ auth }: { auth?: SessionAuth }) {
   return (
-    <SessionProvider>
+    <SessionProvider auth={auth}>
       <SessionRoleProvider>
         <UserScope>
           <GamificationProvider>

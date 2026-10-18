@@ -23,7 +23,12 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="app-topbar">
         <Link to="/" className="app-brand">
           <span className="app-brand-mark" aria-hidden="true">
-            <img src="/icons/pwa-192.png" alt="" width={32} height={32} />
+            <img
+              src={`${import.meta.env.BASE_URL}icons/pwa-192.png`}
+              alt=""
+              width={32}
+              height={32}
+            />
           </span>
           Help a Neighbour
         </Link>
