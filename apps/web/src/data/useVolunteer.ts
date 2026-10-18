@@ -4,7 +4,6 @@ import type {
   Contribution,
   ImpactSummary,
   Opportunity,
-  TaskCategory,
   Urgency,
 } from "../types/volunteer";
 import { ApiError, apiFetch, errorMessage, useSession } from "@sdh/api-client";
@@ -37,7 +36,7 @@ function mapOpportunities(res: OpportunitiesResponse): Opportunity[] {
         kind: "request" as const,
         title: r.title,
         summary: r.description || "Help request",
-        category: r.category as TaskCategory,
+        category: r.category,
         // API summaries omit precise coords for privacy; use the baked distance.
         distanceKm: r.distanceKm,
         area: r.area,
@@ -57,7 +56,7 @@ function mapOpportunities(res: OpportunitiesResponse): Opportunity[] {
       kind: "event" as const,
       title: e.title,
       summary: e.description || "Community event",
-      category: e.category as TaskCategory,
+      category: e.category,
       coords: { lat: e.location.lat, lng: e.location.lng },
       distanceKm: item.distanceKm,
       area: e.location.area,

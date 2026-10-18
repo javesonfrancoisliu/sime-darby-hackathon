@@ -142,3 +142,10 @@ export const CHALLENGE_CATEGORY_LABEL: Record<ChallengeCategory, string> = {
   cleanup: "Clean-up",
   environment: "Environment",
 };
+
+export type QuizQuestion = {
+  id: string;
+  question: string;
+  options: string[];
+  correctIndex: number;
+};

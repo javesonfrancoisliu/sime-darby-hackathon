@@ -16,6 +16,7 @@ import type {
   GamificationSummary,
   LeaderboardEntry,
   PointsLedgerEntry,
+  QuizQuestion,
   Reward,
   RewardRedemption,
   RewardStatus,
@@ -28,6 +29,7 @@ import {
   MOCK_ACHIEVEMENTS,
   MOCK_BADGES,
   MOCK_CHALLENGES,
+  MOCK_ECO_QUIZ,
   MOCK_LEADERBOARD_OTHERS,
   MOCK_REWARDS,
 } from "./gamification.mock";
@@ -348,4 +350,9 @@ export function useGamification(): UseGamification {
   const ctx = useContext(GamificationContext);
   if (!ctx) throw new Error("useGamification must be used within a GamificationProvider");
   return ctx;
+}
+
+// The eco quiz is demo content until the API has quiz questions.
+export function useEcoQuiz(): QuizQuestion[] {
+  return MOCK_ECO_QUIZ;
 }

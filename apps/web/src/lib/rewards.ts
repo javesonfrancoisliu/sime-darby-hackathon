@@ -16,7 +16,13 @@ export function normaliseRedemptions(raw: unknown): Record<string, RewardRedempt
     return migrated;
   }
   if (raw && typeof raw === "object") {
-    return raw as Record<string, RewardRedemption>;
+    const parsed: Record<string, RewardRedemption> = {};
+    for (const [id, value] of Object.entries(raw)) {
+      if (!value || typeof value !== "object") continue;
+      const redeemedAt = (value as { redeemedAt?: unknown }).redeemedAt;
+      parsed[id] = typeof redeemedAt === "string" ? { redeemedAt } : {};
+    }
+    return parsed;
   }
   return {};
 }

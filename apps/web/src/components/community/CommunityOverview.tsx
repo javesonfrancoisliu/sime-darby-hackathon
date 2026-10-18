@@ -1,6 +1,6 @@
 import { ArrowRight, Megaphone } from "lucide-react";
 
-import { COMMUNITY_ITEMS } from "../../data/community.mock";
+import { useLatestCommunityItems } from "../../data/useCommunityItems";
 import { formatRelative } from "../../lib/format";
 import { AppLinkButton, InfoCard, Pill } from "../ui";
 
@@ -15,9 +15,7 @@ const CATEGORY_LABEL: Record<string, string> = {
 // Exposed per the integration contract so Home composes it beside SafetyOverview
 // without duplicating the full community layout.
 export function CommunityOverview({ townshipId }: { townshipId?: string }) {
-  const items = COMMUNITY_ITEMS.filter(
-    (item) => !townshipId || item.townshipId === townshipId,
-  ).slice(0, 3);
+  const items = useLatestCommunityItems(townshipId);
 
   return (
     <InfoCard ariaLabel="Latest community updates">

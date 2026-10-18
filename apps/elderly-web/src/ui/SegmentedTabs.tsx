@@ -1,16 +1,16 @@
 import { useId, type ReactNode } from "react";
 import { useAccessibility } from "../context/AccessibilityContext";
 
-export interface TabItem {
-  id: string;
+export interface TabItem<T extends string = string> {
+  id: T;
   label: string;
   icon?: ReactNode;
 }
 
-interface SegmentedTabsProps {
-  tabs: TabItem[];
-  active: string;
-  onChange: (id: string) => void;
+interface SegmentedTabsProps<T extends string> {
+  tabs: TabItem<T>[];
+  active: T;
+  onChange: (id: T) => void;
   // Accessible name for the tablist.
   ariaLabel: string;
 }
@@ -22,7 +22,12 @@ interface SegmentedTabsProps {
 // critically-damped curve (§1 Response, §4 behaviour-over-animation). Press
 // feedback is instant on pointer-down; motion is dropped under reduced motion
 // (§14). Full ARIA tablist semantics with roving focus.
-export function SegmentedTabs({ tabs, active, onChange, ariaLabel }: SegmentedTabsProps) {
+export function SegmentedTabs<T extends string>({
+  tabs,
+  active,
+  onChange,
+  ariaLabel,
+}: SegmentedTabsProps<T>) {
   const groupId = useId();
   const { triggerHaptic } = useAccessibility();
   const activeIndex = Math.max(
@@ -30,7 +35,7 @@ export function SegmentedTabs({ tabs, active, onChange, ariaLabel }: SegmentedTa
     tabs.findIndex((t) => t.id === active),
   );
 
-  function select(id: string) {
+  function select(id: T) {
     if (id !== active) {
       triggerHaptic(12);
       onChange(id);

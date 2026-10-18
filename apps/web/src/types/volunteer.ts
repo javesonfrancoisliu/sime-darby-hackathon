@@ -1,14 +1,10 @@
+import type { Category } from "@sdh/contracts";
+
 // Young-role volunteering (Help a Neighbour) view models.
 // Derived from the backend contracts (@sdh/contracts) Opportunity / Contribution,
 // flattened into the exact fields the opportunity cards and impact panel need.
 
-export type TaskCategory =
-  | "groceries"
-  | "transport"
-  | "digital_literacy"
-  | "health_literacy"
-  | "home_help"
-  | "community_activity";
+export type TaskCategory = Category;
 
 export type OpportunityKind = "request" | "event";
 

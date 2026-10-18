@@ -9,8 +9,7 @@ import {
   RewardsPanel,
 } from "../../components/challenges";
 import { ConfirmationDialog, PageHeader, Pill, TabPanel, Tabs } from "../../components/ui";
-import { useGamification } from "../../data/useGamification";
-import { MOCK_ECO_QUIZ } from "../../data/gamification.mock";
+import { useEcoQuiz, useGamification } from "../../data/useGamification";
 import {
   CHALLENGE_CATEGORY_LABEL,
   type Challenge,
@@ -48,6 +47,7 @@ export function ChallengesPage() {
     awardQuiz,
     redeem,
   } = useGamification();
+  const ecoQuiz = useEcoQuiz();
 
   const [tab, setTab] = useState<Tab>("challenges");
   const [category, setCategory] = useState<CategoryFilter>("all");
@@ -212,8 +212,8 @@ export function ChallengesPage() {
 
       <QuizModal
         open={quizOpen}
-        questions={MOCK_ECO_QUIZ}
-        passTarget={quizChallenge?.goal.target ?? MOCK_ECO_QUIZ.length}
+        questions={ecoQuiz}
+        passTarget={quizChallenge?.goal.target ?? ecoQuiz.length}
         alreadyEarned={quizAlreadyEarned}
         onClose={() => setQuizOpen(false)}
         onPassed={handleQuizPassed}

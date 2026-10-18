@@ -20,6 +20,7 @@ interface StoredSettings {
 }
 
 const FONT_LEVELS: FontSizeLevel[] = ["normal", "large", "xlarge"];
+const DEFAULT_FONT_SIZE: FontSizeLevel = "large";
 
 export const FONT_LABEL: Record<FontSizeLevel, string> = {
   normal: "Normal",
@@ -37,7 +38,7 @@ function prefersReducedMotion(): boolean {
 // Reads saved settings. Anything missing or malformed falls back to the default for that setting.
 function loadSettings(): StoredSettings {
   const defaults: StoredSettings = {
-    fontSize: "large",
+    fontSize: DEFAULT_FONT_SIZE,
     highContrast: false,
     reducedMotion: prefersReducedMotion(),
     voiceAssist: false,
@@ -47,9 +48,7 @@ function loadSettings(): StoredSettings {
   try {
     const saved = JSON.parse(raw) as Partial<StoredSettings>;
     return {
-      fontSize: FONT_LEVELS.includes(saved.fontSize as FontSizeLevel)
-        ? (saved.fontSize as FontSizeLevel)
-        : defaults.fontSize,
+      fontSize: FONT_LEVELS.find((level) => level === saved.fontSize) ?? defaults.fontSize,
       highContrast: typeof saved.highContrast === "boolean" ? saved.highContrast : defaults.highContrast,
       reducedMotion: typeof saved.reducedMotion === "boolean" ? saved.reducedMotion : defaults.reducedMotion,
       voiceAssist: typeof saved.voiceAssist === "boolean" ? saved.voiceAssist : defaults.voiceAssist,
@@ -196,7 +195,7 @@ export function useAccessibility() {
   if (!ctx) {
     // Graceful fallback for isolated test environments
     return {
-      fontSize: "large" as FontSizeLevel,
+      fontSize: DEFAULT_FONT_SIZE,
       setFontSize: () => {},
       highContrast: false,
       setHighContrast: () => {},

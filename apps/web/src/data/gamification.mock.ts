@@ -3,6 +3,7 @@ import type {
   Badge,
   Challenge,
   LeaderboardEntry,
+  QuizQuestion,
   Reward,
 } from "../types/gamification";
 
@@ -160,13 +161,6 @@ export const MOCK_LEADERBOARD_OTHERS: Omit<LeaderboardEntry, "rank" | "isCurrent
 ];
 
 // ---- Environmental quiz ----
-
-export type QuizQuestion = {
-  id: string;
-  question: string;
-  options: string[];
-  correctIndex: number;
-};
 
 export const MOCK_ECO_QUIZ: QuizQuestion[] = [
   {

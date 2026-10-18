@@ -1,17 +1,18 @@
 import { useState } from "react";
 
 import { errorMessage } from "@sdh/api-client";
+import { Category } from "@sdh/contracts";
 
 import { useProfile } from "../../data/ProfileContext";
 import {
+  LANGUAGES,
   LANGUAGE_LABEL,
+  PREFERRED_DAYS,
   PREFERRED_DAY_LABEL,
+  TIMES_OF_DAY,
   TIME_OF_DAY_LABEL,
-  type Language,
-  type PreferredDay,
-  type TimeOfDay,
 } from "../../types/profile";
-import { TASK_CATEGORY_LABEL, type TaskCategory } from "../../types/volunteer";
+import { TASK_CATEGORY_LABEL } from "../../types/volunteer";
 import { AppButton, Modal } from "../ui";
 
 export type EditPreferencesModalProps = {
@@ -19,10 +20,6 @@ export type EditPreferencesModalProps = {
   onClose: () => void;
 };
 
-const ALL_CATEGORIES = Object.keys(TASK_CATEGORY_LABEL) as TaskCategory[];
-const ALL_DAYS = Object.keys(PREFERRED_DAY_LABEL) as PreferredDay[];
-const ALL_TIMES = Object.keys(TIME_OF_DAY_LABEL) as TimeOfDay[];
-const ALL_LANGS = Object.keys(LANGUAGE_LABEL) as Language[];
 
 function toggle<T>(list: T[], value: T): T[] {
   return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
@@ -36,7 +33,7 @@ function ChipGroup<T extends string>({
   onToggle,
 }: {
   legend: string;
-  options: T[];
+  options: readonly T[];
   labels: Record<T, string>;
   selected: T[];
   onToggle: (value: T) => void;
@@ -105,35 +102,35 @@ export function EditPreferencesModal({ open, onClose }: EditPreferencesModalProp
     >
       <ChipGroup
         legend="Skills"
-        options={ALL_CATEGORIES}
+        options={Category.options}
         labels={TASK_CATEGORY_LABEL}
         selected={skills}
         onToggle={(v) => setSkills((prev) => toggle(prev, v))}
       />
       <ChipGroup
         legend="Assistance interests"
-        options={ALL_CATEGORIES}
+        options={Category.options}
         labels={TASK_CATEGORY_LABEL}
         selected={interests}
         onToggle={(v) => setInterests((prev) => toggle(prev, v))}
       />
       <ChipGroup
         legend="Preferred days"
-        options={ALL_DAYS}
+        options={PREFERRED_DAYS}
         labels={PREFERRED_DAY_LABEL}
         selected={days}
         onToggle={(v) => setDays((prev) => toggle(prev, v))}
       />
       <ChipGroup
         legend="Preferred time of day"
-        options={ALL_TIMES}
+        options={TIMES_OF_DAY}
         labels={TIME_OF_DAY_LABEL}
         selected={times}
         onToggle={(v) => setTimes((prev) => toggle(prev, v))}
       />
       <ChipGroup
         legend="Communication languages"
-        options={ALL_LANGS}
+        options={LANGUAGES}
         labels={LANGUAGE_LABEL}
         selected={languages}
         onToggle={(v) => setLanguages((prev) => toggle(prev, v))}

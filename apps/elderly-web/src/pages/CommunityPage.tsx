@@ -19,7 +19,7 @@ import {
   IconVolume2,
   IconCheck,
 } from "../ui/Icons";
-import { SegmentedTabs, TabPanel } from "../ui/SegmentedTabs";
+import { SegmentedTabs, TabPanel, type TabItem } from "../ui/SegmentedTabs";
 import { useAccessibility } from "../context/AccessibilityContext";
 
 type CommunityTab = "events" | "maintenance" | "volunteer" | "updates";
@@ -88,7 +88,7 @@ export function CommunityPage() {
     });
   }
 
-  const TABS = [
+  const TABS: TabItem<CommunityTab>[] = [
     { id: "events", label: "Events", icon: <IconCalendar size={18} strokeWidth={2} /> },
     { id: "maintenance", label: "Notices", icon: <IconAlertTriangle size={18} strokeWidth={2} /> },
     { id: "volunteer", label: "Volunteer", icon: <IconHeartHandshake size={18} strokeWidth={2} /> },
@@ -135,7 +135,7 @@ export function CommunityPage() {
       <SegmentedTabs
         tabs={TABS}
         active={tab}
-        onChange={(id) => setTab(id as CommunityTab)}
+        onChange={setTab}
         ariaLabel="Choose a community category"
       />
 

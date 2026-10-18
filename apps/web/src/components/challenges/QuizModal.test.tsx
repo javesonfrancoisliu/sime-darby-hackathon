@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
-import type { QuizQuestion } from "../../data/gamification.mock";
+import type { QuizQuestion } from "../../types/gamification";
 import { QuizModal } from "./QuizModal";
 
 const QUESTIONS: QuizQuestion[] = [

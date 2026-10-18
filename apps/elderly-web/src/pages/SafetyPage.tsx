@@ -11,7 +11,7 @@ import {
   IconInfo,
   IconVolume2,
 } from "../ui/Icons";
-import { SegmentedTabs, TabPanel } from "../ui/SegmentedTabs";
+import { SegmentedTabs, TabPanel, type TabItem } from "../ui/SegmentedTabs";
 import { useAccessibility } from "../context/AccessibilityContext";
 import { DemoTag } from "../ui/DemoTag";
 
@@ -45,6 +45,8 @@ const FACILITY_COLOR: Record<FacilityStatus, { bg: string; text: string; label: 
 };
 
 type FilterStatus = "all" | FacilityStatus;
+const FACILITY_STATUSES: FacilityStatus[] = ["reported", "in_progress", "fixed"];
+const FILTER_STATUSES: FilterStatus[] = ["all", ...FACILITY_STATUSES];
 
 // Section heading with Apple design optical typography and outline icon
 function SectionHeading({ icon, title }: { icon: ReactNode; title: string }) {
@@ -71,7 +73,7 @@ export function SafetyPage() {
   const groupId = useId();
   const { speak, triggerHaptic } = useAccessibility();
 
-  const TABS = [
+  const TABS: TabItem<SafetyTab>[] = [
     { id: "haze", label: "Air", icon: <IconWind size={18} strokeWidth={2} /> },
     { id: "water", label: "Water", icon: <IconWaves size={18} strokeWidth={2} /> },
     { id: "temp", label: "Heat", icon: <IconThermometer size={18} strokeWidth={2} /> },
@@ -127,7 +129,7 @@ export function SafetyPage() {
       <SegmentedTabs
         tabs={TABS}
         active={tab}
-        onChange={(id) => setTab(id as SafetyTab)}
+        onChange={setTab}
         ariaLabel="Choose a safety category"
       />
 
@@ -272,7 +274,7 @@ export function SafetyPage() {
         />
 
         <div className="safety-filter" role="group" aria-label="Filter by status">
-          {(["all", "reported", "in_progress", "fixed"] as FilterStatus[]).map((f) => (
+          {FILTER_STATUSES.map((f) => (
             <button
               key={f}
               type="button"
@@ -320,7 +322,7 @@ export function SafetyPage() {
         </div>
 
         <div className="safety-facility-summary">
-          {(["reported", "in_progress", "fixed"] as FacilityStatus[]).map((s) => {
+          {FACILITY_STATUSES.map((s) => {
             const c = FACILITY_COLOR[s];
             const count = facilityReports.filter((r) => r.status === s).length;
             return (

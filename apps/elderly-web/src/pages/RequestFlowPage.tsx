@@ -50,6 +50,7 @@ export function RequestFlowPage() {
   }
 
   const index = FLOW_STEPS.indexOf(step);
+  const previousStep = FLOW_STEPS[index - 1];
   const now = new Date();
   const sending = status === "loading";
 
@@ -97,7 +98,7 @@ export function RequestFlowPage() {
 
   return (
     <div className="apple-subpage">
-      <BackLink onBack={index > 0 ? () => goTo(FLOW_STEPS[index - 1] as FlowStep) : undefined} />
+      <BackLink onBack={previousStep ? () => goTo(previousStep) : undefined} />
       <p className="step-count">
         Step {index + 1} of {FLOW_STEPS.length}
       </p>

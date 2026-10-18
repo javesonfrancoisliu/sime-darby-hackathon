@@ -5,8 +5,10 @@ import type { TaskCategory } from "./volunteer";
 // adds frontend-only fields (languages, interests) NOT yet in the backend
 // contract. Persisted to localStorage for the demo - NOT saved to any backend.
 
-export type PreferredDay = "weekdays" | "weekends";
-export type TimeOfDay = "morning" | "afternoon" | "evening";
+export const PREFERRED_DAYS = ["weekdays", "weekends"] as const;
+export type PreferredDay = (typeof PREFERRED_DAYS)[number];
+export const TIMES_OF_DAY = ["morning", "afternoon", "evening"] as const;
+export type TimeOfDay = (typeof TIMES_OF_DAY)[number];
 
 // Simplified availability preference. Designed to map later onto the backend
 // AvailabilitySlot[] (day + start/end): each selected day-group × time-of-day
@@ -16,7 +18,8 @@ export type AvailabilityPreference = {
   times: TimeOfDay[];
 };
 
-export type Language = "en" | "ms" | "zh";
+export const LANGUAGES = ["en", "ms", "zh"] as const;
+export type Language = (typeof LANGUAGES)[number];
 
 export type ProfilePrefs = {
   displayName: string;

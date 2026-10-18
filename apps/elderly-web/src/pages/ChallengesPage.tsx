@@ -11,7 +11,7 @@ import {
   IconCheck,
   IconVolume2,
 } from "../ui/Icons";
-import { SegmentedTabs, TabPanel } from "../ui/SegmentedTabs";
+import { SegmentedTabs, TabPanel, type TabItem } from "../ui/SegmentedTabs";
 import { useAccessibility } from "../context/AccessibilityContext";
 
 type PlayTab = "streak" | "challenges" | "badges" | "rewards";
@@ -27,7 +27,7 @@ export function ChallengesPage() {
 
   const [tab, setTab] = useState<PlayTab>("streak");
   const groupId = useId();
-  const TABS = [
+  const TABS: TabItem<PlayTab>[] = [
     { id: "streak", label: "Streak", icon: <IconFlame size={18} strokeWidth={2} /> },
     { id: "challenges", label: "Goals", icon: <IconTrophy size={18} strokeWidth={2} /> },
     { id: "badges", label: "Badges", icon: <IconSparkles size={18} strokeWidth={2} /> },
@@ -114,7 +114,7 @@ export function ChallengesPage() {
       <SegmentedTabs
         tabs={TABS}
         active={tab}
-        onChange={(id) => setTab(id as PlayTab)}
+        onChange={setTab}
         ariaLabel="Choose a community play area"
       />
 

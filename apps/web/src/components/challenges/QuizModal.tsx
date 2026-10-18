@@ -1,7 +1,7 @@
 import { CheckCircle2, XCircle } from "lucide-react";
 import { useRef, useState, type KeyboardEvent } from "react";
 
-import type { QuizQuestion } from "../../data/gamification.mock";
+import type { QuizQuestion } from "../../types/gamification";
 import { AppButton, Modal } from "../ui";
 
 export type QuizResult = { correct: number; total: number; passed: boolean };

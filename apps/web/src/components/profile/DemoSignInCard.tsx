@@ -17,7 +17,7 @@ const ROLE_LABEL: Record<DemoUser["role"], string> = {
 // the X-Demo-User header - it is NOT authentication.
 export function DemoSignInCard() {
   const { user, userId, status, error: sessionError, signIn, signOut } = useSession();
-  const selectId = useId();
+  const labelId = useId();
   const [users, setUsers] = useState<DemoUser[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [choice, setChoice] = useState("");
@@ -90,24 +90,25 @@ export function DemoSignInCard() {
               <p className="ui-helper" style={{ marginTop: 0 }}>
                 Choose a demo user to use the live service instead of demo data.
               </p>
-              <label className="ui-label" htmlFor={selectId}>
+              <span className="ui-label" id={labelId}>
                 Demo user
-              </label>
-              <select
-                id={selectId}
-                className="ui-input"
-                value={choice}
-                onChange={(event) => setChoice(event.target.value)}
-              >
+              </span>
+              <div className="ui-chip-row" role="group" aria-labelledby={labelId}>
                 {users.map((u) => (
-                  <option key={u.id} value={u.id}>
+                  <button
+                    key={u.id}
+                    type="button"
+                    className="ui-chip"
+                    aria-pressed={choice === u.id}
+                    onClick={() => setChoice(u.id)}
+                  >
                     {u.name} - {ROLE_LABEL[u.role]}
                     {u.role === "volunteer" && u.verification !== "verified"
                       ? ` (${u.verification})`
                       : ""}
-                  </option>
+                  </button>
                 ))}
-              </select>
+              </div>
               <div className="feature-card-foot">
                 <AppButton variant="primary" disabled={!choice} onClick={() => signIn(choice)}>
                   <LogIn size={16} aria-hidden="true" />

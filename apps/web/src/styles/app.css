@@ -475,7 +475,6 @@
 .results-count { font-size: var(--font-small); font-weight: 600; color: var(--text-secondary); }
 .sort-control { display: inline-flex; align-items: center; gap: var(--space-2); }
 .sort-control-label { font-size: var(--font-small); font-weight: 600; color: var(--text-secondary); }
-.sort-select { width: auto; min-width: 150px; height: 44px; min-height: 44px; }
 
 /* ---------- Geolocation hint ---------- */
 .geo-hint {
