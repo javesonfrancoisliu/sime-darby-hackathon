@@ -84,6 +84,9 @@ importers:
       '@sdh/design-tokens':
         specifier: workspace:*
         version: link:../../packages/design-tokens
+      lucide-react:
+        specifier: ^0.550.0
+        version: 0.550.0(react@18.3.1)
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -6453,6 +6456,10 @@ snapshots:
   lru-cache@5.1.1:
     dependencies:
       yallist: 3.1.1
+
+  lucide-react@0.550.0(react@18.3.1):
+    dependencies:
+      react: 18.3.1
 
   lucide-react@0.550.0(react@19.3.1):
     dependencies:
