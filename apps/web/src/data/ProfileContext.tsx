@@ -18,13 +18,13 @@ import { readJson, scopedKey, writeJson } from "../lib/storage";
 
 // Reusable, localStorage-backed Young-resident profile state. Held once at the
 // app root so every component sees the same values; persisted so edits survive
-// navigation and reload. FRONTEND-ONLY / demo — nothing here is saved to a
+// navigation and reload. FRONTEND-ONLY / demo - nothing here is saved to a
 // backend, and the toggles do NOT enforce real privacy or push notifications.
 
 const prefsKey = scopedKey("tc.profile.prefs");
 const settingsKey = scopedKey("tc.profile.settings");
 
-/** Mock notification/privacy toggles. Demo only — no real enforcement. */
+// Mock notification/privacy toggles. Demo only - no real enforcement.
 export type ProfileSettings = {
   notifyEvents: boolean;
   notifyVolunteering: boolean;

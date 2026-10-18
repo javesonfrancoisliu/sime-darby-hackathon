@@ -9,19 +9,17 @@ export type QuizResult = { correct: number; total: number; passed: boolean };
 export type QuizModalProps = {
   open: boolean;
   questions: QuizQuestion[];
-  /** Correct answers needed to pass and earn points. */
+  // Correct answers needed to pass and earn points.
   passTarget: number;
-  /** Whether points were already earned (quiz completed before) — shown as info. */
+  // Whether points were already earned (quiz completed before) - shown as info.
   alreadyEarned: boolean;
   onClose: () => void;
   onPassed: (result: QuizResult) => void;
 };
 
-/**
- * Environmental awareness quiz, one question at a time. Gives per-answer
- * feedback and only reports a pass (awarding points) when the pass target is met.
- * Demo content.
- */
+// Environmental awareness quiz, one question at a time. Gives per-answer
+// feedback and only reports a pass (awarding points) when the pass target is met.
+// Demo content.
 export function QuizModal({
   open,
   questions,

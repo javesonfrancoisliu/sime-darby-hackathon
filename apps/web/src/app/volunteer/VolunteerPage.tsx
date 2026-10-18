@@ -127,7 +127,7 @@ export function VolunteerPage() {
   }
 
   async function handleComplete(task: AcceptedTask, minutesSpent: number) {
-    // Volunteer-reported only — no points yet.
+    // Volunteer-reported only - no points yet.
     setCompleteBusy(true);
     setCompleteError(null);
     try {

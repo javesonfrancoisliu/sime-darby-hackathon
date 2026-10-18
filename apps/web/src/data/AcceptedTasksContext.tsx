@@ -20,8 +20,8 @@ import type { Opportunity, OpportunityKind } from "../types/volunteer";
 //
 // Mount with key={userId}: persisted state is per user and re-read on change.
 // Two modes, picked by the demo sign-in (@sdh/api-client session):
-//  - signed out: simulated and client-only, persisted to localStorage;
-//  - signed in:  accepted requests come from GET /api/requests/mine and joined
+// - signed out: simulated and client-only, persisted to localStorage;
+// - signed in:  accepted requests come from GET /api/requests/mine and joined
 //    events from GET /api/events; accept/join/complete call the API.
 //
 // Status model (frontend view):
@@ -36,7 +36,7 @@ export type AcceptedTaskStatus = "accepted" | "completed" | "verified";
 
 export type AcceptedTask = {
   id: string;
-  /** Requests can be completed by the volunteer; events are closed by a coordinator. */
+  // Requests can be completed by the volunteer; events are closed by a coordinator.
   kind: OpportunityKind;
   title: string;
   area: string;
@@ -47,10 +47,8 @@ export type AcceptedTask = {
   acceptedAt: string;
   completedAt?: string;
   verifiedAt?: string;
-  /**
-   * Shared de-dupe key for the underlying activity, carried from the opportunity
-   * when present, so a task that is also a challenge is rewarded once.
-   */
+  // Shared de-dupe key for the underlying activity, carried from the opportunity
+  // when present, so a task that is also a challenge is rewarded once.
   dedupeKey?: string;
 };
 
@@ -119,20 +117,20 @@ async function loadLiveTasks(userId: string | null): Promise<LiveTasks> {
 
 export type AcceptedTasksContextValue = {
   tasks: AcceptedTask[];
-  /** True when tasks come from the API (a demo user is signed in). */
+  // True when tasks come from the API (a demo user is signed in).
   live: boolean;
   loading: boolean;
   error: string | null;
   isAccepted: (id: string) => boolean;
-  /** Accept a request or join an event. Rejects with an ApiError in live mode. */
+  // Accept a request or join an event. Rejects with an ApiError in live mode.
   accept: (opportunity: Opportunity) => Promise<void>;
-  /** Volunteer-reported completion. Does NOT award points or count as verified. */
+  // Volunteer-reported completion. Does NOT award points or count as verified.
   complete: (id: string, minutesSpent: number) => Promise<void>;
-  /** Simulated resident confirmation. Marks the task verified. */
+  // Simulated resident confirmation. Marks the task verified.
   verify: (id: string) => void;
   // Re-reads live tasks from the API. No-op when signed out.
   refresh: () => Promise<void>;
-  /** Clears all accepted-task demo state. */
+  // Clears all accepted-task demo state.
   reset: () => void;
 };
 

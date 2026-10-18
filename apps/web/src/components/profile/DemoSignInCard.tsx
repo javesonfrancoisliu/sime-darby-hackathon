@@ -12,11 +12,9 @@ const ROLE_LABEL: Record<DemoUser["role"], string> = {
   coordinator: "Coordinator",
 };
 
-/**
- * Demo sign-in: pick one of the seeded users (pnpm db:seed) to use the live API.
- * Signed out, the app runs on labelled demo data. This picks an identity for
- * the X-Demo-User header — it is NOT authentication.
- */
+// Demo sign-in: pick one of the seeded users (pnpm db:seed) to use the live API.
+// Signed out, the app runs on labelled demo data. This picks an identity for
+// the X-Demo-User header - it is NOT authentication.
 export function DemoSignInCard() {
   const { user, userId, status, error: sessionError, signIn, signOut } = useSession();
   const selectId = useId();
@@ -103,7 +101,7 @@ export function DemoSignInCard() {
               >
                 {users.map((u) => (
                   <option key={u.id} value={u.id}>
-                    {u.name} — {ROLE_LABEL[u.role]}
+                    {u.name} - {ROLE_LABEL[u.role]}
                     {u.role === "volunteer" && u.verification !== "verified"
                       ? ` (${u.verification})`
                       : ""}

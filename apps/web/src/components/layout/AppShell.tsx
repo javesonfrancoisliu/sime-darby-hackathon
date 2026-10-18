@@ -5,15 +5,13 @@ import { useRole } from "./RoleContext";
 import { MobileNav } from "./MobileNav";
 import { Sidebar } from "./Sidebar";
 
-/**
- * Shared application shell: top bar (brand), desktop sidebar, main content area,
- * and mobile bottom nav. Both Module 1 (Safety) and Module 2 (Community) render
- * inside this — do not fork it per module.
- *
- * The elderly role applies the larger "Easy View" sizing via the .easy-view
- * class. The role comes from authentication (dev preview via ?role=), so there
- * is no in-app toggle.
- */
+// Shared application shell: top bar (brand), desktop sidebar, main content area,
+// and mobile bottom nav. Both Module 1 (Safety) and Module 2 (Community) render
+// inside this - do not fork it per module.
+//
+// The elderly role applies the larger "Easy View" sizing via the .easy-view
+// class. The role comes from authentication (dev preview via ?role=), so there
+// is no in-app toggle.
 export function AppShell({ children }: { children: ReactNode }) {
   const { easyView } = useRole();
 

@@ -143,7 +143,7 @@ export function CommunityPage() {
     <>
       <PageHeader
         title="Neighbourhood Hub"
-        subtitle="Everything happening in your township — events, maintenance, volunteering and official updates."
+        subtitle="Everything happening in your township - events, maintenance, volunteering and official updates."
         actions={<Pill>{DEMO_TOWNSHIP.name}</Pill>}
       />
 

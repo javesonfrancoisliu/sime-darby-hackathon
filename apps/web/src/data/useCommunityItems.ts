@@ -22,7 +22,7 @@ type Result = { events: EventItem[]; error: string | null; usingSampleData: bool
 
 // Map a backend CommunityEvent to our EventItem card shape.
 // The events API exists (GET /api/events) and its contract covers title, startsAt,
-// durationMinutes, location, capacity, signupCount — enough for an EventCard.
+// durationMinutes, location, capacity, signupCount - enough for an EventCard.
 // Other categories (maintenance, volunteer, township) have no API, so they stay mock.
 function mapApiEvents(res: EventsResponse): EventItem[] {
   return res.events
@@ -42,7 +42,7 @@ function mapApiEvents(res: EventsResponse): EventItem[] {
       joined: e.joined,
       updatedAt: e.updatedAt,
       sourceLabel: "Community events API",
-      // Real API data — not a simulated reading.
+      // Real API data - not a simulated reading.
       isDemoData: false,
     }));
 }

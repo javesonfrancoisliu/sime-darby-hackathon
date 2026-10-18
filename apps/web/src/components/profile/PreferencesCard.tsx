@@ -1,11 +1,7 @@
 import { Pencil } from "lucide-react";
 
 import { useProfile } from "../../data/ProfileContext";
-import {
-  LANGUAGE_LABEL,
-  PREFERRED_DAY_LABEL,
-  TIME_OF_DAY_LABEL,
-} from "../../types/profile";
+import { LANGUAGE_LABEL, PREFERRED_DAY_LABEL, TIME_OF_DAY_LABEL } from "../../types/profile";
 import { TASK_CATEGORY_LABEL } from "../../types/volunteer";
 import { AppButton, InfoCard, Pill } from "../ui";
 
@@ -28,10 +24,8 @@ function PillRow({ label, values }: { label: string; values: string[] }) {
   );
 }
 
-/**
- * Read view of volunteering preferences (skills, interests, availability,
- * languages). Edited via a separate modal. Notes these feed future matching.
- */
+// Read view of volunteering preferences (skills, interests, availability,
+// languages). Edited via a separate modal. Notes these feed future matching.
 export function PreferencesCard({ onEdit }: PreferencesCardProps) {
   const { prefs, isDemo } = useProfile();
   const availability = [

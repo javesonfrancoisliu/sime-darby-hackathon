@@ -67,7 +67,7 @@ export function ChallengesPage() {
     join(challenge.id);
     setConfirmation({
       title: "Challenge joined",
-      message: `You joined "${challenge.title}". Log your progress as you go — points are only awarded once completion is verified. Demo only.`,
+      message: `You joined "${challenge.title}". Log your progress as you go - points are only awarded once completion is verified. Demo only.`,
     });
   }
 
@@ -117,7 +117,7 @@ export function ChallengesPage() {
     const reward = rewards.find((r) => r.id === rewardId);
     setConfirmation({
       title: "Reward redeemed (demo)",
-      message: `"${reward?.label ?? "Reward"}" is marked as redeemed. This is a simulated reward — no real voucher is issued.`,
+      message: `"${reward?.label ?? "Reward"}" is marked as redeemed. This is a simulated reward - no real voucher is issued.`,
     });
   }
 

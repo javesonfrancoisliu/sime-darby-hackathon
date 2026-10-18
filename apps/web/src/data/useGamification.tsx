@@ -36,10 +36,10 @@ import {
 // localStorage so demo progress survives navigation/reload. All simulated.
 //
 // Separation of concerns (per the spec):
-//  - joining a challenge records progress but awards NO points;
-//  - logging progress updates `current` only;
-//  - completion runs a simulated verification step where required;
-//  - points are awarded ONLY on verified completion, through the ledger, which
+// - joining a challenge records progress but awards NO points;
+// - logging progress updates `current` only;
+// - completion runs a simulated verification step where required;
+// - points are awarded ONLY on verified completion, through the ledger, which
 //    de-dupes by (sourceType, sourceId) and by shared dedupeKey across sources.
 //
 // IMPORTANT (undercount fix): verified volunteering TASK COUNT is tracked in a
@@ -58,10 +58,10 @@ export type AchievementState = Achievement & { earned: boolean };
 export type RewardState = Reward & {
   status: RewardStatus;
   unlockHint: string;
-  /** Set when the reward has been (simulated) redeemed and a date is known. */
+  // Set when the reward has been (simulated) redeemed and a date is known.
   redeemedAt?: string;
 };
-/** A redeemed reward for the Profile → My Rewards list. */
+// A redeemed reward for the Profile → My Rewards list.
 export type ClaimedReward = Reward & { redeemedAt?: string };
 
 // Reads persisted redemptions, migrating the legacy string[] shape. The actual
@@ -80,41 +80,35 @@ export type UseGamification = {
   badges: BadgeState[];
   achievements: AchievementState[];
   rewards: RewardState[];
-  /** Redeemed rewards, for Profile → My Rewards. */
+  // Redeemed rewards, for Profile → My Rewards.
   claimedRewards: ClaimedReward[];
-  /** Join a challenge. Records in-progress state; awards no points. */
+  // Join a challenge. Records in-progress state; awards no points.
   join: (challengeId: string) => void;
-  /** Set absolute progress toward the goal (self-reported). */
+  // Set absolute progress toward the goal (self-reported).
   setProgress: (challengeId: string, current: number) => void;
-  /**
-   * Move a challenge whose progress has reached its goal to completion. If it
-   * requires verification, it enters `pending_verification` first and awards no
-   * points yet. Otherwise it completes and awards points.
-   */
+  // Move a challenge whose progress has reached its goal to completion. If it
+  // requires verification, it enters `pending_verification` first and awards no
+  // points yet. Otherwise it completes and awards points.
   requestCompletion: (challengeId: string) => void;
-  /** Simulated verification step: completes a pending challenge and awards points. */
+  // Simulated verification step: completes a pending challenge and awards points.
   verifyCompletion: (challengeId: string) => void;
-  /**
-   * Award quiz points once the quiz is passed. De-duped by quiz id so repeating
-   * the quiz never awards twice.
-   */
+  // Award quiz points once the quiz is passed. De-duped by quiz id so repeating
+  // the quiz never awards twice.
   awardQuiz: (quizId: string, points: number, label: string) => void;
-  /**
-   * Record a VERIFIED volunteering activity. Adds the task id to the separate
-   * verified-task set (so it counts toward volunteering milestones exactly once)
-   * AND awards de-duped points (shared dedupeKey prevents paying the same
-   * activity twice when it is also a challenge). Self-reported completion must
-   * NOT call this — only a simulated/real verification step should.
-   */
+  // Record a VERIFIED volunteering activity. Adds the task id to the separate
+  // verified-task set (so it counts toward volunteering milestones exactly once)
+  // AND awards de-duped points (shared dedupeKey prevents paying the same
+  // activity twice when it is also a challenge). Self-reported completion must
+  // NOT call this - only a simulated/real verification step should.
   verifyVolunteering: (input: {
     taskId: string;
     points: number;
     label: string;
     dedupeKey?: string;
   }) => void;
-  /** True once a reward has been (simulated) redeemed. */
+  // True once a reward has been (simulated) redeemed.
   redeem: (rewardId: string) => void;
-  /** Clears all demo gamification state (for testing / pre-demo reset). */
+  // Clears all demo gamification state (for testing / pre-demo reset).
   reset: () => void;
 };
 
@@ -340,11 +334,9 @@ function useGamificationState(userId: string | null): UseGamification {
   };
 }
 
-/**
- * Provides a single shared gamification state instance to the whole app, so
- * Volunteer Nearby and Community Challenges read and update the same points,
- * progress, verified-task count and reward state without reload-induced staleness.
- */
+// Provides a single shared gamification state instance to the whole app, so
+// Volunteer Nearby and Community Challenges read and update the same points,
+// progress, verified-task count and reward state without reload-induced staleness.
 export function GamificationProvider({ children }: { children: ReactNode }) {
   // Mount with key={userId} so persisted state is re-read for each user.
   const { userId } = useSession();

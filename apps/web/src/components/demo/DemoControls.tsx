@@ -7,16 +7,14 @@ import { useProfile } from "../../data/ProfileContext";
 import { demoControlsEnabled } from "../../lib/demoFlag";
 import { AppButton, ConfirmationDialog, InfoCard, Modal } from "../ui";
 
-/**
- * Small, unobtrusive demo-only controls. Renders nothing unless demo controls
- * are enabled (dev build, or VITE_DEMO_CONTROLS=true for the preview). NOT part
- * of the normal resident experience and NOT a security mechanism.
- *
- * Reset clears ALL demo state across Help a Neighbour and Community Challenges:
- * accepted/completed/verified tasks, challenge progress, points ledger, verified
- * volunteering task count, badges/achievements (derived), and reward redemption.
- * A confirmation step guards the reset so it is never a one-tap accident.
- */
+// Small, unobtrusive demo-only controls. Renders nothing unless demo controls
+// are enabled (dev build, or VITE_DEMO_CONTROLS=true for the preview). NOT part
+// of the normal resident experience and NOT a security mechanism.
+//
+// Reset clears ALL demo state across Help a Neighbour and Community Challenges:
+// accepted/completed/verified tasks, challenge progress, points ledger, verified
+// volunteering task count, badges/achievements (derived), and reward redemption.
+// A confirmation step guards the reset so it is never a one-tap accident.
 export function DemoControls() {
   const { reset: resetGamification } = useGamification();
   const { reset: resetTasks } = useAcceptedTasks();
@@ -47,8 +45,8 @@ export function DemoControls() {
             </h2>
           </div>
           <p className="ui-helper" style={{ marginTop: 0 }}>
-            Development/demo only. Resets all simulated progress so the app returns
-            to a clean, consistent state for a fresh walkthrough.
+            Development/demo only. Resets all simulated progress so the app returns to a clean,
+            consistent state for a fresh walkthrough.
           </p>
           <div className="feature-card-foot">
             <AppButton variant="danger" onClick={() => setConfirming(true)}>
@@ -59,7 +57,6 @@ export function DemoControls() {
         </div>
       </InfoCard>
 
-      {/* Confirm BEFORE destroying demo state. */}
       <Modal
         open={confirming}
         title="Reset all demo data?"
@@ -76,13 +73,11 @@ export function DemoControls() {
         }
       >
         <p style={{ margin: 0 }}>
-          This clears accepted tasks, completed and verified tasks, challenge
-          progress, points, achievements, reward redemption and profile
-          preferences. This cannot be undone.
+          This clears accepted tasks, completed and verified tasks, challenge progress, points,
+          achievements, reward redemption and profile preferences. This cannot be undone.
         </p>
       </Modal>
 
-      {/* Success acknowledgement AFTER reset. */}
       <ConfirmationDialog
         open={done}
         title="Demo data reset"

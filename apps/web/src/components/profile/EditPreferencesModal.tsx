@@ -61,11 +61,9 @@ function ChipGroup<T extends string>({
   );
 }
 
-/**
- * Edit volunteer preferences: skills, interests, availability (simplified
- * day-group + time-of-day), languages. Chip multi-selects keep it compact on
- * mobile.
- */
+// Edit volunteer preferences: skills, interests, availability (simplified
+// day-group + time-of-day), languages. Chip multi-selects keep it compact on
+// mobile.
 export function EditPreferencesModal({ open, onClose }: EditPreferencesModalProps) {
   const { prefs, updatePrefs, isDemo } = useProfile();
   const [skills, setSkills] = useState(prefs.skills);

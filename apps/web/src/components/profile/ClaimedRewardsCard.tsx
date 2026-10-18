@@ -9,11 +9,9 @@ export type ClaimedRewardsCardProps = {
   claimed: ClaimedReward[];
 };
 
-/**
- * Profile → My Rewards: the user's claimed (redeemed) rewards, reusing the
- * gamification redemption state. Available rewards / badges / leaderboard stay in
- * Community Challenges — this only shows what was claimed. All fictional / demo.
- */
+// Profile → My Rewards: the user's claimed (redeemed) rewards, reusing the
+// gamification redemption state. Available rewards / badges / leaderboard stay in
+// Community Challenges - this only shows what was claimed. All fictional / demo.
 export function ClaimedRewardsCard({ claimed }: ClaimedRewardsCardProps) {
   return (
     <InfoCard ariaLabel="My rewards">
@@ -53,7 +51,7 @@ export function ClaimedRewardsCard({ claimed }: ClaimedRewardsCardProps) {
         )}
 
         <p className="ui-helper" style={{ margin: 0 }}>
-          Fictional demo rewards — no real voucher, code or payment is issued.{" "}
+          Fictional demo rewards - no real voucher, code or payment is issued.{" "}
           <Link to="/community/challenges">See available rewards in Challenges</Link>.
         </p>
       </div>

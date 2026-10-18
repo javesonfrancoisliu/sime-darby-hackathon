@@ -11,11 +11,9 @@ const CATEGORY_LABEL: Record<string, string> = {
   township: "Township",
 };
 
-/**
- * Compact community summary for the shared Home page (the three latest items).
- * Exposed per the integration contract so Home composes it beside SafetyOverview
- * without duplicating the full community layout.
- */
+// Compact community summary for the shared Home page (the three latest items).
+// Exposed per the integration contract so Home composes it beside SafetyOverview
+// without duplicating the full community layout.
 export function CommunityOverview({ townshipId }: { townshipId?: string }) {
   const items = COMMUNITY_ITEMS.filter(
     (item) => !townshipId || item.townshipId === townshipId,

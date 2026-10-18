@@ -10,11 +10,9 @@ export type ProfileHeaderCardProps = {
   onEdit: () => void;
 };
 
-/**
- * Compact profile header: avatar, display name, neighbourhood, verification
- * status (demo-labelled) and a small claimed-reward count. Does NOT repeat the
- * tasks/points/leaderboard sections — those live on their own pages.
- */
+// Compact profile header: avatar, display name, neighbourhood, verification
+// status (demo-labelled) and a small claimed-reward count. Does NOT repeat the
+// tasks/points/leaderboard sections - those live on their own pages.
 export function ProfileHeaderCard({ claimedCount, onEdit }: ProfileHeaderCardProps) {
   const { prefs, verification, isDemo } = useProfile();
 

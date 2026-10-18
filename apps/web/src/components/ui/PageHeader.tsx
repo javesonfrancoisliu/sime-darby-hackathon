@@ -5,11 +5,11 @@ const APP_NAME = "Township Connect";
 export type PageHeaderProps = {
   title: string;
   subtitle?: string;
-  /** Optional right-aligned content, e.g. a CTA or a toggle. */
+  // Optional right-aligned content, e.g. a CTA or a toggle.
   actions?: ReactNode;
 };
 
-/** Shared page header: heading + one-sentence subtitle + optional right-aligned action. */
+// Shared page header: heading + one-sentence subtitle + optional right-aligned action.
 export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
   // Every page renders one PageHeader, so this names the tab per route.
   useEffect(() => {
