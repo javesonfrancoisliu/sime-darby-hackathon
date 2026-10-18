@@ -1,79 +1,59 @@
 # Township Connect (web)
 
-Mobile-first PWA frontend for the Help a Neighbour prototype. Vite + React +
-TypeScript + React Router. Module 2 (Centralised Neighbourhood Information) plus
-the shared app shell; Module 1 (Safety) is a placeholder owned by the teammate.
+Mobile-first PWA for young volunteers (Help a Neighbour). Vite, React 19, TypeScript and React Router 7. It covers the neighbourhood hub, volunteer feed, challenges and rewards, safety and the profile.
 
-## Run locally
+## Run
 
-From the repo root (pnpm via corepack):
+From the repo root, with the API running (see the root README):
 
 ```
-corepack pnpm@11.16.0 --filter @sdh/web dev      # dev server, http://localhost:5173
-corepack pnpm@11.16.0 --filter @sdh/web build    # production build -> dist/
-corepack pnpm@11.16.0 --filter @sdh/web preview   # serve the built app
+pnpm install
+pnpm db:up && pnpm db:setup && pnpm --filter @sdh/api db:seed
+pnpm --filter @sdh/api dev            # API on http://127.0.0.1:3001
+pnpm --filter @sdh/web dev            # web on http://localhost:5173, proxies /api
+pnpm --filter @sdh/web build          # production build in dist/
+pnpm --filter @sdh/web preview        # built app on http://localhost:4173
+pnpm --filter @sdh/web test
+pnpm --filter @sdh/web typecheck
 ```
 
-The dev server proxies `/api` to the local backend on `http://127.0.0.1:3001`.
-Without the backend running, API-backed screens fall back to labelled demo data.
+Set `API_PROXY_TARGET` to point the dev proxy somewhere other than `http://127.0.0.1:3001`. For a tunnel to the preview server set `PREVIEW_HOST` and `PREVIEW_ALLOWED_HOSTS`.
 
-## PWA icons
+## Live and demo modes
 
-App icons are generated from `assets/app_icon.png` into `public/icons/`:
+Profile, Demo sign-in picks a seeded user from `GET /api/demo/users`. The id is sent as the `X-Demo-User` header by `@sdh/api-client`.
+
+- Signed in (live): `GET /api/me`, `/api/opportunities`, `/api/contributions/mine`, `/api/requests/mine`, `/api/events`, `PATCH /api/me`. Accept, complete and join call the matching endpoints. Errors show with Try again and never fall back to mock data. Try "Justina Tan" (verified volunteer) or "Aiman Hakim" (pending verification).
+- Signed out (demo): labelled sample data that lives under `src/data/*.mock.ts` and is read only through the data hooks.
+
+Still simulated on the device: points, badges, leaderboard, rewards, the resident confirm step and the settings toggles. Saved state is stored per user and cleared on sign out. The "Demo controls" card on Profile resets it; it shows in dev builds or when `VITE_DEMO_CONTROLS=true`.
+
+## Layout
 
 ```
-node scripts/generate-icons.mjs
+src/
+  app/          Route pages (home, community, volunteer, safety, profile)
+  components/   ui (shared kit), layout, and one folder per feature
+  data/         Providers and hooks; the only code that imports mock data
+  lib/          Pure helpers (points, rewards, geo, availability, storage)
+  types/        View-model types shared by hooks and components
+  styles/       App and layout CSS on top of @sdh/design-tokens
+  test/         Test setup and helpers
 ```
 
-Produces `pwa-192.png`, `pwa-512.png` (tight-cropped), `maskable-512.png`
-(safe-padded on brand red), and `apple-touch-icon.png` (180). Re-run only if the
-source icon changes.
+## Role preview
 
-## Dev-only role preview
+The role comes from the signed-in user (`elder` is the elderly view, anything else is young). While signed out you can preview a role in dev with `?role=elderly` or `VITE_DEV_ROLE=elderly` in `.env.local`.
 
-The Young/Elderly role will come from authentication; there is no in-app toggle.
-During development you can preview either role:
+## PWA
 
-- URL query (dev only): `http://localhost:5173/?role=elderly`
-- Env var: copy `.env.local.example` to `.env.local` and set `VITE_DEV_ROLE=elderly`
+The app shell is precached and only the public event list is cached for offline use. Regenerate the icons from `assets/app_icon.png` with `pnpm --filter @sdh/web icons`.
 
-Default role is `young`. "Easy View" (larger text/controls) is also available to
-everyone as an independent accessibility toggle in the top bar.
+To test install on a phone you need HTTPS: build, run `preview` with the tunnel variables above, and expose port 4173 through a tunnel such as `cloudflared tunnel --url http://localhost:4173`. On iOS use Safari, Share, Add to Home Screen. Remove and re-add the app when the tunnel URL changes.
 
-## Testing the PWA on a phone (HTTPS required)
+## Known gaps
 
-Service workers and "Add to Home Screen" need HTTPS (or `localhost`). Phones on
-your LAN hitting your dev machine by IP are not treated as secure, so use a
-tunnel that provides HTTPS. Steps:
-
-1. Build and preview the production app:
-   ```
-   corepack pnpm@11.16.0 --filter @sdh/web build
-   corepack pnpm@11.16.0 --filter @sdh/web preview
-   ```
-   Preview listens on localhost only. To reach it through a tunnel, set
-   `PREVIEW_HOST=0.0.0.0` and `PREVIEW_ALLOWED_HOSTS=<tunnel host>` first.
-2. Expose it over HTTPS with a tunnel (any one of these):
-   - `npx localtunnel --port 4173`
-   - `cloudflared tunnel --url http://localhost:4173`
-   - `ngrok http 4173`
-3. Open the HTTPS URL the tunnel prints on your phone.
-
-### Android (Chrome)
-- Open the HTTPS URL. Chrome shows an install prompt or an "Install app" item in
-  the ⋮ menu. Install it; it launches standalone (no browser chrome) with the
-  Township Connect icon.
-- Verify offline: enable airplane mode and reopen from the home screen — the app
-  shell loads; API data falls back to demo content.
-
-### iOS (Safari)
-- Open the HTTPS URL in Safari (not Chrome — iOS only installs PWAs from Safari).
-- Tap Share → "Add to Home Screen" → Add. It launches full-screen with the
-  apple-touch icon.
-- iOS has no automatic install prompt; the manual step above is expected.
-
-## What is cached
-
-- App shell + static assets are precached for offline launch.
-- `/api/*` uses NetworkFirst with a 5-minute cap, so live safety/township/
-  community data is never served stale indefinitely.
+- Resident confirmation has no API step yet; "Confirm (Demo)" stays on the device.
+- Profile interests and languages are not stored by the API.
+- The volunteer status model (`accepted`, `completed`, `verified`) is separate from the API request states.
+- Match scores come from the API when signed in; the UI already shows score and reason, so an AI re-rank needs no frontend change.
