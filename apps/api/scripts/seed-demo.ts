@@ -17,7 +17,7 @@ if ((await listDemoUsers()).length > 0) {
   process.exit(0);
 }
 
-// Bandar Serai, the demo township the web app shows. ~0.009 degrees is about 1 km.
+// City of Elmina, the demo township the web app shows. ~0.009 degrees is about 1 km.
 const BASE = { lat: 3.0738, lng: 101.5183 };
 const KM = 0.009;
 const near = (northKm: number, eastKm: number) => ({
@@ -52,11 +52,16 @@ const person = (
 });
 
 const coordinator = await createUser(
-  person("Puan Aminah (Coordinator)", "coordinator", "Management Office", near(0, 0)),
+  person(
+    "Puan Aminah (Coordinator)",
+    "coordinator",
+    "Management Office, City of Elmina",
+    near(0, 0),
+  ),
 );
 
 const volunteer = await createUser(
-  person("Justina Tan", "volunteer", "Block C, Bandar Serai", near(0, 0), {
+  person("Justina Tan", "volunteer", "Block C, Elmina West", near(0, 0), {
     skills: ["groceries", "digital_literacy", "transport", "community_activity"],
     experience: "Helps her grandparents with phones and errands every week.",
     availability: ALL_DAYS.map((day) => ({ day, start: "08:00", end: "21:00" })),
@@ -66,15 +71,15 @@ await reviewVolunteer(volunteer.id, "verified");
 
 // Left pending so the "not verified yet" path can be shown too.
 await createUser(
-  person("Aiman Hakim", "volunteer", "Block D, Bandar Serai", near(-0.4, 0.6), {
+  person("Aiman Hakim", "volunteer", "Block D, Elmina West", near(-0.4, 0.6), {
     skills: ["home_help"],
   }),
 );
 
 const elders = await Promise.all([
-  createUser(person("Uncle Lim", "elder", "Block A, Bandar Serai", near(0.3, 0.4))),
-  createUser(person("Auntie Mary", "elder", "Block B, Bandar Serai", near(0.9, -0.5))),
-  createUser(person("Encik Rahman", "elder", "Taman Serai Indah", near(-1.6, 1.1))),
+  createUser(person("Uncle Lim", "elder", "Block A, Elmina West", near(0.3, 0.4))),
+  createUser(person("Auntie Mary", "elder", "Block B, Elmina West", near(0.9, -0.5))),
+  createUser(person("Encik Rahman", "elder", "Elmina Valley", near(-1.6, 1.1))),
 ]);
 
 const requests: {
@@ -151,12 +156,12 @@ const events = [
     capacity: 20,
   },
   {
-    title: "Central Green clean-up",
+    title: "Central Park clean-up",
     category: "community_activity" as const,
-    description: "Join the neighbourhood clean-up at Central Green.",
+    description: "Join the neighbourhood clean-up at Central Park.",
     startsAt: at(6, 8, 30),
     durationMinutes: 120,
-    location: { ...near(1.1, 1.0), area: "Central Green, Bandar Serai" },
+    location: { ...near(1.1, 1.0), area: "Central Park, City of Elmina" },
     capacity: 40,
   },
   {
@@ -165,7 +170,7 @@ const events = [
     description: "Bring a dish and meet the folks on your street over breakfast.",
     startsAt: at(7, 9),
     durationMinutes: 120,
-    location: { ...near(0.2, -0.3), area: "Community Hall, Bandar Serai" },
+    location: { ...near(0.2, -0.3), area: "Community Hall, Elmina West" },
     capacity: 80,
   },
 ];
