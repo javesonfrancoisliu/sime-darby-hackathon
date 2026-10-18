@@ -211,15 +211,15 @@ export function HomePage() {
               Township Live Conditions
             </h2>
             <p className="app-home__section-subtitle">
-              <IconMapPin size={12} strokeWidth={2} style={{ verticalAlign: "-1px", marginRight: 3 }} />
+              <IconMapPin
+                size={12}
+                strokeWidth={2}
+                style={{ verticalAlign: "-1px", marginRight: 3 }}
+              />
               Elmina West · Example readings
             </p>
           </div>
-          <button
-            type="button"
-            className="app-home__see-all"
-            onClick={() => navigate("/safety")}
-          >
+          <button type="button" className="app-home__see-all" onClick={() => navigate("/safety")}>
             All hazards
           </button>
         </div>
@@ -259,11 +259,7 @@ export function HomePage() {
           <h2 id="daily-support-heading" className="app-home__section-title">
             Help a Neighbour Services
           </h2>
-          <button
-            type="button"
-            className="app-home__see-all"
-            onClick={() => navigate("/request")}
-          >
+          <button type="button" className="app-home__see-all" onClick={() => navigate("/request")}>
             All services
           </button>
         </div>
@@ -294,11 +290,7 @@ export function HomePage() {
       <section className="app-home__section">
         <div className="app-home__section-header">
           <h2 className="app-home__section-title">My requests</h2>
-          <button
-            type="button"
-            className="app-home__see-all"
-            onClick={() => navigate("/requests")}
-          >
+          <button type="button" className="app-home__see-all" onClick={() => navigate("/requests")}>
             See all
           </button>
         </div>
@@ -306,7 +298,10 @@ export function HomePage() {
         {status === "loading" && <Spinner label="Loading requests" />}
 
         {status === "error" && (
-          <Banner message={error?.message ?? "We could not load your requests."} onRetry={refetch} />
+          <Banner
+            message={error?.message ?? "We could not load your requests."}
+            onRetry={refetch}
+          />
         )}
 
         {status === "success" && (!data || data.length === 0) && (

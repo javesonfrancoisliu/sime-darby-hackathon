@@ -41,9 +41,7 @@ export function ConfirmationPage() {
       <div className="apple-inset-group" style={{ marginBottom: 28 }}>
         <div className="apple-inset-row">
           <span className="app-detail-label">Help with</span>
-          <span className="apple-inset-value text-strong">
-            {CATEGORY_TEXT[request.category]}
-          </span>
+          <span className="apple-inset-value text-strong">{CATEGORY_TEXT[request.category]}</span>
         </div>
         <div className="apple-inset-row">
           <span className="app-detail-label">When</span>

@@ -105,8 +105,7 @@ export function CommunityPage() {
   return (
     <div className="safety-page">
       <div className="safety-page__header">
-        <div className="row-between"
-        >
+        <div className="row-between">
           <div>
             <h1 className="safety-page__title">Community</h1>
             <p className="safety-page__subtitle">
@@ -173,17 +172,11 @@ export function CommunityPage() {
                       <div className="flex-fill">
                         <p className="safety-card__location">{e.title}</p>
                         <p className="safety-card__meta">
-                          <IconClock className="icon-inline"
-                            size={12}
-                            strokeWidth={2}
-                          />
+                          <IconClock className="icon-inline" size={12} strokeWidth={2} />
                           {formatWhen(e.startsAt)}
                         </p>
                         <p className="safety-card__meta">
-                          <IconMapPin className="icon-inline"
-                            size={12}
-                            strokeWidth={2}
-                          />
+                          <IconMapPin className="icon-inline" size={12} strokeWidth={2} />
                           {e.location.area}
                         </p>
                       </div>
@@ -254,17 +247,11 @@ export function CommunityPage() {
                     <div className="flex-fill">
                       <p className="safety-card__location">{m.title}</p>
                       <p className="safety-card__meta">
-                        <IconMapPin className="icon-inline"
-                          size={12}
-                          strokeWidth={2}
-                        />
+                        <IconMapPin className="icon-inline" size={12} strokeWidth={2} />
                         {m.affectedArea}
                       </p>
                       <p className="safety-card__meta">
-                        <IconCalendar className="icon-inline"
-                          size={12}
-                          strokeWidth={2}
-                        />
+                        <IconCalendar className="icon-inline" size={12} strokeWidth={2} />
                         {m.dateRange}
                       </p>
                     </div>
@@ -303,17 +290,11 @@ export function CommunityPage() {
                       <div className="flex-fill">
                         <p className="safety-card__location">{v.title}</p>
                         <p className="safety-card__meta">
-                          <IconCalendar className="icon-inline"
-                            size={12}
-                            strokeWidth={2}
-                          />
+                          <IconCalendar className="icon-inline" size={12} strokeWidth={2} />
                           {v.date} · {v.duration}
                         </p>
                         <p className="safety-card__meta">
-                          <IconMapPin className="icon-inline"
-                            size={12}
-                            strokeWidth={2}
-                          />
+                          <IconMapPin className="icon-inline" size={12} strokeWidth={2} />
                           {v.location}
                         </p>
                       </div>
@@ -377,10 +358,7 @@ export function CommunityPage() {
                           {u.title}
                         </p>
                         {u.pinned && (
-                          <span
-                            className="safety-chip tone-alert"
-                            style={{ flexShrink: 0 }}
-                          >
+                          <span className="safety-chip tone-alert" style={{ flexShrink: 0 }}>
                             <IconPin
                               size={11}
                               strokeWidth={2}
@@ -391,10 +369,7 @@ export function CommunityPage() {
                         )}
                       </div>
                       <p className="safety-card__meta">
-                        <IconCalendar className="icon-inline"
-                          size={12}
-                          strokeWidth={2}
-                        />
+                        <IconCalendar className="icon-inline" size={12} strokeWidth={2} />
                         {u.category} · {u.date}
                       </p>
                     </div>

@@ -1,7 +1,11 @@
 // Mock Community Data - Centralised Neighbourhood Information
 // All values are illustrative only.
 
-import type { MaintenanceAnnouncement, VolunteerOpportunity, TownshipUpdate } from "../types/community";
+import type {
+  MaintenanceAnnouncement,
+  VolunteerOpportunity,
+  TownshipUpdate,
+} from "../types/community";
 
 export const MAINTENANCE_ANNOUNCEMENTS: MaintenanceAnnouncement[] = [
   {

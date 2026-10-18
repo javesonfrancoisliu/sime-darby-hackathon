@@ -18,10 +18,7 @@ function getTimeOfDay(): string {
 // Incorporates Apple design optical typography and quick-accessibility controls:
 // - Aa button opens the Silver Generation Accessibility Sheet
 // - Speaker button reads aloud current screen summary for visually impaired elders
-export function HeroHeader({
-  name,
-  location = "Elmina West",
-}: HeroHeaderProps) {
+export function HeroHeader({ name, location = "Elmina West" }: HeroHeaderProps) {
   const { openSheet, isSpeaking, speak, stopSpeaking } = useAccessibility();
   const greeting = `${getTimeOfDay()}, ${name}`;
 
@@ -59,7 +56,6 @@ export function HeroHeader({
           <h1 className="app-hero__name">{name}</h1>
         </div>
 
-        
         <div className="app-hero__actions">
           <button
             type="button"

@@ -160,8 +160,7 @@ const township: TownshipUpdateItem[] = [
     townshipId: T,
     category: "township",
     title: "New evening security patrol route",
-    summary:
-      "Patrols now cover the central green and all block lobbies between 8pm and 2am.",
+    summary: "Patrols now cover the central green and all block lobbies between 8pm and 2am.",
     publishedAt: "2026-10-15T18:00:00+08:00",
     topic: "Security",
     priority: "high",

@@ -39,10 +39,7 @@ export function isDuplicateAward(ledger: PointsLedgerEntry[], input: AwardInput)
 
 // Returns a NEW ledger with the award appended, or the SAME ledger unchanged if
 // it would be a duplicate. Never mutates the input.
-export function awardPoints(
-  ledger: PointsLedgerEntry[],
-  input: AwardInput,
-): PointsLedgerEntry[] {
+export function awardPoints(ledger: PointsLedgerEntry[], input: AwardInput): PointsLedgerEntry[] {
   if (input.points <= 0) return ledger;
   if (isDuplicateAward(ledger, input)) return ledger;
   const entry: PointsLedgerEntry = {

@@ -23,9 +23,7 @@ export function TownshipUpdateCard({ item, onReadMore }: TownshipUpdateCardProps
             </span>
           </h3>
           <div className="inline-icon ui-gap-2">
-            {item.priority === "high" && (
-              <StatusBadge label="High priority" variant="warning" />
-            )}
+            {item.priority === "high" && <StatusBadge label="High priority" variant="warning" />}
             <Pill>{item.topic}</Pill>
           </div>
         </div>

@@ -1,11 +1,6 @@
 import type { ContributionsResponse, OpportunitiesResponse } from "@sdh/contracts";
 
-import type {
-  Contribution,
-  ImpactSummary,
-  Opportunity,
-  Urgency,
-} from "../types/volunteer";
+import type { Contribution, ImpactSummary, Opportunity, Urgency } from "../types/volunteer";
 import { ApiError, apiFetch, errorMessage, useSession } from "@sdh/api-client";
 import { useLoader } from "../lib/useLoader";
 import { MOCK_IMPACT, MOCK_OPPORTUNITIES } from "./volunteer.mock";

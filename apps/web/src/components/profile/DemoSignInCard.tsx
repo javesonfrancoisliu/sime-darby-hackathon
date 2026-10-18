@@ -78,9 +78,7 @@ export function DemoSignInCard() {
               The live service isn't reachable ({loadError}). The app is using demo data.
             </p>
           ) : users === null ? (
-            <p className="ui-helper ui-flush-top">
-              Looking for demo users…
-            </p>
+            <p className="ui-helper ui-flush-top">Looking for demo users…</p>
           ) : users.length === 0 ? (
             <p className="ui-helper ui-flush-top">
               No demo users yet. Run <code>pnpm db:seed</code> to create them.

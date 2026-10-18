@@ -1,7 +1,12 @@
 // Mock Safety Data - Health & Safety Hazards
 // Example values only, shown with a Demo data label.
 
-import type { HazeReading, WaterLevelReading, TemperatureAlert, FacilityReport } from "../types/safety";
+import type {
+  HazeReading,
+  WaterLevelReading,
+  TemperatureAlert,
+  FacilityReport,
+} from "../types/safety";
 
 export const HAZE_DATA: HazeReading[] = [
   {
@@ -61,7 +66,8 @@ export const TEMPERATURE_DATA: TemperatureAlert = {
   humidity: 78,
   level: "warning",
   updatedAt: "8:00 am",
-  advisory: "Heat advisory in effect. Stay hydrated and avoid prolonged sun exposure between 11 am–3 pm.",
+  advisory:
+    "Heat advisory in effect. Stay hydrated and avoid prolonged sun exposure between 11 am–3 pm.",
 };
 
 export const FACILITY_REPORTS: FacilityReport[] = [

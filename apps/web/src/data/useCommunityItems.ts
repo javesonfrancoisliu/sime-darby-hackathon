@@ -92,5 +92,8 @@ export function useCommunityItems(): CommunityItemsState {
 
 // The three newest sample items of any category for the Home summary card.
 export function useLatestCommunityItems(townshipId?: string): CommunityItem[] {
-  return COMMUNITY_ITEMS.filter((item) => !townshipId || item.townshipId === townshipId).slice(0, 3);
+  return COMMUNITY_ITEMS.filter((item) => !townshipId || item.townshipId === townshipId).slice(
+    0,
+    3,
+  );
 }

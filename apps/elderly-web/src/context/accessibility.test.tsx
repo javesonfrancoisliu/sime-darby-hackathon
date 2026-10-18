@@ -108,9 +108,9 @@ describe("saved settings", () => {
     expect(el).toHaveClass("text-size-xlarge");
     expect(el).toHaveClass("high-contrast");
     expect(el.classList.contains("reduced-motion")).toBe(motion);
-    expect(JSON.parse(window.localStorage.getItem(ACCESSIBILITY_STORAGE_KEY) ?? "{}").fontSize).toBe(
-      "xlarge",
-    );
+    expect(
+      JSON.parse(window.localStorage.getItem(ACCESSIBILITY_STORAGE_KEY) ?? "{}").fontSize,
+    ).toBe("xlarge");
   });
 
   it("ignores a damaged saved value", () => {

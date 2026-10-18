@@ -1,4 +1,11 @@
-import { CalendarDays, HandHeart, LayoutGrid, Megaphone, Wrench, type LucideIcon } from "lucide-react";
+import {
+  CalendarDays,
+  HandHeart,
+  LayoutGrid,
+  Megaphone,
+  Wrench,
+  type LucideIcon,
+} from "lucide-react";
 
 import type { CommunityCategory } from "../../types/community";
 

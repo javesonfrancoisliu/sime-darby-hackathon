@@ -13,7 +13,11 @@ export function Banner({ message, onRetry, retryLabel = "Try again" }: BannerPro
     <div
       className="ui-card"
       role="alert"
-      style={{ borderColor: "var(--danger)", color: "var(--danger)", marginBottom: "var(--space-6)" }}
+      style={{
+        borderColor: "var(--danger)",
+        color: "var(--danger)",
+        marginBottom: "var(--space-6)",
+      }}
     >
       <p style={{ margin: 0, fontWeight: 600 }}>{message}</p>
       {onRetry ? (

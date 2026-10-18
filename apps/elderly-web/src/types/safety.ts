@@ -1,11 +1,11 @@
 export type HazardLevel = "good" | "moderate" | "unhealthy" | "hazardous";
 
-export type AlertLevel  = "normal" | "warning" | "danger";
+export type AlertLevel = "normal" | "warning" | "danger";
 
 // ── Haze / Air Quality ───────────────────────────────
 export interface HazeReading {
   location: string;
-  api: number;          // Air Pollutant Index (Malaysia standard)
+  api: number; // Air Pollutant Index (Malaysia standard)
   level: HazardLevel;
   updatedAt: string;
   recommendation: string;
@@ -17,8 +17,8 @@ export type WaterStatus = "normal" | "watch" | "warning" | "danger";
 export interface WaterLevelReading {
   name: string;
   type: "river" | "lake";
-  levelM: number;      // current level in metres
-  normalMaxM: number;  // normal max level in metres
+  levelM: number; // current level in metres
+  normalMaxM: number; // normal max level in metres
   status: WaterStatus;
   updatedAt: string;
 }
@@ -28,7 +28,7 @@ export interface TemperatureAlert {
   location: string;
   tempC: number;
   feelsLikeC: number;
-  humidity: number;    // percent
+  humidity: number; // percent
   level: AlertLevel;
   updatedAt: string;
   advisory?: string;

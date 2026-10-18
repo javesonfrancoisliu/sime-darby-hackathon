@@ -20,9 +20,7 @@ export function ChallengeStatsStrip({ summary }: ChallengeStatsStripProps) {
     <InfoCard className="reward-accent" ariaLabel="Your challenge progress">
       <div className="feature-card">
         <div className="feature-card-head">
-          <span className="inline-icon ui-strong">
-            Your progress
-          </span>
+          <span className="inline-icon ui-strong">Your progress</span>
           <DemoTag />
         </div>
         <dl className="impact-grid">

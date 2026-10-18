@@ -45,8 +45,8 @@ export function LogProgressModal({ challenge, current, onClose, onSave }: LogPro
       {challenge && (
         <>
           <p className="ui-flush">
-            Update your total {challenge.goal.unit} for <strong>{challenge.title}</strong>{" "}
-            (goal: {challenge.goal.target}).
+            Update your total {challenge.goal.unit} for <strong>{challenge.title}</strong> (goal:{" "}
+            {challenge.goal.target}).
           </p>
           <FormField
             label={`Total ${challenge.goal.unit}`}

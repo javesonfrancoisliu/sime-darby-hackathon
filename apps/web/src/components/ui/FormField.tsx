@@ -15,9 +15,7 @@ export function FormField({ label, helper, error, id, icon, ...rest }: FormField
   const fieldId = id ?? generatedId;
   const helperId = `${fieldId}-helper`;
   const errorId = `${fieldId}-error`;
-  const describedBy = [helper ? helperId : null, error ? errorId : null]
-    .filter(Boolean)
-    .join(" ");
+  const describedBy = [helper ? helperId : null, error ? errorId : null].filter(Boolean).join(" ");
 
   return (
     <div className="ui-field">
@@ -25,7 +23,11 @@ export function FormField({ label, helper, error, id, icon, ...rest }: FormField
         {label}
       </label>
       <div className="ui-input-wrap">
-        {icon && <span className="ui-input-icon" aria-hidden="true">{icon}</span>}
+        {icon && (
+          <span className="ui-input-icon" aria-hidden="true">
+            {icon}
+          </span>
+        )}
         <input
           id={fieldId}
           className="ui-input"

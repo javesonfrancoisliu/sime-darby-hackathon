@@ -9,7 +9,13 @@ import { useAccessibility } from "../context/AccessibilityContext";
 
 // Page frame: Sime Darby branding, one readable column, and the settings classes
 // (text size, strong contrast, less movement) on the root element.
-export function AppShell({ children, hideTabs = false }: { children: ReactNode; hideTabs?: boolean }) {
+export function AppShell({
+  children,
+  hideTabs = false,
+}: {
+  children: ReactNode;
+  hideTabs?: boolean;
+}) {
   const inRouter = useInRouterContext();
   const { fontSize, highContrast, reducedMotion } = useAccessibility();
 

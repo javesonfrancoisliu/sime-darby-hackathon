@@ -1,14 +1,7 @@
 import { useEffect, useId, useRef } from "react";
 import { DEMO_SECURITY_LINE, EMERGENCY_NUMBER } from "../config";
 import { FONT_LABEL, useAccessibility, type FontSizeLevel } from "../context/AccessibilityContext";
-import {
-  IconX,
-  IconSun,
-  IconVolume2,
-  IconVolumeX,
-  IconPhone,
-  IconCheck,
-} from "./Icons";
+import { IconX, IconSun, IconVolume2, IconVolumeX, IconPhone, IconCheck } from "./Icons";
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -103,7 +96,12 @@ function SheetBody() {
   }
 
   return (
-    <div ref={backdropRef} className="apple-sheet-backdrop" onClick={closeSheet} onKeyDown={handleKeyDown}>
+    <div
+      ref={backdropRef}
+      className="apple-sheet-backdrop"
+      onClick={closeSheet}
+      onKeyDown={handleKeyDown}
+    >
       <div
         ref={panelRef}
         className="apple-sheet-panel"
@@ -116,7 +114,9 @@ function SheetBody() {
 
         <div className="apple-sheet-header">
           <div>
-            <h2 id={titleId} className="apple-sheet-title">Reading and sound</h2>
+            <h2 id={titleId} className="apple-sheet-title">
+              Reading and sound
+            </h2>
             <p className="apple-sheet-subtitle">Make the app easier to see and hear</p>
           </div>
           <button
@@ -241,8 +241,13 @@ function SheetBody() {
                 <span className="apple-emergency-btn__label">Township security (demo number)</span>
                 <span className="apple-emergency-btn__number">{DEMO_SECURITY_LINE.display}</span>
               </a>
-              <a href={`tel:${EMERGENCY_NUMBER}`} className="apple-emergency-btn apple-emergency-btn--danger">
-                <span className="apple-emergency-btn__label">Emergency (police, ambulance, fire)</span>
+              <a
+                href={`tel:${EMERGENCY_NUMBER}`}
+                className="apple-emergency-btn apple-emergency-btn--danger"
+              >
+                <span className="apple-emergency-btn__label">
+                  Emergency (police, ambulance, fire)
+                </span>
                 <span className="apple-emergency-btn__number">{EMERGENCY_NUMBER}</span>
               </a>
             </div>

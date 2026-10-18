@@ -1,12 +1,5 @@
 import { readStorage, writeStorage } from "@sdh/api-client";
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 
 export type FontSizeLevel = "normal" | "large" | "xlarge";
 
@@ -32,7 +25,10 @@ export const FONT_LABEL: Record<FontSizeLevel, string> = {
 const ROOT_FONT_PX: Record<FontSizeLevel, number> = { normal: 16, large: 19, xlarge: 23 };
 
 function prefersReducedMotion(): boolean {
-  return typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  return (
+    typeof window !== "undefined" &&
+    !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+  );
 }
 
 // Reads saved settings. Anything missing or malformed falls back to the default for that setting.
@@ -49,9 +45,12 @@ function loadSettings(): StoredSettings {
     const saved = JSON.parse(raw) as Partial<StoredSettings>;
     return {
       fontSize: FONT_LEVELS.find((level) => level === saved.fontSize) ?? defaults.fontSize,
-      highContrast: typeof saved.highContrast === "boolean" ? saved.highContrast : defaults.highContrast,
-      reducedMotion: typeof saved.reducedMotion === "boolean" ? saved.reducedMotion : defaults.reducedMotion,
-      voiceAssist: typeof saved.voiceAssist === "boolean" ? saved.voiceAssist : defaults.voiceAssist,
+      highContrast:
+        typeof saved.highContrast === "boolean" ? saved.highContrast : defaults.highContrast,
+      reducedMotion:
+        typeof saved.reducedMotion === "boolean" ? saved.reducedMotion : defaults.reducedMotion,
+      voiceAssist:
+        typeof saved.voiceAssist === "boolean" ? saved.voiceAssist : defaults.voiceAssist,
     };
   } catch {
     return defaults;
@@ -97,10 +96,13 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const setFontSize = useCallback((size: FontSizeLevel) => {
-    triggerHaptic(12);
-    setFontSizeState(size);
-  }, [triggerHaptic]);
+  const setFontSize = useCallback(
+    (size: FontSizeLevel) => {
+      triggerHaptic(12);
+      setFontSizeState(size);
+    },
+    [triggerHaptic],
+  );
 
   const stopSpeaking = useCallback(() => {
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
@@ -183,11 +185,7 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     triggerHaptic,
   };
 
-  return (
-    <AccessibilityContext.Provider value={value}>
-      {children}
-    </AccessibilityContext.Provider>
-  );
+  return <AccessibilityContext.Provider value={value}>{children}</AccessibilityContext.Provider>;
 }
 
 export function useAccessibility() {

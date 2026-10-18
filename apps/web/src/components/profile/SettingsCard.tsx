@@ -76,9 +76,7 @@ export function SettingsCard() {
           <h2 className="feature-card-title">Settings</h2>
         </div>
 
-        <h3 className="impact-subhead ui-flush-top">
-          Notifications
-        </h3>
+        <h3 className="impact-subhead ui-flush-top">Notifications</h3>
         {toggles.slice(0, 2).map((t) => (
           <ToggleRow
             key={t.key}

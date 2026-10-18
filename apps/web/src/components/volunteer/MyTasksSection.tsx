@@ -71,9 +71,8 @@ export function MyTasksSection({ tasks, onComplete, onVerify }: MyTasksSectionPr
                       Confirm (Demo)
                     </AppButton>
                     <p className="ui-helper">
-                      Demo only: this simulates the elderly resident confirming the
-                      help was received. In the real app, volunteers cannot verify
-                      their own tasks.
+                      Demo only: this simulates the elderly resident confirming the help was
+                      received. In the real app, volunteers cannot verify their own tasks.
                     </p>
                   </>
                 )}

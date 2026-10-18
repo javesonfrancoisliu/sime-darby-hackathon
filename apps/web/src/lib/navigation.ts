@@ -1,11 +1,4 @@
-import {
-  HandHeart,
-  Home,
-  Megaphone,
-  ShieldAlert,
-  UserRound,
-  type LucideIcon,
-} from "lucide-react";
+import { HandHeart, Home, Megaphone, ShieldAlert, UserRound, type LucideIcon } from "lucide-react";
 
 import type { Role } from "../components/layout/RoleContext";
 

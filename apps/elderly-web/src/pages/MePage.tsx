@@ -97,7 +97,8 @@ export function MePage() {
               <div>
                 <span className="apple-inset-btn-row__title">Text and sound settings</span>
                 <span className="apple-inset-btn-row__subtitle">
-                  Text size: {FONT_LABEL[fontSize]} · Strong contrast: {highContrast ? "On" : "Off"} · Read aloud: {voiceAssist ? "On" : "Off"}
+                  Text size: {FONT_LABEL[fontSize]} · Strong contrast: {highContrast ? "On" : "Off"}{" "}
+                  · Read aloud: {voiceAssist ? "On" : "Off"}
                 </span>
               </div>
             </div>
@@ -116,14 +117,20 @@ export function MePage() {
         <div className="apple-inset-group">
           <div className="apple-inset-row medical-empty">
             <div>
-              <span className="app-detail-label" style={{ margin: 0 }}>Add your medical details</span>
+              <span className="app-detail-label" style={{ margin: 0 }}>
+                Add your medical details
+              </span>
               <span className="medical-empty__hint">
                 Blood group and next of kin have not been added yet.
               </span>
             </div>
           </div>
 
-          <a href={`tel:${DEMO_SECURITY_LINE.tel}`} className="apple-inset-btn-row" style={{ textDecoration: "none" }}>
+          <a
+            href={`tel:${DEMO_SECURITY_LINE.tel}`}
+            className="apple-inset-btn-row"
+            style={{ textDecoration: "none" }}
+          >
             <div className="apple-inset-btn-row__left">
               <span className="apple-inset-btn-row__icon" style={{ color: "var(--brand-primary)" }}>
                 <IconPhone size={18} strokeWidth={2} />
@@ -145,9 +152,7 @@ export function MePage() {
         <div className="apple-inset-group">
           <div className="apple-inset-row">
             <span className="app-detail-label">Community Status</span>
-            <span className="apple-meta-pill tone-good">
-              Active Elder Resident
-            </span>
+            <span className="apple-meta-pill tone-good">Active Elder Resident</span>
           </div>
           <div className="apple-inset-row">
             <span className="app-detail-label">Township Sector</span>

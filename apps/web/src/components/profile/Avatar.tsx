@@ -19,7 +19,11 @@ export function Avatar({ name, size = 56 }: AvatarProps) {
   return (
     <span
       className="ui-avatar"
-      style={{ width: size, height: size, fontSize: Math.max(AVATAR_MIN_FONT_PX, Math.round(size * AVATAR_FONT_RATIO)) }}
+      style={{
+        width: size,
+        height: size,
+        fontSize: Math.max(AVATAR_MIN_FONT_PX, Math.round(size * AVATAR_FONT_RATIO)),
+      }}
       aria-hidden="true"
     >
       {initials(name)}
