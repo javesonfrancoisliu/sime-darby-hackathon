@@ -46,6 +46,11 @@ describe("apiFetch", () => {
     });
   });
 
+  it("treats a code outside the contract as HTTP_ERROR", async () => {
+    fetchMock.mockResolvedValue(json({ error: { code: "WEIRD", message: "odd" } }, 400));
+    await expect(apiFetch("/api/x")).rejects.toMatchObject({ code: "HTTP_ERROR", message: "odd" });
+  });
+
   it("falls back to a generic message for an error without a body", async () => {
     fetchMock.mockResolvedValue(new Response("oops", { status: 502 }));
     await expect(apiFetch("/api/x")).rejects.toMatchObject({ status: 502, code: "HTTP_ERROR" });

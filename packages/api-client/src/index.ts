@@ -1,4 +1,13 @@
-export { ApiError, apiFetch, DEFAULT_TIMEOUT_MS, errorMessage, MUTATION_TIMEOUT_MS, type ApiOptions } from "./fetch";
+export {
+  ApiError,
+  apiFetch,
+  DEFAULT_TIMEOUT_MS,
+  errorMessage,
+  MUTATION_TIMEOUT_MS,
+  type ApiErrorCode,
+  type ApiOptions,
+} from "./fetch";
+export { FRIENDLY_ERROR_COPY, GENERIC_ERROR_COPY } from "./friendly";
 export {
   SessionProvider,
   useSession,

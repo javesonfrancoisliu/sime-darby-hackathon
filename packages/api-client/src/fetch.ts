@@ -2,6 +2,8 @@
 // demo user is chosen and turns error bodies ({ error: { code, message } })
 // into an ApiError the UI can show.
 
+import { ErrorCode } from "@sdh/contracts";
+
 import { storedDemoUserId } from "./storage";
 
 const DEMO_USER_HEADER = "X-Demo-User";
@@ -9,10 +11,13 @@ export const DEFAULT_TIMEOUT_MS = 8000;
 // Writes get longer: an abort after the server stored the change looks like a failure and invites a duplicate retry.
 export const MUTATION_TIMEOUT_MS = 30000;
 
+// Codes the server sends plus the ones this client raises itself.
+export type ApiErrorCode = ErrorCode | "NETWORK" | "HTTP_ERROR" | "BAD_RESPONSE";
+
 export class ApiError extends Error {
   constructor(
     readonly status: number,
-    readonly code: string,
+    readonly code: ApiErrorCode,
     message: string,
   ) {
     super(message);
@@ -41,7 +46,10 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promi
   if (options.body !== undefined) headers["content-type"] = "application/json";
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), options.timeoutMs ?? defaultTimeout(options.method));
+  const timer = setTimeout(
+    () => controller.abort(),
+    options.timeoutMs ?? defaultTimeout(options.method),
+  );
 
   try {
     let res: Response;
@@ -72,7 +80,7 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promi
       const error = (data as { error?: { code?: string; message?: string } } | null)?.error;
       throw new ApiError(
         res.status,
-        error?.code ?? "HTTP_ERROR",
+        ErrorCode.safeParse(error?.code).data ?? "HTTP_ERROR",
         error?.message ??
           (res.status >= 500
             ? "The service isn't responding. Please try again in a moment."

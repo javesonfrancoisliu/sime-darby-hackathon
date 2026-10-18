@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ApiError } from "@sdh/api-client";
+import { ApiError, type ApiErrorCode } from "@sdh/api-client";
 import { ErrorCode } from "@sdh/contracts";
 import { toFriendlyError } from "./errors";
 
@@ -8,7 +8,8 @@ afterEach(() => vi.restoreAllMocks());
 describe("toFriendlyError", () => {
   it("gives plain copy for every contract error code and for network failures", () => {
     vi.spyOn(console, "warn").mockImplementation(() => {});
-    for (const code of [...ErrorCode.options, "NETWORK", "BAD_RESPONSE", "HTTP_ERROR"]) {
+    const codes: ApiErrorCode[] = [...ErrorCode.options, "NETWORK", "BAD_RESPONSE", "HTTP_ERROR"];
+    for (const code of codes) {
       const friendly = toFriendlyError(new ApiError(400, code, `raw ${code} text`));
       expect(friendly.code).toBe(code);
       expect(friendly.message).not.toContain("raw");
