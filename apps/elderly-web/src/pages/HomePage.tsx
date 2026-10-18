@@ -21,13 +21,39 @@ import {
   IconMapPin,
   IconClock,
 } from "../ui/Icons";
-import { ELDERLY_SUPPORT_CATEGORIES } from "../ui/status";
+import {
+  ELDERLY_SUPPORT_CATEGORIES,
+  SEVERITY_SCALE,
+  apiSeverity,
+  tempSeverity,
+  facilitySeverity,
+  type Severity,
+} from "../ui/status";
+import type { CSSProperties } from "react";
 import {
   HAZE_DATA,
   TEMPERATURE_DATA,
   FACILITY_REPORTS,
 } from "../mock/safetyData";
 import { MAINTENANCE_ANNOUNCEMENTS } from "../mock/communityData";
+
+/** Short chip labels for the live-condition carousel cards. */
+const HAZE_LABEL: Record<string, string> = {
+  good: "Good",
+  moderate: "Moderate",
+  unhealthy: "Unhealthy",
+  hazardous: "Hazardous",
+};
+const TEMP_LABEL: Record<string, string> = {
+  normal: "Normal",
+  warning: "Heat Advisory",
+  danger: "Extreme Heat",
+};
+const FACILITY_LABEL: Record<string, string> = {
+  reported: "Reported",
+  in_progress: "In Progress",
+  fixed: "Fixed",
+};
 
 const STATUS_MAP: Record<string, { label: string; variant: "success" | "warning" | "info" }> = {
   pending: { label: "Finding a volunteer", variant: "warning" },
@@ -75,22 +101,37 @@ export function HomePage() {
   const localFacilityDamage =
     FACILITY_REPORTS.find((f) => f.status === "in_progress") ?? FACILITY_REPORTS[0];
 
+  // Severity → CSS custom properties so each card's chip, bar and left
+  // accent stripe all follow one colour from the shared 5-step ramp
+  // (light green → green → yellow → orange → red).
+  const sevVars = (sev: Severity): CSSProperties => {
+    const s = SEVERITY_SCALE[sev];
+    return {
+      ["--sev-accent" as string]: s.accent,
+      ["--sev-chip-bg" as string]: s.chipBg,
+      ["--sev-chip-text" as string]: s.chipText,
+    };
+  };
+
   // One condition card per carousel slide (shown one at a time, auto-rolls).
   const conditionSlides: ReactNode[] = [];
   if (localHaze) {
+    const sev = apiSeverity(localHaze.api);
     conditionSlides.push(
       <button
         key="haze"
         type="button"
-        className="apple-condition-card apple-condition-card--haze"
+        className="apple-condition-card apple-condition-card--sev"
+        data-severity={sev}
+        style={sevVars(sev)}
         onClick={() => navigate("/safety#haze")}
       >
         <div className="apple-condition-card__top">
           <span className="apple-condition-card__icon" aria-hidden="true">
             <IconWind size={20} strokeWidth={1.8} />
           </span>
-          <span className="safety-chip safety-chip--sm" style={{ background: "#FEF9C3", color: "#713F12" }}>
-            Moderate
+          <span className="safety-chip safety-chip--sm apple-condition-card__chip">
+            {HAZE_LABEL[localHaze.level] ?? "Moderate"}
           </span>
         </div>
         <div className="apple-condition-card__main">
@@ -100,7 +141,7 @@ export function HomePage() {
         <div className="safety-bar">
           <div
             className="safety-bar__fill"
-            style={{ width: `${Math.min((localHaze.api / 300) * 100, 100)}%`, background: "#D97706" }}
+            style={{ width: `${Math.min((localHaze.api / 300) * 100, 100)}%`, background: "var(--sev-accent)" }}
           />
         </div>
         <span className="apple-condition-card__label">Air Quality (Haze)</span>
@@ -108,42 +149,51 @@ export function HomePage() {
       </button>,
     );
   }
-  conditionSlides.push(
-    <button
-      key="temp"
-      type="button"
-      className="apple-condition-card apple-condition-card--alert apple-condition-card--temp"
-      onClick={() => navigate("/safety#temp")}
-    >
-      <div className="apple-condition-card__top">
-        <span className="apple-condition-card__icon" aria-hidden="true" style={{ color: "#D97706" }}>
-          <IconThermometer size={20} strokeWidth={1.8} />
-        </span>
-        <span className="safety-chip safety-chip--sm" style={{ background: "#FEF9C3", color: "#713F12" }}>
-          Heat Advisory
-        </span>
-      </div>
-      <div className="apple-condition-card__main">
-        <span className="apple-condition-card__value">{TEMPERATURE_DATA.tempC}°C</span>
-        <span className="apple-condition-card__unit">Feels {TEMPERATURE_DATA.feelsLikeC}°</span>
-      </div>
-      <span className="apple-condition-card__label">Temperature Alert</span>
-      <span className="apple-condition-card__sub">Stay hydrated &amp; rest in shade</span>
-    </button>,
-  );
+  {
+    const sev = tempSeverity(TEMPERATURE_DATA.level);
+    conditionSlides.push(
+      <button
+        key="temp"
+        type="button"
+        className="apple-condition-card apple-condition-card--sev"
+        data-severity={sev}
+        style={sevVars(sev)}
+        onClick={() => navigate("/safety#temp")}
+      >
+        <div className="apple-condition-card__top">
+          <span className="apple-condition-card__icon" aria-hidden="true">
+            <IconThermometer size={20} strokeWidth={1.8} />
+          </span>
+          <span className="safety-chip safety-chip--sm apple-condition-card__chip">
+            {TEMP_LABEL[TEMPERATURE_DATA.level]}
+          </span>
+        </div>
+        <div className="apple-condition-card__main">
+          <span className="apple-condition-card__value">{TEMPERATURE_DATA.tempC}°C</span>
+          <span className="apple-condition-card__unit">Feels {TEMPERATURE_DATA.feelsLikeC}°</span>
+        </div>
+        <span className="apple-condition-card__label">Temperature Alert</span>
+        <span className="apple-condition-card__sub">Stay hydrated &amp; rest in shade</span>
+      </button>,
+    );
+  }
   if (localMaintenance) {
+    // Planned maintenance is informational, not a hazard — keep it calm (sev 2).
+    const sev: Severity = 2;
     conditionSlides.push(
       <button
         key="maintenance"
         type="button"
-        className="apple-condition-card apple-condition-card--maintenance"
+        className="apple-condition-card apple-condition-card--sev"
+        data-severity={sev}
+        style={sevVars(sev)}
         onClick={() => navigate("/community#maintenance")}
       >
         <div className="apple-condition-card__top">
           <span className="apple-condition-card__icon" aria-hidden="true">
             <IconAlertTriangle size={20} strokeWidth={1.8} />
           </span>
-          <span className="safety-chip safety-chip--sm" style={{ background: "#EFF6FF", color: "#1D4ED8" }}>
+          <span className="safety-chip safety-chip--sm apple-condition-card__chip">
             Maintenance
           </span>
         </div>
@@ -157,19 +207,22 @@ export function HomePage() {
     );
   }
   if (localFacilityDamage) {
+    const sev = facilitySeverity(localFacilityDamage.status);
     conditionSlides.push(
       <button
         key="facility"
         type="button"
-        className="apple-condition-card apple-condition-card--facility"
+        className="apple-condition-card apple-condition-card--sev"
+        data-severity={sev}
+        style={sevVars(sev)}
         onClick={() => navigate("/safety#facilities")}
       >
         <div className="apple-condition-card__top">
           <span className="apple-condition-card__icon" aria-hidden="true">
             <IconWrench size={20} strokeWidth={1.8} />
           </span>
-          <span className="safety-chip safety-chip--sm" style={{ background: "#FEF9C3", color: "#713F12" }}>
-            In Progress
+          <span className="safety-chip safety-chip--sm apple-condition-card__chip">
+            {FACILITY_LABEL[localFacilityDamage.status]}
           </span>
         </div>
         <span className="apple-condition-card__title-line">{localFacilityDamage.title}</span>

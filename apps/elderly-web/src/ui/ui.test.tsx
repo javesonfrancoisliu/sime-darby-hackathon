@@ -77,13 +77,13 @@ describe("Spinner", () => {
 });
 
 describe("AppShell", () => {
-  it("shows Sime Darby branding (Req 3.2)", () => {
+  it("renders its page content (brand bar removed; branding lives on landing/home)", () => {
     render(
       <AppShell>
         <p>content</p>
       </AppShell>,
     );
-    expect(screen.getByText("Sime Darby Property")).toBeInTheDocument();
+    expect(screen.getByText("content")).toBeInTheDocument();
   });
 
   it("applies Easy View always on at the root (Option A, Req 1.1, 1.2)", () => {

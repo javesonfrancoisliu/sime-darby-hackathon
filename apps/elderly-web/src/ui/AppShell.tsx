@@ -29,11 +29,6 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className={rootClasses}>
-      <header className="app-brandbar">
-        <span className="app-brandbar__name">Sime Darby Property</span>
-        <span aria-hidden="true">·</span>
-        <span>Help a Neighbour</span>
-      </header>
       <main className="app-main">{children}</main>
       {inRouter && <BottomTabBar />}
       <AccessibilitySheet />

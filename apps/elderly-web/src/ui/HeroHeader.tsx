@@ -39,6 +39,18 @@ export function HeroHeader({
 
   return (
     <div className="app-hero">
+      {/* App icon + wordmark at the very top */}
+      <div className="app-hero__brand">
+        <img
+          className="app-hero__brand-icon"
+          src="/icons/icon-001.jpeg"
+          alt="Help a Neighbour"
+          width={40}
+          height={40}
+        />
+        <span className="app-hero__brand-name">Help a Neighbour</span>
+      </div>
+
       {/* Location chip with outline pin icon */}
       <div className="app-hero__location">
         <IconMapPin size={14} strokeWidth={2.2} className="app-hero__location-icon" />
