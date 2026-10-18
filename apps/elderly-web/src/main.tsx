@@ -2,8 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { App } from "./App";
-// Single source of truth for design tokens — the shared Township/SDP system.
-import "../../../sdp_ui/design-tokens.css";
+import "@sdh/design-tokens/tokens.css";
 import "./theme/app.css";
 
 const container = document.getElementById("root");

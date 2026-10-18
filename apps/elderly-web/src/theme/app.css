@@ -2,7 +2,7 @@
  * App-level styles for the elderly frontend.
  *
  * The single source of truth for design tokens is the shared
- * sdp_ui/design-tokens.css (imported in main.tsx). This file ONLY:
+ * @sdh/design-tokens (tokens.css, imported in main.tsx). This file ONLY:
  *   1. keeps the Easy View root always on (Option A), and
  *   2. adds thin layout helpers specific to the elderly screens.
  * It introduces no new colour/type/spacing token VALUES — everything

@@ -1,7 +1,4 @@
-/* Township Community Platform — shared prototype tokens, v1.0
- * Inspired by Sime Darby Property; proposed colors are NOT official brand specifications.
- * Import this ONCE in your app's root stylesheet.
- */
+/* Township Community Platform shared prototype tokens, v1.0. Proposed colors are not official brand specifications. */
 :root {
   --brand-primary: #D71920;
   --brand-primary-hover: #A61219;

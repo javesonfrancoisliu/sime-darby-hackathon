@@ -6,8 +6,6 @@ import { API_PROXY_TARGET } from "./src/api/proxy";
 export default defineConfig({
   plugins: [react()],
   server: {
-    // Allow importing the shared design tokens from the repo root (sdp_ui/).
-    fs: { allow: ["../.."] },
     proxy: {
       "/api": {
         target: API_PROXY_TARGET,

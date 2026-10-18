@@ -33,7 +33,7 @@ Providers (mounted once in `src/App.tsx`, wrap the whole app so state is shared)
 Shared UI kit (`components/ui/`): `AppButton`, `AppLinkButton`, `InfoCard`,
 `PageHeader`, `StatusBadge`, `Pill`, `FormField`, `Modal`, `ConfirmationDialog`,
 `EmptyState`, `LoadingState`, `ProgressBar`, `DemoTag`. Design tokens in
-`styles/design-tokens.css`; app/layout CSS in `styles/app.css`.
+`@sdh/design-tokens` (`tokens.css`); app/layout CSS in `styles/app.css`.
 
 Feature components: `components/community/*`, `components/volunteer/*`,
 `components/challenges/*`, `components/profile/*`, `components/demo/DemoControls.tsx`.
@@ -162,4 +162,4 @@ inputs; editing them does NOT currently affect any real matching or backend scor
 - `apps/api/**`, `packages/**` (including `@sdh/contracts`), `infra/**` — backend and
   shared contracts. Read-only from the frontend.
 - Shared UI (`components/ui/*`), layout (`components/layout/*`), and
-  `styles/design-tokens.css` are shared — change only by agreement.
+  `@sdh/design-tokens` (`tokens.css`) are shared — change only by agreement.

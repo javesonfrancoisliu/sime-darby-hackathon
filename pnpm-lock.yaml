@@ -78,6 +78,9 @@ importers:
       '@sdh/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@sdh/design-tokens':
+        specifier: workspace:*
+        version: link:../../packages/design-tokens
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -133,6 +136,9 @@ importers:
       '@sdh/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@sdh/design-tokens':
+        specifier: workspace:*
+        version: link:../../packages/design-tokens
       lucide-react:
         specifier: ^0.550.0
         version: 0.550.0(react@19.3.1)
@@ -222,6 +228,8 @@ importers:
       vitest:
         specifier: ^5.0.4
         version: 5.0.4(@types/node@26.6.5)(jsdom@25.0.1)(vite@8.3.4(@types/node@26.6.5)(esbuild@0.28.2)(terser@5.51.2)(tsx@4.23.15))
+
+  packages/design-tokens: {}
 
 packages:
 
