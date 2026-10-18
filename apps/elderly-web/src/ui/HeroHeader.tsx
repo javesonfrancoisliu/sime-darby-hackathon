@@ -1,0 +1,84 @@
+import { useAccessibility } from "../context/AccessibilityContext";
+import { IconMapPin, IconVolume2, IconVolumeX } from "./Icons";
+
+interface HeroHeaderProps {
+  name: string;
+  location?: string;
+  timeOfDay?: string;
+}
+
+function getTimeOfDay(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
+}
+
+/**
+ * Red hero card at the top of the home screen.
+ * Incorporates Apple design optical typography and quick-accessibility controls:
+ * - Aa button opens the Silver Generation Accessibility Sheet
+ * - Speaker button reads aloud current screen summary for visually impaired elders
+ */
+export function HeroHeader({
+  name,
+  location = "Elmina West",
+}: HeroHeaderProps) {
+  const { openSheet, isSpeaking, speak, stopSpeaking } = useAccessibility();
+  const greeting = `${getTimeOfDay()}, ${name}`;
+
+  function handleReadAloud() {
+    if (isSpeaking) {
+      stopSpeaking();
+    } else {
+      speak(
+        `${greeting}. Welcome to Elmina West township. You have health metrics showing normal heart rate, and verified neighbour volunteers ready to assist with groceries, rides, digital guidance, or household repairs.`,
+      );
+    }
+  }
+
+  return (
+    <div className="app-hero">
+      {/* Location chip with outline pin icon */}
+      <div className="app-hero__location">
+        <IconMapPin size={14} strokeWidth={2.2} className="app-hero__location-icon" />
+        <span>{location.toUpperCase()}</span>
+      </div>
+
+      {/* Greeting row */}
+      <div className="app-hero__greeting-row">
+        <div>
+          <p className="app-hero__greeting">{getTimeOfDay()},</p>
+          <h1 className="app-hero__name">{name}</h1>
+        </div>
+
+        {/* Quick accessibility action buttons (Voice Read-Aloud & Aa Dynamic Type Sheet) */}
+        <div className="app-hero__actions">
+          <button
+            type="button"
+            className={`app-hero__btn-icon${isSpeaking ? " app-hero__btn-icon--active" : ""}`}
+            onClick={handleReadAloud}
+            aria-label={isSpeaking ? "Stop reading aloud" : "Read page aloud"}
+            title="Read screen aloud"
+          >
+            {isSpeaking ? (
+              <IconVolumeX size={18} strokeWidth={2.2} />
+            ) : (
+              <IconVolume2 size={18} strokeWidth={2} />
+            )}
+          </button>
+
+          <button
+            type="button"
+            className="app-hero__aa-btn"
+            onClick={openSheet}
+            aria-label="Open Senior Accessibility and Display Settings"
+            title="Senior Display & Accessibility"
+          >
+            Aa
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,2531 @@
+/*
+ * App-level styles for the elderly frontend.
+ *
+ * The single source of truth for design tokens is the shared
+ * sdp_ui/design-tokens.css (imported in main.tsx). This file ONLY:
+ *   1. keeps the Easy View root always on (Option A), and
+ *   2. adds thin layout helpers specific to the elderly screens.
+ * It introduces no new colour/type/spacing token VALUES — everything
+ * resolves to the shared --brand-*, --space-*, --radius-* tokens.
+ */
+
+/* Easy View is always on for the elderly app (Req 1.1, 1.2). */
+.app-root {
+  min-height: 100vh;
+  background: var(--page-bg);
+  /* Leave room for the fixed bottom tab bar */
+  padding-bottom: 72px;
+}
+
+/* One readable column, centred — no horizontal padding on home (hero bleeds full width). */
+.app-main {
+  width: 100%;
+  max-width: 480px;
+  margin-inline: auto;
+}
+
+/* Sub-pages still get comfortable padding */
+.app-main > *:not(.app-home) {
+  padding: var(--space-8) var(--space-4);
+}
+
+@media (max-width: 639px) {
+  .app-main > *:not(.app-home) {
+    padding: var(--space-4);
+  }
+}
+
+/* ── Selectable cards ────────────────────────────────────────── */
+.app-card-button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+.app-card-button:hover {
+  border-color: var(--brand-primary);
+}
+
+.app-page-lead {
+  margin: 0 0 var(--space-8);
+  color: var(--text-secondary);
+}
+
+.app-detail-row {
+  margin-bottom: var(--space-6);
+}
+.app-detail-label {
+  display: block;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+/* ── Home page layout ────────────────────────────────────────── */
+.app-home {
+  display: flex;
+  flex-direction: column;
+}
+
+.app-home__section {
+  padding: var(--space-4);
+}
+
+.app-home__section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.app-home__section-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.app-home__section-subtitle {
+  margin: 4px 0 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.35;
+}
+
+.app-home__see-all {
+  flex-shrink: 0;
+  align-self: center;
+  background: none;
+  border: none;
+  color: var(--brand-primary);
+  font-weight: 600;
+  font-size: 1rem;
+  white-space: nowrap;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* ── Hero header ─────────────────────────────────────────────── */
+.app-hero {
+  background: var(--brand-primary);
+  color: #fff;
+  padding: var(--space-6) var(--space-4) var(--space-8);
+  border-radius: 0 0 28px 28px;
+  position: relative;
+}
+
+.app-hero__location {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  opacity: 0.85;
+  margin-bottom: var(--space-3);
+}
+
+.app-hero__location-icon {
+  font-size: 0.8125rem;
+}
+
+.app-hero__greeting-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.app-hero__greeting {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 400;
+  opacity: 0.9;
+}
+
+.app-hero__name {
+  margin: 4px 0 0;
+  font-size: 2.125rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.app-hero--large .app-hero__name {
+  font-size: 2.5rem;
+}
+
+.app-hero__aa-btn {
+  flex-shrink: 0;
+  background: rgba(255 255 255 / 0.2);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: #fff;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  padding: 8px 12px;
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+/* ── Health metrics strip ────────────────────────────────────── */
+.app-metrics-strip {
+  display: flex;
+  gap: var(--space-3);
+  overflow-x: auto;
+  padding-bottom: var(--space-2);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  margin-top: calc(-1 * var(--space-4));
+}
+.app-metrics-strip::-webkit-scrollbar { display: none; }
+
+.app-metric-card {
+  flex: 0 0 120px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-card);
+  text-align: left;
+}
+
+.app-metric-card__icon-row {
+  margin-bottom: var(--space-2);
+}
+
+.app-metric-card__icon {
+  font-size: 1.375rem;
+}
+
+.app-metric-card__value {
+  font-size: 1.375rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.app-metric-card__unit {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.app-metric-card__label {
+  margin-top: var(--space-1);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── CTA card ────────────────────────────────────────────────── */
+.app-cta-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-card);
+}
+
+.app-cta-card__title {
+  margin: 0 0 var(--space-2);
+  font-size: 1.375rem;
+  font-weight: 800;
+}
+
+.app-cta-card__body {
+  margin: 0 0 var(--space-6);
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.app-cta-card__btn {
+  width: 100%;
+  font-size: 1.0625rem;
+  border-radius: var(--radius-pill);
+  min-height: 54px;
+}
+
+/* ── Request card ────────────────────────────────────────────── */
+.app-request-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: var(--space-4) var(--space-4) var(--space-4);
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+  transition: border-color 150ms ease;
+}
+.app-request-card:hover {
+  border-color: var(--brand-primary);
+}
+
+.app-request-card__badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  margin-bottom: var(--space-3);
+}
+.app-request-card__badge--success { background: #D1FAE5; color: #065F46; }
+.app-request-card__badge--warning { background: #FEF9C3; color: #713F12; }
+.app-request-card__badge--info    { background: var(--info-bg); color: var(--info); }
+
+.app-request-card__title {
+  margin: 0 0 var(--space-2);
+  font-size: 1.0625rem;
+  font-weight: 700;
+}
+
+.app-request-card__date {
+  margin: 0 0 var(--space-3);
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.app-request-card__volunteer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.app-request-card__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #FEF9C3;
+  color: #713F12;
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+.app-request-card__verified {
+  margin-left: auto;
+  color: var(--success);
+  font-size: 1.25rem;
+}
+
+/* ── Bottom tab bar ──────────────────────────────────────────── */
+.app-tab-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  z-index: 100;
+  /* Safe area for iPhone notch */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.app-tab-bar__item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 10px 4px 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  transition: color 150ms ease;
+}
+
+.app-tab-bar__item--active {
+  color: var(--brand-primary);
+}
+
+.app-tab-bar__icon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.app-tab-bar__label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+
+/* ── Me page avatar ──────────────────────────────────────────── */
+.app-me-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--brand-primary);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.25rem;
+  font-weight: 800;
+  margin-top: var(--space-8);
+  margin-left: var(--space-4);
+}
+
+/* ── Safety / Community page shell ──────────────────────────── */
+.safety-page {
+  display: flex;
+  flex-direction: column;
+}
+
+.safety-page__header {
+  background: var(--brand-primary);
+  color: #fff;
+  padding: var(--space-6) var(--space-4) var(--space-6);
+  border-radius: 0 0 24px 24px;
+  margin-bottom: var(--space-4);
+}
+
+.safety-page__title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 800;
+}
+
+.safety-page__subtitle {
+  margin: 4px 0 0;
+  font-size: 0.875rem;
+  opacity: 0.85;
+}
+
+/* Keep the header title from pushing the right-side controls off-screen on
+   narrow phones. */
+@media (max-width: 380px) {
+  .safety-page__title {
+    font-size: 1.5rem;
+  }
+}
+
+/* ── Safety sections ─────────────────────────────────────────── */
+.safety-section {
+  padding: 0 var(--space-4) var(--space-6);
+}
+
+.safety-section__heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.safety-section__heading-icon {
+  font-size: 1.375rem;
+}
+
+.safety-section__heading-text {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+/* ── Safety card ─────────────────────────────────────────────── */
+.safety-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-card);
+}
+
+.safety-card--pinned {
+  border-color: #F59E0B;
+}
+
+.safety-card--temperature {
+  border-width: 2px;
+}
+
+.safety-card__row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.safety-card__location {
+  margin: 0 0 2px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.safety-card__meta {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.safety-card__description {
+  margin: 0 0 var(--space-3);
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.safety-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.safety-card__category {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--brand-primary);
+  background: #FEF2F2;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+}
+
+.safety-card__tip {
+  margin: var(--space-2) 0 0;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.safety-card__badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+  border-radius: var(--radius-card);
+  min-width: 80px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.safety-card__badge-value {
+  font-size: 1.375rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.safety-card__badge-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* ── Progress bar ────────────────────────────────────────────── */
+.safety-bar {
+  height: 8px;
+  background: #F3F4F6;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  margin: var(--space-2) 0;
+}
+
+.safety-bar__fill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  transition: width 600ms ease;
+}
+
+/* ── Status chip ─────────────────────────────────────────────── */
+.safety-chip {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+/* Compact chip used inside the dense dashboard condition cards. */
+.safety-chip--sm {
+  padding: 2px 8px;
+  font-size: 0.6875rem;
+  letter-spacing: 0.01em;
+}
+.easy-view .safety-chip--sm {
+  font-size: 0.8125rem;
+}
+
+/* ── Advisory banner ─────────────────────────────────────────── */
+.safety-advisory {
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  background: #FFFBEB;
+  border: 1px solid #FCD34D;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  color: #713F12;
+  line-height: 1.5;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Township Live Conditions — dashboard condition cards
+   Apple-design pass: clear hierarchy & spacing (§6, §16),
+   optical typography (§15), material depth (§12), press
+   response on pointer-down (§1). Brand tokens stay from the
+   SDP/Township kit.
+───────────────────────────────────────────────────────────── */
+.apple-conditions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.apple-condition-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 148px;
+  padding: var(--space-4);
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: var(--radius-card);
+  box-shadow: 0 1px 2px rgba(17, 24, 39, 0.04), 0 6px 16px rgba(17, 24, 39, 0.05);
+  cursor: pointer;
+  /* Response: motion starts from the current value, critically damped. */
+  transition:
+    transform 140ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 140ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 140ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.apple-condition-card:hover {
+  border-color: rgba(17, 24, 39, 0.14);
+  box-shadow: 0 2px 4px rgba(17, 24, 39, 0.05), 0 10px 24px rgba(17, 24, 39, 0.08);
+}
+/* §1 Feedback lives on the press, and it's instant. */
+.apple-condition-card:active {
+  transform: scale(0.975);
+  box-shadow: 0 1px 2px rgba(17, 24, 39, 0.05);
+}
+
+/* Top row: leading icon + trailing status chip, baseline aligned. */
+.apple-condition-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.apple-condition-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: #F3F4F6;
+  color: var(--text-secondary);
+}
+
+/* The hero value — big, tabular, tight optical tracking (§15). */
+.apple-condition-card__main {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 2px;
+}
+.apple-condition-card__value {
+  font-size: 1.875rem;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+.apple-condition-card__unit {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* Primary label + supporting line, clearly separated (fixes the
+   run-together text in the old layout). */
+.apple-condition-card__label {
+  margin-top: auto;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text-primary);
+}
+.apple-condition-card__title-line {
+  margin-top: 4px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text-primary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.apple-condition-card__location {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.apple-condition-card__sub {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  line-height: 1.35;
+}
+
+/* Easy View (always on for elderly): nudge the hierarchy up a step. */
+.easy-view .apple-condition-card__value {
+  font-size: 2.125rem;
+}
+.easy-view .apple-condition-card__label,
+.easy-view .apple-condition-card__title-line {
+  font-size: 1.0625rem;
+}
+.easy-view .apple-condition-card__sub,
+.easy-view .apple-condition-card__location,
+.easy-view .apple-condition-card__unit {
+  font-size: 0.9375rem;
+}
+
+/* Narrow phones: keep two columns but allow a single column if the
+   content would overflow at 360px. */
+@media (max-width: 360px) {
+  .apple-conditions-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Honour the system reduced-motion preference for the press animation. */
+@media (prefers-reduced-motion: reduce) {
+  .apple-condition-card {
+    transition: border-color 140ms ease;
+  }
+  .apple-condition-card:active {
+    transform: none;
+  }
+}
+
+/* ── Temperature card ────────────────────────────────────────── */
+.safety-temp__main {
+  margin-bottom: var(--space-3);
+}
+
+.safety-temp__reading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: 4px;
+}
+
+.safety-temp__value {
+  font-size: 3rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--text-primary);
+}
+
+.safety-temp__stats {
+  display: flex;
+  gap: var(--space-6);
+  margin-bottom: var(--space-3);
+}
+
+.safety-temp__stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.safety-temp__stat-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.safety-temp__stat-value {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+/* ── Facility filter tabs ────────────────────────────────────── */
+.safety-filter {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.safety-filter::-webkit-scrollbar { display: none; }
+
+.safety-filter__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 150ms ease;
+}
+
+.safety-filter__btn--active {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: #fff;
+}
+
+.safety-filter__count {
+  background: rgba(0 0 0 / 0.12);
+  border-radius: var(--radius-pill);
+  padding: 0 6px;
+  font-size: 0.6875rem;
+}
+
+/* ── Facility summary strip ──────────────────────────────────── */
+.safety-facility-summary {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.safety-facility-summary__item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-3);
+  border-radius: var(--radius-card);
+}
+
+.safety-facility-summary__count {
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.safety-facility-summary__label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  margin-top: 3px;
+}
+
+/* ── Source attribution ──────────────────────────────────────── */
+.safety-source {
+  margin: var(--space-2) 0 0;
+  font-size: 0.6875rem;
+  color: var(--text-secondary);
+  text-align: right;
+}
+
+/* ── Community page components ───────────────────────────────── */
+.community-event-card__icon {
+  font-size: 1.75rem;
+  flex-shrink: 0;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+.community-category-chip {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--brand-primary);
+  background: #FEF2F2;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.community-spots {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+
+.community-spots__text {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.community-register-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  background: var(--brand-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-pill);
+  padding: 8px 20px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 150ms ease, transform 120ms cubic-bezier(0.22, 1, 0.36, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.community-register-btn:hover {
+  background: var(--brand-primary-hover);
+}
+/* §1 instant press feedback. */
+.community-register-btn:active {
+  transform: scale(0.96);
+}
+
+/* Confirmed / completed state — success green with a check (§16 feedback). */
+.community-register-btn--done {
+  background: var(--success);
+}
+.community-register-btn--done:hover {
+  background: #116932;
+}
+
+.community-register-btn--full {
+  width: 100%;
+  margin-top: var(--space-3);
+  padding: 12px;
+  font-size: 0.9375rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .community-register-btn:active {
+    transform: none;
+  }
+}
+.reduced-motion .community-register-btn:active {
+  transform: none;
+}
+
+.community-vol-progress {
+  margin-top: var(--space-3);
+}
+
+.community-vol-progress__label {
+  margin: 4px 0 0;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+/* ── Category selection cards (5 elderly support pillars) ───── */
+.category-selection-page {
+  display: flex;
+  flex-direction: column;
+}
+
+.category-choice-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: var(--space-4) var(--space-4);
+  box-shadow: var(--shadow-card);
+  text-align: left;
+  cursor: pointer;
+  transition: all 160ms ease;
+  width: 100%;
+}
+
+.category-choice-card:hover {
+  border-color: var(--brand-primary);
+  transform: translateY(-1px);
+}
+
+.category-choice-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-control);
+  background: #FEF2F2;
+  color: var(--brand-primary);
+  flex-shrink: 0;
+}
+
+.category-choice-card__content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.category-choice-card__title {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.category-choice-card__desc {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.category-choice-card__arrow {
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+/* ── Daily support items on HomePage ─────────────────────────── */
+.daily-support-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.daily-support-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: var(--space-3) var(--space-4);
+  box-shadow: var(--shadow-card);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 150ms ease;
+  width: 100%;
+}
+
+.daily-support-item:hover {
+  border-color: var(--brand-primary);
+}
+
+.daily-support-item__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background: #F9FAFB;
+  border: 1px solid var(--border);
+  color: var(--brand-primary);
+  flex-shrink: 0;
+}
+
+.daily-support-item__text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.daily-support-item__title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.daily-support-item__desc {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 1px;
+}
+
+.daily-support-item__arrow {
+  color: var(--text-secondary);
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+/* ── CTA Card actions ────────────────────────────────────────── */
+.app-cta-card__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.app-cta-card__btn--secondary {
+  width: 100%;
+  font-size: 1rem;
+  border-radius: var(--radius-pill);
+  min-height: 48px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   APPLE DESIGN & SILVER GENERATION ACCESSIBILITY SYSTEM
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── 1. Apple Instant Press Response (§1, §10) ───────────────── */
+button:active,
+.app-card-button:active,
+.category-choice-card:active,
+.daily-support-item:active,
+.safety-card:active,
+.app-hero__aa-btn:active,
+.app-hero__btn-icon:active {
+  transform: scale(0.97);
+  transition: transform 90ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* ── 2. Apple Translucent Material Bar (§12) ─────────────────── */
+.app-tab-bar {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  border-top: 1px solid rgba(229, 231, 235, 0.7);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.04);
+}
+
+/* ── 3. Hero Quick Action Buttons ────────────────────────────── */
+.app-hero__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.app-hero__btn-icon {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.app-hero__btn-icon--active {
+  background: #fff;
+  color: var(--brand-primary);
+  animation: pulseSpeaking 1.2s infinite ease-in-out;
+}
+
+@keyframes pulseSpeaking {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.08); opacity: 0.9; }
+}
+
+/* ── 4. Dynamic Type Scaling (§15 - Silver Generation) ────────── */
+/* Scoped to .app-root (which always also carries .easy-view) so these win
+   the cascade over easy-view's base font-size without !important. Each level
+   sets font-size explicitly so it never depends on another class. */
+/* The root <html> font-size is driven by the Dynamic Type setting (see
+   AccessibilityContext), so all rem-based text scales uniformly. These
+   blocks keep the control-height tokens and let the root div follow html. */
+.app-root.text-size-normal {
+  --font-body: 1rem;
+  --font-small: 0.875rem;
+  --control-height: 48px;
+  font-size: 1rem;
+}
+
+.app-root.text-size-large {
+  --font-body: 1rem;
+  --font-small: 0.875rem;
+  --control-height: 56px;
+  font-size: 1rem;
+}
+.text-size-large .ui-page-title {
+  font-size: 2rem;
+  letter-spacing: -0.02em;
+}
+.text-size-large .category-choice-card__title {
+  font-size: 1.1875rem;
+}
+
+.app-root.text-size-xlarge {
+  --font-body: 1rem;
+  --font-small: 0.875rem;
+  --control-height: 64px;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+.text-size-xlarge .ui-page-title {
+  font-size: 2.25rem;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+.text-size-xlarge .category-choice-card__title {
+  font-size: 1.375rem;
+}
+.text-size-xlarge .category-choice-card__desc {
+  font-size: 1rem;
+}
+.text-size-xlarge .ui-button {
+  font-size: 1.1875rem;
+  min-height: 62px;
+}
+.text-size-xlarge .app-hero__name {
+  font-size: 2.75rem;
+}
+
+/* ── 5. High Contrast Mode (Low Vision / Cataracts) ──────────── */
+.high-contrast {
+  --page-bg: #FFFFFF;
+  --surface: #FFFFFF;
+  --text-primary: #000000;
+  --text-secondary: #1F2937;
+  --border: #000000;
+}
+.high-contrast .safety-card,
+.high-contrast .category-choice-card,
+.high-contrast .daily-support-item,
+.high-contrast .app-cta-card,
+.high-contrast .app-request-card {
+  border: 2px solid #000000;
+  box-shadow: 0 4px 0 #000000;
+}
+.high-contrast .ui-button--primary {
+  background: #000000;
+  color: #FFFFFF;
+  border: 2px solid #000000;
+  font-weight: 800;
+}
+.high-contrast .ui-button--secondary {
+  background: #FFFFFF;
+  color: #000000;
+  border: 2px solid #000000;
+  font-weight: 800;
+}
+.high-contrast .safety-chip,
+.high-contrast .app-request-card__badge {
+  border: 1.5px solid #000000;
+  font-weight: 700;
+}
+
+/* ── 6. Reduced Motion (§14) ─────────────────────────────────── */
+/* App-level toggle: user turns on "Reduce Motion" in the accessibility sheet. */
+.reduced-motion *,
+.reduced-motion *::before,
+.reduced-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+.reduced-motion .apple-sheet-panel {
+  transition: opacity 150ms ease !important;
+  transform: none !important;
+}
+
+/* OS-level signal: honour the system "Reduce Motion" preference. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .apple-sheet-panel {
+    transition: opacity 150ms ease !important;
+    transform: none !important;
+  }
+}
+
+/* ── 7. Apple Accessibility Bottom Sheet ─────────────────────── */
+.apple-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: appleBackdropFade 220ms ease-out;
+}
+
+@keyframes appleBackdropFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.apple-sheet-panel {
+  width: 100%;
+  max-width: 480px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  border-radius: 28px 28px 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.15);
+  padding: var(--space-4) var(--space-6) calc(var(--space-8) + env(safe-area-inset-bottom, 0px));
+  max-height: 88vh;
+  overflow-y: auto;
+  animation: appleSheetSlideUp 320ms cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+
+@keyframes appleSheetSlideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.apple-sheet-grabber {
+  width: 38px;
+  height: 5px;
+  border-radius: var(--radius-pill);
+  background: rgba(0, 0, 0, 0.25);
+  margin: 0 auto var(--space-4);
+}
+
+.apple-sheet-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.apple-sheet-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.apple-sheet-subtitle {
+  margin: 2px 0 0;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.apple-sheet-close-btn {
+  background: #E5E7EB;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.apple-sheet-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* ── Apple Segmented Control ─────────────────────────────────── */
+.apple-control-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.apple-control-label {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.apple-segmented-control {
+  display: flex;
+  background: #E5E7EB;
+  border-radius: var(--radius-control);
+  padding: 3px;
+  gap: 3px;
+}
+
+.apple-segment-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 4px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 180ms ease;
+}
+
+.apple-segment-btn--active {
+  background: #FFFFFF;
+  color: var(--text-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  font-weight: 700;
+}
+
+.apple-segment-icon {
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.apple-segment-text {
+  font-size: 0.75rem;
+}
+
+/* ── Apple Control Row with Toggle Switch ────────────────────── */
+.apple-control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: #F9FAFB;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+
+.apple-control-row__left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 1;
+}
+
+.apple-control-row__icon {
+  color: var(--brand-primary);
+  flex-shrink: 0;
+}
+
+.apple-control-row__title {
+  display: block;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.apple-control-row__desc {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+/* ── Apple Switch ────────────────────────────────────────────── */
+.apple-switch {
+  width: 52px;
+  height: 32px;
+  background: #D1D5DB;
+  border-radius: var(--radius-pill);
+  border: none;
+  padding: 2px;
+  cursor: pointer;
+  position: relative;
+  transition: background-color 220ms ease;
+  flex-shrink: 0;
+}
+
+.apple-switch--on {
+  background: #34C759; /* Apple iOS green */
+}
+
+.apple-switch__thumb {
+  display: block;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  transition: transform 220ms cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+
+.apple-switch--on .apple-switch__thumb {
+  transform: translateX(20px);
+}
+
+/* ── Emergency Box ───────────────────────────────────────────── */
+.apple-emergency-box {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: var(--radius-card);
+  padding: var(--space-4);
+}
+
+.apple-emergency-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #991B1B;
+  margin-bottom: var(--space-3);
+}
+
+.apple-emergency-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-2);
+}
+
+.apple-emergency-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: #FFFFFF;
+  border: 1px solid #FCA5A5;
+  border-radius: var(--radius-control);
+  text-decoration: none;
+  color: #1F2937;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: border-color 150ms ease;
+}
+
+.apple-emergency-btn--danger {
+  border-color: #EF4444;
+}
+
+.apple-emergency-btn__number {
+  font-weight: 800;
+  color: #B91C1C;
+}
+
+.apple-sheet-footer {
+  margin-top: var(--space-4);
+}
+
+.apple-sheet-done-btn {
+  width: 100%;
+  border-radius: var(--radius-pill);
+}
+
+/* ── 8. Apple Subpage Shell & Navigation Bar ─────────────────── */
+.apple-subpage {
+  display: flex;
+  flex-direction: column;
+}
+
+.apple-nav-bar {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--space-4);
+  padding: 0;
+}
+
+.apple-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px 6px 6px;
+  border-radius: var(--radius-pill);
+  color: var(--brand-primary);
+  font-weight: 600;
+  font-size: 1rem;
+  min-height: 44px;
+  margin: 0;
+}
+.apple-back-btn:hover {
+  background: rgba(215, 25, 32, 0.08);
+}
+
+.apple-page-header {
+  margin-bottom: var(--space-4);
+}
+
+.apple-counter-badge {
+  display: inline-block;
+  margin-top: var(--space-1);
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  background: #F3F4F6;
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+/* ── 9. Apple Inset-Grouped List (Requests, Settings) ────────── */
+.apple-grouped-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.apple-card-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+  transition: all 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.apple-card-button:hover {
+  border-color: var(--brand-primary);
+  transform: translateY(-1px);
+}
+
+.apple-card-button__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.apple-card-button__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+}
+
+.apple-card-button__desc {
+  margin: 0 0 var(--space-2);
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.apple-card-button__volunteer {
+  font-size: 0.8125rem;
+  color: var(--text-primary);
+}
+
+.apple-card-button__arrow {
+  color: var(--text-secondary);
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+/* ── 10. Apple Inset Group Inspector (Detail Rows) ───────────── */
+.apple-detail-hero {
+  margin-bottom: var(--space-4);
+}
+
+.apple-meta-pill {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  background: #F3F4F6;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.apple-inset-group {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  margin-bottom: var(--space-4);
+}
+
+.apple-inset-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4);
+  border-bottom: 1px solid #F3F4F6;
+}
+.apple-inset-row:last-child {
+  border-bottom: none;
+}
+
+.apple-inset-value {
+  font-size: 0.9375rem;
+  color: var(--text-primary);
+  text-align: right;
+  max-width: 60%;
+}
+
+.apple-volunteer-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: #FEF9C3;
+  color: #713F12;
+  border-radius: var(--radius-pill);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.apple-volunteer-chip__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #713F12;
+  color: #fff;
+}
+
+.apple-volunteer-chip__badge {
+  color: #15803D;
+  display: flex;
+  align-items: center;
+}
+
+/* ── 11. Apple Destructive Confirm Card ──────────────────────── */
+.apple-confirm-card {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: var(--radius-card);
+  padding: var(--space-6);
+  margin-top: var(--space-6);
+}
+
+.apple-confirm-card__title {
+  margin: 0 0 var(--space-1);
+  font-size: 1.0625rem;
+  font-weight: 800;
+  color: #991B1B;
+}
+
+.apple-confirm-card__sub {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #7F1D1D;
+  line-height: 1.4;
+}
+
+/* ── 12. Apple Confirmation Success Screen ───────────────────── */
+.apple-confirmation-page {
+  align-items: center;
+  padding-top: var(--space-6);
+}
+
+.apple-success-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #D1FAE5;
+  color: #065F46;
+  border: 2px solid #A7F3D0;
+  margin-bottom: var(--space-2);
+  animation: appleBadgePop 340ms cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+@keyframes appleBadgePop {
+  0% { transform: scale(0.6); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ── 13. Apple Form Card & Hints ─────────────────────────────── */
+.apple-form-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-card);
+}
+
+.apple-form-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #F9FAFB;
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin-top: var(--space-3);
+}
+
+/* ── 14. Apple Senior Profile (Me Page) ──────────────────────── */
+.apple-profile-page {
+  padding-top: var(--space-4);
+}
+
+.apple-profile-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: var(--space-6);
+}
+
+.apple-profile-avatar-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.apple-profile-avatar {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #D71920 0%, #B91C1C 100%);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(215, 25, 32, 0.25);
+}
+
+.apple-profile-verified-badge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #15803D;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+}
+
+.apple-profile-location {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.apple-profile-voice-btn {
+  margin-top: 10px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--brand-primary);
+  padding: 4px 12px;
+}
+
+.apple-profile-section {
+  margin-bottom: var(--space-4);
+}
+
+.apple-profile-section-title {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-2);
+  padding-left: var(--space-2);
+}
+
+.apple-inset-btn-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #F3F4F6;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+.apple-inset-btn-row:last-child {
+  border-bottom: none;
+}
+.apple-inset-btn-row:hover {
+  background: #F9FAFB;
+}
+
+.apple-inset-btn-row__left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 1;
+}
+
+.apple-inset-btn-row__icon {
+  color: var(--brand-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.apple-inset-btn-row__title {
+  display: block;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.apple-inset-btn-row__subtitle {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+/* ── 15. Apple Header Frosted Audio Assist Button ────────────── */
+.apple-header-voice-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #fff;
+  border-radius: var(--radius-pill);
+  padding: 6px 14px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 160ms ease;
+  flex-shrink: 0;
+}
+.apple-header-voice-btn:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.apple-header-voice-text {
+  font-size: 0.8125rem;
+}
+
+/* On very narrow screens the header can run out of room. The voice button
+   keeps its aria-label, so hiding just the visible "Listen" word is safe and
+   prevents the button from overflowing the hero. (Tabs keep their labels;
+   only this already-labelled control collapses.) */
+@media (max-width: 380px) {
+  .apple-header-voice-text {
+    display: none;
+  }
+  .apple-header-voice-btn {
+    padding: 8px;
+  }
+}
+
+
+
+
+
+/* ─────────────────────────────────────────────────────────────
+   Segmented tabs — iOS-style control for Safety / Community pages
+   (apple-design §1 Response, §4 springy-but-damped, §7 spatial,
+   §12 material, §14 reduced-motion). Brand red from SDP tokens.
+───────────────────────────────────────────────────────────── */
+.seg-tabs {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--seg-count, 4), 1fr);
+  padding: 4px;
+  margin: 0 var(--space-4) var(--space-4);
+  background: rgba(118, 118, 128, 0.12);
+  border-radius: 14px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.seg-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+/* Sliding active pill — animates from its current position, no bounce.
+   The track inset is 4px on each side; with no column gap the indicator is
+   exactly 1/count of the inner width and steps by its own width per index. */
+.seg-tabs__indicator {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc((100% - 8px) / var(--seg-count, 4));
+  transform: translateX(calc(var(--seg-active, 0) * 100%));
+  background: var(--surface);
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(17, 24, 39, 0.08), 0 3px 8px rgba(17, 24, 39, 0.1);
+  transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+.seg-tabs__tab {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: 48px;
+  padding: 6px 4px;
+  background: none;
+  border: none;
+  border-radius: 10px;
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.1;
+  cursor: pointer;
+  transition: color 200ms ease, transform 120ms cubic-bezier(0.22, 1, 0.36, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+.seg-tabs__tab--active {
+  color: var(--brand-primary);
+}
+/* §1 instant press feedback. */
+.seg-tabs__tab:active {
+  transform: scale(0.94);
+}
+.seg-tabs__icon {
+  display: inline-flex;
+  align-items: center;
+}
+/* The label always stays visible (elderly-first: icons need text, §15/§16). */
+.seg-tabs__label {
+  display: block;
+  text-align: center;
+}
+.easy-view .seg-tabs__tab {
+  font-size: 0.875rem;
+}
+
+/* Very narrow phones: shrink the label a touch rather than hiding it. */
+@media (max-width: 360px) {
+  .seg-tabs__tab {
+    font-size: 0.75rem;
+    padding: 6px 2px;
+  }
+}
+
+/* §14 reduced motion: no sliding/scale, just an instant state change. */
+@media (prefers-reduced-motion: reduce) {
+  .seg-tabs__indicator {
+    transition: none;
+  }
+  .seg-tabs__tab:active {
+    transform: none;
+  }
+}
+.reduced-motion .seg-tabs__indicator {
+  transition: none;
+}
+.reduced-motion .seg-tabs__tab:active {
+  transform: none;
+}
+
+/* Tab panel enter — a gentle, non-vestibular cross-fade (§14). */
+.seg-panel-enter {
+  animation: seg-fade-in 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes seg-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .seg-panel-enter {
+    animation: seg-fade-in-rm 180ms ease;
+  }
+}
+.reduced-motion .seg-panel-enter {
+  animation: seg-fade-in-rm 180ms ease;
+}
+@keyframes seg-fade-in-rm {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Carousel — one card at a time, gentle auto-roll (apple-design
+   §2 1:1 drag, §4 damped slide, §14 reduced-motion & pause).
+───────────────────────────────────────────────────────────── */
+.carousel {
+  touch-action: pan-y;
+}
+.carousel__viewport {
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  cursor: grab;
+}
+.carousel__viewport:active {
+  cursor: grabbing;
+}
+.carousel__track {
+  display: flex;
+  /* Critically-damped slide; starts from the current value, no bounce. */
+  transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+/* While dragging, follow the finger 1:1 with no transition (§2). */
+.carousel__track--dragging {
+  transition: none;
+}
+.carousel__slide {
+  flex: 0 0 100%;
+  min-width: 100%;
+  /* Make room so the card's shadow isn't clipped by the viewport. */
+  padding: 4px;
+  box-sizing: border-box;
+}
+/* Every carousel card is the SAME fixed size so the carousel height never
+   jumps between slides, regardless of how many content rows a card has. */
+.carousel__slide .apple-condition-card {
+  width: 100%;
+  height: 184px;
+  min-height: 0;
+  justify-content: flex-start;
+}
+/* The primary label sits just above the supporting line; the top block and
+   the label/sub block are pushed apart so all cards align consistently. */
+.carousel__slide .apple-condition-card__label,
+.carousel__slide .apple-condition-card__title-line {
+  margin-top: auto;
+}
+/* Font scaling: at X-Large text the cards need a little more room. */
+.text-size-xlarge .carousel__slide .apple-condition-card {
+  height: 212px;
+}
+
+.carousel__dots {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+.carousel__dot {
+  width: 9px;
+  height: 9px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: rgba(17, 24, 39, 0.2);
+  cursor: pointer;
+  transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1), background-color 160ms ease;
+  /* Keep a 44px tappable area without a big visual dot. */
+  position: relative;
+}
+.carousel__dot::after {
+  content: "";
+  position: absolute;
+  inset: -16px;
+}
+.carousel__dot--active {
+  background: var(--brand-primary);
+  transform: scale(1.25);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carousel__track {
+    transition: none;
+  }
+  .carousel__dot {
+    transition: none;
+  }
+}
+.reduced-motion .carousel__track {
+  transition: none;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Carousel condition cards — themed backgrounds per type.
+   CSS-only gradients (no external images): fast, crisp at any DPR,
+   licence-free, and tuned so dark text keeps >=4.5:1 contrast
+   (apple-design §12 materials & legibility, §16 craft).
+───────────────────────────────────────────────────────────── */
+.carousel__slide .apple-condition-card {
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(17, 24, 39, 0.06);
+}
+/* A soft decorative glow in the top-right of every themed card. */
+.carousel__slide .apple-condition-card::after {
+  content: "";
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  opacity: 0.5;
+  pointer-events: none;
+  filter: blur(6px);
+}
+/* Keep real content above the decorative layer. */
+.carousel__slide .apple-condition-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Haze / Air quality — hazy amber sky. */
+.apple-condition-card--haze {
+  background: linear-gradient(135deg, #FFFDF5 0%, #FEF3C7 100%);
+}
+.apple-condition-card--haze::after {
+  background: radial-gradient(circle, #FCD34D 0%, rgba(252, 211, 77, 0) 70%);
+}
+
+/* Temperature — warm heat. */
+.apple-condition-card--temp {
+  background: linear-gradient(135deg, #FFF7ED 0%, #FFE4D3 100%);
+}
+.apple-condition-card--temp::after {
+  background: radial-gradient(circle, #FB923C 0%, rgba(251, 146, 60, 0) 70%);
+}
+
+/* Maintenance — calm blue. */
+.apple-condition-card--maintenance {
+  background: linear-gradient(135deg, #F5FAFF 0%, #DBEAFE 100%);
+}
+.apple-condition-card--maintenance::after {
+  background: radial-gradient(circle, #60A5FA 0%, rgba(96, 165, 250, 0) 70%);
+}
+
+/* Facility damage — caution amber. */
+.apple-condition-card--facility {
+  background: linear-gradient(135deg, #FFFBEB 0%, #FDE8C8 100%);
+}
+.apple-condition-card--facility::after {
+  background: radial-gradient(circle, #F59E0B 0%, rgba(245, 158, 11, 0) 70%);
+}
+
+/* On the themed surfaces, give the icon chip a translucent white backing so
+   it reads as a floating control (§12 material weight). */
+.carousel__slide .apple-condition-card .apple-condition-card__icon {
+  background: rgba(255, 255, 255, 0.7);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+/* High-contrast mode: drop the decorative art, use a solid white surface
+   with a hard border so text stays maximally legible (§14). */
+.high-contrast .carousel__slide .apple-condition-card {
+  background: #FFFFFF;
+}
+.high-contrast .carousel__slide .apple-condition-card::after {
+  display: none;
+}
+
+/* Reduced-transparency preference: solidify the icon chip. */
+@media (prefers-reduced-transparency: reduce) {
+  .carousel__slide .apple-condition-card .apple-condition-card__icon {
+    background: #ffffff;
+    backdrop-filter: none;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Community Play — gamification (challenges, streak, badges,
+   rewards). Brand tokens + apple-design feedback, rem text so it
+   scales with Dynamic Type, reduced-motion aware.
+───────────────────────────────────────────────────────────── */
+.play-summary {
+  display: flex;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.play-summary__points,
+.play-summary__streak {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border);
+}
+.play-summary__points {
+  background: linear-gradient(135deg, #FFF7ED 0%, #FFE4D3 100%);
+}
+.play-summary__streak {
+  background: linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%);
+}
+.play-summary__points-icon,
+.play-summary__streak-flame {
+  display: inline-flex;
+  color: var(--brand-primary);
+}
+.play-summary__points-value,
+.play-summary__streak-value {
+  display: block;
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+.play-summary__points-label,
+.play-summary__streak-label {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.play-week {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  margin-bottom: var(--space-4);
+}
+.play-week__day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+.play-week__dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #F3F4F6;
+  color: #fff;
+  border: 1.5px solid var(--border);
+}
+.play-week__dot--done {
+  background: var(--success);
+  border-color: var(--success);
+}
+.play-week__label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.play-checkin-btn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.play-checkin-btn--done {
+  background: var(--success);
+}
+.play-checkin-btn:disabled {
+  opacity: 1;
+  cursor: default;
+}
+
+.play-toast {
+  margin: var(--space-3) 0 0;
+  padding: var(--space-3);
+  text-align: center;
+  background: #F0FDF4;
+  border: 1px solid #86EFAC;
+  border-radius: var(--radius-sm);
+  color: #065F46;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  animation: seg-fade-in 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .play-toast { animation: seg-fade-in-rm 180ms ease; }
+}
+
+.play-section-note {
+  margin: 0 0 var(--space-3);
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.play-challenge {
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+.play-challenge__top {
+  display: flex;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+.play-challenge__emoji {
+  font-size: 1.75rem;
+  line-height: 1;
+}
+.play-challenge__title {
+  margin: 0 0 2px;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.play-challenge__desc {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+.play-challenge__bar {
+  height: 12px;
+}
+.play-challenge__meta {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-top: 6px;
+}
+.play-challenge__count {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.play-challenge__ends {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+.play-challenge__reward {
+  margin: var(--space-3) 0 0;
+  padding: 8px 12px;
+  background: #FFFBEB;
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #713F12;
+}
+
+.play-badges {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+}
+.play-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+  padding: var(--space-3);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  opacity: 0.55;
+  filter: grayscale(0.6);
+}
+.play-badge--earned {
+  opacity: 1;
+  filter: none;
+  border-color: #FCD34D;
+  background: linear-gradient(135deg, #FFFDF5 0%, #FEF3C7 100%);
+}
+.play-badge__emoji {
+  font-size: 1.75rem;
+  line-height: 1;
+}
+.play-badge__name {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.play-badge__desc {
+  font-size: 0.6875rem;
+  color: var(--text-secondary);
+  line-height: 1.3;
+}
+.play-badge__locked {
+  margin-top: 2px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+.play-reward {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+.play-reward__emoji {
+  font-size: 1.625rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.play-reward__body {
+  flex: 1;
+  min-width: 0;
+}
+.play-reward__title {
+  margin: 0 0 2px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.play-reward__partner {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+.play-reward__action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.play-reward__cost {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--brand-primary);
+}
+.play-reward .community-register-btn:disabled {
+  background: #E5E7EB;
+  color: var(--text-secondary);
+  cursor: default;
+}
+.play-reward .community-register-btn--done:disabled {
+  background: var(--success);
+  color: #fff;
+}
+
+/* High contrast: solid surfaces, hard borders. */
+.high-contrast .play-summary__points,
+.high-contrast .play-summary__streak,
+.high-contrast .play-badge--earned {
+  background: #FFFFFF;
+  border: 2px solid #000000;
+}
+
+/* Always-visible points chip in the Community Play header (§16 wayfinding). */
+.play-header-points {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+  font-size: 0.9375rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.play-header-points svg {
+  opacity: 0.9;
+}
