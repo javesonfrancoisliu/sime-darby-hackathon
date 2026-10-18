@@ -10,12 +10,14 @@ From the repo root, with the API running (see the root README):
 pnpm install
 pnpm db:up && pnpm db:setup && pnpm --filter @sdh/api db:seed
 pnpm --filter @sdh/api dev                 # API on http://127.0.0.1:3001
-pnpm --filter @sdh/elderly-web dev         # app on http://localhost:5174, proxies /api
+pnpm --filter @sdh/elderly-web dev         # app on http://localhost:5174/elder/, proxies /api
 pnpm --filter @sdh/elderly-web build       # production build in dist/
-pnpm --filter @sdh/elderly-web preview     # built app on http://localhost:4174
+pnpm --filter @sdh/elderly-web preview     # built app on http://localhost:4174/elder/
 pnpm --filter @sdh/elderly-web test
 pnpm --filter @sdh/elderly-web typecheck
 ```
+
+On one origin the app runs behind the sign-in app (http://localhost:5175).
 
 Run both apps live side by side: start the API, then `pnpm --filter @sdh/web dev` (5173) and `pnpm --filter @sdh/elderly-web dev` (5174). Create a request as a resident here, then accept it as a verified volunteer in the web app.
 

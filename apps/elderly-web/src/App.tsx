@@ -1,5 +1,5 @@
 import { Outlet, Route, Routes } from "react-router-dom";
-import { SessionProvider } from "@sdh/api-client";
+import { SessionProvider, type SessionAuth } from "@sdh/api-client";
 import { SessionGate } from "./session/SessionGate";
 import { AppShell } from "./ui/AppShell";
 import { HomePage } from "./pages/HomePage";
@@ -14,9 +14,10 @@ import { ChallengesPage } from "./pages/ChallengesPage";
 import { MePage } from "./pages/MePage";
 import { AccessibilityProvider } from "./context/AccessibilityContext";
 
-export function App() {
+// auth is set only when Cognito is configured; otherwise the local demo sign-in is used.
+export function App({ auth }: { auth?: SessionAuth }) {
   return (
-    <SessionProvider>
+    <SessionProvider auth={auth}>
       <AccessibilityProvider>
         <SessionGate>
           <Routes>

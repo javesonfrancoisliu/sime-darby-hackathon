@@ -37,7 +37,7 @@ export function HeroHeader({ name, location = "Elmina West" }: HeroHeaderProps) 
       <div className="app-hero__brand">
         <img
           className="app-hero__brand-icon"
-          src="/icons/pwa-192.png"
+          src={`${import.meta.env.BASE_URL}icons/pwa-192.png`}
           alt=""
           width={40}
           height={40}

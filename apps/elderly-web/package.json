@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@sdh/api-client": "workspace:*",
+    "@sdh/auth": "workspace:*",
     "@sdh/contracts": "workspace:*",
     "@sdh/design-tokens": "workspace:*",
     "lucide-react": "^0.550.0",

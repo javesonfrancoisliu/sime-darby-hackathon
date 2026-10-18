@@ -7,6 +7,8 @@ import { VitePWA } from "vite-plugin-pwa";
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, ".", "");
   return {
+    // The apps share one origin; each is served under its own path.
+    base: "/elder/",
     plugins: [
       react(),
       VitePWA({
@@ -16,9 +18,9 @@ export default defineConfig(({ mode }) => {
           short_name: "Help a Neighbour",
           description:
             "Connects elderly residents with nearby volunteers for everyday help, plus township safety, community and rewards.",
-          id: "/",
-          start_url: "/",
-          scope: "/",
+          id: "/elder/",
+          start_url: "/elder/",
+          scope: "/elder/",
           display: "standalone",
           orientation: "portrait",
           lang: "en",
