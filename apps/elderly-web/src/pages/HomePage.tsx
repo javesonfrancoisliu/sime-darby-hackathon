@@ -9,6 +9,8 @@ import { formatWhen } from "../requests/schedule";
 import { CategoryIcon } from "../ui/CategoryIcon";
 import { Spinner } from "../ui/Spinner";
 import { Banner } from "../ui/Banner";
+import { DemoTag } from "../ui/DemoTag";
+import { EmergencyCallButton } from "../ui/EmergencyCallButton";
 import { useResident } from "../session/useResident";
 import {
   IconWind,
@@ -110,6 +112,7 @@ export function HomePage() {
           <span className="safety-chip safety-chip--sm apple-condition-card__chip">
             {HAZE_LABEL[localHaze.level] ?? "Moderate"}
           </span>
+          <DemoTag />
         </div>
         <div className="apple-condition-card__main">
           <span className="apple-condition-card__value">{localHaze.api}</span>
@@ -144,6 +147,7 @@ export function HomePage() {
           <span className="safety-chip safety-chip--sm apple-condition-card__chip">
             {TEMP_LABEL[TEMPERATURE_DATA.level]}
           </span>
+          <DemoTag />
         </div>
         <div className="apple-condition-card__main">
           <span className="apple-condition-card__value">{TEMPERATURE_DATA.tempC}°C</span>
@@ -173,9 +177,10 @@ export function HomePage() {
           <span className="safety-chip safety-chip--sm apple-condition-card__chip">
             Maintenance
           </span>
+          <DemoTag />
         </div>
         <span className="apple-condition-card__title-line">{localMaintenance.title}</span>
-        <span className="apple-condition-card__location">📍 {localMaintenance.affectedArea}</span>
+        <span className="apple-condition-card__location">{localMaintenance.affectedArea}</span>
         <span className="apple-condition-card__sub">
           <IconClock size={11} strokeWidth={2} style={{ verticalAlign: "-1px", marginRight: 2 }} />
           {localMaintenance.dateRange}
@@ -201,9 +206,10 @@ export function HomePage() {
           <span className="safety-chip safety-chip--sm apple-condition-card__chip">
             {FACILITY_LABEL[localFacilityDamage.status]}
           </span>
+          <DemoTag />
         </div>
         <span className="apple-condition-card__title-line">{localFacilityDamage.title}</span>
-        <span className="apple-condition-card__location">📍 {localFacilityDamage.location}</span>
+        <span className="apple-condition-card__location">{localFacilityDamage.location}</span>
         <span className="apple-condition-card__sub">
           Crew dispatched · {localFacilityDamage.category}
         </span>
@@ -216,6 +222,10 @@ export function HomePage() {
       {/* ── Red hero header with location, Aa control, & voice assist ── */}
       <HeroHeader name={resident?.name ?? ""} location={resident?.area} />
 
+      <section className="app-home__section" aria-label="Emergency">
+        <EmergencyCallButton />
+      </section>
+
       {/* ── Township Live Conditions (Haze, Temp, Maintenance, Facility) ── */}
       <section className="app-home__section" aria-labelledby="township-conditions-heading">
         <div className="app-home__section-header">
@@ -225,7 +235,7 @@ export function HomePage() {
             </h2>
             <p className="app-home__section-subtitle">
               <IconMapPin size={12} strokeWidth={2} style={{ verticalAlign: "-1px", marginRight: 3 }} />
-              Elmina West · Real-time neighbourhood updates
+              Elmina West · Example readings
             </p>
           </div>
           <button

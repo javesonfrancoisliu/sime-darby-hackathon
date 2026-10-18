@@ -1,6 +1,6 @@
 /* ─────────────────────────────────────────────────────────
    Mock Safety Data — Health & Safety Hazards
-   All values are illustrative only; replace with live APIs.
+   Example values only, shown with a Demo data label.
 ───────────────────────────────────────────────────────── */
 
 export type HazardLevel = "good" | "moderate" | "unhealthy" | "hazardous";
@@ -20,21 +20,21 @@ export const HAZE_DATA: HazeReading[] = [
     location: "Elmina West",
     api: 58,
     level: "moderate",
-    updatedAt: "Today, 7:00 am",
+    updatedAt: "7:00 am",
     recommendation: "Sensitive groups should limit outdoor activity.",
   },
   {
     location: "Elmina East",
     api: 72,
     level: "moderate",
-    updatedAt: "Today, 7:00 am",
+    updatedAt: "7:00 am",
     recommendation: "Wear a mask if staying outdoors for long periods.",
   },
   {
     location: "City of Elmina",
     api: 34,
     level: "good",
-    updatedAt: "Today, 7:00 am",
+    updatedAt: "7:00 am",
     recommendation: "Air quality is satisfactory. Enjoy outdoor activities.",
   },
 ];
@@ -58,7 +58,7 @@ export const WATER_LEVELS: WaterLevelReading[] = [
     levelM: 1.4,
     normalMaxM: 2.5,
     status: "normal",
-    updatedAt: "Today, 6:30 am",
+    updatedAt: "6:30 am",
   },
   {
     name: "Elmina Lake",
@@ -66,7 +66,7 @@ export const WATER_LEVELS: WaterLevelReading[] = [
     levelM: 3.8,
     normalMaxM: 4.0,
     status: "watch",
-    updatedAt: "Today, 6:30 am",
+    updatedAt: "6:30 am",
   },
   {
     name: "Central Canal",
@@ -74,7 +74,7 @@ export const WATER_LEVELS: WaterLevelReading[] = [
     levelM: 2.1,
     normalMaxM: 2.5,
     status: "normal",
-    updatedAt: "Today, 6:30 am",
+    updatedAt: "6:30 am",
   },
 ];
 
@@ -95,7 +95,7 @@ export const TEMPERATURE_DATA: TemperatureAlert = {
   feelsLikeC: 41,
   humidity: 78,
   level: "warning",
-  updatedAt: "Today, 8:00 am",
+  updatedAt: "8:00 am",
   advisory: "Heat advisory in effect. Stay hydrated and avoid prolonged sun exposure between 11 am–3 pm.",
 };
 

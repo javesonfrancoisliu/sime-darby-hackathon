@@ -2637,3 +2637,13 @@ button:active,
     border-color: rgba(17, 24, 39, 0.1);
   }
 }
+
+/* Emergency call button on Home */
+.emergency-call { display: flex; align-items: center; gap: var(--space-3); min-height: 72px; padding: var(--space-3) var(--space-5); border-radius: var(--radius-card); background: #BA0000; color: #fff; text-decoration: none; box-shadow: 0 2px 8px rgba(186, 0, 0, 0.35); transition: transform 120ms cubic-bezier(0.2, 0, 0, 1); }
+.emergency-call:active { transform: scale(0.98); }
+.emergency-call:focus-visible { outline: 3px solid #1F2937; outline-offset: 3px; }
+.emergency-call__text { display: flex; flex-direction: column; }
+.emergency-call__title { font-size: 1.5rem; font-weight: 800; line-height: 1.2; }
+.emergency-call__sub { font-size: 1rem; font-weight: 600; }
+.medical-empty__hint { display: block; margin-top: 4px; font-size: 1rem; color: var(--text-secondary); }
+@media (prefers-reduced-motion: reduce) { .emergency-call { transition: none; } }

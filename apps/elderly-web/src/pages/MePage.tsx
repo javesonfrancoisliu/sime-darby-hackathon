@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useSession } from "@sdh/api-client";
 import { useAccessibility } from "../context/AccessibilityContext";
-import { isMockMode } from "../config";
+import { DEMO_SECURITY_LINE, isMockMode } from "../config";
 import { DemoTag } from "../ui/DemoTag";
 import { useResident } from "../session/useResident";
 import {
@@ -10,7 +10,6 @@ import {
   IconShieldCheck,
   IconSliders,
   IconPhone,
-  IconHeartPulse,
   IconChevronRight,
   IconUsers,
   IconVolume2,
@@ -120,34 +119,27 @@ export function MePage() {
           <DemoTag />
         </span>
         <div className="apple-inset-group">
-          <div className="apple-inset-row">
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <IconHeartPulse size={18} strokeWidth={1.8} style={{ color: "var(--brand-primary)" }} />
-              <span className="app-detail-label" style={{ margin: 0 }}>Blood Group</span>
+          <div className="apple-inset-row medical-empty">
+            <div>
+              <span className="app-detail-label" style={{ margin: 0 }}>Add your medical details</span>
+              <span className="medical-empty__hint">
+                Blood group and next of kin have not been added yet.
+              </span>
             </div>
-            <span className="apple-inset-value" style={{ fontWeight: 700 }}>O Positive</span>
           </div>
 
-          <div className="apple-inset-row">
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <IconPhone size={18} strokeWidth={1.8} style={{ color: "var(--brand-primary)" }} />
-              <span className="app-detail-label" style={{ margin: 0 }}>Next of Kin</span>
-            </div>
-            <span className="apple-inset-value">Zainal (Son) · 012-345 6789</span>
-          </div>
-
-          <a href="tel:0378398888" className="apple-inset-btn-row" style={{ textDecoration: "none" }}>
+          <a href={`tel:${DEMO_SECURITY_LINE.tel}`} className="apple-inset-btn-row" style={{ textDecoration: "none" }}>
             <div className="apple-inset-btn-row__left">
               <span className="apple-inset-btn-row__icon" style={{ color: "var(--brand-primary)" }}>
                 <IconPhone size={18} strokeWidth={2} />
               </span>
               <div>
-                <span className="apple-inset-btn-row__title">Elmina Auxiliary Police</span>
-                <span className="apple-inset-btn-row__subtitle">Township Security (24/7 Hotline)</span>
+                <span className="apple-inset-btn-row__title">Township security</span>
+                <span className="apple-inset-btn-row__subtitle">Demo number, not a real line</span>
               </div>
             </div>
             <span style={{ fontWeight: 700, color: "var(--brand-primary)", fontSize: 14 }}>
-              03-7839 8888
+              {DEMO_SECURITY_LINE.display}
             </span>
           </a>
         </div>

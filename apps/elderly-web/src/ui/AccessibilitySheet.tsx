@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { DEMO_SECURITY_LINE, EMERGENCY_NUMBER } from "../config";
 import { useAccessibility, type FontSizeLevel } from "../context/AccessibilityContext";
 import {
   IconX,
@@ -220,13 +221,13 @@ export function AccessibilitySheet() {
               <span>Township Emergency Quick Dial</span>
             </div>
             <div className="apple-emergency-grid">
-              <a href="tel:0378398888" className="apple-emergency-btn">
-                <span className="apple-emergency-btn__label">Elmina Auxiliary Police</span>
-                <span className="apple-emergency-btn__number">03-7839 8888</span>
+              <a href={`tel:${DEMO_SECURITY_LINE.tel}`} className="apple-emergency-btn">
+                <span className="apple-emergency-btn__label">Township security (demo number)</span>
+                <span className="apple-emergency-btn__number">{DEMO_SECURITY_LINE.display}</span>
               </a>
-              <a href="tel:999" className="apple-emergency-btn apple-emergency-btn--danger">
+              <a href={`tel:${EMERGENCY_NUMBER}`} className="apple-emergency-btn apple-emergency-btn--danger">
                 <span className="apple-emergency-btn__label">Medical &amp; Police (Emergency)</span>
-                <span className="apple-emergency-btn__number">999</span>
+                <span className="apple-emergency-btn__number">{EMERGENCY_NUMBER}</span>
               </a>
             </div>
           </div>

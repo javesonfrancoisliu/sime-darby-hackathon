@@ -32,7 +32,7 @@ export function HeroHeader({
       stopSpeaking();
     } else {
       speak(
-        `${greeting}. Welcome to Elmina West township. You have health metrics showing normal heart rate, and verified neighbour volunteers ready to assist with groceries, rides, digital guidance, or household repairs.`,
+        `${greeting}. You are in ${location}. A verified neighbour can help with groceries, rides, phones, household fixes and more. Choose Request help to ask for a hand.`,
       );
     }
   }

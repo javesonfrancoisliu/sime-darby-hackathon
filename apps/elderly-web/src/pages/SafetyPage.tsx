@@ -21,6 +21,7 @@ import {
 } from "../ui/Icons";
 import { SegmentedTabs, TabPanel } from "../ui/SegmentedTabs";
 import { useAccessibility } from "../context/AccessibilityContext";
+import { DemoTag } from "../ui/DemoTag";
 
 type SafetyTab = "haze" | "water" | "temp" | "facilities";
 
@@ -92,12 +93,14 @@ export function SafetyPage() {
       : FACILITY_REPORTS.filter((f) => f.status === facilityFilter);
 
   const tempStyle = ALERT_COLOR[TEMPERATURE_DATA.level];
+  const localHaze = HAZE_DATA[0] ?? { location: "Elmina West", level: "good", api: 0 };
 
   function handleReadSafetySummary() {
+    const open = FACILITY_REPORTS.filter((f) => f.status !== "fixed").length;
     speak(
-      "Health and safety hazard report for Elmina West. Air Pollutant Index is currently 58, moderate air quality. River and lake water levels are normal. Temperature is 35 degrees with a heat advisory in effect. There are currently " +
-        FACILITY_REPORTS.filter((f) => f.status !== "fixed").length +
-        " open facility repairs being handled by township maintenance.",
+      `Health and safety. These are example readings, not live data. Air quality in ${localHaze.location} is ${localHaze.level}, API ${localHaze.api}. ` +
+        `Temperature is ${TEMPERATURE_DATA.tempC} degrees, ${tempStyle.label}. ` +
+        `${open} facility repairs are not yet fixed.`,
     );
   }
 
@@ -112,7 +115,10 @@ export function SafetyPage() {
       <div className="safety-page__header">
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
           <div>
-            <h1 className="safety-page__title">Health &amp; Safety</h1>
+            <h1 className="safety-page__title">
+              Health &amp; Safety
+              <DemoTag />
+            </h1>
             <p className="safety-page__subtitle">Elmina West · Township Hazard Monitoring</p>
           </div>
           <button
