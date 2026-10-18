@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { act, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Carousel } from "./Carousel";
 
@@ -10,6 +10,11 @@ const slides = [
 ];
 
 afterEach(() => vi.useRealTimers());
+
+// jsdom has no PointerEvent, so a MouseEvent with the pointer event name carries the position.
+function pointer(target: Element, type: string, clientX: number) {
+  fireEvent(target, new MouseEvent(type, { bubbles: true, clientX }));
+}
 
 describe("Carousel", () => {
   it("never advances on its own", () => {
@@ -46,5 +51,31 @@ describe("Carousel", () => {
     screen.getByRole("button", { name: "Air" }).focus();
     await userEvent.keyboard("{ArrowRight}");
     expect(screen.getByText("2 of 3")).toBeInTheDocument();
+  });
+
+  it("does not click the card under a mouse drag", () => {
+    const onOpen = vi.fn();
+    render(
+      <Carousel
+        ariaLabel="Conditions"
+        slides={[
+          <button key="a" onClick={onOpen}>
+            Air
+          </button>,
+          <button key="b">Heat</button>,
+        ]}
+      />,
+    );
+    const card = screen.getByRole("button", { name: "Air" });
+    pointer(card, "pointerdown", 200);
+    pointer(card, "pointermove", 20);
+    pointer(card, "pointerup", 20);
+    fireEvent.click(card);
+    expect(onOpen).not.toHaveBeenCalled();
+
+    pointer(card, "pointerdown", 100);
+    pointer(card, "pointerup", 100);
+    fireEvent.click(card);
+    expect(onOpen).toHaveBeenCalledTimes(1);
   });
 });

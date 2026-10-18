@@ -11,6 +11,9 @@ interface CarouselProps {
 
 // Never moves on its own. People change slide with Previous and Next, the arrow keys or a swipe.
 // Slides that are not showing are inert, so their buttons cannot be tabbed to or read out.
+// Moving further than this counts as a drag, so the click that follows must not open the card.
+const DRAG_CLICK_THRESHOLD_PX = 8;
+
 export function Carousel({ slides, ariaLabel }: CarouselProps) {
   const { triggerHaptic } = useAccessibility();
   const count = slides.length;
@@ -18,6 +21,7 @@ export function Carousel({ slides, ariaLabel }: CarouselProps) {
 
   const viewportRef = useRef<HTMLDivElement>(null);
   const startX = useRef<number | null>(null);
+  const didDrag = useRef(false);
   const [dragPct, setDragPct] = useState(0);
   const [dragging, setDragging] = useState(false);
 
@@ -32,12 +36,14 @@ export function Carousel({ slides, ariaLabel }: CarouselProps) {
 
   function onPointerDown(e: React.PointerEvent) {
     startX.current = e.clientX;
+    didDrag.current = false;
     setDragging(true);
     (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
   }
 
   function onPointerMove(e: React.PointerEvent) {
     if (startX.current === null) return;
+    if (Math.abs(e.clientX - startX.current) > DRAG_CLICK_THRESHOLD_PX) didDrag.current = true;
     const width = viewportRef.current?.offsetWidth || 1;
     setDragPct(((e.clientX - startX.current) / width) * 100);
   }
@@ -50,6 +56,13 @@ export function Carousel({ slides, ariaLabel }: CarouselProps) {
     if (dragPct <= -18) step(1);
     else if (dragPct >= 18) step(-1);
     setDragPct(0);
+  }
+
+  function onClickCapture(e: React.MouseEvent) {
+    if (!didDrag.current) return;
+    didDrag.current = false;
+    e.preventDefault();
+    e.stopPropagation();
   }
 
   function onKeyDown(e: React.KeyboardEvent) {
@@ -77,6 +90,7 @@ export function Carousel({ slides, ariaLabel }: CarouselProps) {
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
+        onClickCapture={onClickCapture}
       >
         <div
           className={`carousel__track${dragging ? " carousel__track--dragging" : ""}`}
