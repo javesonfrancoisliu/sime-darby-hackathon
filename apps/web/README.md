@@ -49,8 +49,10 @@ tunnel that provides HTTPS. Steps:
 1. Build and preview the production app:
    ```
    corepack pnpm@11.16.0 --filter @sdh/web build
-   corepack pnpm@11.16.0 --filter @sdh/web preview -- --host --port 4173
+   corepack pnpm@11.16.0 --filter @sdh/web preview
    ```
+   Preview listens on localhost only. To reach it through a tunnel, set
+   `PREVIEW_HOST=0.0.0.0` and `PREVIEW_ALLOWED_HOSTS=<tunnel host>` first.
 2. Expose it over HTTPS with a tunnel (any one of these):
    - `npx localtunnel --port 4173`
    - `cloudflared tunnel --url http://localhost:4173`

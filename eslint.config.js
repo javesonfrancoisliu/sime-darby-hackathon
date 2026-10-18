@@ -16,9 +16,13 @@ export default defineConfig(
   js.configs.recommended,
   tseslint.configs.recommended,
   {
-    files: ["apps/web/src/**/*.{ts,tsx}"],
+    files: ["apps/web/src/**/*.{ts,tsx}", "apps/elderly-web/src/**/*.{ts,tsx}"],
     extends: [reactHooks.configs.flat.recommended],
     languageOptions: { globals: globals.browser },
+  },
+  {
+    files: ["apps/elderly-web/public/sw.js"],
+    languageOptions: { globals: globals.serviceworker },
   },
   {
     files: [

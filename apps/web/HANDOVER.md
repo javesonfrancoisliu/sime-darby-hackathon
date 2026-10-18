@@ -65,7 +65,7 @@ From the repo root (pnpm via corepack; pnpm is not on PATH here):
 corepack pnpm@11.16.0 install
 corepack pnpm@11.16.0 --filter @sdh/web dev        # http://localhost:5173
 corepack pnpm@11.16.0 --filter @sdh/web build      # dist/ + PWA artifacts
-corepack pnpm@11.16.0 --filter @sdh/web preview -- --host --port 4173
+corepack pnpm@11.16.0 --filter @sdh/web preview                # :4173, set PREVIEW_HOST and PREVIEW_ALLOWED_HOSTS for tunnels
 corepack pnpm@11.16.0 --filter @sdh/web typecheck
 corepack pnpm@11.16.0 exec eslint apps/web/src
 corepack pnpm@11.16.0 --filter @sdh/web exec vitest run
