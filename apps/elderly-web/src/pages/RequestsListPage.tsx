@@ -1,6 +1,8 @@
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMyRequests } from "../hooks/useRequests";
 import { formatWhen } from "../requests/schedule";
+import { useAnnounce } from "../ui/Announcer";
 import { BackLink } from "../ui/BackLink";
 import { Button } from "../ui/Button";
 import { Banner } from "../ui/Banner";
@@ -8,17 +10,21 @@ import { Spinner } from "../ui/Spinner";
 import { StatusBadge } from "../ui/StatusBadge";
 import { IconChevronRight, IconList, IconPlus } from "../ui/Icons";
 
-/**
- * My Requests List — Apple Inset-Grouped Design for Silver Generation.
- * Incorporates:
- * - Direct manipulation press response (§1, §10)
- * - Inset card materials with subtle border rim (§12)
- * - High-legibility typography (§15)
- * - Loading, empty, error, and populated states (Req 6).
- */
 export function RequestsListPage() {
   const navigate = useNavigate();
   const { data, status, error, refetch } = useMyRequests();
+  const announce = useAnnounce();
+
+  // Tell screen reader users when a refresh changes the list, but not on the first load.
+  const lastSeen = useRef<string | null>(null);
+  const signature = data ? data.map((r) => `${r.id}:${r.status}`).join("|") : null;
+  useEffect(() => {
+    if (signature === null) return;
+    if (lastSeen.current !== null && lastSeen.current !== signature) {
+      announce("Your requests were updated.");
+    }
+    lastSeen.current = signature;
+  }, [signature, announce]);
 
   return (
     <div className="apple-subpage">

@@ -3,17 +3,12 @@ import { useInRouterContext } from "react-router-dom";
 import { BottomTabBar } from "./BottomTabBar";
 import { DemoBanner } from "./DemoBanner";
 import { AccessibilitySheet } from "./AccessibilitySheet";
+import { AnnouncerProvider } from "./Announcer";
+import { RouteFocus } from "./RouteFocus";
 import { useAccessibility } from "../context/AccessibilityContext";
 
-/**
- * AppShell — page frame with Sime Darby Property branding and single readable column.
- * Incorporates Apple design translucent material chrome and Silver Generation accessibility:
- * - Dynamic Type text scaling (.text-size-normal / .text-size-large / .text-size-xlarge)
- * - High contrast mode (.high-contrast)
- * - Reduced motion (.reduced-motion)
- * - Accessibility control sheet (<AccessibilitySheet />)
- * - Easy View is applied at root (Option A, Req 1.1, 1.2, 2.3, 3.2).
- */
+// Page frame: Sime Darby branding, one readable column, and the settings classes
+// (text size, strong contrast, less movement) on the root element.
 export function AppShell({ children, hideTabs = false }: { children: ReactNode; hideTabs?: boolean }) {
   const inRouter = useInRouterContext();
   const { fontSize, highContrast, reducedMotion } = useAccessibility();
@@ -29,11 +24,14 @@ export function AppShell({ children, hideTabs = false }: { children: ReactNode; 
     .join(" ");
 
   return (
-    <div className={rootClasses}>
-      <DemoBanner />
-      <main className="app-main">{children}</main>
-      {inRouter && !hideTabs && <BottomTabBar />}
-      <AccessibilitySheet />
-    </div>
+    <AnnouncerProvider>
+      <div className={rootClasses}>
+        {inRouter && <RouteFocus />}
+        <DemoBanner />
+        <main className="app-main">{children}</main>
+        {inRouter && !hideTabs && <BottomTabBar />}
+        <AccessibilitySheet />
+      </div>
+    </AnnouncerProvider>
   );
 }

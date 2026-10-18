@@ -2701,3 +2701,8 @@ button:active,
     background: #8A0A10;
   }
 }
+
+/* Hidden on screen but read out by screen readers. */
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+/* The heading that receives focus on a page change needs no ring. */
+main h1:focus, main:focus { outline: none; }

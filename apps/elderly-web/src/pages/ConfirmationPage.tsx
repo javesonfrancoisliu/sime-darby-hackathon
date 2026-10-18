@@ -1,7 +1,9 @@
+import { useEffect } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import type { HelpRequest } from "@sdh/contracts";
 import { CATEGORY_TEXT } from "../requests/categories";
 import { formatWhen, minutesLabel } from "../requests/schedule";
+import { useAnnounce } from "../ui/Announcer";
 import { Button } from "../ui/Button";
 import { IconCheck, IconHome, IconList } from "../ui/Icons";
 
@@ -15,6 +17,11 @@ import { IconCheck, IconHome, IconList } from "../ui/Icons";
 export function ConfirmationPage() {
   const navigate = useNavigate();
   const request = (useLocation().state as { request?: HelpRequest } | null)?.request;
+  const announce = useAnnounce();
+  const sent = Boolean(request);
+  useEffect(() => {
+    if (sent) announce("Your request was sent.");
+  }, [sent, announce]);
   if (!request) return <Navigate to="/requests" replace />;
 
   return (
