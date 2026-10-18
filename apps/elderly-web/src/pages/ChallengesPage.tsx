@@ -17,7 +17,7 @@ import { DemoTag } from "../ui/DemoTag";
 
 type PlayTab = "streak" | "challenges" | "badges" | "rewards";
 
-// Challenges - gamified community features for the Silver Generation (FOR FUN).
+// Challenges - gamified community features for residents (for fun).
 // Team/neighbourhood goals (never individual rankings), participation badges &
 // a daily check-in streak, and rewards/vouchers for township shops & clinics.
 // Stateful demo: nothing here is saved or granted, so the page says so.

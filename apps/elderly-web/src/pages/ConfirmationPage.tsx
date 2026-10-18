@@ -7,10 +7,10 @@ import { useAnnounce } from "../ui/Announcer";
 import { Button } from "../ui/Button";
 import { IconCheck, IconHome, IconList } from "../ui/Icons";
 
-// Request Confirmation - Apple Success Screen for Silver Generation.
+// Request confirmation: a clear success screen for the resident.
 // Features:
-// - Clear visual completion feedback (§16 Feedback)
-// - Inset receipt card with high-contrast text (§12, §15)
+// - Clear visual completion feedback
+// - Inset receipt card with high-contrast text
 // - Confirm a submitted request, echoing category and description.
 export function ConfirmationPage() {
   const navigate = useNavigate();

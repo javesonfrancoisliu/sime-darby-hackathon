@@ -18,7 +18,7 @@ function noVolunteerText(status: string): string {
   return status === "cancelled" || status === "rejected" ? "No volunteer" : "Not matched yet";
 }
 
-// Request Detail - Apple Inset-Grouped Inspector layout.
+// Request detail: grouped rows for status, time, place and volunteer.
 // Refreshes while open so a volunteer accepting shows up without a reload.
 export function RequestDetailPage() {
   const { id = "" } = useParams();

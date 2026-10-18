@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
-// Variants from the shared design system's AppButton (DESIGN_SYSTEM.md §5).
+// Variants follow the shared design system's AppButton.
 type Variant = "primary" | "secondary" | "ghost" | "danger";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {

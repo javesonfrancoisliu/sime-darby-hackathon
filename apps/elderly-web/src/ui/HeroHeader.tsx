@@ -15,8 +15,8 @@ function getTimeOfDay(): string {
 }
 
 // Red hero card at the top of the home screen.
-// Incorporates Apple design optical typography and quick-accessibility controls:
-// - Aa button opens the Silver Generation Accessibility Sheet
+// Includes quick-accessibility controls:
+// - Aa button opens the text and sound settings sheet
 // - Speaker button reads aloud current screen summary for visually impaired elders
 export function HeroHeader({ name, location = "Elmina West" }: HeroHeaderProps) {
   const { openSheet, isSpeaking, speak, stopSpeaking } = useAccessibility();

@@ -35,7 +35,7 @@ import {
 import { useCommunityContent } from "../hooks/useCommunityContent";
 import { useSafetyData } from "../hooks/useSafetyData";
 
-// Home page - Apple Design mobile-first dashboard for Silver Generation.
+// Home page: mobile-first dashboard.
 // Displays:
 // 1. Red hero header with greeting, resident location & Voice read-aloud assist
 // 2. Township Live Hazard & Facility conditions (Haze API, Temperature Alert, Maintenance Notice, Facility Damage)

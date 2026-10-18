@@ -39,7 +39,7 @@ type FilterStatus = "all" | FacilityStatus;
 const FACILITY_STATUSES: FacilityStatus[] = ["reported", "in_progress", "fixed"];
 const FILTER_STATUSES: FilterStatus[] = ["all", ...FACILITY_STATUSES];
 
-// Section heading with Apple design optical typography and outline icon
+// Section heading with an outline icon. The id is what the section's aria-labelledby points to.
 function SectionHeading({ id, icon, title }: { id: string; icon: ReactNode; title: string }) {
   return (
     <div className="safety-section__heading">
@@ -53,7 +53,7 @@ function SectionHeading({ id, icon, title }: { id: string; icon: ReactNode; titl
   );
 }
 
-// Health & Safety Hazards page with Apple Design and Silver Generation Accessibility.
+// Health & Safety Hazards page.
 // Sections:
 // a. Haze API
 // b. Water Level of Rivers and Lakes within the township

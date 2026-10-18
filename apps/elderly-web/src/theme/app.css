@@ -88,7 +88,7 @@
 
 /* ── Hero header ─────────────────────────────────────────────── */
 .app-hero {
-  /* Layered background (top → bottom): 1. a faint township skyline watermark (SVG data-URI, licence-free), 2. the brand-red gradient. The skyline sits at low opacity so white text stays >=4.5:1 (§8/§12). To use a real Sime Darby township photo instead, replace the first background layer with url("/img/township.jpg"). */
+  /* Layered background (top → bottom): 1. a faint township skyline watermark (SVG data-URI, licence-free), 2. the brand-red gradient. The skyline sits at low opacity so white text stays >=4.5:1. To use a real Sime Darby township photo instead, replace the first background layer with url("/img/township.jpg"). */
   background:
     linear-gradient(
       180deg,
@@ -555,7 +555,7 @@
     0 2px 4px rgba(17, 24, 39, 0.05),
     0 10px 24px rgba(17, 24, 39, 0.08);
 }
-/* §1 Feedback lives on the press, and it's instant. */
+/* Feedback lives on the press, and it's instant. */
 .apple-condition-card:active {
   transform: scale(0.975);
   box-shadow: 0 1px 2px rgba(17, 24, 39, 0.05);
@@ -579,7 +579,7 @@
   color: var(--text-secondary);
 }
 
-/* The hero value - big, tabular, tight optical tracking (§15). */
+/* The hero value - big, tabular, tight optical tracking. */
 .apple-condition-card__main {
   display: flex;
   align-items: baseline;
@@ -834,12 +834,12 @@
 .community-register-btn:hover {
   background: var(--brand-primary-hover);
 }
-/* §1 instant press feedback. */
+/* Instant press feedback. */
 .community-register-btn:active {
   transform: scale(0.96);
 }
 
-/* Confirmed / completed state - success green with a check (§16 feedback). */
+/* Confirmed / completed state - success green with a check. */
 .community-register-btn--done {
   background: var(--success);
 }
@@ -1108,7 +1108,7 @@
 
 /* APPLE DESIGN & SILVER GENERATION ACCESSIBILITY SYSTEM */
 
-/* ── 1. Apple Instant Press Response (§1, §10) ───────────────── */
+/* ── 1. Instant press response ───────────────── */
 button:active,
 .category-choice-card:active,
 .daily-support-item:active,
@@ -1119,7 +1119,7 @@ button:active,
   transition: transform 90ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-/* ── 2. Apple Translucent Material Bar (§12) ─────────────────── */
+/* ── 2. Translucent bar ─────────────────── */
 .app-tab-bar {
   background: rgba(255, 255, 255, 0.82);
   backdrop-filter: blur(24px) saturate(190%);
@@ -1167,7 +1167,7 @@ button:active,
   }
 }
 
-/* ── 4. Dynamic Type Scaling (§15 - Silver Generation) ────────── */
+/* ── 4. Dynamic Type Scaling ────────── */
 /* Scoped to .app-root (which always also carries .easy-view) so these win the cascade over easy-view's base font-size without !important. Each level sets font-size explicitly so it never depends on another class. */
 /* The root <html> font-size is driven by the Dynamic Type setting (see AccessibilityContext), so all rem-based text scales uniformly. These blocks keep the control-height tokens and let the root div follow html. */
 .app-root.text-size-normal {
@@ -1252,7 +1252,7 @@ button:active,
   font-weight: 700;
 }
 
-/* ── 6. Reduced Motion (§14) ─────────────────────────────────── */
+/* ── 6. Reduced Motion ─────────────────────────────────── */
 /* App-level toggle: user turns on "Reduce Motion" in the accessibility sheet. */
 .reduced-motion *,
 .reduced-motion *::before,
@@ -1283,7 +1283,7 @@ button:active,
   }
 }
 
-/* ── 7. Apple Accessibility Bottom Sheet ─────────────────────── */
+/* ── 7. Accessibility Bottom Sheet ─────────────────────── */
 .apple-sheet-backdrop {
   position: fixed;
   inset: 0;
@@ -1378,7 +1378,7 @@ button:active,
   gap: var(--space-4);
 }
 
-/* ── Apple Segmented Control ─────────────────────────────────── */
+/* ── Segmented Control ─────────────────────────────────── */
 .apple-control-group {
   display: flex;
   flex-direction: column;
@@ -1432,7 +1432,7 @@ button:active,
   font-size: 1rem;
 }
 
-/* ── Apple Control Row with Toggle Switch ────────────────────── */
+/* ── Control Row with Toggle Switch ────────────────────── */
 .apple-control-row {
   display: flex;
   align-items: center;
@@ -1470,7 +1470,7 @@ button:active,
   margin-top: 2px;
 }
 
-/* ── Apple Switch ────────────────────────────────────────────── */
+/* ── Switch ────────────────────────────────────────────── */
 .apple-switch {
   width: 52px;
   height: 32px;
@@ -1565,7 +1565,7 @@ button:active,
   border-radius: var(--radius-pill);
 }
 
-/* ── 8. Apple Subpage Shell & Navigation Bar ─────────────────── */
+/* ── 8. Subpage Shell & Navigation Bar ─────────────────── */
 .apple-subpage {
   display: flex;
   flex-direction: column;
@@ -1609,7 +1609,7 @@ button:active,
   font-weight: 600;
 }
 
-/* ── 9. Apple Inset-Grouped List (Requests, Settings) ────────── */
+/* ── 9. Inset-Grouped List (Requests, Settings) ────────── */
 .apple-grouped-list {
   display: flex;
   flex-direction: column;
@@ -1668,7 +1668,7 @@ button:active,
   flex-shrink: 0;
 }
 
-/* ── 10. Apple Inset Group Inspector (Detail Rows) ───────────── */
+/* ── 10. Inset Group Inspector (Detail Rows) ───────────── */
 .apple-detail-hero {
   margin-bottom: var(--space-4);
 }
@@ -1739,7 +1739,7 @@ button:active,
   align-items: center;
 }
 
-/* ── 11. Apple Destructive Confirm Card ──────────────────────── */
+/* ── 11. Destructive Confirm Card ──────────────────────── */
 .apple-confirm-card {
   background: var(--danger-bg);
   border: 1px solid #fecaca;
@@ -1762,7 +1762,7 @@ button:active,
   line-height: 1.4;
 }
 
-/* ── 12. Apple Confirmation Success Screen ───────────────────── */
+/* ── 12. Confirmation Success Screen ───────────────────── */
 .apple-confirmation-page {
   align-items: center;
   padding-top: var(--space-6);
@@ -1793,7 +1793,7 @@ button:active,
   }
 }
 
-/* ── 14. Apple Senior Profile (Me Page) ──────────────────────── */
+/* ── 14. Senior Profile (Me Page) ──────────────────────── */
 .apple-profile-page {
   padding-top: var(--space-4);
 }
@@ -1916,7 +1916,7 @@ button:active,
   margin-top: 2px;
 }
 
-/* ── 15. Apple Header Frosted Audio Assist Button ────────────── */
+/* ── 15. Header Frosted Audio Assist Button ────────────── */
 .apple-header-voice-btn {
   display: inline-flex;
   align-items: center;
@@ -1953,7 +1953,7 @@ button:active,
   }
 }
 
-/* Segmented tabs - iOS-style control for Safety / Community pages (apple-design §1 Response, §4 springy-but-damped, §7 spatial, §12 material, §14 reduced-motion). Brand red from SDP tokens. */
+/* Segmented tabs - iOS-style control for Safety / Community pages. Brand red from SDP tokens. */
 .seg-tabs {
   position: relative;
   display: grid;
@@ -2012,7 +2012,7 @@ button:active,
 .seg-tabs__tab--active {
   color: var(--brand-primary);
 }
-/* §1 instant press feedback. */
+/* Instant press feedback. */
 .seg-tabs__tab:active {
   transform: scale(0.94);
 }
@@ -2020,7 +2020,7 @@ button:active,
   display: inline-flex;
   align-items: center;
 }
-/* The label always stays visible (elderly-first: icons need text, §15/§16). */
+/* The label always stays visible (elderly-first: icons need text, ). */
 .seg-tabs__label {
   display: block;
   text-align: center;
@@ -2037,7 +2037,7 @@ button:active,
   }
 }
 
-/* §14 reduced motion: no sliding/scale, just an instant state change. */
+/* Reduced motion: no sliding/scale, just an instant state change. */
 @media (prefers-reduced-motion: reduce) {
   .seg-tabs__indicator {
     transition: none;
@@ -2053,7 +2053,7 @@ button:active,
   transform: none;
 }
 
-/* Tab panel enter - a gentle, non-vestibular cross-fade (§14). */
+/* Tab panel enter - a gentle, non-vestibular cross-fade. */
 .seg-panel-enter {
   animation: seg-fade-in 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -2084,7 +2084,7 @@ button:active,
   }
 }
 
-/* Carousel - one card at a time, gentle auto-roll (apple-design §2 1:1 drag, §4 damped slide, §14 reduced-motion & pause). */
+/* Carousel - one card at a time, it never moves on its own. */
 .carousel {
   touch-action: pan-y;
 }
@@ -2102,7 +2102,7 @@ button:active,
   transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
   will-change: transform;
 }
-/* While dragging, follow the finger 1:1 with no transition (§2). */
+/* While dragging, follow the finger 1:1 with no transition. */
 .carousel__track--dragging {
   transition: none;
 }
@@ -2172,7 +2172,7 @@ button:active,
   transition: none;
 }
 
-/* Carousel condition cards - themed backgrounds per type. CSS-only gradients (no external images): fast, crisp at any DPR, licence-free, and tuned so dark text keeps >=4.5:1 contrast (apple-design §12 materials & legibility, §16 craft). */
+/* Carousel condition cards - themed backgrounds per type. CSS-only gradients (no external images): fast, crisp at any DPR, licence-free, and tuned so dark text keeps >=4.5:1 contrast. */
 .carousel__slide .apple-condition-card {
   position: relative;
   overflow: hidden;
@@ -2197,14 +2197,14 @@ button:active,
   z-index: 1;
 }
 
-/* On the themed surfaces, give the icon chip a translucent white backing so it reads as a floating control (§12 material weight). */
+/* On the themed surfaces, give the icon chip a translucent white backing so it reads as a floating control. */
 .carousel__slide .apple-condition-card .apple-condition-card__icon {
   background: rgba(255, 255, 255, 0.7);
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
 }
 
-/* High-contrast mode: drop the decorative art, use a solid white surface with a hard border so text stays maximally legible (§14). */
+/* High-contrast mode: drop the decorative art, use a solid white surface with a hard border so text stays maximally legible. */
 .high-contrast .carousel__slide .apple-condition-card {
   background: #ffffff;
 }
@@ -2220,7 +2220,7 @@ button:active,
   }
 }
 
-/* Community Play - gamification (challenges, streak, badges, rewards). Brand tokens + apple-design feedback, rem text so it scales with Dynamic Type, reduced-motion aware. */
+/* Community Play - gamification (challenges, streak, badges, rewards). Brand tokens, rem text so it scales with Dynamic Type, reduced-motion aware. */
 .play-summary {
   display: flex;
   gap: var(--space-3);
@@ -2495,7 +2495,7 @@ button:active,
   border: 2px solid #000000;
 }
 
-/* Always-visible points chip in the Community Play header (§16 wayfinding). */
+/* Always-visible points chip in the Community Play header. */
 .play-header-points {
   display: inline-flex;
   align-items: center;
@@ -2509,7 +2509,7 @@ button:active,
   white-space: nowrap;
 }
 
-/* Live-condition carousel cards - severity-driven accent. One shared 5-step ramp (light green → green → yellow → orange → red). The card exposes --sev-accent / --sev-chip-bg / --sev-chip-text (set inline from SEVERITY_SCALE); the chip, the progress bar and a left accent stripe all read from them so the severity is obvious at a glance. apple-design §16 (clear status), §8 (colour is reinforced by the text label on the chip, never colour alone). */
+/* Live-condition carousel cards - severity-driven accent. One shared 5-step ramp (light green → green → yellow → orange → red). The card exposes --sev-accent / --sev-chip-bg / --sev-chip-text (set by the card's data-severity attribute); the chip, the progress bar and a left accent stripe all read from them so the severity is obvious at a glance. apple-design (clear status), (colour is reinforced by the text label on the chip, never colour alone). */
 .apple-condition-card--sev {
   position: relative;
   overflow: hidden;
