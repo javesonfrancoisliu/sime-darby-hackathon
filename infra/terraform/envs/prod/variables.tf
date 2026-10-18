@@ -87,3 +87,20 @@ variable "developer_user_names" {
   type        = list(string)
   default     = []
 }
+
+variable "developer_editor_enabled" {
+  description = "Create the developer editor role, which can change this stack's data, code and settings and call Amazon Bedrock."
+  type        = bool
+  default     = false
+
+  validation {
+    condition     = var.developer_editor_enabled == false
+    error_message = "The developer editor role must stay off in prod."
+  }
+}
+
+variable "api_bedrock_invoke_enabled" {
+  description = "Let the API Lambda call Amazon Bedrock models."
+  type        = bool
+  default     = false
+}

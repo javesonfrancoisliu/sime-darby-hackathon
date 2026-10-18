@@ -14,6 +14,17 @@ resource "aws_cloudwatch_log_group" "access" {
   retention_in_days = var.log_retention_days
 }
 
+data "aws_caller_identity" "current" {}
+
+data "aws_region" "current" {}
+
+locals {
+  bedrock_model_resources = [
+    "arn:aws:bedrock:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:inference-profile/*",
+    "arn:aws:bedrock:*::foundation-model/*",
+  ]
+}
+
 data "aws_iam_policy_document" "assume" {
   statement {
     actions = ["sts:AssumeRole"]
@@ -53,6 +64,17 @@ data "aws_iam_policy_document" "lambda" {
       var.table_arn,
       "${var.table_arn}/index/*",
     ]
+  }
+
+  # Global and APAC cross-Region profiles also check the foundation model in other Regions; "*" covers the region-less global ARN.
+  dynamic "statement" {
+    for_each = var.bedrock_invoke_enabled ? [1] : []
+
+    content {
+      sid       = "InvokeBedrock"
+      actions   = ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"]
+      resources = local.bedrock_model_resources
+    }
   }
 }
 

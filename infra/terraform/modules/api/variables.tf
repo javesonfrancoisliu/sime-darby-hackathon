@@ -53,3 +53,9 @@ variable "throttle_rate_limit" {
   description = "API stage steady-state requests per second."
   type        = number
 }
+
+variable "bedrock_invoke_enabled" {
+  description = "Let the Lambda call Amazon Bedrock models through on-demand and cross-Region inference profiles."
+  type        = bool
+  default     = false
+}

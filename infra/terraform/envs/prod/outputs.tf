@@ -51,3 +51,8 @@ output "developer_user_names" {
   description = "Teammate IAM users created for the developer role."
   value       = module.developer_access.user_names
 }
+
+output "developer_editor_role_arn" {
+  description = "Developer editor role ARN, or null when it is off."
+  value       = module.developer_access.editor_role_arn
+}

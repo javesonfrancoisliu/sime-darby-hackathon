@@ -50,9 +50,9 @@ data "aws_iam_policy_document" "developers" {
   }
 
   statement {
-    sid       = "AllowSwitchToDeveloperRole"
+    sid       = "AllowSwitchToDeveloperRoles"
     actions   = ["sts:AssumeRole"]
-    resources = aws_iam_role.developer[*].arn
+    resources = concat(aws_iam_role.developer[*].arn, aws_iam_role.editor[*].arn)
   }
 
   statement {

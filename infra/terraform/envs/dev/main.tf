@@ -19,17 +19,18 @@ module "auth" {
 module "api" {
   source = "../../modules/api"
 
-  name_prefix          = local.name_prefix
-  source_dir           = "${path.root}/../../../../apps/api/dist"
-  output_path          = "${path.root}/../../build/${var.environment}-api.zip"
-  table_name           = module.data.table_name
-  table_arn            = module.data.table_arn
-  demo_auth_enabled    = var.demo_auth_enabled
-  cognito_user_pool_id = module.auth.user_pool_id
-  cognito_client_id    = module.auth.client_id
-  log_retention_days   = var.log_retention_days
-  throttle_burst_limit = var.api_throttle_burst_limit
-  throttle_rate_limit  = var.api_throttle_rate_limit
+  name_prefix            = local.name_prefix
+  source_dir             = "${path.root}/../../../../apps/api/dist"
+  output_path            = "${path.root}/../../build/${var.environment}-api.zip"
+  table_name             = module.data.table_name
+  table_arn              = module.data.table_arn
+  demo_auth_enabled      = var.demo_auth_enabled
+  cognito_user_pool_id   = module.auth.user_pool_id
+  cognito_client_id      = module.auth.client_id
+  log_retention_days     = var.log_retention_days
+  throttle_burst_limit   = var.api_throttle_burst_limit
+  throttle_rate_limit    = var.api_throttle_rate_limit
+  bedrock_invoke_enabled = var.api_bedrock_invoke_enabled
 }
 
 # One site serves the sign-in app at /, the elderly app at /elder/, the volunteer app at /volunteer/ and /api/*.
@@ -51,6 +52,7 @@ module "developer_access" {
   trusted_principal_arns   = var.developer_principal_arns
   trusted_sso_role_arns    = var.developer_sso_role_arns
   user_names               = var.developer_user_names
+  editor_enabled           = var.developer_editor_enabled
   log_group_arns           = module.api.log_group_arns
   table_arn                = module.data.table_arn
   function_arn             = module.api.function_arn

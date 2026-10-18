@@ -26,6 +26,12 @@ variable "user_names" {
   }
 }
 
+variable "editor_enabled" {
+  description = "Also create the editor role, which can change this stack's data, code and settings and call Amazon Bedrock."
+  type        = bool
+  default     = false
+}
+
 variable "trusted_sso_role_arns" {
   description = "IAM Identity Center role ARNs allowed to assume the developer role; MFA is enforced by Identity Center."
   type        = list(string)
