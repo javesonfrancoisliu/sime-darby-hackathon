@@ -62,6 +62,14 @@ describe("Safety page", () => {
     expect(screen.getByRole("link", { name: /Call 999/ })).toHaveAttribute("href", "tel:999");
   });
 
+  it("draws the moderate air quality bar on the amber track", async () => {
+    installFakeApi();
+    await renderApp("/safety");
+    const [bar] = screen.getAllByLabelText(/API level/);
+    expect(bar).toHaveClass("safety-bar--amber");
+    expect(bar?.firstElementChild).toHaveClass("tone-caution");
+  });
+
   it("does not name real agencies for example readings", async () => {
     installFakeApi();
     await renderApp("/safety");

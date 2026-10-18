@@ -490,6 +490,10 @@
   margin: var(--space-2) 0;
 }
 
+.safety-bar--amber {
+  background: var(--bar-track-amber);
+}
+
 .safety-bar__fill {
   height: 100%;
   border-radius: var(--radius-pill);
@@ -2666,7 +2670,7 @@ main:focus {
   color: var(--tone-good-text);
 }
 .tone-caution {
-  --tone-fg: var(--tone-caution-text);
+  --tone-fg: var(--warning-fill);
   background: var(--tone-caution-bg);
   color: var(--tone-caution-text);
 }

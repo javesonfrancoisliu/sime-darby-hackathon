@@ -551,7 +551,7 @@
   padding: 5px 10px;
   border-radius: var(--radius-pill);
   background: var(--warning-bg);
-  color: var(--warning);
+  color: var(--warning-ink);
   font-size: 13px;
   font-weight: 700;
 }
