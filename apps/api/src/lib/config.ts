@@ -1,6 +1,17 @@
 const DEFAULT_SERVICE_NAME = "sdh-api";
 const DEFAULT_MATCHING_AI_TIMEOUT_MS = 3000;
 
+const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1"]);
+
+export function isLoopbackEndpoint(endpoint: string | undefined): boolean {
+  if (!endpoint) return false;
+  try {
+    return LOOPBACK_HOSTS.has(new URL(endpoint).hostname);
+  } catch {
+    return false;
+  }
+}
+
 // Read lazily so tests and the local server can set env before first use.
 export const config = {
   get serviceName(): string {
@@ -13,6 +24,10 @@ export const config = {
   },
   get dynamodbEndpoint(): string | undefined {
     return process.env.DYNAMODB_ENDPOINT || undefined;
+  },
+  // Only the exact string "true" turns on the simulated demo sign-in.
+  get demoAuthEnabled(): boolean {
+    return process.env.DEMO_AUTH_ENABLED === "true";
   },
   get matchingAiModelId(): string | undefined {
     return process.env.MATCHING_AI_MODEL_ID || undefined;

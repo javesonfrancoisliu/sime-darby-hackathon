@@ -1,5 +1,6 @@
 import type { CreateUserBody, Role, User } from "@sdh/contracts";
 import { DEMO_USER_HEADER } from "../lib/identity";
+import { createUser as insertUser } from "../modules/users/service";
 import { dispatch } from "../router";
 
 interface CallOptions {
@@ -23,15 +24,16 @@ export async function createUser(
   role: Role,
   overrides: Partial<CreateUserBody> = {},
 ): Promise<User> {
-  const res = await call("POST", "/api/users", {
-    body: {
-      role,
-      name: `Test ${role}`,
-      area: "Precinct 1",
-      location: { lat: 3.0738, lng: 101.5183 },
-      ...overrides,
-    },
-  });
+  const body = {
+    role,
+    name: `Test ${role}`,
+    area: "Precinct 1",
+    location: { lat: 3.0738, lng: 101.5183 },
+    ...overrides,
+  };
+  // Coordinators cannot be created through the API, so insert them directly.
+  if (role === "coordinator") return insertUser(body as CreateUserBody);
+  const res = await call("POST", "/api/users", { body });
   if (res.status !== 201) throw new Error(`createUser failed: ${JSON.stringify(res.body)}`);
   return res.body as User;
 }
