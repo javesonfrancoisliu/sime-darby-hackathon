@@ -66,7 +66,13 @@ variable "web_bucket_force_destroy" {
 }
 
 variable "developer_principal_arns" {
-  description = "IAM user or role ARNs allowed to assume the read-only developer role. Empty means no role."
+  description = "IAM user ARNs (MFA required) allowed to assume the read-only developer role."
+  type        = list(string)
+  default     = []
+}
+
+variable "developer_sso_role_arns" {
+  description = "IAM Identity Center role ARNs allowed to assume the read-only developer role."
   type        = list(string)
   default     = []
 }

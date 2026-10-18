@@ -18,6 +18,11 @@ output "function_arn" {
   value       = aws_lambda_function.api.arn
 }
 
+output "role_arn" {
+  description = "Lambda execution role ARN."
+  value       = aws_iam_role.lambda.arn
+}
+
 output "log_group_arns" {
   description = "Lambda and API access log group ARNs."
   value       = [aws_cloudwatch_log_group.lambda.arn, aws_cloudwatch_log_group.access.arn]

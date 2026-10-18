@@ -1,27 +1,52 @@
+data "aws_caller_identity" "current" {}
+
 data "aws_region" "current" {}
 
 locals {
-  enabled = length(var.trusted_principal_arns) > 0
+  enabled    = length(var.trusted_principal_arns) + length(var.trusted_sso_role_arns) > 0
+  account_id = data.aws_caller_identity.current.account_id
+  region     = data.aws_region.current.region
   log_group_resources = flatten([
     for arn in var.log_group_arns : [arn, "${arn}:*"]
   ])
-  api_arn = "arn:aws:apigateway:${data.aws_region.current.region}::/apis/${var.api_id}"
+  apigateway_prefix = "arn:aws:apigateway:${local.region}::"
+  cloudfront_prefix = "arn:aws:cloudfront::${local.account_id}"
 }
 
-# Only the listed principals can assume the role, and only with MFA.
+# IAM users must have signed in with MFA. SSO roles carry no MFA key, so their
+# Identity Center enforces MFA instead.
 data "aws_iam_policy_document" "assume" {
-  statement {
-    actions = ["sts:AssumeRole"]
+  dynamic "statement" {
+    for_each = length(var.trusted_principal_arns) > 0 ? [1] : []
 
-    principals {
-      type        = "AWS"
-      identifiers = var.trusted_principal_arns
+    content {
+      sid     = "IamUsersWithMfa"
+      actions = ["sts:AssumeRole"]
+
+      principals {
+        type        = "AWS"
+        identifiers = var.trusted_principal_arns
+      }
+
+      condition {
+        test     = "Bool"
+        variable = "aws:MultiFactorAuthPresent"
+        values   = ["true"]
+      }
     }
+  }
 
-    condition {
-      test     = "Bool"
-      variable = "aws:MultiFactorAuthPresent"
-      values   = ["true"]
+  dynamic "statement" {
+    for_each = length(var.trusted_sso_role_arns) > 0 ? [1] : []
+
+    content {
+      sid     = "SsoRoles"
+      actions = ["sts:AssumeRole"]
+
+      principals {
+        type        = "AWS"
+        identifiers = var.trusted_sso_role_arns
+      }
     }
   }
 }
@@ -35,101 +60,142 @@ resource "aws_iam_role" "developer" {
   max_session_duration = var.max_session_duration_seconds
 }
 
+# Read verbs only (Describe, Get, List, query and scan). Data and content reads are
+# scoped to this stack; the console list pages need the account-wide list calls.
 data "aws_iam_policy_document" "read" {
   statement {
-    sid = "ReadLogs"
+    sid = "StackLogs"
     actions = [
-      "logs:DescribeLogStreams",
-      "logs:GetLogEvents",
+      "logs:Describe*",
+      "logs:Get*",
+      "logs:List*",
       "logs:FilterLogEvents",
       "logs:StartQuery",
+      "logs:StartLiveTail",
     ]
     resources = local.log_group_resources
   }
 
-  # These actions do not support resource-level permissions.
   statement {
-    sid = "ListAndMetrics"
+    sid = "StackTable"
     actions = [
-      "logs:DescribeLogGroups",
-      "logs:DescribeQueries",
-      "logs:GetQueryResults",
-      "logs:StopQuery",
-      "cloudwatch:DescribeAlarms",
-      "cloudwatch:GetMetricData",
-      "cloudwatch:GetMetricStatistics",
-      "cloudwatch:ListMetrics",
-      "lambda:ListFunctions",
-      "dynamodb:ListTables",
-      "cognito-idp:ListUserPools",
-      "cloudfront:ListDistributions",
-      "s3:ListAllMyBuckets",
-    ]
-    resources = ["*"]
-  }
-
-  statement {
-    sid = "ReadTable"
-    actions = [
-      "dynamodb:DescribeTable",
-      "dynamodb:GetItem",
+      "dynamodb:Describe*",
+      "dynamodb:Get*",
+      "dynamodb:List*",
       "dynamodb:BatchGetItem",
       "dynamodb:Query",
       "dynamodb:Scan",
+      "dynamodb:PartiQLSelect",
     ]
-    resources = [var.table_arn, "${var.table_arn}/index/*"]
+    resources = [var.table_arn, "${var.table_arn}/*"]
   }
 
   statement {
-    sid = "ReadFunction"
+    sid       = "StackFunction"
+    actions   = ["lambda:Get*", "lambda:List*"]
+    resources = [var.function_arn, "${var.function_arn}:*"]
+  }
+
+  statement {
+    sid = "StackFunctionRole"
     actions = [
-      "lambda:GetFunction",
-      "lambda:GetFunctionConfiguration",
-      "lambda:ListVersionsByFunction",
-      "lambda:GetPolicy",
+      "iam:GetRole",
+      "iam:GetRolePolicy",
+      "iam:ListRolePolicies",
+      "iam:ListAttachedRolePolicies",
     ]
-    resources = [var.function_arn]
+    resources = [var.function_role_arn]
   }
 
   statement {
-    sid       = "ReadApi"
-    actions   = ["apigateway:GET"]
-    resources = [local.api_arn, "${local.api_arn}/*"]
+    sid     = "StackApi"
+    actions = ["apigateway:GET"]
+    resources = [
+      "${local.apigateway_prefix}/apis",
+      "${local.apigateway_prefix}/apis/${var.api_id}",
+      "${local.apigateway_prefix}/apis/${var.api_id}/*",
+      "${local.apigateway_prefix}/tags/*",
+      "${local.apigateway_prefix}/domainnames",
+      "${local.apigateway_prefix}/vpclinks",
+    ]
   }
 
   statement {
-    sid = "ReadUsers"
+    sid = "StackUsers"
     actions = [
-      "cognito-idp:DescribeUserPool",
-      "cognito-idp:DescribeUserPoolClient",
-      "cognito-idp:ListUserPoolClients",
-      "cognito-idp:ListUsers",
-      "cognito-idp:AdminGetUser",
+      "cognito-idp:Describe*",
+      "cognito-idp:Get*",
+      "cognito-idp:List*",
+      "cognito-idp:AdminGet*",
+      "cognito-idp:AdminList*",
     ]
     resources = [var.user_pool_arn]
   }
 
   statement {
-    sid = "ReadSite"
-    actions = [
-      "cloudfront:GetDistribution",
-      "cloudfront:GetDistributionConfig",
-      "cloudfront:ListInvalidations",
-      "cloudfront:GetInvalidation",
+    sid     = "StackSite"
+    actions = ["cloudfront:Describe*", "cloudfront:Get*", "cloudfront:List*"]
+    resources = [
+      var.distribution_arn,
+      "${local.cloudfront_prefix}:function/*",
+      "${local.cloudfront_prefix}:cache-policy/*",
+      "${local.cloudfront_prefix}:origin-request-policy/*",
+      "${local.cloudfront_prefix}:response-headers-policy/*",
+      "${local.cloudfront_prefix}:origin-access-control/*",
     ]
-    resources = [var.distribution_arn]
   }
 
   statement {
-    sid       = "ListSiteBucket"
-    actions   = ["s3:ListBucket", "s3:GetBucketLocation"]
-    resources = [var.bucket_arn]
+    sid       = "StackBucket"
+    actions   = ["s3:Get*", "s3:List*"]
+    resources = [var.bucket_arn, "${var.bucket_arn}/*"]
   }
 
+  # These actions have no resource-level permissions, so they need "*". They
+  # return names, settings and metrics, not table items, log lines or files.
   statement {
-    sid       = "ReadSiteFiles"
-    actions   = ["s3:GetObject"]
-    resources = ["${var.bucket_arn}/*"]
+    sid = "ConsoleListPages"
+    actions = [
+      "logs:DescribeLogGroups",
+      "logs:DescribeQueries",
+      "logs:DescribeQueryDefinitions",
+      "logs:DescribeResourcePolicies",
+      "logs:GetQueryResults",
+      "logs:StopQuery",
+      "logs:StopLiveTail",
+      "logs:TestMetricFilter",
+      "cloudwatch:Describe*",
+      "cloudwatch:Get*",
+      "cloudwatch:List*",
+      "lambda:ListFunctions",
+      "lambda:ListEventSourceMappings",
+      "lambda:GetAccountSettings",
+      "lambda:ListLayers",
+      "lambda:ListCodeSigningConfigs",
+      "iam:ListRoles",
+      "dynamodb:ListTables",
+      "dynamodb:ListBackups",
+      "dynamodb:ListGlobalTables",
+      "dynamodb:ListContributorInsights",
+      "dynamodb:ListStreams",
+      "dynamodb:DescribeLimits",
+      "dynamodb:DescribeEndpoints",
+      "application-autoscaling:Describe*",
+      "kms:DescribeKey",
+      "kms:ListAliases",
+      "cognito-idp:ListUserPools",
+      "cognito-idp:DescribeUserPoolDomain",
+      "cloudfront:List*",
+      "cloudfront:GetMonitoringSubscription",
+      "acm:ListCertificates",
+      "wafv2:ListWebACLs",
+      "s3:ListAllMyBuckets",
+      "s3:GetAccountPublicAccessBlock",
+      "tag:GetResources",
+      "xray:GetTraceSummaries",
+      "xray:BatchGetTraces",
+    ]
+    resources = ["*"]
   }
 }
 

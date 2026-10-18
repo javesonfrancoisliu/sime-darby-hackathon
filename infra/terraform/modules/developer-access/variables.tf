@@ -4,16 +4,33 @@ variable "name_prefix" {
 }
 
 variable "trusted_principal_arns" {
-  description = "IAM users, roles or account roots allowed to assume the developer role. Empty skips the role."
+  description = "IAM users allowed to assume the developer role after an MFA sign-in."
   type        = list(string)
 
   validation {
     condition = alltrue([
-      for arn in var.trusted_principal_arns :
-      can(regex("^arn:aws:iam::[0-9]{12}:(root|user/.+|role/.+)$", arn))
+      for arn in var.trusted_principal_arns : can(regex("^arn:aws:iam::[0-9]{12}:user/.+$", arn))
     ])
-    error_message = "Each entry must be an IAM user, role or account root ARN."
+    error_message = "Each entry must be an IAM user ARN."
   }
+}
+
+variable "trusted_sso_role_arns" {
+  description = "IAM Identity Center role ARNs allowed to assume the developer role; MFA is enforced by Identity Center."
+  type        = list(string)
+
+  validation {
+    condition = alltrue([
+      for arn in var.trusted_sso_role_arns :
+      can(regex("^arn:aws:iam::[0-9]{12}:role/aws-reserved/sso\\.amazonaws\\.com/.+$", arn))
+    ])
+    error_message = "Each entry must be an IAM Identity Center role ARN."
+  }
+}
+
+variable "function_role_arn" {
+  description = "API Lambda execution role ARN, shown on the function's Permissions tab."
+  type        = string
 }
 
 variable "max_session_duration_seconds" {
