@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+import { errorMessage } from "@sdh/api-client";
+
 import { useProfile } from "../../data/ProfileContext";
 import {
   LANGUAGE_LABEL,
@@ -62,20 +64,29 @@ function ChipGroup<T extends string>({
 /**
  * Edit volunteer preferences: skills, interests, availability (simplified
  * day-group + time-of-day), languages. Chip multi-selects keep it compact on
- * mobile. Saved to the frontend profile store (demo) — does not update backend
- * matching.
+ * mobile.
  */
 export function EditPreferencesModal({ open, onClose }: EditPreferencesModalProps) {
-  const { prefs, updatePrefs } = useProfile();
+  const { prefs, updatePrefs, isDemo } = useProfile();
   const [skills, setSkills] = useState(prefs.skills);
   const [interests, setInterests] = useState(prefs.interests);
   const [days, setDays] = useState(prefs.availability.days);
   const [times, setTimes] = useState(prefs.availability.times);
   const [languages, setLanguages] = useState(prefs.languages);
+  const [busy, setBusy] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
-  function save() {
-    updatePrefs({ skills, interests, availability: { days, times }, languages });
-    onClose();
+  async function save() {
+    setBusy(true);
+    setSaveError(null);
+    try {
+      await updatePrefs({ skills, interests, availability: { days, times }, languages });
+      onClose();
+    } catch (err) {
+      setSaveError(errorMessage(err));
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -85,10 +96,10 @@ export function EditPreferencesModal({ open, onClose }: EditPreferencesModalProp
       onClose={onClose}
       footer={
         <>
-          <AppButton variant="ghost" onClick={onClose}>
+          <AppButton variant="ghost" onClick={onClose} disabled={busy}>
             Cancel
           </AppButton>
-          <AppButton variant="primary" onClick={save}>
+          <AppButton variant="primary" onClick={() => void save()} loading={busy}>
             Save
           </AppButton>
         </>
@@ -130,9 +141,15 @@ export function EditPreferencesModal({ open, onClose }: EditPreferencesModalProp
         onToggle={(v) => setLanguages((prev) => toggle(prev, v))}
       />
       <p className="ui-helper" style={{ margin: 0 }}>
-        Saved on this device for the demo. Language preference is a prototype
-        setting and is not yet part of the shared backend profile.
+        {isDemo
+          ? "Saved on this device for the demo."
+          : "Skills and availability are saved to your account and used for matching. Interests and languages stay on this device."}
       </p>
+      {saveError && (
+        <p className="ui-error" role="alert" style={{ margin: 0 }}>
+          {saveError}
+        </p>
+      )}
     </Modal>
   );
 }

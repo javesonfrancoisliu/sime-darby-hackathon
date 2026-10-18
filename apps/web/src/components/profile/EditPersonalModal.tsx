@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+import { errorMessage } from "@sdh/api-client";
+
 import { useProfile } from "../../data/ProfileContext";
 import { AppButton, FormField, Modal } from "../ui";
 import { Avatar } from "./Avatar";
@@ -9,23 +11,33 @@ export type EditPersonalModalProps = {
   onClose: () => void;
 };
 
-/**
- * Edit personal information: display name and area. The avatar is initials-based
- * and previews live from the name. Saved to the frontend profile store (demo).
- */
+// Edit display name and area. The avatar is initials-based and previews live.
+// Signed in, the change is saved to the API; signed out, on this device.
 export function EditPersonalModal({ open, onClose }: EditPersonalModalProps) {
-  const { prefs, updatePrefs } = useProfile();
+  const { prefs, updatePrefs, isDemo } = useProfile();
   const [name, setName] = useState(prefs.displayName);
   const [area, setArea] = useState(prefs.area);
-  const [error, setError] = useState<string | null>(null);
+  const [nameError, setNameError] = useState<string | null>(null);
+  const [areaError, setAreaError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  function save() {
-    if (name.trim().length === 0) {
-      setError("Please enter a display name.");
-      return;
+  async function save() {
+    const nextName = name.trim();
+    const nextArea = area.trim();
+    setNameError(nextName ? null : "Please enter a display name.");
+    setAreaError(nextArea ? null : "Please enter your township or neighbourhood.");
+    if (!nextName || !nextArea) return;
+    setBusy(true);
+    setSaveError(null);
+    try {
+      await updatePrefs({ displayName: nextName, area: nextArea });
+      onClose();
+    } catch (err) {
+      setSaveError(errorMessage(err));
+    } finally {
+      setBusy(false);
     }
-    updatePrefs({ displayName: name.trim(), area: area.trim() });
-    onClose();
   }
 
   return (
@@ -35,10 +47,10 @@ export function EditPersonalModal({ open, onClose }: EditPersonalModalProps) {
       onClose={onClose}
       footer={
         <>
-          <AppButton variant="ghost" onClick={onClose}>
+          <AppButton variant="ghost" onClick={onClose} disabled={busy}>
             Cancel
           </AppButton>
-          <AppButton variant="primary" onClick={save}>
+          <AppButton variant="primary" onClick={() => void save()} loading={busy}>
             Save
           </AppButton>
         </>
@@ -52,14 +64,20 @@ export function EditPersonalModal({ open, onClose }: EditPersonalModalProps) {
         label="Display name"
         value={name}
         onChange={(e) => setName(e.target.value)}
-        error={error ?? undefined}
+        error={nameError ?? undefined}
       />
       <FormField
         label="Township / neighbourhood"
         value={area}
         onChange={(e) => setArea(e.target.value)}
-        helper="Saved on this device for the demo."
+        error={areaError ?? undefined}
+        helper={isDemo ? "Saved on this device for the demo." : "Saved to your account."}
       />
+      {saveError && (
+        <p className="ui-error" role="alert" style={{ margin: 0 }}>
+          {saveError}
+        </p>
+      )}
     </Modal>
   );
 }

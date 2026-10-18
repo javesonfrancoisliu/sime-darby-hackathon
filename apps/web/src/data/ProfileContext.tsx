@@ -11,7 +11,9 @@ import {
 import type { VerificationStatus } from "../types/volunteer";
 import type { ProfilePrefs } from "../types/profile";
 import { DEMO_TOWNSHIP } from "../lib/township";
-import { useSession } from "@sdh/api-client";
+import { UpdateMeBody, type User } from "@sdh/contracts";
+import { apiFetch, useSession } from "@sdh/api-client";
+import { preferenceToSlots, slotsToPreference } from "../lib/availability";
 import { readJson, scopedKey, writeJson } from "../lib/storage";
 
 // Reusable, localStorage-backed Young-resident profile state. Held once at the
@@ -54,10 +56,14 @@ function readMerged<T extends object>(key: string, fallback: T): T {
 }
 
 export type ProfileContextValue = {
+  // Signed in, name, area, skills and availability come from the API user.
   prefs: ProfilePrefs;
+  // True while the signed-out demo profile is shown.
+  isDemo: boolean;
   settings: ProfileSettings;
   verification: VerificationStatus;
-  updatePrefs: (patch: Partial<ProfilePrefs>) => void;
+  // Signed in, saves to PATCH /api/me and rejects with the API error.
+  updatePrefs: (patch: Partial<ProfilePrefs>) => Promise<void>;
   updateSettings: (patch: Partial<ProfileSettings>) => void;
   reset: () => void;
 };
@@ -65,41 +71,86 @@ export type ProfileContextValue = {
 const ProfileContext = createContext<ProfileContextValue | null>(null);
 
 export function ProfileProvider({ children }: { children: ReactNode }) {
-  const { user, userId } = useSession();
+  const { user, userId, updateUser } = useSession();
   const verification: VerificationStatus = user ? user.verification : DEMO_VERIFICATION;
-  const [prefs, setPrefs] = useState<ProfilePrefs>(() =>
+  const [localPrefs, setLocalPrefs] = useState<ProfilePrefs>(() =>
     readMerged(prefsKey(userId), DEFAULT_PREFS),
   );
   const [settings, setSettings] = useState<ProfileSettings>(() =>
     readMerged(settingsKey(userId), DEFAULT_SETTINGS),
   );
 
-  useEffect(() => writeJson(prefsKey(userId), prefs), [userId, prefs]);
+  useEffect(() => writeJson(prefsKey(userId), localPrefs), [userId, localPrefs]);
   useEffect(() => writeJson(settingsKey(userId), settings), [userId, settings]);
 
-  const updatePrefs = useCallback((patch: Partial<ProfilePrefs>) => {
-    setPrefs((prev) => ({ ...prev, ...patch }));
-  }, []);
+  const prefs = useMemo<ProfilePrefs>(
+    () =>
+      user
+        ? {
+            ...localPrefs,
+            displayName: user.name,
+            area: user.area,
+            skills: user.skills,
+            availability: slotsToPreference(user.availability),
+          }
+        : localPrefs,
+    [user, localPrefs],
+  );
+
+  const updatePrefs = useCallback(
+    async (patch: Partial<ProfilePrefs>) => {
+      if (user) {
+        const body: UpdateMeBody = {};
+        if (patch.displayName !== undefined) body.name = patch.displayName;
+        if (patch.area !== undefined) body.area = patch.area;
+        if (patch.skills !== undefined) body.skills = patch.skills;
+        if (patch.availability !== undefined) {
+          body.availability = preferenceToSlots(patch.availability);
+        }
+        if (Object.keys(body).length > 0) {
+          const saved = await apiFetch<User>("/api/me", {
+            method: "PATCH",
+            body: UpdateMeBody.parse(body),
+            userId: user.id,
+          });
+          updateUser(saved);
+        }
+        // Interests and languages are not part of the API profile; keep them on this device.
+        const { interests, languages } = patch;
+        if (interests !== undefined || languages !== undefined) {
+          setLocalPrefs((prev) => ({
+            ...prev,
+            ...(interests !== undefined && { interests }),
+            ...(languages !== undefined && { languages }),
+          }));
+        }
+        return;
+      }
+      setLocalPrefs((prev) => ({ ...prev, ...patch }));
+    },
+    [user, updateUser],
+  );
 
   const updateSettings = useCallback((patch: Partial<ProfileSettings>) => {
     setSettings((prev) => ({ ...prev, ...patch }));
   }, []);
 
   const reset = useCallback(() => {
-    setPrefs(DEFAULT_PREFS);
+    setLocalPrefs(DEFAULT_PREFS);
     setSettings(DEFAULT_SETTINGS);
   }, []);
 
   const value = useMemo<ProfileContextValue>(
     () => ({
       prefs,
+      isDemo: user === null,
       settings,
       verification,
       updatePrefs,
       updateSettings,
       reset,
     }),
-    [prefs, settings, verification, updatePrefs, updateSettings, reset],
+    [prefs, user, settings, verification, updatePrefs, updateSettings, reset],
   );
 
   return <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>;
