@@ -7,12 +7,12 @@ import { installFakeApi } from "./test/fakeApi";
 import { renderApp } from "./test/renderApp";
 
 const PAGES: [path: string, title: string][] = [
-  ["/", `Welcome to ${DEMO_TOWNSHIP.name} - Township Connect`],
-  ["/community", "Neighbourhood Hub - Township Connect"],
-  ["/community/challenges", "Community Challenges - Township Connect"],
-  ["/volunteer", "Volunteer nearby - Township Connect"],
-  ["/safety", "Health & Safety - Township Connect"],
-  ["/profile", "Profile - Township Connect"],
+  ["/", `Welcome to ${DEMO_TOWNSHIP.name} - Help a Neighbour`],
+  ["/community", "Neighbourhood Hub - Help a Neighbour"],
+  ["/community/challenges", "Community Challenges - Help a Neighbour"],
+  ["/volunteer", "Volunteer nearby - Help a Neighbour"],
+  ["/safety", "Health & Safety - Help a Neighbour"],
+  ["/profile", "Profile - Help a Neighbour"],
 ];
 
 async function settled() {
