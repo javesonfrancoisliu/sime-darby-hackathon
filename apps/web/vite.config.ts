@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { apiProxy, previewServer, pwaBase, pwaIcons } from "@sdh/config/vite.shared";
 import react from "@vitejs/plugin-react";
 import { defineConfig, loadEnv } from "vite";
@@ -62,7 +63,14 @@ export default defineConfig(({ mode }) => {
         },
       }),
     ],
+    // Shared packages must use this app's React 19, not the copy installed for the other app.
+    resolve: { dedupe: ["react", "react-dom"] },
     server: { port: 5173, proxy: apiProxy(env) },
     preview: previewServer(env, 4173),
+    test: {
+      globals: true,
+      environment: "jsdom",
+      setupFiles: ["./src/test/setup.ts"],
+    },
   };
 });
