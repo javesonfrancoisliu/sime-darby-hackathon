@@ -17,6 +17,13 @@ describe("config.demoAuthEnabled", () => {
     vi.stubEnv("DEMO_AUTH_ENABLED", undefined);
     expect(config.demoAuthEnabled).toBe(false);
   });
+
+  it("is false whenever Cognito sign-in is configured", () => {
+    vi.stubEnv("DEMO_AUTH_ENABLED", "true");
+    vi.stubEnv("COGNITO_USER_POOL_ID", "ap-southeast-5_example");
+    vi.stubEnv("COGNITO_CLIENT_ID", "exampleclientid");
+    expect(config.demoAuthEnabled).toBe(false);
+  });
 });
 
 describe("config Cognito values", () => {

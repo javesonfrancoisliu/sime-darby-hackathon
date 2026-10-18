@@ -25,9 +25,10 @@ export const config = {
   get dynamodbEndpoint(): string | undefined {
     return process.env.DYNAMODB_ENDPOINT || undefined;
   },
-  // Only the exact string "true" turns on the simulated demo sign-in.
+  // Only the exact string "true" turns on the simulated demo sign-in, and never next to real
+  // Cognito sign-in, where it would let anyone act as a real user.
   get demoAuthEnabled(): boolean {
-    return process.env.DEMO_AUTH_ENABLED === "true";
+    return process.env.DEMO_AUTH_ENABLED === "true" && !config.bearerAuthEnabled;
   },
   get cognitoUserPoolId(): string | undefined {
     return process.env.COGNITO_USER_POOL_ID || undefined;

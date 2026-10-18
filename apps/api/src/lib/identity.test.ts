@@ -49,17 +49,17 @@ describe("bearer sign-in", () => {
   afterEach(() => vi.unstubAllEnvs());
 
   it("resolves the user whose id equals the token sub", async () => {
-    enableCognito();
     const elder = await createUser("elder");
+    enableCognito();
     const res = await call("GET", "/api/me", { token: tokenFor(elder.id) });
     expect(res.status).toBe(200);
     expect(res.body).toMatchObject({ id: elder.id });
   });
 
   it("prefers the Bearer token over a demo header", async () => {
-    enableCognito();
     const elder = await createUser("elder");
     const other = await createUser("volunteer");
+    enableCognito();
     const res = await call("GET", "/api/me", { token: tokenFor(elder.id), as: other.id });
     expect(res.body).toMatchObject({ id: elder.id });
   });
@@ -103,7 +103,6 @@ describe("bearer sign-in", () => {
   });
 
   it("lists events anonymously on a bad token and flags joins for a good one", async () => {
-    enableCognito();
     const coordinator = await createUser("coordinator");
     const elder = await createUser("elder");
     const created = await call("POST", "/api/events", {
@@ -120,6 +119,8 @@ describe("bearer sign-in", () => {
     expect(created.status).toBe(201);
     const eventId = (created.body as { id: string }).id;
     await call("POST", `/api/events/${eventId}/join`, { as: elder.id });
+    // Demo identities stop working once Cognito is on, so set it up after the demo-made data.
+    enableCognito();
 
     const mine = (await call("GET", "/api/events", { token: tokenFor(elder.id) })).body;
     expect((mine as EventsResponse).events.find((e) => e.id === eventId)?.joined).toBe(true);

@@ -118,7 +118,7 @@ Hashed files in `assets/` are cached for a year; `index.html`, `sw.js` and the m
 ## Frontend notes
 
 - Import API types from `@sdh/contracts` instead of redefining them.
-- Demo sign-in only works when the API runs with `DEMO_AUTH_ENABLED=true` (set by `pnpm dev` and `.env.example`). Otherwise every signed-in call returns 401 and `/api/demo/users` and `POST /api/users` return 404. `POST /api/users` never creates a coordinator.
+- Demo sign-in only works when the API runs with `DEMO_AUTH_ENABLED=true` (set by `pnpm dev` and `.env.example`) and Cognito is not configured; once `COGNITO_USER_POOL_ID` and `COGNITO_CLIENT_ID` are set, only Cognito sign-in is accepted. Otherwise every signed-in call returns 401 and `/api/demo/users` and `POST /api/users` return 404. `POST /api/users` never creates a coordinator.
 - After the demo sign-in, send the chosen profile id on every call as the `X-Demo-User` header.
 - Call the API with relative paths (`/api/...`); in local dev, proxy `/api` to `http://127.0.0.1:3001`.
 - Errors come back as `{ "error": { "code": "...", "message": "..." } }`.
