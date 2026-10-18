@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useSession } from "@sdh/api-client";
 import { FONT_LABEL, useAccessibility } from "../context/AccessibilityContext";
-import { DEMO_SECURITY_LINE, isMockMode } from "../config";
+import { DEMO_SECURITY_LINE, isMockMode, tokenModeEnabled } from "../config";
 import { DemoTag } from "../ui/DemoTag";
 import { useResident } from "../session/useResident";
 import {
@@ -27,6 +27,11 @@ export function MePage() {
   function switchPerson() {
     navigate("/");
     signOut();
+  }
+
+  async function signOutOfAccount() {
+    await signOut();
+    window.location.assign("/");
   }
 
   function handleReadProfile() {
@@ -64,7 +69,21 @@ export function MePage() {
           <span>Read profile aloud</span>
         </button>
 
-        {isMockMode() ? null : (
+        {tokenModeEnabled() ? (
+          <>
+            <a href="/account" className="ui-button ui-button--secondary">
+              <IconUser className="icon-gap" size={18} strokeWidth={2} />
+              <span>Account settings</span>
+            </a>
+            <button
+              type="button"
+              className="ui-button ui-button--secondary"
+              onClick={signOutOfAccount}
+            >
+              <span>Sign out</span>
+            </button>
+          </>
+        ) : isMockMode() ? null : (
           <button type="button" className="ui-button ui-button--secondary" onClick={switchPerson}>
             <IconUsers className="icon-gap" size={18} strokeWidth={2} />
             <span>Switch person</span>

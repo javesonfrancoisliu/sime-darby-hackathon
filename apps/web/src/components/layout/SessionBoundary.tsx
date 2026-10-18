@@ -2,7 +2,9 @@ import { Fragment, type ReactNode } from "react";
 
 import { useSession } from "@sdh/api-client";
 
-import { LoadingState } from "../ui";
+import { tokenModeEnabled } from "../../lib/authMode";
+import { useSessionRedirect } from "../../lib/sessionRedirect";
+import { AppButton, EmptyState, LoadingState } from "../ui";
 import { RoleProvider } from "./RoleContext";
 
 // Feeds the signed-in demo user's role into RoleProvider (young when signed out).
@@ -26,7 +28,32 @@ export function UserScope({ children }: { children: ReactNode }) {
 // Shows a loading state inside the app shell while the signed-in user loads, so
 // an elder never briefly gets the young screens and a slow API never hides the nav.
 export function SessionGate({ children }: { children: ReactNode }) {
+  return tokenModeEnabled() ? (
+    <TokenSessionGate>{children}</TokenSessionGate>
+  ) : (
+    <DemoSessionGate>{children}</DemoSessionGate>
+  );
+}
+
+function DemoSessionGate({ children }: { children: ReactNode }) {
   const { status } = useSession();
   if (status === "loading") return <LoadingState rows={2} label="Signing in" />;
+  return children;
+}
+
+// Real sign-in: anyone who is not a signed-in volunteer is sent to the right page.
+function TokenSessionGate({ children }: { children: ReactNode }) {
+  const { status, refresh } = useSession();
+  const redirecting = useSessionRedirect();
+  if (status === "loading" || redirecting) return <LoadingState rows={2} label="Signing in" />;
+  if (status === "error") {
+    return (
+      <EmptyState
+        title="We could not load your details"
+        description="Please check the internet and try again."
+        action={<AppButton onClick={refresh}>Try again</AppButton>}
+      />
+    );
+  }
   return children;
 }

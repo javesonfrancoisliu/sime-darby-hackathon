@@ -1,8 +1,11 @@
 import { useId } from "react";
 import { HelpCircle } from "lucide-react";
 
+import { useSession } from "@sdh/api-client";
+
+import { tokenModeEnabled } from "../../lib/authMode";
 import { useProfile, type ProfileSettings } from "../../data/ProfileContext";
-import { InfoCard } from "../ui";
+import { AppButton, InfoCard } from "../ui";
 
 type ToggleKey = keyof ProfileSettings;
 
@@ -45,6 +48,12 @@ function ToggleRow({
 // privacy. Demo Controls are rendered by the page below this card.
 export function SettingsCard() {
   const { settings, updateSettings } = useProfile();
+  const { signOut } = useSession();
+
+  async function signOutOfAccount() {
+    await signOut();
+    window.location.assign("/");
+  }
 
   const toggles: { key: ToggleKey; label: string; description: string }[] = [
     {
@@ -101,6 +110,20 @@ export function SettingsCard() {
           Demo only: these toggles are saved on this device and do not send real notifications or
           change who can see your information.
         </p>
+
+        {tokenModeEnabled() && (
+          <>
+            <h3 className="impact-subhead">Account</h3>
+            <div className="settings-row">
+              <a href="/account" className="ui-button ui-button--secondary">
+                Account settings
+              </a>
+              <AppButton variant="secondary" onClick={signOutOfAccount}>
+                Sign out
+              </AppButton>
+            </div>
+          </>
+        )}
 
         <h3 className="impact-subhead">Help &amp; support</h3>
         <p className="ui-meta-row ui-flush">
