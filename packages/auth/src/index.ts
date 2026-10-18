@@ -20,3 +20,13 @@ export { authConfigFromEnv, configureAuth, isAuthConfigured, type AuthConfig } f
 export { AUTH_ERROR_COPY, AuthError, type AuthErrorCode } from "./errors";
 export { checkPassword, PASSWORD_RULES, type PasswordCheck } from "./password";
 export { AUTH_STORAGE_KEY } from "./store";
+export {
+  APP_PATHS,
+  homePathForRole,
+  NEXT_PARAM,
+  safeNextPath,
+  signInUrl,
+  startAuthFromEnv,
+  type AppRole,
+  type StartedAuth,
+} from "./routes";
