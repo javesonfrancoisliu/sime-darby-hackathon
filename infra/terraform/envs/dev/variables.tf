@@ -52,3 +52,9 @@ variable "table_deletion_protection" {
   description = "Enable DynamoDB deletion protection."
   type        = bool
 }
+
+variable "cognito_deletion_protection" {
+  description = "Enable Cognito user pool deletion protection."
+  type        = bool
+  default     = false
+}

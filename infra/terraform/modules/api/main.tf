@@ -80,6 +80,9 @@ resource "aws_lambda_function" "api" {
       SERVICE_NAME      = "${var.name_prefix}-api"
       NODE_OPTIONS      = "--enable-source-maps"
       DEMO_AUTH_ENABLED = var.demo_auth_enabled ? "true" : "false"
+
+      COGNITO_USER_POOL_ID = var.cognito_user_pool_id
+      COGNITO_CLIENT_ID    = var.cognito_client_id
     }
   }
 

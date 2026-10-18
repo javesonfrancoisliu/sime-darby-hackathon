@@ -29,6 +29,16 @@ variable "demo_auth_enabled" {
   default     = false
 }
 
+variable "cognito_user_pool_id" {
+  description = "Cognito user pool id the API verifies tokens against."
+  type        = string
+}
+
+variable "cognito_client_id" {
+  description = "Cognito app client id the API expects in tokens."
+  type        = string
+}
+
 variable "log_retention_days" {
   description = "CloudWatch log retention in days."
   type        = number

@@ -14,6 +14,6 @@ variable "price_class" {
 }
 
 variable "site_name" {
-  description = "Short site name used in resource names, e.g. volunteer or elderly."
+  description = "Short site name used in resource names, e.g. app."
   type        = string
 }

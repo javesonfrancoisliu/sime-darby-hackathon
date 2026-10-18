@@ -1,12 +1,20 @@
-output "sites" {
-  description = "Per site: CloudFront domain, distribution id (for invalidations) and the S3 bucket to sync the build into."
+output "site" {
+  description = "CloudFront domain, distribution id (for invalidations) and the S3 bucket to sync all three apps into."
   value = {
-    for name, site in module.web : name => {
-      domain_name     = site.distribution_domain_name
-      distribution_id = site.distribution_id
-      bucket_name     = site.bucket_name
-    }
+    domain_name     = module.web.distribution_domain_name
+    distribution_id = module.web.distribution_id
+    bucket_name     = module.web.bucket_name
   }
+}
+
+output "cognito_user_pool_id" {
+  description = "Cognito user pool id (built into the frontends)."
+  value       = module.auth.user_pool_id
+}
+
+output "cognito_client_id" {
+  description = "Cognito app client id (built into the frontends)."
+  value       = module.auth.client_id
 }
 
 output "api_endpoint" {

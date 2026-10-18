@@ -1,7 +1,5 @@
 locals {
   name_prefix = "${var.project}-${var.environment}"
-  # One static site per frontend; each also routes /api/* to the shared API.
-  sites = toset(["volunteer", "elderly"])
 }
 
 module "data" {
@@ -9,6 +7,13 @@ module "data" {
 
   name_prefix         = local.name_prefix
   deletion_protection = var.table_deletion_protection
+}
+
+module "auth" {
+  source = "../../modules/auth"
+
+  name_prefix         = local.name_prefix
+  deletion_protection = var.cognito_deletion_protection
 }
 
 module "api" {
@@ -20,17 +25,19 @@ module "api" {
   table_name           = module.data.table_name
   table_arn            = module.data.table_arn
   demo_auth_enabled    = var.demo_auth_enabled
+  cognito_user_pool_id = module.auth.user_pool_id
+  cognito_client_id    = module.auth.client_id
   log_retention_days   = var.log_retention_days
   throttle_burst_limit = var.api_throttle_burst_limit
   throttle_rate_limit  = var.api_throttle_rate_limit
 }
 
+# One site serves the sign-in app at /, the elderly app at /elder/, the volunteer app at /volunteer/ and /api/*.
 module "web" {
-  source   = "../../modules/web-hosting"
-  for_each = local.sites
+  source = "../../modules/web-hosting"
 
   name_prefix     = local.name_prefix
-  site_name       = each.key
+  site_name       = "app"
   api_domain_name = replace(module.api.api_endpoint, "https://", "")
   price_class     = var.cloudfront_price_class
 }
