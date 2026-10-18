@@ -3,6 +3,7 @@ aws_profile               = "<profile>"
 project                   = "sime-darby-hackathon"
 environment               = "prod"
 table_deletion_protection = true
+demo_auth_enabled         = false
 
 # Optional overrides (defaults shown)
 # log_retention_days       = 14

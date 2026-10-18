@@ -18,6 +18,12 @@ variable "environment" {
   type        = string
 }
 
+variable "demo_auth_enabled" {
+  description = "Enable the simulated demo sign-in on the API. Dev tfvars sets true; keep false elsewhere."
+  type        = bool
+  default     = false
+}
+
 variable "log_retention_days" {
   description = "CloudWatch log retention in days."
   type        = number
