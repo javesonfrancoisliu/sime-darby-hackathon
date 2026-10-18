@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useEffect, useRef } from "react";
+import { useLocation, useNavigationType } from "react-router-dom";
 import { scrollToTop } from "./scrollToTop";
 
 const APP_NAME = "Help a Neighbour";
@@ -21,18 +21,24 @@ function titleFor(pathname: string): string {
 }
 
 // On every page change, name the page, start at the top and move focus to its main heading.
+// Going back keeps the browser's own scroll position, so a person finds their place again.
 export function RouteFocus() {
   const { pathname } = useLocation();
+  const navigationType = useNavigationType();
+  const firstRun = useRef(true);
 
   useEffect(() => {
+    const isFirstRun = firstRun.current;
+    firstRun.current = false;
     document.title = `${titleFor(pathname)} - ${APP_NAME}`;
-    scrollToTop();
+    // A first load reports POP too, and still starts at the top.
+    if (navigationType !== "POP" || isFirstRun) scrollToTop();
     const heading = document.querySelector<HTMLElement>("main h1");
     const target = heading ?? document.querySelector<HTMLElement>("main");
     if (!target) return;
     if (!target.hasAttribute("tabindex")) target.setAttribute("tabindex", "-1");
     target.focus({ preventScroll: true });
-  }, [pathname]);
+  }, [pathname, navigationType]);
 
   return null;
 }

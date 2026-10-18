@@ -34,4 +34,14 @@ describe("Scroll and focus on page change", () => {
     expect(window.scrollTo).toHaveBeenCalledWith(TOP);
     expect(heading).toHaveFocus();
   });
+
+  it("keeps the browser's scroll position when going back, and still focuses the heading", async () => {
+    installFakeApi();
+    await renderApp("/request");
+    await userEvent.click(screen.getAllByRole("button", { name: /Groceries/ })[0]!);
+    vi.mocked(window.scrollTo).mockClear();
+    await userEvent.click(screen.getByRole("button", { name: "Go Back" }));
+    expect(screen.getByRole("heading", { level: 1 })).toHaveFocus();
+    expect(window.scrollTo).not.toHaveBeenCalled();
+  });
 });
