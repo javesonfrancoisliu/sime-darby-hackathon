@@ -29,6 +29,16 @@ export const config = {
   get demoAuthEnabled(): boolean {
     return process.env.DEMO_AUTH_ENABLED === "true";
   },
+  get cognitoUserPoolId(): string | undefined {
+    return process.env.COGNITO_USER_POOL_ID || undefined;
+  },
+  get cognitoClientId(): string | undefined {
+    return process.env.COGNITO_CLIENT_ID || undefined;
+  },
+  // Bearer sign-in needs both Cognito values.
+  get bearerAuthEnabled(): boolean {
+    return Boolean(config.cognitoUserPoolId && config.cognitoClientId);
+  },
   get matchingAiModelId(): string | undefined {
     return process.env.MATCHING_AI_MODEL_ID || undefined;
   },

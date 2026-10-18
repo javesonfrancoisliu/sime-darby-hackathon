@@ -5,6 +5,7 @@ import { dispatch } from "../router";
 
 interface CallOptions {
   as?: string;
+  token?: string;
   body?: unknown;
   query?: Record<string, string>;
 }
@@ -14,7 +15,10 @@ export async function call(method: string, path: string, options: CallOptions = 
     method,
     path,
     query: options.query ?? {},
-    headers: options.as ? { [DEMO_USER_HEADER]: options.as } : {},
+    headers: {
+      ...(options.as ? { [DEMO_USER_HEADER]: options.as } : {}),
+      ...(options.token ? { authorization: `Bearer ${options.token}` } : {}),
+    },
     rawBody: options.body === undefined ? undefined : JSON.stringify(options.body),
   });
 }

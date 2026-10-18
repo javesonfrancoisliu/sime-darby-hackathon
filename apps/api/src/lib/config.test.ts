@@ -19,6 +19,26 @@ describe("config.demoAuthEnabled", () => {
   });
 });
 
+describe("config Cognito values", () => {
+  it("are undefined when unset or empty", () => {
+    vi.stubEnv("COGNITO_USER_POOL_ID", "");
+    vi.stubEnv("COGNITO_CLIENT_ID", undefined);
+    expect(config.cognitoUserPoolId).toBeUndefined();
+    expect(config.cognitoClientId).toBeUndefined();
+    expect(config.bearerAuthEnabled).toBe(false);
+  });
+
+  it("enable bearer auth only when both are set", () => {
+    vi.stubEnv("COGNITO_USER_POOL_ID", "pool");
+    vi.stubEnv("COGNITO_CLIENT_ID", undefined);
+    expect(config.bearerAuthEnabled).toBe(false);
+    vi.stubEnv("COGNITO_CLIENT_ID", "client");
+    expect(config.cognitoUserPoolId).toBe("pool");
+    expect(config.cognitoClientId).toBe("client");
+    expect(config.bearerAuthEnabled).toBe(true);
+  });
+});
+
 describe("isLoopbackEndpoint", () => {
   it("accepts localhost and 127.0.0.1 only", () => {
     expect(isLoopbackEndpoint("http://127.0.0.1:8000")).toBe(true);

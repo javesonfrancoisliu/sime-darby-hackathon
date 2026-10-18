@@ -16,6 +16,7 @@
     "@aws-sdk/client-dynamodb": "^3.1150.0",
     "@aws-sdk/lib-dynamodb": "^3.1150.0",
     "@sdh/contracts": "workspace:*",
+    "aws-jwt-verify": "^5.2.1",
     "zod": "^4.6.7"
   },
   "devDependencies": {
