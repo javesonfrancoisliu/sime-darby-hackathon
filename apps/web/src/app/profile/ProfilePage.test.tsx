@@ -16,6 +16,15 @@ describe("profile page", () => {
     expect(within(card).getByText("Demo data")).toBeInTheDocument();
   });
 
+  it("explains in plain words when no demo people exist yet", async () => {
+    installFakeApi({ "GET /api/demo/users": { body: { users: [] } } });
+    renderApp("/profile");
+    expect(
+      await screen.findByText("No demo people are set up yet. Please ask the team to add them."),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/pnpm|db:seed/)).not.toBeInTheDocument();
+  });
+
   it("shows the signed-in user name and area without a demo label", async () => {
     installFakeApi({ "GET /api/me": { body: VOLUNTEER } });
     signInAs(VOLUNTEER.id);
