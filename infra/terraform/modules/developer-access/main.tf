@@ -10,6 +10,9 @@ locals {
     for arn in var.log_group_arns : [arn, "${arn}:*"]
   ])
   apigateway_prefix = "arn:aws:apigateway:${local.region}::"
+  function_resources = flatten([
+    for arn in var.function_arns : [arn, "${arn}:*"]
+  ])
   cloudfront_prefix = "arn:aws:cloudfront::${local.account_id}"
   mfa_user_arns     = concat(var.trusted_principal_arns, [for user in aws_iam_user.developer : user.arn])
 }
@@ -98,7 +101,7 @@ data "aws_iam_policy_document" "read" {
   statement {
     sid       = "StackFunction"
     actions   = ["lambda:Get*", "lambda:List*"]
-    resources = [var.function_arn, "${var.function_arn}:*"]
+    resources = local.function_resources
   }
 
   statement {
@@ -109,7 +112,7 @@ data "aws_iam_policy_document" "read" {
       "iam:ListRolePolicies",
       "iam:ListAttachedRolePolicies",
     ]
-    resources = [var.function_role_arn]
+    resources = var.function_role_arns
   }
 
   statement {

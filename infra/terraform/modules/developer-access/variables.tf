@@ -45,9 +45,9 @@ variable "trusted_sso_role_arns" {
   }
 }
 
-variable "function_role_arn" {
-  description = "API Lambda execution role ARN, shown on the function's Permissions tab."
-  type        = string
+variable "function_role_arns" {
+  description = "Lambda execution role ARNs, shown on each function's Permissions tab."
+  type        = list(string)
 }
 
 variable "max_session_duration_seconds" {
@@ -66,9 +66,9 @@ variable "table_arn" {
   type        = string
 }
 
-variable "function_arn" {
-  description = "API Lambda function ARN."
-  type        = string
+variable "function_arns" {
+  description = "Core and matching Lambda function ARNs."
+  type        = list(string)
 }
 
 variable "api_id" {

@@ -20,8 +20,11 @@ module "api" {
   source = "../../modules/api"
 
   name_prefix            = local.name_prefix
-  source_dir             = "${path.root}/../../../../apps/api/dist"
+  source_dir             = "${path.root}/../../../../apps/api/dist/core"
   output_path            = "${path.root}/../../build/${var.environment}-api.zip"
+  matching_source_dir    = "${path.root}/../../../../apps/api/dist/matching"
+  matching_output_path   = "${path.root}/../../build/${var.environment}-matching.zip"
+  matching_ai_model_id   = var.matching_ai_model_id
   table_name             = module.data.table_name
   table_arn              = module.data.table_arn
   demo_auth_enabled      = var.demo_auth_enabled
@@ -56,8 +59,8 @@ module "developer_access" {
   require_mfa              = var.developer_require_mfa
   log_group_arns           = module.api.log_group_arns
   table_arn                = module.data.table_arn
-  function_arn             = module.api.function_arn
-  function_role_arn        = module.api.role_arn
+  function_arns            = module.api.function_arns
+  function_role_arns       = module.api.role_arns
   api_id                   = module.api.api_id
   user_pool_arn            = module.auth.user_pool_arn
   cloudfront_function_arn  = module.web.function_arn

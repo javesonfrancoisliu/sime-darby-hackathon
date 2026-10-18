@@ -45,14 +45,14 @@ data "aws_iam_policy_document" "edit" {
       "lambda:TagResource",
       "lambda:UntagResource",
     ]
-    resources = [var.function_arn, "${var.function_arn}:*"]
+    resources = local.function_resources
   }
 
-  # The console sends the execution role when saving basic settings; only the function's own role can be passed.
+  # The console sends the execution role when saving basic settings; only the stack's Lambda roles can be passed.
   statement {
     sid       = "PassFunctionOwnRole"
     actions   = ["iam:PassRole"]
-    resources = [var.function_role_arn]
+    resources = var.function_role_arns
 
     condition {
       test     = "StringEquals"

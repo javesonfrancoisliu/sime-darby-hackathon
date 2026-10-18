@@ -13,19 +13,28 @@ output "function_name" {
   value       = aws_lambda_function.api.function_name
 }
 
-output "function_arn" {
-  description = "Lambda function ARN."
-  value       = aws_lambda_function.api.arn
+output "matching_function_name" {
+  description = "Matching Lambda function name."
+  value       = aws_lambda_function.matching.function_name
 }
 
-output "role_arn" {
-  description = "Lambda execution role ARN."
-  value       = aws_iam_role.lambda.arn
+output "function_arns" {
+  description = "Core and matching Lambda function ARNs."
+  value       = [aws_lambda_function.api.arn, aws_lambda_function.matching.arn]
+}
+
+output "role_arns" {
+  description = "Core and matching Lambda execution role ARNs."
+  value       = [aws_iam_role.lambda.arn, aws_iam_role.matching.arn]
 }
 
 output "log_group_arns" {
-  description = "Lambda and API access log group ARNs."
-  value       = [aws_cloudwatch_log_group.lambda.arn, aws_cloudwatch_log_group.access.arn]
+  description = "Core and matching Lambda log groups and the API access log group."
+  value = [
+    aws_cloudwatch_log_group.lambda.arn,
+    aws_cloudwatch_log_group.matching.arn,
+    aws_cloudwatch_log_group.access.arn,
+  ]
 }
 
 output "lambda_log_group_name" {

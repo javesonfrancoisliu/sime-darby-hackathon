@@ -90,7 +90,7 @@ variable "developer_editor_enabled" {
 }
 
 variable "api_bedrock_invoke_enabled" {
-  description = "Let the API Lambda call Amazon Bedrock models."
+  description = "Let the matching Lambda call Amazon Bedrock models."
   type        = bool
   default     = true
 }
@@ -99,4 +99,10 @@ variable "developer_require_mfa" {
   description = "Require teammates to sign in with MFA before they can use any permission."
   type        = bool
   default     = true
+}
+
+variable "matching_ai_model_id" {
+  description = "Bedrock inference profile id for the AI re-rank, for example global.anthropic.claude-haiku-4-5-20251001-v1:0. Empty uses rules only."
+  type        = string
+  default     = ""
 }

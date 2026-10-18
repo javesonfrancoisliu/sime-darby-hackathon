@@ -56,3 +56,8 @@ output "developer_editor_role_arn" {
   description = "Developer editor role ARN, or null when it is off."
   value       = module.developer_access.editor_role_arn
 }
+
+output "matching_function_name" {
+  description = "Matching Lambda function name."
+  value       = module.api.matching_function_name
+}

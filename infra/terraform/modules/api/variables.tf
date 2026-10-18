@@ -4,13 +4,46 @@ variable "name_prefix" {
 }
 
 variable "source_dir" {
-  description = "Directory containing the built Lambda bundle."
+  description = "Directory containing the built core Lambda bundle."
   type        = string
 }
 
 variable "output_path" {
-  description = "Where the Lambda zip is written."
+  description = "Where the core Lambda zip is written."
   type        = string
+}
+
+variable "matching_source_dir" {
+  description = "Directory containing the built matching Lambda bundle."
+  type        = string
+}
+
+variable "matching_output_path" {
+  description = "Where the matching Lambda zip is written."
+  type        = string
+}
+
+variable "matching_timeout_seconds" {
+  description = "Matching Lambda timeout; it must leave room above the Bedrock call timeout."
+  type        = number
+  default     = 15
+}
+
+variable "matching_ai_model_id" {
+  description = "Bedrock inference profile id for the AI re-rank, for example global.anthropic.claude-haiku-4-5-20251001-v1:0. Empty uses rules only."
+  type        = string
+  default     = ""
+}
+
+variable "matching_ai_timeout_ms" {
+  description = "How long matching waits for Bedrock before falling back to rules."
+  type        = number
+  default     = 9000
+
+  validation {
+    condition     = var.matching_ai_timeout_ms > 0
+    error_message = "matching_ai_timeout_ms must be positive."
+  }
 }
 
 variable "table_name" {
@@ -55,7 +88,7 @@ variable "throttle_rate_limit" {
 }
 
 variable "bedrock_invoke_enabled" {
-  description = "Let the Lambda call Amazon Bedrock models through on-demand and cross-Region inference profiles."
+  description = "Let the matching Lambda call Amazon Bedrock models through cross-Region inference profiles."
   type        = bool
   default     = false
 }
