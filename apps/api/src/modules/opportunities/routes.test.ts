@@ -26,7 +26,9 @@ describe("GET /api/opportunities", () => {
   let pending: HelpRequest;
 
   async function openRequest(body: Record<string, unknown>, approve = true): Promise<HelpRequest> {
-    const elder = await createUser("elder", { location: HOME });
+    // A request is always at the elder's registered home, so a far-away request needs a far-away elder.
+    const home = (body.location as typeof HOME | undefined) ?? HOME;
+    const elder = await createUser("elder", { location: home });
     const created = await call("POST", "/api/requests", {
       as: elder.id,
       body: { durationMinutes: 60, location: HOME, ...body },

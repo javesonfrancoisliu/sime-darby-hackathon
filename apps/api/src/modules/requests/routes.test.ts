@@ -62,6 +62,23 @@ describe("help requests", () => {
   }
 
   describe("create", () => {
+    it("rejects a request located away from the elder's registered home", async () => {
+      const elder = await createUser("elder");
+      const res = await call("POST", "/api/requests", {
+        as: elder.id,
+        body: {
+          category: "groceries",
+          title: "Probe",
+          description: "",
+          scheduledAt: new Date(Date.now() + 86_400_000).toISOString(),
+          durationMinutes: 60,
+          location: { lat: elder.location.lat + 0.5, lng: elder.location.lng, area: "Elsewhere" },
+        },
+      });
+      expect(res.status).toBe(400);
+      expect(JSON.stringify(res.body)).toContain("registered home");
+    });
+
     it("creates an open request owned by the elder", async () => {
       const created = await create();
       expect(created).toMatchObject({

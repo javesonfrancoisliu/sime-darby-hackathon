@@ -65,9 +65,17 @@ export function toSummary(request: HelpRequest, viewerLocation: Location): HelpR
   };
 }
 
+// Elder profile locations are precinct centres, so a few kilometres covers every honest request.
+const MAX_HOME_DISTANCE_KM = 5;
+
 export async function createRequest(elder: User, body: CreateRequestBody): Promise<HelpRequest> {
   if (Date.parse(body.scheduledAt) <= Date.now()) {
     throw new HttpError("VALIDATION_FAILED", "scheduledAt: must be in the future");
+  }
+  // The request must be at the elder's own registered home; a made-up place would let an elder
+  // probe where volunteers live through the matches route.
+  if (distanceKm(elder.location, body.location) > MAX_HOME_DISTANCE_KM) {
+    throw new HttpError("VALIDATION_FAILED", "location: must be your registered home area");
   }
   const now = new Date().toISOString();
   const request: HelpRequest = {
