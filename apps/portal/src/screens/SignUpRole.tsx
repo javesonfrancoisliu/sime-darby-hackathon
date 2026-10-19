@@ -62,9 +62,7 @@ export function SignUpRole() {
           );
         })}
       </div>
-      <p className="small">
-        Youth accounts are checked by a coordinator before you can see neighbours&apos; requests.
-      </p>
+      <p className="small">Youth accounts can start helping neighbours as soon as you sign in.</p>
       <div className="footer-line">
         <span>Already have an account?</span>
         <Link to={PATHS.signIn} className="link">

@@ -1,6 +1,12 @@
 import type { HelpRequest, MatchesResponse, User } from "@sdh/contracts";
 import { beforeAll, describe, expect, it } from "vitest";
-import { call, createUser, createVerifiedVolunteer } from "../../test/api";
+import {
+  call,
+  createUser,
+  createVerifiedVolunteer,
+  createVolunteerInState,
+  setPendingReview,
+} from "../../test/api";
 import { useTestTable } from "../../test/table";
 
 useTestTable();
@@ -8,6 +14,14 @@ useTestTable();
 // Saturday 2027-01-02 10:00 Malaysia time.
 const SATURDAY_MORNING = "2027-01-02T02:00:00.000Z";
 const HOME = { lat: 3.0738, lng: 101.5183, area: "Precinct 1" };
+
+const requestBody = {
+  category: "groceries",
+  title: "Weekly groceries",
+  scheduledAt: SATURDAY_MORNING,
+  durationMinutes: 60,
+  location: HOME,
+};
 
 describe("GET /api/requests/{id}/matches", () => {
   let coordinator: User;
@@ -30,37 +44,30 @@ describe("GET /api/requests/{id}/matches", () => {
       name: "Wei",
       location: { lat: 3.074, lng: 101.519 },
     });
-    await createUser("volunteer", { name: "Unverified", location: HOME, skills: ["groceries"] });
+    await createVolunteerInState("pending", {
+      name: "Unverified",
+      location: HOME,
+      skills: ["groceries"],
+    });
     await createVerifiedVolunteer(coordinator.id, {
       name: "Far",
       location: { lat: 3.2, lng: 101.7 },
       skills: ["groceries"],
     });
 
-    const created = await call("POST", "/api/requests", {
-      as: elder.id,
-      body: {
-        category: "groceries",
-        title: "Weekly groceries",
-        scheduledAt: SATURDAY_MORNING,
-        durationMinutes: 60,
-        location: HOME,
-      },
-    });
+    const created = await call("POST", "/api/requests", { as: elder.id, body: requestBody });
     request = created.body as HelpRequest;
   });
 
-  it("hides suggestions from the elder until approved, but not from coordinators", async () => {
+  it("hides suggestions from the elder while pending review, but not from coordinators", async () => {
+    const created = await call("POST", "/api/requests", { as: elder.id, body: requestBody });
+    const held = await setPendingReview(created.body as HelpRequest);
+    expect((await call("GET", `/api/requests/${held.id}/matches`, { as: elder.id })).status).toBe(
+      409,
+    );
     expect(
-      (await call("GET", `/api/requests/${request.id}/matches`, { as: elder.id })).status,
-    ).toBe(409);
-    expect(
-      (await call("GET", `/api/requests/${request.id}/matches`, { as: coordinator.id })).status,
+      (await call("GET", `/api/requests/${held.id}/matches`, { as: coordinator.id })).status,
     ).toBe(200);
-    await call("POST", `/api/requests/${request.id}/review`, {
-      as: coordinator.id,
-      body: { decision: "approved" },
-    });
   });
 
   it("ranks verified nearby volunteers with rule reasons for the owner", async () => {

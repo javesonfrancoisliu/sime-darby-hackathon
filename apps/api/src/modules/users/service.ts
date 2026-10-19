@@ -35,7 +35,7 @@ export async function createUser(body: CreateUserBody, id: string = randomUUID()
   const user: User = {
     ...body,
     id,
-    verification: body.role === "volunteer" ? "pending" : "not_required",
+    verification: body.role === "volunteer" ? "verified" : "not_required",
     points: 0,
     lifetimePoints: 0,
     interests: [],

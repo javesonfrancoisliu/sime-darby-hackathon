@@ -4,7 +4,7 @@
 import type { Category, CreateUserBody, Day } from "@sdh/contracts";
 import { config, isLoopbackEndpoint } from "../src/lib/config";
 import { createEvent } from "../src/modules/events/service";
-import { createRequest, reviewRequest } from "../src/modules/requests/service";
+import { createRequest } from "../src/modules/requests/service";
 import { createUser, listDemoUsers, reviewVolunteer } from "../src/modules/users/service";
 
 if (!config.dynamodbEndpoint) {
@@ -143,7 +143,7 @@ const requests: {
 
 for (const r of requests) {
   const elder = elders[r.elder]!;
-  const created = await createRequest(elder, {
+  await createRequest(elder, {
     category: r.category,
     title: r.title,
     description: r.description,
@@ -151,7 +151,6 @@ for (const r of requests) {
     durationMinutes: r.durationMinutes,
     location: { ...elder.location, area: elder.area },
   });
-  await reviewRequest(created.id, { decision: "approved" });
 }
 
 const events = [

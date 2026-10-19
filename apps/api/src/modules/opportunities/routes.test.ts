@@ -1,6 +1,12 @@
 import type { HelpRequest, OpportunitiesResponse, User } from "@sdh/contracts";
 import { beforeAll, describe, expect, it } from "vitest";
-import { call, createUser, createVerifiedVolunteer } from "../../test/api";
+import {
+  call,
+  createUser,
+  createVerifiedVolunteer,
+  createVolunteerInState,
+  setPendingReview,
+} from "../../test/api";
 import { useTestTable } from "../../test/table";
 
 useTestTable();
@@ -20,19 +26,15 @@ describe("GET /api/opportunities", () => {
   let pending: HelpRequest;
 
   async function openRequest(body: Record<string, unknown>, approve = true): Promise<HelpRequest> {
-    const elder = await createUser("elder", { location: HOME });
+    // A request is always at the elder's registered home, so a far-away request needs a far-away elder.
+    const home = (body.location as typeof HOME | undefined) ?? HOME;
+    const elder = await createUser("elder", { location: home });
     const created = await call("POST", "/api/requests", {
       as: elder.id,
       body: { durationMinutes: 60, location: HOME, ...body },
     });
     const request = created.body as HelpRequest;
-    if (approve) {
-      await call("POST", `/api/requests/${request.id}/review`, {
-        as: coordinator.id,
-        body: { decision: "approved" },
-      });
-    }
-    return request;
+    return approve ? request : setPendingReview(request);
   }
 
   beforeAll(async () => {
@@ -122,8 +124,15 @@ describe("GET /api/opportunities", () => {
     expect(ids(res.body)).toContain(farAway.id);
   });
 
+  it("shows a brand new volunteer opportunities straight away", async () => {
+    const fresh = await createUser("volunteer", { name: "Fresh" });
+    expect(fresh.verification).toBe("verified");
+    const res = await call("GET", "/api/opportunities", { as: fresh.id });
+    expect(res.status).toBe(200);
+  });
+
   it("is only for verified volunteers", async () => {
-    const unverified = await createUser("volunteer");
+    const unverified = await createVolunteerInState("pending");
     const elder = await createUser("elder");
     expect((await call("GET", "/api/opportunities", { as: unverified.id })).status).toBe(403);
     expect((await call("GET", "/api/opportunities", { as: elder.id })).status).toBe(403);

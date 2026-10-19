@@ -3,11 +3,18 @@ import type {
   ContributionsResponse,
   HelpRequest,
   HelpRequestSummary,
+  OpportunitiesResponse,
   RequestsResponse,
   User,
 } from "@sdh/contracts";
 import { beforeAll, describe, expect, it } from "vitest";
-import { call, createUser, createVerifiedVolunteer } from "../../test/api";
+import {
+  call,
+  createUser,
+  createVerifiedVolunteer,
+  createVolunteerInState,
+  setPendingReview,
+} from "../../test/api";
 import { useTestTable } from "../../test/table";
 import { VOLUNTEERING_POINTS } from "../points/service";
 import { getUser } from "../users/repository";
@@ -47,25 +54,55 @@ describe("help requests", () => {
     return res.body as HelpRequest;
   }
 
-  async function createOpen(overrides: Record<string, unknown> = {}) {
-    const created = await create(overrides);
-    const res = await call("POST", `/api/requests/${created.id}/review`, {
-      as: coordinator.id,
-      body: { decision: "approved" },
-    });
-    expect(res.status).toBe(200);
-    return res.body as HelpRequest;
+  // New requests are open straight away; review-gate tests move one back to pending_review.
+  const createOpen = create;
+
+  async function createPending(overrides: Record<string, unknown> = {}) {
+    return setPendingReview(await create(overrides));
   }
 
   describe("create", () => {
-    it("creates a pending request owned by the elder", async () => {
+    it("rejects a request located away from the elder's registered home", async () => {
+      const elder = await createUser("elder");
+      const res = await call("POST", "/api/requests", {
+        as: elder.id,
+        body: {
+          category: "groceries",
+          title: "Probe",
+          description: "",
+          scheduledAt: new Date(Date.now() + 86_400_000).toISOString(),
+          durationMinutes: 60,
+          location: { lat: elder.location.lat + 0.5, lng: elder.location.lng, area: "Elsewhere" },
+        },
+      });
+      expect(res.status).toBe(400);
+      expect(JSON.stringify(res.body)).toContain("registered home");
+    });
+
+    it("creates an open request owned by the elder", async () => {
       const created = await create();
       expect(created).toMatchObject({
-        status: "pending_review",
+        status: "open",
         elderId: elder.id,
         elderName: "Mak Som",
         title: "Weekly shopping",
       });
+    });
+
+    it("is visible to volunteers at once and can be accepted without any review", async () => {
+      const created = await create({ title: "Straight to open" });
+      expect(created.status).toBe("open");
+      const feed = await call("GET", "/api/opportunities", { as: volunteer.id });
+      expect(feed.status).toBe(200);
+      const found = (feed.body as OpportunitiesResponse).items.map((item) =>
+        item.kind === "request" ? item.request.id : item.event.title,
+      );
+      expect(found).toContain(created.id);
+      const accepted = await call("POST", `/api/requests/${created.id}/accept`, {
+        as: volunteer.id,
+      });
+      expect(accepted.status).toBe(200);
+      expect(accepted.body).toMatchObject({ status: "matched", volunteerId: volunteer.id });
     });
 
     it("allows elders only", async () => {
@@ -122,7 +159,7 @@ describe("help requests", () => {
     });
 
     it("lists by status for coordinators only, defaulting to pending_review", async () => {
-      const pending = await create();
+      const pending = await createPending();
       const open = await createOpen();
       const defaults = await call("GET", "/api/requests", { as: coordinator.id });
       const defaultIds = (defaults.body as RequestsResponse).requests.map((r) => r.id);
@@ -179,14 +216,14 @@ describe("help requests", () => {
 
     it("hides open requests from unverified volunteers", async () => {
       const open = await createOpen();
-      const unverified = await createUser("volunteer");
+      const unverified = await createVolunteerInState("pending");
       expect((await call("GET", `/api/requests/${open.id}`, { as: unverified.id })).status).toBe(
         404,
       );
     });
 
     it("hides other requests from other elders and from volunteers before review", async () => {
-      const pending = await create();
+      const pending = await createPending();
       const stranger = await createUser("elder");
       expect((await call("GET", `/api/requests/${pending.id}`, { as: stranger.id })).status).toBe(
         404,
@@ -203,14 +240,14 @@ describe("help requests", () => {
 
   describe("review", () => {
     it("approves to open and rejects with a note", async () => {
-      const toApprove = await create();
+      const toApprove = await createPending();
       const approved = await call("POST", `/api/requests/${toApprove.id}/review`, {
         as: coordinator.id,
         body: { decision: "approved" },
       });
       expect(approved.body).toMatchObject({ status: "open" });
 
-      const toReject = await create();
+      const toReject = await createPending();
       const rejected = await call("POST", `/api/requests/${toReject.id}/review`, {
         as: coordinator.id,
         body: { decision: "rejected", note: "Not enough detail" },
@@ -227,7 +264,7 @@ describe("help requests", () => {
     });
 
     it("refuses non-coordinators and a second review", async () => {
-      const created = await create();
+      const created = await createPending();
       const body = { decision: "approved" };
       expect(
         (await call("POST", `/api/requests/${created.id}/review`, { as: elder.id, body })).status,
@@ -256,7 +293,7 @@ describe("help requests", () => {
 
   describe("cancel", () => {
     it("lets the owner cancel from pending_review and open", async () => {
-      const pending = await create();
+      const pending = await createPending();
       const fromPending = await call("POST", `/api/requests/${pending.id}/cancel`, {
         as: elder.id,
       });
@@ -308,14 +345,23 @@ describe("help requests", () => {
 
     it("refuses elders, coordinators and unverified volunteers", async () => {
       const open = await createOpen();
-      const unverified = await createUser("volunteer");
+      const unverified = await createVolunteerInState("pending");
       for (const as of [elder.id, coordinator.id, unverified.id]) {
         expect((await call("POST", `/api/requests/${open.id}/accept`, { as })).status).toBe(403);
       }
     });
 
+    it("lets a brand new volunteer accept straight away", async () => {
+      const open = await createOpen();
+      const fresh = await createUser("volunteer");
+      expect(fresh.verification).toBe("verified");
+      expect((await call("POST", `/api/requests/${open.id}/accept`, { as: fresh.id })).status).toBe(
+        200,
+      );
+    });
+
     it("refuses a request that is not open with 409", async () => {
-      const pending = await create();
+      const pending = await createPending();
       const res = await call("POST", `/api/requests/${pending.id}/accept`, { as: volunteer.id });
       expect(res.status).toBe(409);
       expect(

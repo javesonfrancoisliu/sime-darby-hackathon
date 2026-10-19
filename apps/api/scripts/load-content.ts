@@ -1,11 +1,18 @@
-// Loads fictional City of Elmina content through the coordinator API routes.
-// Usage: pnpm --filter @sdh/api load:content -- --base-url <url>
-// Deployed: set COORDINATOR_TOKEN (bearer). Local: optional COORDINATOR_DEMO_USER_ID (else looked up from /api/demo/users).
+// Loads fictional City of Elmina content. Two modes, same content, same idempotency (skip by title).
+// HTTP (coordinator API): pnpm --filter @sdh/api load:content -- --base-url <url>
+//   Deployed: set COORDINATOR_TOKEN (bearer). Local: optional COORDINATOR_DEMO_USER_ID (else looked up from /api/demo/users).
+// Direct (no login): AWS_PROFILE=<profile> pnpm --filter @sdh/api load:content -- --direct --table <table> --region <region> [--yes]
+//   Calls the same service functions as the coordinator routes with your own AWS credentials. Without --yes it is a dry run.
+//   DYNAMODB_ENDPOINT must be unset (AWS) or a loopback URL (DynamoDB Local); any other value is refused.
 import {
   authHeaders,
+  dryRunLines,
+  describeDirectTarget,
   errorCodeOf,
   isLoopbackUrl,
   parseBaseUrl,
+  parseDirectArgs,
+  resolveDirectTarget,
   resolveAuth,
   validateAllContent,
   type Auth,
@@ -30,8 +37,49 @@ function fail(message: string): never {
   process.exit(1);
 }
 
-const baseUrl = parseBaseUrl(process.argv.slice(2));
-if (!baseUrl) fail("Usage: load:content -- --base-url <url>");
+function printCounts() {
+  for (const [type, c] of Object.entries(counts)) {
+    console.info(`  ${type}: ${c.created} created or updated, ${c.skipped} skipped`);
+  }
+}
+
+const argv = process.argv.slice(2);
+const directArgs = parseDirectArgs(argv);
+if (directArgs.direct) {
+  const target = resolveDirectTarget(directArgs, process.env);
+  if (!target.ok) fail(target.error);
+  let content: ReturnType<typeof validateAllContent>;
+  try {
+    content = validateAllContent();
+  } catch (err) {
+    fail(err instanceof Error ? err.message : "Invalid content");
+  }
+  if (!directArgs.yes) {
+    for (const line of dryRunLines(target, content)) console.info(line);
+    process.exit(0);
+  }
+  // Env is set before the services load; an unset endpoint means the standard AWS credential chain.
+  process.env.TABLE_NAME = target.table;
+  if (target.region) process.env.AWS_REGION = target.region;
+  console.info(`Target: ${describeDirectTarget(target)}`);
+  try {
+    const { loadDirect, describeDirectError } = await import("./load-direct");
+    try {
+      await loadDirect(content, tally);
+    } catch (err) {
+      fail(describeDirectError(err));
+    }
+  } catch {
+    fail("Could not start the direct loader");
+  }
+  console.info("Loaded content directly");
+  printCounts();
+  process.exit(0);
+}
+
+const baseUrl = parseBaseUrl(argv);
+if (!baseUrl)
+  fail("Usage: load:content -- --base-url <url> | --direct --table <t> --region <r> [--yes]");
 const resolved = resolveAuth(baseUrl, process.env);
 if (!resolved.ok) fail(resolved.error);
 const auth: Auth = resolved.auth;
@@ -196,6 +244,4 @@ try {
 }
 
 console.info(`Loaded content into ${baseUrl}`);
-for (const [type, c] of Object.entries(counts)) {
-  console.info(`  ${type}: ${c.created} created or updated, ${c.skipped} skipped`);
-}
+printCounts();

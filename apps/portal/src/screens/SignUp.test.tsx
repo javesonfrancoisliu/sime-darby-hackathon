@@ -67,9 +67,11 @@ describe("sign up", () => {
     expect(t.callsTo("POST", ME_PATH)[0]?.body).toMatchObject({ role: "volunteer" });
   });
 
-  it("tells youth their account is checked by a coordinator", async () => {
+  it("tells youth they can start helping straight away", async () => {
     setup({ path: "/sign-up" });
-    expect(await screen.findByText(/Youth accounts are checked by a coordinator/)).toBeVisible();
+    expect(
+      await screen.findByText(/Youth accounts can start helping neighbours as soon as you sign in/),
+    ).toBeVisible();
   });
 
   it("shows the password rules live", async () => {

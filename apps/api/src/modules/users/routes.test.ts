@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { DemoUsersResponse, EventsResponse, User, VolunteersResponse } from "@sdh/contracts";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import { call, createUser } from "../../test/api";
+import { call, createUser, createVolunteerInState } from "../../test/api";
 import { useTestTable } from "../../test/table";
 
 useTestTable();
@@ -13,10 +13,10 @@ describe("users", () => {
     coordinator = await createUser("coordinator", { name: "Cora" });
   });
 
-  it("creates volunteers as pending and other roles as not_required", async () => {
+  it("creates volunteers as verified and other roles as not_required", async () => {
     const volunteer = await createUser("volunteer");
     const elder = await createUser("elder");
-    expect(volunteer.verification).toBe("pending");
+    expect(volunteer.verification).toBe("verified");
     expect(elder.verification).toBe("not_required");
     expect(coordinator.verification).toBe("not_required");
   });
@@ -66,7 +66,7 @@ describe("users", () => {
   });
 
   it("lets only coordinators list and review volunteers", async () => {
-    const volunteer = await createUser("volunteer", { name: "Wei Ling" });
+    const volunteer = await createVolunteerInState("pending", { name: "Wei Ling" });
     const elder = await createUser("elder");
 
     expect((await call("GET", "/api/volunteers", { as: elder.id })).status).toBe(403);

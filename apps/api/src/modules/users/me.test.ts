@@ -54,14 +54,14 @@ describe("POST /api/me", () => {
     expect(me.status).toBe(200);
   });
 
-  it("creates a volunteer as pending", async () => {
+  it("creates a volunteer as verified", async () => {
     enableCognito();
     const res = await call("POST", "/api/me", {
       token: tokenFor(randomUUID()),
       body: body({ role: "volunteer", precinct: "Central Park" }),
     });
     expect(res.status).toBe(201);
-    expect(res.body).toMatchObject({ role: "volunteer", verification: "pending" });
+    expect(res.body).toMatchObject({ role: "volunteer", verification: "verified" });
   });
 
   it("returns 409 on a second call for the same sub", async () => {
