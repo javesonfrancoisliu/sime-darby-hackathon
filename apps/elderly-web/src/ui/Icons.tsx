@@ -39,6 +39,8 @@ import {
   SlidersHorizontal,
   Smartphone,
   Sparkles,
+  Sprout,
+  Award,
   Sun,
   Thermometer,
   Trophy,
@@ -106,6 +108,8 @@ export const IconTrophy = withDefaults(Trophy);
 export const IconFlame = withDefaults(Flame);
 export const IconGift = withDefaults(Gift);
 export const IconSparkles = withDefaults(Sparkles);
+export const IconSprout = withDefaults(Sprout);
+export const IconAward = withDefaults(Award);
 export const IconActivity = withDefaults(Activity);
 export const IconBook = withDefaults(BookOpen);
 export const IconCoffee = withDefaults(Coffee);

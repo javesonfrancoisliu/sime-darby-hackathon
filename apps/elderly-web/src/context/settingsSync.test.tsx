@@ -41,7 +41,7 @@ describe("settings follow the person", () => {
       timeout: SETTINGS_SAVE_DELAY_MS * 4,
     });
     const put = calls.find((c) => c.method === "PUT");
-    expect(put?.body).toMatchObject({ fontSize: "large", highContrast: false });
+    expect(put?.body).toMatchObject({ fontSize: "normal", highContrast: false });
   });
 
   it("saves a change once after a pause and keeps the local copy", async () => {
@@ -69,6 +69,6 @@ describe("settings follow the person", () => {
     vi.spyOn(console, "warn").mockImplementation(() => {});
     installFakeApi({ "GET /api/me/settings": { status: 500, body: {} } });
     const { container } = await renderApp("/me");
-    expect(container.querySelector(".app-root")).toHaveClass("text-size-large");
+    expect(container.querySelector(".app-root")).toHaveClass("text-size-normal");
   });
 });

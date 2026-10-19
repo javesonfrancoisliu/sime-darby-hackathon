@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { useLocation, useNavigationType } from "react-router-dom";
 import { scrollToTop } from "./scrollToTop";
 
-const APP_NAME = "Help a Neighbour";
+const APP_NAME = "Township Connect";
 
 // Page names for the browser tab and screen readers, matched on the start of the path.
 const TITLES: [string, string][] = [

@@ -19,9 +19,11 @@ import {
   IconSparkles,
   IconUsers,
   IconCheck,
-  IconVolume2,
 } from "../ui/Icons";
 import { SegmentedTabs, TabPanel, type TabItem } from "../ui/SegmentedTabs";
+import { Drawer } from "../ui/Drawer";
+import { PageHeaderActions } from "../ui/PageHeaderActions";
+import { Leaderboard, NEIGHBOUR_LEADERBOARD } from "../ui/Leaderboard";
 import { useAccessibility } from "../context/AccessibilityContext";
 import { Banner } from "../ui/Banner";
 import { Spinner } from "../ui/Spinner";
@@ -87,6 +89,7 @@ export function ChallengesPage() {
 
   const [tab, setTab] = useState<PlayTab>("streak");
   const [toast, setToast] = useState("");
+  const [openGoal, setOpenGoal] = useState<string | null>(null);
   const groupId = useId();
   const TABS: TabItem<PlayTab>[] = [
     { id: "streak", label: "Streak", icon: <IconFlame size={18} strokeWidth={2} /> },
@@ -172,16 +175,7 @@ export function ChallengesPage() {
                 {balance}
               </span>
             ) : null}
-            <button
-              type="button"
-              className="ui-button ui-button--ghost apple-header-voice-btn"
-              onClick={handleReadSummary}
-              aria-label="Read your rewards and streak summary aloud"
-              title="Read summary aloud"
-            >
-              <IconVolume2 size={18} strokeWidth={2.2} />
-              <span className="apple-header-voice-text">Listen</span>
-            </button>
+            <PageHeaderActions onReadAloud={handleReadSummary} />
           </div>
         </div>
       </div>
@@ -275,6 +269,8 @@ export function ChallengesPage() {
                   "Check in today"
                 )}
               </button>
+
+              <Leaderboard others={NEIGHBOUR_LEADERBOARD} myPoints={balance ?? 0} />
             </Loadable>
           </section>
         </TabPanel>
@@ -312,23 +308,36 @@ export function ChallengesPage() {
                   const pct = Math.min(Math.round((progress / goal) * 100), 100);
                   const done = progress >= goal;
                   return (
-                    <div key={c.id} className="play-challenge">
-                      <div className="play-challenge__top">
-                        <PlayIcon name={c.icon} className="play-challenge__icon" />
-                        <div className="flex-fill">
-                          <p className="play-challenge__title">{c.title}</p>
-                          <p className="play-challenge__desc">{c.description}</p>
-                        </div>
-                      </div>
-                      <div className="safety-bar play-challenge__bar">
-                        <div
-                          className="safety-bar__fill"
-                          style={{
-                            width: `${pct}%`,
-                            background: done ? "var(--success)" : "var(--brand-primary)",
-                          }}
-                        />
-                      </div>
+                    <Drawer
+                      key={c.id}
+                      className="play-challenge play-challenge--drawer"
+                      label={c.title}
+                      open={openGoal === c.id}
+                      onToggle={() => {
+                        triggerHaptic(10);
+                        setOpenGoal((cur) => (cur === c.id ? null : c.id));
+                      }}
+                      header={
+                        <>
+                          <div className="play-challenge__top">
+                            <PlayIcon name={c.icon} className="play-challenge__icon" />
+                            <div className="flex-fill">
+                              <p className="play-challenge__title">{c.title}</p>
+                              <p className="play-challenge__desc">{c.description}</p>
+                            </div>
+                          </div>
+                          <div className="safety-bar play-challenge__bar">
+                            <div
+                              className="safety-bar__fill"
+                              style={{
+                                width: `${pct}%`,
+                                background: done ? "var(--success)" : "var(--brand-primary)",
+                              }}
+                            />
+                          </div>
+                        </>
+                      }
+                    >
                       <div className="play-challenge__meta">
                         <span className="play-challenge__count">
                           {progress} / {goal} {c.goal.unit}
@@ -353,7 +362,7 @@ export function ChallengesPage() {
                           Add my part today
                         </button>
                       ) : null}
-                    </div>
+                    </Drawer>
                   );
                 })}
               </div>

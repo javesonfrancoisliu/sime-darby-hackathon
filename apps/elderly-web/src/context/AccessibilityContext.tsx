@@ -13,7 +13,7 @@ export interface StoredSettings {
 }
 
 const FONT_LEVELS: FontSizeLevel[] = ["normal", "large", "xlarge"];
-const DEFAULT_FONT_SIZE: FontSizeLevel = "large";
+const DEFAULT_FONT_SIZE: FontSizeLevel = "normal";
 
 export const FONT_LABEL: Record<FontSizeLevel, string> = {
   normal: "Normal",

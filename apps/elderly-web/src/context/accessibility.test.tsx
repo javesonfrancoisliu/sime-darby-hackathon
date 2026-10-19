@@ -43,11 +43,11 @@ afterEach(() => {
 });
 
 describe("accessibility controls apply to the DOM", () => {
-  it("defaults to large text and easy view", () => {
+  it("defaults to normal text and easy view", () => {
     const { container } = renderShell();
     const el = root(container);
     expect(el).toHaveClass("easy-view");
-    expect(el).toHaveClass("text-size-large");
+    expect(el).toHaveClass("text-size-normal");
   });
 
   it("changes the root class when text size is set to X-Large", async () => {
@@ -116,7 +116,7 @@ describe("saved settings", () => {
   it("ignores a damaged saved value", () => {
     window.localStorage.setItem(ACCESSIBILITY_STORAGE_KEY, "{not json");
     const { container } = renderShell();
-    expect(root(container)).toHaveClass("text-size-large");
+    expect(root(container)).toHaveClass("text-size-normal");
   });
 
   it("still works when storage is blocked", async () => {

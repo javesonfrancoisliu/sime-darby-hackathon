@@ -8,6 +8,9 @@ import { bloodGroupText } from "../medical/bloodGroup";
 import { Spinner } from "../ui/Spinner";
 import { Banner } from "../ui/Banner";
 import { useResident } from "../session/useResident";
+import { PageHeaderActions } from "../ui/PageHeaderActions";
+import { useCallConfirm } from "../ui/CallConfirm";
+import { LevelBadge } from "../ui/LevelBadge";
 import {
   IconUser,
   IconMapPin,
@@ -25,6 +28,7 @@ import {
 // security number. The Medical ID is the resident's own, saved on the server.
 export function MePage() {
   const { openSheet, fontSize, highContrast, voiceAssist, speak } = useAccessibility();
+  const { requestCall } = useCallConfirm();
   const resident = useResident();
   const { signOut } = useSession();
   const navigate = useNavigate();
@@ -56,6 +60,10 @@ export function MePage() {
 
   return (
     <div className="apple-subpage apple-profile-page">
+      <div className="apple-profile-topbar">
+        <PageHeaderActions onReadAloud={handleReadProfile} />
+      </div>
+
       <div className="apple-profile-hero">
         <div className="apple-profile-avatar-wrap">
           <div className="apple-profile-avatar" aria-hidden="true">
@@ -68,6 +76,9 @@ export function MePage() {
           <IconMapPin className="icon-inline-low" size={14} strokeWidth={2} />
           {area}
         </p>
+        <div className="apple-profile-level">
+          <LevelBadge level={2} variant="full" />
+        </div>
 
         <button
           type="button"
@@ -176,16 +187,23 @@ export function MePage() {
               <div className="apple-inset-row">
                 <div className="medical-row__label">
                   <IconPhone className="text-brand" size={18} strokeWidth={1.8} />
-                  <span className="app-detail-label m-0">Next of Kin</span>
+                  <span className="app-detail-label m-0">Emergency contact</span>
                 </div>
                 <span className="apple-inset-value">
                   {medical.data.nextOfKinName} ({medical.data.nextOfKinRelation}) ·{" "}
-                  <a
-                    className="text-nowrap"
-                    href={`tel:${medical.data.nextOfKinPhone.replace(/[^\d+]/g, "")}`}
+                  <button
+                    type="button"
+                    className="link-button text-nowrap"
+                    onClick={() =>
+                      requestCall({
+                        tel: medical.data!.nextOfKinPhone.replace(/[^\d+]/g, ""),
+                        display: medical.data!.nextOfKinPhone,
+                        label: `${medical.data!.nextOfKinName} (${medical.data!.nextOfKinRelation})`,
+                      })
+                    }
                   >
                     {medical.data.nextOfKinPhone}
-                  </a>
+                  </button>
                 </span>
               </div>
 
@@ -208,7 +226,18 @@ export function MePage() {
           ) : null}
 
           {securityLine ? (
-            <a href={`tel:${securityLine.tel}`} className="apple-inset-btn-row">
+            <button
+              type="button"
+              className="apple-inset-btn-row no-underline"
+              onClick={() =>
+                requestCall({
+                  tel: securityLine.tel,
+                  display: securityLine.display,
+                  label: "Township security",
+                  note: "24/7 township hotline",
+                })
+              }
+            >
               <div className="apple-inset-btn-row__left">
                 <span className="apple-inset-btn-row__icon text-brand">
                   <IconPhone size={18} strokeWidth={2} />
@@ -218,7 +247,7 @@ export function MePage() {
                 </div>
               </div>
               <span className="text-strong text-brand">{securityLine.display}</span>
-            </a>
+            </button>
           ) : null}
         </div>
       </div>

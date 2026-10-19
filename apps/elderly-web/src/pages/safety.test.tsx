@@ -23,12 +23,18 @@ const safetyRoutes = {
 };
 
 describe("Call 999 on Home", () => {
-  it("is a direct tel link outside any dialog", async () => {
+  it("confirms with a slide-to-call control before dialing", async () => {
+    const user = userEvent.setup();
     installFakeApi({ "GET /api/requests/mine": { body: { requests: [] } } });
     await renderApp("/");
-    const link = await screen.findByRole("link", { name: /Call 999/ });
-    expect(link).toHaveAttribute("href", "tel:999");
-    expect(link.closest("[role=dialog]")).toBeNull();
+    // The trigger is a button, not a bare tel link.
+    const trigger = await screen.findByRole("button", { name: /Call 999/ });
+    expect(trigger).toBeInstanceOf(HTMLButtonElement);
+    await user.click(trigger);
+    // A confirm dialog opens with a slide-to-confirm control (no one-tap dial).
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText("Call 999?")).toBeInTheDocument();
+    expect(within(dialog).getByRole("slider", { name: /Slide to call 999/ })).toBeInTheDocument();
   });
 });
 
@@ -67,15 +73,18 @@ describe("Me page", () => {
     });
     await renderApp("/me");
     expect(await screen.findByText("O+")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "012-345 6789" })).toHaveAttribute(
-      "href",
-      "tel:0123456789",
-    );
+    // The next-of-kin phone and township security now confirm before dialing.
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "012-345 6789" }));
+    let dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByRole("slider", { name: /Slide to call 012-345 6789/ })).toBeInTheDocument();
+    await user.keyboard("{Escape}");
     expect(screen.getByText(/Zainal \(Son\)/)).toBeInTheDocument();
-    expect(await screen.findByRole("link", { name: /Township security/ })).toHaveAttribute(
-      "href",
-      "tel:0350001234",
-    );
+    await user.click(await screen.findByRole("button", { name: /Township security/ }));
+    dialog = await screen.findByRole("dialog");
+    expect(
+      within(dialog).getByRole("slider", { name: /Slide to call 03-5000 1234/ }),
+    ).toBeInTheDocument();
   });
 
   it("shows an Add your Medical ID button when nothing is saved and hides an unset security line", async () => {
@@ -87,7 +96,7 @@ describe("Me page", () => {
     });
     await renderApp("/me");
     expect(await screen.findByRole("button", { name: /Add your Medical ID/ })).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: /Township security/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Township security/ })).not.toBeInTheDocument();
   });
 });
 
@@ -105,10 +114,13 @@ describe("Safety page", () => {
     expect(await screen.findByText(HEAT.advice)).toBeInTheDocument();
   });
 
-  it("keeps a Call 999 link in view", async () => {
+  it("keeps a Call 999 button in view that confirms with a slide control", async () => {
+    const user = userEvent.setup();
     installFakeApi(safetyRoutes);
     await renderApp("/safety");
-    expect(screen.getByRole("link", { name: /Call 999/ })).toHaveAttribute("href", "tel:999");
+    await user.click(screen.getByRole("button", { name: /Call 999/ }));
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByRole("slider", { name: /Slide to call 999/ })).toBeInTheDocument();
   });
 
   it("draws the moderate air quality bar in the caution tone on the standard track", async () => {

@@ -3,6 +3,7 @@ import { useInRouterContext } from "react-router-dom";
 import { BottomTabBar } from "./BottomTabBar";
 import { AccessibilitySheet } from "./AccessibilitySheet";
 import { AnnouncerProvider } from "./Announcer";
+import { CallConfirmProvider } from "./CallConfirm";
 import { RouteFocus } from "./RouteFocus";
 import { useAccessibility } from "../context/AccessibilityContext";
 
@@ -30,12 +31,14 @@ export function AppShell({
 
   return (
     <AnnouncerProvider>
-      <div className={rootClasses}>
-        {inRouter && <RouteFocus />}
-        <main className="app-main">{children}</main>
-        {inRouter && !hideTabs && <BottomTabBar />}
-        <AccessibilitySheet />
-      </div>
+      <CallConfirmProvider>
+        <div className={rootClasses}>
+          {inRouter && <RouteFocus />}
+          <main className="app-main">{children}</main>
+          {inRouter && !hideTabs && <BottomTabBar />}
+          <AccessibilitySheet />
+        </div>
+      </CallConfirmProvider>
     </AnnouncerProvider>
   );
 }
