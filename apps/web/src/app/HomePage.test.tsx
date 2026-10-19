@@ -24,9 +24,11 @@ describe("home page", () => {
     expect(within(community).getByText("Live tea morning")).toBeInTheDocument();
 
     const safety = screen.getByLabelText("Safety summary for Elmina");
-    expect(await within(safety).findByText("Air quality: 62 AQI")).toBeInTheDocument();
+    // Readings now render as a swipe carousel of compact cards (value + label).
+    expect(await within(safety).findByText("62 AQI")).toBeInTheDocument();
+    expect(within(safety).getByText(/Air quality · Elmina West/)).toBeInTheDocument();
+    expect(within(safety).getByText("34°C")).toBeInTheDocument();
     expect(within(safety).getByText("1 open facility report.")).toBeInTheDocument();
-    expect(within(safety).getByText("Heat: 34°C")).toBeInTheDocument();
     expect(
       within(community).getAllByRole("link", { name: /New recycling hours/ })[0],
     ).toHaveAttribute("href", "/community");

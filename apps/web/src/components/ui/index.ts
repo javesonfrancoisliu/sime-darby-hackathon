@@ -1,5 +1,6 @@
 export { AppButton } from "./AppButton";
 export { AppLinkButton } from "./AppLinkButton";
+export { Carousel, type CarouselProps } from "./Carousel";
 export { ConfirmActionDialog, type ConfirmActionDialogProps } from "./ConfirmActionDialog";
 export { ConfirmationDialog } from "./ConfirmationDialog";
 export { EmptyState } from "./EmptyState";
