@@ -8,12 +8,12 @@ import { renderApp } from "./test/renderApp";
 import { signedInRoutes } from "./test/routes";
 
 const PAGES: [path: string, title: string][] = [
-  ["/", `Welcome to ${TOWNSHIP.name} - Help a Neighbour`],
-  ["/community", "Neighbourhood Hub - Help a Neighbour"],
-  ["/community/challenges", "Community Challenges - Help a Neighbour"],
-  ["/volunteer", "Volunteer nearby - Help a Neighbour"],
-  ["/safety", "Health & Safety - Help a Neighbour"],
-  ["/profile", "Profile - Help a Neighbour"],
+  ["/", `Welcome to ${TOWNSHIP.name} - Township Connect`],
+  ["/community", "Neighbourhood Hub - Township Connect"],
+  ["/community/challenges", "Community Challenges - Township Connect"],
+  ["/volunteer", "Volunteer nearby - Township Connect"],
+  ["/safety", "Health & Safety - Township Connect"],
+  ["/profile", "Profile - Township Connect"],
 ];
 
 async function settled() {

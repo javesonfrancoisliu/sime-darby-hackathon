@@ -1,6 +1,6 @@
 import { useEffect, type ReactNode } from "react";
 
-const APP_NAME = "Help a Neighbour";
+const APP_NAME = "Township Connect";
 
 export type PageHeaderProps = {
   title: string;

@@ -20,25 +20,24 @@ function metaTitle(html: string): string | undefined {
 }
 
 describe("installed app names", () => {
-  it("names the volunteer app Help a Neighbour Volunteer, short name Volunteer", () => {
-    expect(manifestField(webConfig, "name")).toBe("Help a Neighbour Volunteer");
-    expect(manifestField(webConfig, "short_name")).toBe("Volunteer");
-    expect(metaTitle(webHtml)).toBe("Volunteer");
-    expect(webHtml).toContain("<title>Help a Neighbour</title>");
+  it("names the volunteer app Township Connect", () => {
+    expect(manifestField(webConfig, "name")).toBe("Township Connect");
+    expect(manifestField(webConfig, "short_name")).toBe("Township Connect");
+    expect(metaTitle(webHtml)).toBe("Township Connect");
+    expect(webHtml).toContain("<title>Township Connect</title>");
   });
 
-  it("names the elderly app Help a Neighbour", () => {
-    expect(manifestField(elderlyConfig, "name")).toBe("Help a Neighbour");
-    expect(manifestField(elderlyConfig, "short_name")).toBe("Help a Neighbour");
-    expect(metaTitle(elderlyHtml)).toBe("Help a Neighbour");
-    expect(elderlyHtml).toContain("<title>Help a Neighbour</title>");
+  it("names the elderly app Township Connect", () => {
+    expect(manifestField(elderlyConfig, "name")).toBe("Township Connect");
+    expect(manifestField(elderlyConfig, "short_name")).toBe("Township Connect");
+    expect(metaTitle(elderlyHtml)).toBe("Township Connect");
+    expect(elderlyHtml).toContain("<title>Township Connect</title>");
   });
 
-  it("keeps the two installed apps apart and drops the old product name", () => {
-    expect(manifestField(webConfig, "name")).not.toBe(manifestField(elderlyConfig, "name"));
-    expect(metaTitle(webHtml)).not.toBe(metaTitle(elderlyHtml));
+  it("brands both installed apps as Township Connect and drops the old product name", () => {
+    expect(manifestField(webConfig, "name")).toBe(manifestField(elderlyConfig, "name"));
     for (const text of [webConfig, webHtml, elderlyConfig, elderlyHtml]) {
-      expect(text).not.toMatch(/Township Connect/);
+      expect(text).not.toMatch(/Help a Neighbour/);
     }
   });
 });
