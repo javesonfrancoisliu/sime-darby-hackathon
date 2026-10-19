@@ -1,39 +1,29 @@
-import { act, screen, waitFor, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { installFakeApi, signInAs } from "../../test/fakeApi";
 import {
+  makePoints,
   makeRequest,
   makeRequestOpportunity,
-  NO_CONTRIBUTIONS,
   PENDING_VOLUNTEER,
   VOLUNTEER,
 } from "../../test/fixtures";
 import { renderApp } from "../../test/renderApp";
+import { signedInRoutes } from "../../test/routes";
 
 const REQUEST_ID = makeRequest().id;
 
-const baseRoutes = {
-  "GET /api/me": { body: VOLUNTEER },
-  "GET /api/events": { body: { events: [] } },
-  "GET /api/requests/mine": { body: { requests: [] } },
-  "GET /api/opportunities": { body: { items: [makeRequestOpportunity()] } },
-  "GET /api/contributions/mine": { body: NO_CONTRIBUTIONS },
-};
+const baseRoutes = signedInRoutes(VOLUNTEER, {
+  "GET /api/opportunities": {
+    body: {
+      items: [{ ...makeRequestOpportunity(), reasons: ["Close to you", "About 1.5 km away"] }],
+    },
+  },
+});
 
 describe("volunteer page", () => {
-  // jsdom has no geolocation; give the page one so the button logic is exercised.
-  beforeEach(() => {
-    Object.defineProperty(navigator, "geolocation", {
-      value: { getCurrentPosition: vi.fn() },
-      configurable: true,
-    });
-  });
-  afterEach(() => {
-    Reflect.deleteProperty(navigator, "geolocation");
-  });
-
   it("shows a pending-verification state instead of a generic error", async () => {
     installFakeApi({
       ...baseRoutes,
@@ -92,38 +82,68 @@ describe("volunteer page", () => {
     expect(screen.getByLabelText("Opportunity: Groceries")).toBeInTheDocument();
   });
 
-  it("uses server distances and hides the device location button when signed in", async () => {
+  it("uses server distances", async () => {
     installFakeApi(baseRoutes);
     signInAs(VOLUNTEER.id);
     renderApp("/volunteer");
 
     const card = await screen.findByLabelText("Opportunity: Groceries");
+    expect(within(card).getAllByText(/km away/)).toHaveLength(1);
     expect(within(card).getByText(/1.5 km away/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Use my location/ })).not.toBeInTheDocument();
   });
 
-  it("moves a demo card from Urgent to Started as the clock passes its start time", async () => {
-    vi.useFakeTimers({ toFake: ["Date", "setInterval", "clearInterval"] });
-    try {
-      installFakeApi();
-      renderApp("/volunteer");
-      const card = await screen.findByLabelText("Opportunity: Weekly grocery run");
-      expect(within(card).getByText("Urgent")).toBeInTheDocument();
-
-      act(() => {
-        vi.advanceTimersByTime(4 * 3_600_000);
-      });
-      expect(within(card).getByText("Started")).toBeInTheDocument();
-      expect(within(card).queryByText("Urgent")).not.toBeInTheDocument();
-    } finally {
-      vi.useRealTimers();
-    }
-  });
-
-  it("offers the device location only on the signed-out demo", async () => {
+  it("asks a signed-out visitor to sign in", async () => {
     installFakeApi();
     renderApp("/volunteer");
-    expect(await screen.findByRole("button", { name: /Use my location/ })).toBeInTheDocument();
+    expect(await screen.findByText("Please sign in")).toBeInTheDocument();
+  });
+
+  it("says a completed task is waiting for the resident and offers no confirm button", async () => {
+    installFakeApi({
+      ...baseRoutes,
+      "GET /api/requests/mine": {
+        body: { requests: [makeRequest({ status: "completed", title: "Done, unconfirmed" })] },
+      },
+    });
+    signInAs(VOLUNTEER.id);
+    renderApp("/volunteer");
+
+    const card = await screen.findByLabelText("Accepted task: Done, unconfirmed");
+    expect(within(card).getByText("Waiting for the resident to confirm")).toBeInTheDocument();
+    expect(within(card).queryByRole("button")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Confirm \(Demo\)/)).not.toBeInTheDocument();
+  });
+
+  it("shows the points the server awarded once the resident has confirmed", async () => {
+    const request = makeRequest({
+      status: "completed",
+      title: "Done and confirmed",
+      confirmedAt: "2026-10-21T10:00:00+08:00",
+    });
+    installFakeApi({
+      ...baseRoutes,
+      "GET /api/requests/mine": { body: { requests: [request] } },
+      "GET /api/me/points": {
+        body: makePoints(60, [
+          {
+            awardKey: `volunteering:${request.id}`,
+            sourceType: "volunteering",
+            sourceId: request.id,
+            points: 60,
+            title: "Done and confirmed",
+            awardedAt: "2026-10-21T02:00:00Z",
+          },
+        ]),
+      },
+    });
+    signInAs(VOLUNTEER.id);
+    renderApp("/volunteer");
+
+    const card = await screen.findByLabelText("Accepted task: Done and confirmed");
+    expect(
+      await within(card).findByText("Confirmed by the resident, +60 points"),
+    ).toBeInTheDocument();
   });
 
   it("confirms an accept only after the task is listed and the card is gone", async () => {

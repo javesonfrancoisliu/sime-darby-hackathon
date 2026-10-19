@@ -4,5 +4,5 @@ export { ChallengesEntryCard } from "./ChallengesEntryCard";
 export { ChallengeStatsStrip } from "./ChallengeStatsStrip";
 export { Leaderboard } from "./Leaderboard";
 export { LogProgressModal } from "./LogProgressModal";
-export { QuizModal, type QuizResult } from "./QuizModal";
+export { QuizModal } from "./QuizModal";
 export { RewardsPanel } from "./RewardsPanel";

@@ -1,56 +1,57 @@
-// Community (Module 2) data model.
-// Based on the shared DemoMetadata / CommunityItem contract in DESIGN_SYSTEM.md section 12,
-// specialised per category so each card gets the exact fields it needs.
+import type { MaintenanceStatus } from "@sdh/contracts";
 
-export type DemoMetadata = {
+// View models for the community feed, mapped from notices and events.
+
+export type { MaintenanceStatus };
+
+type FeedBase = {
   id: string;
-  townshipId: string;
   title: string;
   summary: string;
+  // When it went out; the feed is newest first.
+  publishedAt: string; // ISO 8601
   updatedAt: string; // ISO 8601
-  sourceLabel: string;
-  isDemoData: boolean;
 };
 
 export type CommunityCategory = "event" | "maintenance" | "volunteer" | "township";
 
-// Maintenance announcements - DISTINCT from safety facility reports.
-export type MaintenanceStatus = "scheduled" | "in_progress" | "completed";
-
-export type EventItem = DemoMetadata & {
+export type EventItem = FeedBase & {
   category: "event";
-  startsAt: string; // ISO 8601
+  startsAt: string;
   durationMinutes: number;
   location: string;
-  audience: string;
-  capacity?: number;
-  signupCount?: number;
-  // Live events only: whether the signed-in demo user has joined.
+  organiser: string;
+  capacity: number;
+  signupCount: number;
   joined?: boolean;
 };
 
-export type MaintenanceItem = DemoMetadata & {
+export type MaintenanceItem = FeedBase & {
   category: "maintenance";
   location: string; // affected area
-  windowStart: string; // ISO 8601 - scheduled window start
-  windowEnd: string; // ISO 8601 - scheduled window end
+  windowStart: string;
+  windowEnd: string;
   serviceImpact: string;
   status: MaintenanceStatus;
+  source: string;
 };
 
-export type VolunteerItem = DemoMetadata & {
+// A volunteer drive: an event whose purpose is volunteering.
+export type VolunteerItem = FeedBase & {
   category: "volunteer";
-  organisation: string;
-  startsAt: string; // ISO 8601
+  organiser: string;
+  startsAt: string;
+  durationMinutes: number;
   location: string;
-  slotsAvailable?: number; // only shown if known
+  slotsAvailable: number;
+  joined?: boolean;
 };
 
-export type TownshipUpdateItem = DemoMetadata & {
+export type TownshipUpdateItem = FeedBase & {
   category: "township";
-  publishedAt: string; // ISO 8601
   topic: string;
   priority: "normal" | "high";
+  source: string;
 };
 
 export type CommunityItem = EventItem | MaintenanceItem | VolunteerItem | TownshipUpdateItem;

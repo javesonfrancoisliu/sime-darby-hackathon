@@ -28,6 +28,14 @@ afterEach(() => {
 });
 
 describe("apiFetch", () => {
+  it("sends PUT and DELETE, and treats a 204 reply as success with no body", async () => {
+    fetchMock.mockResolvedValue(new Response(null, { status: 204 }));
+    await expect(apiFetch("/api/x", { method: "DELETE" })).resolves.toBeUndefined();
+    await expect(apiFetch("/api/x", { method: "PUT", body: { a: 1 } })).resolves.toBeUndefined();
+    const methods = fetchMock.mock.calls.map((c) => (c[1] as RequestInit).method);
+    expect(methods).toEqual(["DELETE", "PUT"]);
+  });
+
   it("sends the demo header when signed in", async () => {
     window.localStorage.setItem(DEMO_USER_STORAGE_KEY, "u1");
     fetchMock.mockResolvedValue(json({ ok: true }));

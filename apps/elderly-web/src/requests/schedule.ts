@@ -29,6 +29,11 @@ function pad(n: number): string {
   return String(n).padStart(2, "0");
 }
 
+// Today's calendar date in Malaysia, as YYYY-MM-DD.
+export function malaysiaToday(now: Date = new Date()): string {
+  return malaysiaDate(now, 0);
+}
+
 // Calendar date in Malaysia for an instant, shifted by whole days.
 function malaysiaDate(now: Date, addDays: number): string {
   const shifted = new Date(now.getTime() + MY_OFFSET_MS + addDays * DAY_MS);
@@ -68,6 +73,30 @@ const timeFormat = new Intl.DateTimeFormat("en-GB", {
 export function formatWhen(iso: string): string {
   const date = new Date(iso);
   return `${dateFormat.format(date).replace(",", "")}, ${timeFormat.format(date)}`;
+}
+
+const longDateFormat = new Intl.DateTimeFormat("en-GB", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  timeZone: TIME_ZONE,
+});
+
+// For example "20 Oct 2026", in Malaysia time.
+export function formatDate(iso: string): string {
+  return longDateFormat.format(new Date(iso));
+}
+
+// For example "Tue 20 Oct", in Malaysia time. Same style as formatWhen without the clock.
+export function formatShortDate(iso: string): string {
+  return dateFormat.format(new Date(iso)).replace(",", "");
+}
+
+// For example "Tue 20 Oct, 9:00 am to 5:00 pm", in Malaysia time.
+export function formatWindow(startIso: string, endIso: string): string {
+  const end = new Date(endIso);
+  const sameDay = malaysiaDate(new Date(startIso), 0) === malaysiaDate(end, 0);
+  return `${formatWhen(startIso)} to ${sameDay ? timeFormat.format(end) : formatWhen(endIso)}`;
 }
 
 export interface CreateChoices {

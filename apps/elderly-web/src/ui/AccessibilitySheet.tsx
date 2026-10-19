@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef } from "react";
-import { DEMO_SECURITY_LINE, EMERGENCY_NUMBER } from "../config";
+import { EMERGENCY_NUMBER } from "../config";
+import { useTownship } from "../hooks/useTownship";
 import { FONT_LABEL, useAccessibility, type FontSizeLevel } from "../context/AccessibilityContext";
 import { IconX, IconSun, IconVolume2, IconVolumeX, IconPhone, IconCheck } from "./Icons";
 
@@ -30,6 +31,7 @@ function SheetBody() {
     triggerHaptic,
   } = useAccessibility();
 
+  const securityLine = useTownship().data?.securityLine;
   const backdropRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -237,10 +239,12 @@ function SheetBody() {
               <span>Quick dial</span>
             </div>
             <div className="apple-emergency-grid">
-              <a href={`tel:${DEMO_SECURITY_LINE.tel}`} className="apple-emergency-btn">
-                <span className="apple-emergency-btn__label">Township security (demo number)</span>
-                <span className="apple-emergency-btn__number">{DEMO_SECURITY_LINE.display}</span>
-              </a>
+              {securityLine ? (
+                <a href={`tel:${securityLine.tel}`} className="apple-emergency-btn">
+                  <span className="apple-emergency-btn__label">Township security</span>
+                  <span className="apple-emergency-btn__number">{securityLine.display}</span>
+                </a>
+              ) : null}
               <a
                 href={`tel:${EMERGENCY_NUMBER}`}
                 className="apple-emergency-btn apple-emergency-btn--danger"

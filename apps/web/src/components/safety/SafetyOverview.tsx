@@ -1,17 +1,26 @@
-import { ArrowRight, ShieldAlert } from "lucide-react";
+import { ArrowRight, CloudOff, ShieldAlert } from "lucide-react";
 
-import { AppLinkButton, InfoCard } from "../ui";
+import { useSafety } from "../../data/useSafety";
+import { formatReadingValue } from "../../lib/format";
+import { LEVEL_LABEL, LEVEL_VARIANT, READING_TITLE, worstReading } from "../../lib/safety";
+import { AppLinkButton, EmptyState, InfoCard, LoadingState, StatusBadge } from "../ui";
 
-// PLACEHOLDER - the Health & Safety team (Module 1) owns the real SafetyOverview.
-// The Home page composes this compact summary beside CommunityOverview per the
-// integration contract. Replace this stub with the real safety summary; keep the
-// same component name and the `townshipId` prop so Home does not need changes.
-// townshipId is accepted (and will scope the summary in the real implementation)
-// so Home does not need changes when the Health & Safety team replaces this stub.
-// townshipName is the spoken name for assistive tech, so the raw id is never read out.
-export type SafetyOverviewProps = { townshipId?: string; townshipName?: string };
+// townshipName is the spoken name for assistive tech.
+export type SafetyOverviewProps = { townshipName?: string };
 
+const TYPES = ["air", "water", "heat"] as const;
+
+// Compact safety summary for Home: the most serious air, water and heat reading, and how many
+// facility reports are still open.
 export function SafetyOverview({ townshipName }: SafetyOverviewProps) {
+  const { data, loading, error } = useSafety();
+
+  const rows = TYPES.flatMap((type) => {
+    const worst = worstReading((data?.readings ?? []).filter((r) => r.type === type));
+    return worst ? [worst] : [];
+  });
+  const open = (data?.facilityReports ?? []).filter((r) => r.status !== "resolved").length;
+
   return (
     <InfoCard ariaLabel={`Safety summary${townshipName ? ` for ${townshipName}` : ""}`}>
       <div className="feature-card">
@@ -23,9 +32,42 @@ export function SafetyOverview({ townshipName }: SafetyOverviewProps) {
             </span>
           </h2>
         </div>
-        <p className="feature-card-desc">
-          Health and safety updates for your area are coming soon.
-        </p>
+
+        {loading ? (
+          <LoadingState rows={2} label="Loading safety readings" />
+        ) : error ? (
+          <EmptyState icon={CloudOff} title="Couldn't load safety readings" description={error} />
+        ) : rows.length === 0 && open === 0 ? (
+          <EmptyState
+            title="No readings yet"
+            description="Air, water and heat readings will show up here."
+          />
+        ) : (
+          <>
+            <ul className="ui-stack" style={{ listStyle: "none", margin: 0, padding: 0 }}>
+              {rows.map((reading) => (
+                <li key={`${reading.type}-${reading.area}`} className="overview-item">
+                  <div className="inline-icon ui-gap-2">
+                    <StatusBadge
+                      label={LEVEL_LABEL[reading.level]}
+                      variant={LEVEL_VARIANT[reading.level]}
+                    />
+                    <span className="ui-meta-row">{reading.area}</span>
+                  </div>
+                  <p style={{ margin: "4px 0 0", fontWeight: 600 }}>
+                    {READING_TITLE[reading.type]}: {formatReadingValue(reading.value, reading.unit)}
+                  </p>
+                </li>
+              ))}
+            </ul>
+            <p className="ui-meta-row ui-flush">
+              {open === 0
+                ? "No open facility reports."
+                : `${open} open facility report${open === 1 ? "" : "s"}.`}
+            </p>
+          </>
+        )}
+
         <div className="feature-card-foot">
           <AppLinkButton to="/safety" variant="secondary">
             View safety details

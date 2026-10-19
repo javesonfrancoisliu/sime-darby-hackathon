@@ -2,7 +2,7 @@ import { MapPin, Pencil } from "lucide-react";
 
 import { useProfile } from "../../data/ProfileContext";
 import { VerifiedBadge } from "../volunteer";
-import { AppButton, DemoTag, InfoCard } from "../ui";
+import { AppButton, InfoCard } from "../ui";
 import { Avatar } from "./Avatar";
 
 export type ProfileHeaderCardProps = {
@@ -11,10 +11,10 @@ export type ProfileHeaderCardProps = {
 };
 
 // Compact profile header: avatar, display name, neighbourhood, verification
-// status (demo-labelled) and a small claimed-reward count. Does NOT repeat the
+// status and a small claimed-reward count. Does NOT repeat the
 // tasks/points/leaderboard sections - those live on their own pages.
 export function ProfileHeaderCard({ claimedCount, onEdit }: ProfileHeaderCardProps) {
-  const { prefs, verification, isDemo } = useProfile();
+  const { prefs, verification } = useProfile();
 
   return (
     <InfoCard ariaLabel="Your profile">
@@ -27,8 +27,7 @@ export function ProfileHeaderCard({ claimedCount, onEdit }: ProfileHeaderCardPro
             {prefs.area}
           </span>
           <div className="profile-header-badges">
-            <VerifiedBadge status={verification} />
-            {isDemo && <DemoTag />}
+            {verification && <VerifiedBadge status={verification} />}
           </div>
           {claimedCount > 0 && (
             <p className="ui-meta-row ui-flush">

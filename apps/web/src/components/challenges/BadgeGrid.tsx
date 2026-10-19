@@ -1,55 +1,59 @@
-import { Award, Footprints, Lock, Sparkles, Trophy, type LucideIcon } from "lucide-react";
+import { Lock } from "lucide-react";
 
-import type { AchievementState, BadgeState } from "../../data/useGamification";
+import type { BadgeWithEarned } from "@sdh/contracts";
 
-// Map the mock icon names to lucide icons (kept here so the data stays plain).
-const ICONS: Record<string, LucideIcon> = {
-  Sparkles,
-  Footprints,
-  Trophy,
-  Award,
-};
+import { ICON_BY_KEY } from "../../lib/icons";
 
 export type BadgeGridProps = {
-  badges: BadgeState[];
-  achievements: AchievementState[];
+  badges: BadgeWithEarned[];
 };
 
-// Earned and locked badges + achievements. Each tile states how it is unlocked,
-// and locked tiles are visibly dimmed with a lock icon (not colour alone).
-export function BadgeGrid({ badges, achievements }: BadgeGridProps) {
+function hint(badge: BadgeWithEarned): string {
+  if (badge.earned) return "Earned";
+  return badge.kind === "points"
+    ? `Reach ${badge.threshold} points`
+    : `Complete ${badge.threshold} challenge${badge.threshold === 1 ? "" : "s"}`;
+}
+
+function Tiles({ badges }: BadgeGridProps) {
+  return (
+    <ul className="badge-grid">
+      {badges.map((badge) => {
+        const Icon = ICON_BY_KEY[badge.icon];
+        return (
+          <li key={badge.id} className={`badge-tile${badge.earned ? " badge-tile--earned" : ""}`}>
+            <span className="badge-icon" aria-hidden="true">
+              {badge.earned ? <Icon size={22} /> : <Lock size={18} />}
+            </span>
+            <span className="badge-label">{badge.title}</span>
+            <span className="badge-hint">{hint(badge)}</span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+// Earned and locked badges, then achievements (the badges earned by completing challenges). Locked
+// tiles are dimmed with a lock icon, so state never relies on colour alone.
+export function BadgeGrid({ badges }: BadgeGridProps) {
+  const points = badges.filter((b) => b.kind === "points");
+  const achievements = badges.filter((b) => b.kind === "challenges");
   return (
     <>
       <h3 className="impact-subhead ui-flush-top">Badges (points)</h3>
-      <ul className="badge-grid">
-        {badges.map((badge) => {
-          const Icon = ICONS[badge.icon] ?? Award;
-          return (
-            <li key={badge.id} className={`badge-tile${badge.earned ? " badge-tile--earned" : ""}`}>
-              <span className="badge-icon" aria-hidden="true">
-                {badge.earned ? <Icon size={22} /> : <Lock size={18} />}
-              </span>
-              <span className="badge-label">{badge.label}</span>
-              <span className="badge-hint">{badge.earned ? "Earned" : badge.unlockHint}</span>
-            </li>
-          );
-        })}
-      </ul>
+      {points.length === 0 ? (
+        <p className="ui-helper">No badges yet.</p>
+      ) : (
+        <Tiles badges={points} />
+      )}
 
       <h3 className="impact-subhead">Achievements (completed challenges)</h3>
-      <ul className="badge-grid">
-        {achievements.map((ach) => (
-          <li key={ach.id} className={`badge-tile${ach.earned ? " badge-tile--earned" : ""}`}>
-            <span className="badge-icon" aria-hidden="true">
-              {ach.earned ? <Trophy size={22} /> : <Lock size={18} />}
-            </span>
-            <span className="badge-label">{ach.label}</span>
-            <span className="badge-hint">
-              {ach.earned ? "Earned" : `Complete ${ach.completedChallengesRequired} challenge(s)`}
-            </span>
-          </li>
-        ))}
-      </ul>
+      {achievements.length === 0 ? (
+        <p className="ui-helper">No achievements yet.</p>
+      ) : (
+        <Tiles badges={achievements} />
+      )}
     </>
   );
 }

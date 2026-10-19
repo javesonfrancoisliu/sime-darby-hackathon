@@ -6,6 +6,9 @@ export const ErrorCode = z.enum([
   "FORBIDDEN",
   "NOT_FOUND",
   "CONFLICT",
+  "CONFLICT_RETRY",
+  "INSUFFICIENT_POINTS",
+  "ALREADY_DONE",
   "PROFILE_REQUIRED",
   "INTERNAL",
 ]);

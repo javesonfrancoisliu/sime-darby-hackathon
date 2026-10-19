@@ -9,6 +9,7 @@ interface TextFieldProps {
   multiline?: boolean;
   placeholder?: string;
   maxLength?: number;
+  inputMode?: "tel" | "text" | "numeric";
 }
 
 // FormField - input with a persistent visible label, helper/error text,
@@ -23,6 +24,7 @@ export function TextField({
   multiline,
   placeholder,
   maxLength,
+  inputMode,
 }: TextFieldProps) {
   const id = useId();
   const errorId = `${id}-error`;
@@ -34,6 +36,7 @@ export function TextField({
     value,
     placeholder,
     maxLength,
+    inputMode,
     "aria-invalid": error ? true : undefined,
     "aria-describedby": describedBy,
     onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>

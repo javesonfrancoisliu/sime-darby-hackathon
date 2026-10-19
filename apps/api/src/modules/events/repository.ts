@@ -24,7 +24,11 @@ const byStartKeys = (event: Pick<CommunityEvent, "startsAt">) => ({
   GSI1SK: event.startsAt,
 });
 
-const toEvent = (item: Record<string, unknown>) => fromItem<CommunityEvent>(item);
+// Older items predate purpose and organiser; defaults are applied on read.
+const toEvent = (item: Record<string, unknown>): CommunityEvent => {
+  const event = fromItem<CommunityEvent>(item);
+  return { ...event, purpose: event.purpose ?? "activity", organiser: event.organiser ?? "" };
+};
 
 export async function putEvent(event: CommunityEvent): Promise<void> {
   await db().send(
@@ -150,7 +154,7 @@ export async function joinEvent(
   }
 }
 
-// Returns false when the event was no longer upcoming. The status flip rides in the first
+// Returns false when the event was already completed. The status flip rides in the first
 // transaction so it is atomic with its contributions; any overflow beyond 100 items goes in
 // follow-up transactions, so a crash mid-way can leave later contributions unrecorded.
 export async function completeEvent(

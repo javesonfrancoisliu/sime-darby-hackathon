@@ -12,9 +12,8 @@ const ROLE_LABEL: Record<DemoUser["role"], string> = {
   coordinator: "Coordinator",
 };
 
-// Demo sign-in: pick one of the demo users to use the live API.
-// Signed out, the app runs on labelled demo data. This picks an identity for
-// the X-Demo-User header - it is NOT authentication.
+// Local sign-in: pick one of the seeded users. This picks an identity for the
+// X-Demo-User header - it is NOT authentication.
 export function DemoSignInCard() {
   const { user, userId, status, error: sessionError, signIn, signOut } = useSession();
   const labelId = useId();
@@ -41,18 +40,18 @@ export function DemoSignInCard() {
   }, []);
 
   return (
-    <section className="ui-section" aria-label="Demo sign-in">
+    <section className="ui-section" aria-label="Local sign-in">
       <InfoCard>
         <div className="feature-card">
           <div className="feature-card-head">
             <h2 className="feature-card-title">
               <span className="inline-icon">
                 <UserRoundCheck size={18} aria-hidden="true" />
-                Demo sign-in
+                Local sign-in
               </span>
             </h2>
             <StatusBadge
-              label={status === "signed_in" ? "Live" : "Demo data"}
+              label={status === "signed_in" ? "Signed in" : "Signed out"}
               variant={status === "signed_in" ? "success" : "info"}
             />
           </div>
@@ -69,27 +68,25 @@ export function DemoSignInCard() {
               <div className="feature-card-foot">
                 <AppButton variant="secondary" onClick={signOut}>
                   <LogOut size={16} aria-hidden="true" />
-                  Sign out and use demo data
+                  Sign out
                 </AppButton>
               </div>
             </>
           ) : loadError ? (
             <p className="ui-helper ui-flush-top">
-              The live service isn't reachable ({loadError}). The app is using demo data.
+              The service isn't reachable ({loadError}). Please try again in a moment.
             </p>
           ) : users === null ? (
-            <p className="ui-helper ui-flush-top">Looking for demo users…</p>
+            <p className="ui-helper ui-flush-top">Looking for people to sign in as…</p>
           ) : users.length === 0 ? (
             <p className="ui-helper ui-flush-top">
-              No demo people are set up yet. Please ask the team to add them.
+              No people are set up yet. Please ask the team to add them.
             </p>
           ) : (
             <>
-              <p className="ui-helper ui-flush-top">
-                Choose a demo user to use the live service instead of demo data.
-              </p>
+              <p className="ui-helper ui-flush-top">Choose a person to sign in as.</p>
               <span className="ui-label" id={labelId}>
-                Demo user
+                Sign in as
               </span>
               <div className="ui-chip-row" role="group" aria-labelledby={labelId}>
                 {users.map((u) => (

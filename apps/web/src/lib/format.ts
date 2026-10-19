@@ -36,6 +36,36 @@ export function formatTimeRange(startIso: string, durationMinutes: number): stri
   return `${time.format(start)} – ${time.format(end)}`;
 }
 
+// A date-time range; when both ends fall on the same day the date is shown once.
+export function formatDateTimeRange(startIso: string, endIso: string): string {
+  const day = new Intl.DateTimeFormat("en-MY", {
+    timeZone: KL_TIME_ZONE,
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+  if (day.format(new Date(startIso)) !== day.format(new Date(endIso))) {
+    return `${formatDateTime(startIso)} – ${formatDateTime(endIso)}`;
+  }
+  const time = new Intl.DateTimeFormat("en-MY", {
+    timeZone: KL_TIME_ZONE,
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+  return `${formatDateTime(startIso)} – ${time.format(new Date(endIso))}`;
+}
+
+// A whole number with thousands separators, e.g. 10,000.
+export function formatCount(n: number): string {
+  return new Intl.NumberFormat("en-MY").format(n);
+}
+
+// A reading with its unit; temperatures read "34°C" however the unit arrives ("C" or "°C").
+export function formatReadingValue(value: number, unit: string): string {
+  return /^°?C$/.test(unit.trim()) ? `${value}°C` : `${value} ${unit}`;
+}
+
 // Relative "updated" label, e.g. "Updated 2 days ago".
 export function formatRelative(iso: string, now: Date = new Date()): string {
   const diffMs = new Date(iso).getTime() - now.getTime();

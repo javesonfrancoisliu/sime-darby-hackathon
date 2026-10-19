@@ -2,7 +2,7 @@ import { CalendarDays, CheckCircle2, MapPin, Users } from "lucide-react";
 
 import type { EventItem } from "../../types/community";
 import { formatDate, formatTimeRange } from "../../lib/format";
-import { AppButton, DemoTag, Modal } from "../ui";
+import { AppButton, Modal } from "../ui";
 
 export type EventDetailsModalProps = {
   event: EventItem | null;
@@ -52,16 +52,16 @@ export function EventDetailsModal({
             <MapPin size={16} className="icon-dim" aria-hidden="true" />
             {event.location}
           </span>
-          <span className="inline-icon">
-            <Users size={16} className="icon-dim" aria-hidden="true" />
-            Audience: {event.audience}
-          </span>
-          {typeof event.capacity === "number" && typeof event.signupCount === "number" && (
+          {event.organiser && (
             <span className="inline-icon">
               <Users size={16} className="icon-dim" aria-hidden="true" />
-              {event.signupCount} of {event.capacity} residents joined
+              Organised by {event.organiser}
             </span>
           )}
+          <span className="inline-icon">
+            <Users size={16} className="icon-dim" aria-hidden="true" />
+            {event.signupCount} of {event.capacity} residents joined
+          </span>
           <p className="ui-flush">{event.summary}</p>
           {registered && (
             <span className="ui-badge ui-badge--success" role="status">
@@ -69,10 +69,6 @@ export function EventDetailsModal({
               You&rsquo;re registered for this event
             </span>
           )}
-          <div className="ui-meta-row">
-            <span>Source: {event.sourceLabel}</span>
-            {event.isDemoData && <DemoTag />}
-          </div>
         </>
       )}
     </Modal>

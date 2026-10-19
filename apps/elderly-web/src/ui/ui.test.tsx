@@ -26,6 +26,11 @@ describe("TextField", () => {
     expect(screen.getByLabelText("Description")).toBeInTheDocument();
   });
 
+  it("passes inputMode to the input", () => {
+    render(<TextField label="Phone" value="" onChange={() => {}} inputMode="tel" />);
+    expect(screen.getByLabelText("Phone")).toHaveAttribute("inputmode", "tel");
+  });
+
   it("shows an error tied via aria-describedby", () => {
     render(
       <TextField

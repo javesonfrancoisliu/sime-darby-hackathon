@@ -3,14 +3,12 @@ import type { ContributionsResponse, OpportunitiesResponse } from "@sdh/contract
 import type { Contribution, ImpactSummary, Opportunity } from "../types/volunteer";
 import { ApiError, apiFetch, errorMessage, useSession } from "@sdh/api-client";
 import { useLoader } from "../lib/useLoader";
-import { MOCK_IMPACT, MOCK_OPPORTUNITIES } from "./volunteer.mock";
 
 const EMPTY_IMPACT: ImpactSummary = {
   totalMinutes: 0,
   completedCount: 0,
   peopleHelped: 0,
   items: [],
-  isDemoData: false,
 };
 
 function mapOpportunities(res: OpportunitiesResponse): Opportunity[] {
@@ -23,7 +21,7 @@ function mapOpportunities(res: OpportunitiesResponse): Opportunity[] {
         title: r.title,
         summary: r.description || "Help request",
         category: r.category,
-        // API summaries omit precise coords for privacy; use the baked distance.
+        // API summaries carry an approximate distance only, for privacy.
         distanceKm: r.distanceKm,
         area: r.area,
         scheduledAt: r.scheduledAt,
@@ -31,8 +29,6 @@ function mapOpportunities(res: OpportunitiesResponse): Opportunity[] {
         matchScore: item.matchScore,
         reasons: item.reasons,
         fitsMySchedule: false,
-        isDemoData: false,
-        sourceLabel: "Opportunities API",
       };
     }
     const e = item.event;
@@ -42,7 +38,6 @@ function mapOpportunities(res: OpportunitiesResponse): Opportunity[] {
       title: e.title,
       summary: e.description || "Community event",
       category: e.category,
-      coords: { lat: e.location.lat, lng: e.location.lng },
       distanceKm: item.distanceKm,
       area: e.location.area,
       scheduledAt: e.startsAt,
@@ -50,8 +45,6 @@ function mapOpportunities(res: OpportunitiesResponse): Opportunity[] {
       matchScore: item.matchScore,
       reasons: item.reasons,
       fitsMySchedule: false,
-      isDemoData: false,
-      sourceLabel: "Opportunities API",
     };
   });
 }
@@ -70,7 +63,6 @@ function mapContributions(res: ContributionsResponse): ImpactSummary {
     // The API reports completed tasks; treat each as one neighbour helped.
     peopleHelped: res.completedCount,
     items,
-    isDemoData: false,
   };
 }
 
@@ -78,14 +70,12 @@ export type VolunteerData = {
   opportunities: Opportunity[];
   impact: ImpactSummary;
   loading: boolean;
-  // Set when live mode could not load; the UI shows it instead of falling back to mock.
+  // Set when the feed could not load.
   error: string | null;
   // The API refused the feed because the volunteer is not verified yet.
   notVerified: boolean;
   // Set when only the volunteer-hours summary failed; the feed still works.
   impactError: string | null;
-  // True when the data came from the API (a demo user is signed in).
-  live: boolean;
   reload: () => Promise<void>;
 };
 
@@ -116,36 +106,21 @@ async function loadLive(userId: string | null): Promise<LiveResult> {
   };
 }
 
-// Signed out: labelled demo data, so the prototype still works offline.
-// Signed in (demo user chosen on Profile): the live opportunities and
-// contributions APIs, with errors shown rather than hidden behind mock data.
+// The volunteer's opportunities and hours. Idle until someone is signed in; errors are shown
+// rather than hidden.
 export function useVolunteerData(): VolunteerData {
   const { userId } = useSession();
   const { loaded, reload } = useLoader(userId, loadLive, userId !== null);
-
-  if (!userId) {
-    return {
-      opportunities: MOCK_OPPORTUNITIES,
-      impact: MOCK_IMPACT,
-      loading: false,
-      error: null,
-      notVerified: false,
-      impactError: null,
-      live: false,
-      reload,
-    };
-  }
   // A reload after accept or complete keeps the current list on screen; only a
   // different user shows loading.
   const ready = loaded !== null && loaded.scope === userId ? loaded.value : null;
   return {
     opportunities: ready?.opportunities ?? [],
     impact: ready?.impact ?? EMPTY_IMPACT,
-    loading: ready === null,
+    loading: userId !== null && ready === null,
     error: ready?.error ?? null,
     notVerified: ready?.notVerified ?? false,
     impactError: ready?.impactError ?? null,
-    live: true,
     reload,
   };
 }

@@ -18,3 +18,7 @@ export function useCreateRequest() {
 export function useCancelRequest() {
   return useMutation(requestsApi.cancel);
 }
+
+export function useConfirmRequest() {
+  return useMutation(requestsApi.confirm);
+}

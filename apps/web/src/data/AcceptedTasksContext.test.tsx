@@ -33,28 +33,17 @@ function opportunity(overrides: Partial<Opportunity> = {}): Opportunity {
     matchScore: 70,
     reasons: [],
     fitsMySchedule: false,
-    isDemoData: false,
-    sourceLabel: "test",
     ...overrides,
   };
 }
 
 describe("AcceptedTasksContext signed out", () => {
-  it("accepts once, completes and verifies on the device", async () => {
-    installFakeApi();
+  it("lists nothing and does not call the API", () => {
+    const { fetchMock } = installFakeApi();
     const { result } = renderHook(() => useAcceptedTasks(), { wrapper });
-    expect(result.current.live).toBe(false);
-
-    await act(() => result.current.accept(opportunity()));
-    await act(() => result.current.accept(opportunity()));
-    expect(result.current.tasks).toHaveLength(1);
-    expect(result.current.tasks[0]?.status).toBe("accepted");
-
-    await act(() => result.current.complete(REQUEST_ID, 45));
-    expect(result.current.tasks[0]?.status).toBe("completed");
-
-    act(() => result.current.verify(REQUEST_ID));
-    expect(result.current.tasks[0]?.status).toBe("verified");
+    expect(result.current.tasks).toEqual([]);
+    expect(result.current.loading).toBe(false);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });
 
@@ -84,15 +73,34 @@ describe("AcceptedTasksContext signed in", () => {
     const { result } = renderHook(() => useAcceptedTasks(), { wrapper });
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    expect(result.current.live).toBe(true);
     expect(result.current.tasks.map((t) => [t.title, t.kind, t.status])).toEqual([
       ["Matched one", "request", "accepted"],
       ["Done one", "request", "completed"],
       ["Tea morning", "event", "accepted"],
     ]);
+  });
 
-    act(() => result.current.verify(done.id));
-    expect(result.current.tasks.find((t) => t.id === done.id)?.status).toBe("verified");
+  it("shows a completed task as confirmed once the resident has confirmed it", async () => {
+    const waiting = makeRequest({ status: "completed", title: "Waiting one" });
+    const confirmed = makeRequest({
+      id: "c36d9ab8-cf60-4c99-8dd4-6a7fcf7d8e07",
+      status: "completed",
+      title: "Confirmed one",
+      confirmedAt: "2026-10-21T10:00:00+08:00",
+    });
+    installFakeApi({
+      "GET /api/me": { body: VOLUNTEER },
+      "GET /api/requests/mine": { body: { requests: [waiting, confirmed] } },
+      "GET /api/events": { body: { events: [] } },
+    });
+    signInAs(VOLUNTEER.id);
+    const { result } = renderHook(() => useAcceptedTasks(), { wrapper });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    expect(result.current.tasks.map((t) => [t.title, t.status])).toEqual([
+      ["Waiting one", "completed"],
+      ["Confirmed one", "confirmed"],
+    ]);
   });
 
   it("shows the task before accept resolves", async () => {

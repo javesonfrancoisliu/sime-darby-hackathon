@@ -203,21 +203,49 @@ describe("Cancel flow", () => {
   });
 });
 
-describe("Demo data", () => {
-  it("shows a Demo data banner and demo requests only when switched on", async () => {
-    vi.stubEnv("VITE_USE_MOCK", "true");
-    window.localStorage.clear();
-    const { fetchMock } = installFakeApi();
-    await renderApp("/requests");
-    expect(await screen.findByText(/Demo data/)).toBeInTheDocument();
-    expect(await screen.findByText("Aisha Rahman")).toBeInTheDocument();
-    expect(fetchMock).not.toHaveBeenCalled();
+describe("Confirm a volunteer came", () => {
+  const done = makeRequest({ status: "completed", volunteerName: "Aisha" });
+
+  it("asks once, posts the confirmation and then thanks the resident", async () => {
+    const { calls } = installFakeApi({
+      [`GET /api/requests/${done.id}`]: { body: done },
+      [`POST /api/requests/${done.id}/confirm`]: {
+        body: { ...done, confirmedAt: "2026-10-19T10:00:00Z" },
+      },
+    });
+    await renderApp(`/requests/${done.id}`);
+    expect(await screen.findByText("Did your volunteer come?")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Yes, they helped me" }));
+    expect(await screen.findByText("Thank you, you confirmed")).toBeInTheDocument();
+    expect(screen.queryByText("Did your volunteer come?")).not.toBeInTheDocument();
+    expect(calls.filter((c) => c.method === "POST")).toHaveLength(1);
   });
 
-  it("shows no banner and no demo requests in live mode", async () => {
-    installFakeApi(listOf());
-    await renderApp("/requests");
-    await screen.findByText(/no requests yet/i);
-    expect(screen.queryByText(/Demo data/)).not.toBeInTheDocument();
+  it("shows the thank you straight away when already confirmed", async () => {
+    const confirmed = makeRequest({ ...done, confirmedAt: "2026-10-19T10:00:00Z" });
+    installFakeApi({ [`GET /api/requests/${confirmed.id}`]: { body: confirmed } });
+    await renderApp(`/requests/${confirmed.id}`);
+    expect(await screen.findByText("Thank you, you confirmed")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Yes, they helped me" })).not.toBeInTheDocument();
+  });
+
+  it("treats ALREADY_DONE as confirmed", async () => {
+    installFakeApi({
+      [`GET /api/requests/${done.id}`]: { body: done },
+      [`POST /api/requests/${done.id}/confirm`]: {
+        status: 409,
+        body: { error: { code: "ALREADY_DONE", message: "done" } },
+      },
+    });
+    await renderApp(`/requests/${done.id}`);
+    await userEvent.click(await screen.findByRole("button", { name: "Yes, they helped me" }));
+    expect(await screen.findByText("Thank you, you confirmed")).toBeInTheDocument();
+  });
+
+  it("does not ask while the request is not completed", async () => {
+    installFakeApi({ [`GET /api/requests/${matched.id}`]: { body: matched } });
+    await renderApp(`/requests/${matched.id}`);
+    await screen.findByText("Aisha");
+    expect(screen.queryByText("Did your volunteer come?")).not.toBeInTheDocument();
   });
 });

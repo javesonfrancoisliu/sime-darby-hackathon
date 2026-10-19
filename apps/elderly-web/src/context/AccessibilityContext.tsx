@@ -5,7 +5,7 @@ export type FontSizeLevel = "normal" | "large" | "xlarge";
 
 export const ACCESSIBILITY_STORAGE_KEY = "hn.accessibility";
 
-interface StoredSettings {
+export interface StoredSettings {
   fontSize: FontSizeLevel;
   highContrast: boolean;
   reducedMotion: boolean;
@@ -73,6 +73,8 @@ interface AccessibilityContextValue {
   openSheet: () => void;
   closeSheet: () => void;
   triggerHaptic: (ms?: number) => void;
+  // Applies settings loaded from the server without a buzz or a spoken reply.
+  applyRemoteSettings: (settings: StoredSettings) => void;
 }
 
 const AccessibilityContext = createContext<AccessibilityContextValue | null>(null);
@@ -167,6 +169,13 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     setIsSheetOpen(false);
   }, [triggerHaptic]);
 
+  const applyRemoteSettings = useCallback((settings: StoredSettings) => {
+    setFontSizeState(settings.fontSize);
+    setHighContrast(settings.highContrast);
+    setReducedMotion(settings.reducedMotion);
+    setVoiceAssist(settings.voiceAssist);
+  }, []);
+
   const value: AccessibilityContextValue = {
     fontSize,
     setFontSize,
@@ -183,6 +192,7 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     openSheet,
     closeSheet,
     triggerHaptic,
+    applyRemoteSettings,
   };
 
   return <AccessibilityContext.Provider value={value}>{children}</AccessibilityContext.Provider>;
@@ -208,6 +218,7 @@ export function useAccessibility() {
       openSheet: () => {},
       closeSheet: () => {},
       triggerHaptic: () => {},
+      applyRemoteSettings: () => {},
     };
   }
   return ctx;

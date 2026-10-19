@@ -4,23 +4,20 @@ import { CommunityOverview } from "../components/community";
 import { useRole } from "../components/layout";
 import { SafetyOverview } from "../components/safety/SafetyOverview";
 import { AppLinkButton, PageHeader } from "../components/ui";
-import { DEMO_TOWNSHIP } from "../lib/township";
+import { useTownship } from "../data/useTownship";
 
 // Shared Home - the integrated General Dashboard. Prioritises the three primary
 // dashboard functions: Health & Safety, Community updates, and (for the young
 // role) a slim Help a Neighbour entry point.
-//
-// The My Impact summary (VolunteerOverview) was intentionally removed from Home
-// to keep it compact; that component and its data are preserved for a future
-// Profile → My Contributions page.
 export function HomePage() {
   const { role } = useRole();
   const young = role === "young";
+  const { township } = useTownship();
 
   return (
     <>
       <PageHeader
-        title={`Welcome to ${DEMO_TOWNSHIP.name}`}
+        title={township ? `Welcome to ${township.name}` : "Welcome"}
         subtitle={
           young
             ? "Your neighbourhood at a glance - find a quick way to help, stay safe and stay connected."
@@ -30,8 +27,8 @@ export function HomePage() {
 
       <section className="ui-section" aria-label="Township summary">
         <div className="home-cta-row">
-          <SafetyOverview townshipId={DEMO_TOWNSHIP.id} townshipName={DEMO_TOWNSHIP.name} />
-          <CommunityOverview townshipId={DEMO_TOWNSHIP.id} />
+          <SafetyOverview townshipName={township?.name} />
+          <CommunityOverview />
         </div>
       </section>
 

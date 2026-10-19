@@ -220,6 +220,9 @@
   box-shadow: var(--shadow-card);
   cursor: pointer;
   transition: border-color 150ms ease;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 .app-request-card:hover {
   border-color: var(--brand-primary);
@@ -414,6 +417,7 @@
 }
 
 .safety-card__location {
+  overflow-wrap: anywhere;
   margin: 0 0 2px;
   font-size: 1rem;
   font-weight: 700;
@@ -428,6 +432,7 @@
 }
 
 .safety-card__description {
+  overflow-wrap: anywhere;
   margin: 0 0 var(--space-3);
   font-size: 1rem;
   color: var(--text-secondary);
@@ -707,11 +712,7 @@
   display: flex;
   gap: var(--space-2);
   margin-bottom: var(--space-3);
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-.safety-filter::-webkit-scrollbar {
-  display: none;
+  flex-wrap: wrap;
 }
 
 .safety-filter__btn {
@@ -938,20 +939,6 @@
   align-items: center;
   flex-shrink: 0;
   opacity: 0.6;
-}
-
-/* Labels for example data */
-.app-root .ui-demo-tag {
-  margin-left: 8px;
-  vertical-align: middle;
-}
-.demo-banner {
-  padding: 8px 16px;
-  background: var(--info-bg);
-  color: var(--info);
-  font-size: 1rem;
-  font-weight: 700;
-  text-align: center;
 }
 
 /* Big pick-one buttons for the request steps */
@@ -1475,28 +1462,30 @@ button:active,
 /* ── Switch ────────────────────────────────────────────── */
 .apple-switch {
   width: 52px;
-  height: 32px;
-  background: var(--control-border);
-  border-radius: var(--radius-pill);
+  height: 44px;
+  background: transparent;
   border: none;
-  padding: 2px;
+  padding: 8px 2px;
   cursor: pointer;
   position: relative;
-  transition: background-color 220ms ease;
   flex-shrink: 0;
 }
-/* Grow the tap area to 48 px tall without changing how the switch looks. */
+/* The button is 44 px tall for touch; the visible 52x32 track is drawn here. */
 .apple-switch::before {
   content: "";
   position: absolute;
-  inset: -8px -4px;
+  inset: 6px 0;
+  background: var(--control-border);
+  border-radius: var(--radius-pill);
+  transition: background-color 220ms ease;
 }
 
-.apple-switch--on {
+.apple-switch--on::before {
   background: var(--success);
 }
 
 .apple-switch__thumb {
+  position: relative;
   display: block;
   width: 28px;
   height: 28px;
@@ -1643,13 +1632,22 @@ button:active,
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .apple-card-button__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--space-2);
   margin-bottom: var(--space-2);
+}
+.apple-card-button__header > :first-child {
+  min-width: 0;
+}
+.apple-card-button__header > :last-child {
+  flex-shrink: 0;
 }
 
 .apple-card-button__desc {
@@ -1672,11 +1670,14 @@ button:active,
 
 /* ── 10. Inset Group Inspector (Detail Rows) ───────────── */
 .apple-detail-hero {
+  overflow-wrap: anywhere;
   margin-bottom: var(--space-4);
 }
 
 .apple-meta-pill {
   display: inline-block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
   padding: 3px 8px;
   border-radius: var(--radius-pill);
   background: var(--surface-muted);
@@ -1698,6 +1699,7 @@ button:active,
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--space-3);
   padding: var(--space-4);
   border-bottom: 1px solid var(--surface-muted);
 }
@@ -1710,6 +1712,8 @@ button:active,
   color: var(--text-primary);
   text-align: right;
   max-width: 60%;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .apple-volunteer-chip {
@@ -2395,10 +2399,12 @@ button:active,
 
 .play-badges {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 7.5rem), 1fr));
   gap: var(--space-3);
 }
 .play-badge {
+  min-width: 0;
+  overflow-wrap: anywhere;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2495,6 +2501,15 @@ button:active,
 .high-contrast .play-badge--earned {
   background: #ffffff;
   border: 2px solid #000000;
+}
+
+/* Play header row wraps so the Listen button never runs off a narrow screen at large text sizes. */
+.play-header-row {
+  flex-wrap: wrap;
+}
+.play-header-row > :first-child {
+  flex: 1 1 10rem;
+  min-width: 0;
 }
 
 /* Always-visible points chip in the Community Play header. */
@@ -2749,6 +2764,7 @@ main:focus {
 }
 .flex-fill {
   flex: 1;
+  min-width: 0;
 }
 .row-center {
   display: flex;

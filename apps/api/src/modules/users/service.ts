@@ -4,14 +4,31 @@ import {
   Role,
   type CreateMeBody,
   type CreateUserBody,
+  DEFAULT_SETTINGS,
   type DemoUser,
+  type MedicalId,
+  type PutMedicalIdBody,
+  type PutSettingsBody,
+  type Settings,
   type UpdateMeBody,
   type User,
   type Verification,
 } from "@sdh/contracts";
 import { isConditionFailure } from "../../lib/db";
 import { HttpError } from "../../lib/http";
-import { getUser, listUsersByRole, putUser, setVerification, updateProfile } from "./repository";
+import { nowIso } from "../../lib/time";
+import {
+  deleteMedicalId,
+  getMedicalId,
+  getSettings,
+  getUser,
+  listUsersByRole,
+  putMedicalId,
+  putSettings,
+  putUser,
+  setVerification,
+  updateProfile,
+} from "./repository";
 
 export async function createUser(body: CreateUserBody, id: string = randomUUID()): Promise<User> {
   const now = new Date().toISOString();
@@ -19,6 +36,11 @@ export async function createUser(body: CreateUserBody, id: string = randomUUID()
     ...body,
     id,
     verification: body.role === "volunteer" ? "pending" : "not_required",
+    points: 0,
+    lifetimePoints: 0,
+    interests: [],
+    languages: [],
+    leaderboardOptIn: false,
     createdAt: now,
     updatedAt: now,
   };
@@ -90,3 +112,22 @@ export async function reviewVolunteer(
     throw error;
   }
 }
+
+// Medical ID is elder-only and always the caller's own; route handlers enforce the role.
+export async function readMedicalId(user: User): Promise<MedicalId> {
+  const medical = await getMedicalId(user.id);
+  if (!medical) throw new HttpError("NOT_FOUND", "No medical ID saved");
+  return medical;
+}
+
+export const saveMedicalId = (user: User, body: PutMedicalIdBody): Promise<MedicalId> =>
+  putMedicalId(user.id, body, nowIso());
+
+export const removeMedicalId = (user: User): Promise<void> => deleteMedicalId(user.id);
+
+export async function readSettings(user: User): Promise<Settings> {
+  return (await getSettings(user.id)) ?? { ...DEFAULT_SETTINGS, updatedAt: user.createdAt };
+}
+
+export const saveSettings = (user: User, body: PutSettingsBody): Promise<Settings> =>
+  putSettings(user.id, body, nowIso());

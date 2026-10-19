@@ -1,10 +1,10 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { CommunityEvent } from "@sdh/contracts";
 import { renderApp } from "../test/renderRoute";
 import { installFakeApi, signInAs } from "../test/fakeApi";
-import { ELDER } from "../test/fixtures";
+import { ELDER, MAINTENANCE, UPDATE_NOTICE } from "../test/fixtures";
 
 function makeEvent(overrides: Partial<CommunityEvent> = {}): CommunityEvent {
   return CommunityEvent.parse({
@@ -43,7 +43,7 @@ const doneEvent = makeEvent({
 beforeEach(() => signInAs());
 
 describe("Community events from the API", () => {
-  it("lists upcoming events with real spot counts and sends the demo header", async () => {
+  it("lists upcoming events with real spot counts and sends the sign-in header", async () => {
     const { calls } = installFakeApi({
       "GET /api/events": { body: { events: [yoga, market, doneEvent] } },
     });
@@ -57,7 +57,7 @@ describe("Community events from the API", () => {
     expect(screen.getByRole("button", { name: "Full" })).toBeDisabled();
     expect(screen.getAllByText("Central Park")).toHaveLength(2);
 
-    const call = calls.find((c) => c.path === "/api/events");
+    const call = calls.find((c) => c.path === "/api/events?purpose=activity");
     expect(call?.method).toBe("GET");
     expect(call?.headers["x-demo-user"]).toBe(ELDER.id);
   });
@@ -70,7 +70,7 @@ describe("Community events from the API", () => {
       },
     });
     await renderApp("/community");
-    await userEvent.click(await screen.findByRole("button", { name: "Register" }));
+    await userEvent.click(await screen.findByRole("button", { name: /^Register for / }));
 
     const done = await screen.findByRole("button", { name: /Registered/ });
     expect(done).toHaveAttribute("aria-pressed", "true");
@@ -94,15 +94,15 @@ describe("Community events from the API", () => {
           : { body: { ...yoga, joined: true, signupCount: 8 } },
     });
     await renderApp("/community");
-    await userEvent.click(await screen.findByRole("button", { name: "Register" }));
+    await userEvent.click(await screen.findByRole("button", { name: /^Register for / }));
     expect(await screen.findByText(/already changed/i)).toBeInTheDocument();
     expect(screen.queryByText("Event is full")).not.toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole("button", { name: "Register" }));
+    await userEvent.click(screen.getByRole("button", { name: /^Register for / }));
     expect(await screen.findByRole("button", { name: /Registered/ })).toBeInTheDocument();
   });
 
-  it("shows an error with Try again when events cannot load, with no demo events", async () => {
+  it("shows an error with Try again when events cannot load", async () => {
     let attempts = 0;
     installFakeApi({
       "GET /api/events": () =>
@@ -116,48 +116,80 @@ describe("Community events from the API", () => {
     await userEvent.click(screen.getByRole("button", { name: "Try again" }));
     expect(await screen.findByText("Morning Yoga")).toBeInTheDocument();
   });
-
-  it("serves demo events with a banner only when demo data is on, and joining works", async () => {
-    vi.stubEnv("VITE_USE_MOCK", "true");
-    window.localStorage.clear();
-    const { fetchMock } = installFakeApi();
-    await renderApp("/community");
-
-    expect(await screen.findByText("Morning Yoga at Central Park")).toBeInTheDocument();
-    expect(screen.getByText(/Demo data. Nothing here is real/)).toBeInTheDocument();
-    await userEvent.click(screen.getAllByRole("button", { name: "Register" })[0]!);
-    expect(await screen.findByRole("button", { name: /Registered/ })).toBeInTheDocument();
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
 });
 
-describe("Other community sections stay demo data", () => {
-  it("labels notices, volunteering and updates as Demo data", async () => {
-    installFakeApi({ "GET /api/events": { body: { events: [] } } });
-    await renderApp("/community");
-    await screen.findByText(/No events are planned yet/);
-    expect(screen.queryByText("Demo data")).not.toBeInTheDocument();
-
-    for (const tab of [/Notices/, /Volunteer/, /Updates/]) {
-      await userEvent.click(screen.getByRole("tab", { name: tab }));
-      expect(screen.getByText("Demo data")).toBeInTheDocument();
-    }
+describe("Notices, volunteering and updates from the API", () => {
+  const drive = makeEvent({
+    id: "7e90c14b-f293-4fcc-8f67-9da2f2a0b10a",
+    title: "Grocery run for neighbours",
+    purpose: "volunteer_drive",
+    organiser: "Elmina Cares",
+    capacity: 10,
+    signupCount: 7,
   });
 
-  it("signs up to volunteer and advances the count", async () => {
-    installFakeApi({ "GET /api/events": { body: { events: [] } } });
+  it("lists maintenance notices and updates, with high priority marked Important", async () => {
+    const { calls } = installFakeApi({
+      "GET /api/events": { body: { events: [] } },
+      "GET /api/notices": (call) => ({
+        body: { items: call.path.includes("kind=update") ? [UPDATE_NOTICE] : [MAINTENANCE] },
+      }),
+    });
+    await renderApp("/community");
+    await userEvent.click(screen.getByRole("tab", { name: /Notices/ }));
+    expect(await screen.findByText("Water supply cut")).toBeInTheDocument();
+    expect(screen.getByText("No water in the morning.")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("tab", { name: /Updates/ }));
+    expect(await screen.findByText("Clinic opens on Saturday")).toBeInTheDocument();
+    expect(screen.getByText("Important")).toBeInTheDocument();
+    expect(screen.queryByText(/Pinned|Demo data/)).not.toBeInTheDocument();
+    expect(calls.some((c) => c.path === "/api/notices?kind=maintenance")).toBe(true);
+  });
+
+  it("shows Finished for an in-progress notice whose window has passed", async () => {
+    const past = {
+      ...MAINTENANCE,
+      status: "in_progress" as const,
+      windowStart: "2026-01-01T09:00:00+08:00",
+      windowEnd: "2026-01-01T12:00:00+08:00",
+    };
+    installFakeApi({
+      "GET /api/events": { body: { events: [] } },
+      "GET /api/notices": { body: { items: [past] } },
+    });
+    await renderApp("/community#maintenance");
+    expect(await screen.findByText("Finished")).toBeInTheDocument();
+    expect(screen.queryByText("Happening now")).not.toBeInTheDocument();
+  });
+
+  it("signs up to a volunteer drive with the join API and keeps it", async () => {
+    const { calls } = installFakeApi({
+      "GET /api/events": { body: { events: [drive] } },
+      [`POST /api/events/${drive.id}/join`]: {
+        body: { ...drive, joined: true, signupCount: 8 },
+      },
+    });
     await renderApp("/community");
     await userEvent.click(screen.getByRole("tab", { name: /Volunteer/i }));
-    const firstCard = screen
-      .getByText("Grocery Delivery for Seniors")
-      .closest(".safety-card") as HTMLElement;
-    expect(within(firstCard).getByText(/7 \/ 10/)).toBeInTheDocument();
-    await userEvent.click(within(firstCard).getByRole("button", { name: /I can help/i }));
-    expect(within(firstCard).getByText(/8 \/ 10/)).toBeInTheDocument();
-    expect(within(firstCard).getByRole("button", { name: /signed up/i })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
+    const card = (await screen.findByText("Grocery run for neighbours")).closest(
+      ".safety-card",
+    ) as HTMLElement;
+    expect(within(card).getByText(/7 \/ 10/)).toBeInTheDocument();
+    expect(within(card).getByText(/Elmina Cares/)).toBeInTheDocument();
+    await userEvent.click(within(card).getByRole("button", { name: /I can help/i }));
+    expect(await within(card).findByText(/8 \/ 10/)).toBeInTheDocument();
+    expect(within(card).getByRole("button", { name: /signed up/i })).toBeDisabled();
+    expect(calls.filter((c) => c.method === "POST")).toHaveLength(1);
+    expect(calls.some((c) => c.path === "/api/events?purpose=volunteer_drive")).toBe(true);
+  });
+
+  it("shows an empty state and an error state for notices", async () => {
+    installFakeApi({
+      "GET /api/events": { body: { events: [] } },
+      "GET /api/notices": { body: { items: [] } },
+    });
+    await renderApp("/community#maintenance");
+    expect(await screen.findByText(/no notices right now/i)).toBeInTheDocument();
   });
 });
 

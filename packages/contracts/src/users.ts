@@ -25,10 +25,23 @@ const Profile = z.object({
   availability: z.array(AvailabilitySlot).max(MAX_SLOTS),
 });
 
+export const Language = z.enum(["en", "ms", "zh"]);
+export type Language = z.infer<typeof Language>;
+
+const Interests = z.array(Category).max(MAX_SKILLS);
+const Languages = z.array(Language).max(Language.options.length);
+
+// The newer fields default on parse so profiles stored before they existed still read cleanly.
 export const User = Profile.extend({
   id: Id,
   role: Role,
   verification: Verification,
+  // Spendable balance and lifetime total; only the points module writes them.
+  points: z.number().int().nonnegative().default(0),
+  lifetimePoints: z.number().int().nonnegative().default(0),
+  interests: Interests.default([]),
+  languages: Languages.default([]),
+  leaderboardOptIn: z.boolean().default(false),
   createdAt: IsoDateTime,
   updatedAt: IsoDateTime,
 });
@@ -43,7 +56,12 @@ export const CreateUserBody = Profile.extend({
 });
 export type CreateUserBody = z.infer<typeof CreateUserBody>;
 
-export const UpdateMeBody = Profile.partial()
+export const UpdateMeBody = Profile.extend({
+  interests: Interests,
+  languages: Languages,
+  leaderboardOptIn: z.boolean(),
+})
+  .partial()
   .strict()
   .refine((body) => Object.keys(body).length > 0, { message: "Nothing to update" });
 export type UpdateMeBody = z.infer<typeof UpdateMeBody>;

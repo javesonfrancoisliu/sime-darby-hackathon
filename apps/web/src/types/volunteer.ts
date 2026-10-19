@@ -17,12 +17,7 @@ export type Opportunity = {
   title: string;
   summary: string;
   category: TaskCategory;
-  // Approximate area centroid (never an exact residential address). Used to
-  // compute distance from the volunteer's live location when permission is
-  // granted. Optional: API-sourced items omit it for privacy, falling back to
-  // the baked `distanceKm`.
-  coords?: { lat: number; lng: number };
-  // Approximate fallback distance in km (0.5 km steps) when geolocation is off.
+  // Approximate distance in km (0.5 km steps), measured by the server from the saved area.
   distanceKm: number;
   area: string;
   scheduledAt: string; // ISO 8601
@@ -33,12 +28,6 @@ export type Opportunity = {
   reasons: string[];
   // Kept for future scheduling features; no longer surfaced as a filter.
   fitsMySchedule: boolean;
-  // Optional shared identity for the underlying real-world activity. When this
-  // matches a Challenge's dedupeKey, verifying this volunteering task and
-  // completing that challenge award points only once (counted as one task).
-  dedupeKey?: string;
-  isDemoData: boolean;
-  sourceLabel: string;
 };
 
 export const URGENCY_RANK: Record<Urgency, number> = { high: 0, medium: 1, low: 2, past: 3 };
@@ -67,7 +56,6 @@ export type ImpactSummary = {
   // Distinct neighbours helped (may differ from completedCount for group tasks).
   peopleHelped: number;
   items: Contribution[];
-  isDemoData: boolean;
 };
 
 export type VerificationStatus = Verification;

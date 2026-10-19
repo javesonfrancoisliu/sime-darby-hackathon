@@ -14,6 +14,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm build && pnpm test",
     "db:up": "docker compose up -d dynamodb",
     "db:setup": "pnpm --filter @sdh/api db:setup",
     "db:seed": "pnpm --filter @sdh/api db:seed"

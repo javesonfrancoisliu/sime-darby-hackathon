@@ -1,99 +1,70 @@
 import { useMemo } from "react";
 
-import type { EventsResponse } from "@sdh/contracts";
+import type { CommunityEvent, EventsResponse, Notice, Paged } from "@sdh/contracts";
 
-import type { CommunityItem, EventItem } from "../types/community";
 import { apiFetch, errorMessage, useSession } from "@sdh/api-client";
+import { eventToItem, noticeToItem, sortFeed } from "../lib/community";
 import { useLoader } from "../lib/useLoader";
-import { DEMO_TOWNSHIP } from "../lib/township";
-import { COMMUNITY_ITEMS } from "./community.mock";
+import type { CommunityItem } from "../types/community";
 
 export type CommunityItemsState = {
   items: CommunityItem[];
   loading: boolean;
-  // Set when signed in and the events API could not be reached; no sample events replace them.
   error: string | null;
-  // True when signed out and the sample events are shown because the API had none.
-  usingSampleData: boolean;
   reload: () => Promise<void>;
 };
 
-type Result = { events: EventItem[]; error: string | null; usingSampleData: boolean };
+type Result = { items: CommunityItem[]; error: string | null };
 
-// Map a backend CommunityEvent to our EventItem card shape.
-// The events API exists (GET /api/events) and its contract covers title, startsAt,
-// durationMinutes, location, capacity, signupCount - enough for an EventCard.
-// Other categories (maintenance, volunteer, township) have no API, so they stay mock.
-function mapApiEvents(res: EventsResponse): EventItem[] {
-  return res.events
-    .filter((e) => e.status === "upcoming")
-    .map((e) => ({
-      id: e.id,
-      townshipId: DEMO_TOWNSHIP.id,
-      category: "event" as const,
-      title: e.title,
-      summary: e.description || "Community event",
-      startsAt: e.startsAt,
-      durationMinutes: e.durationMinutes,
-      location: e.location.area,
-      audience: "All residents",
-      capacity: e.capacity,
-      signupCount: e.signupCount,
-      joined: e.joined,
-      updatedAt: e.updatedAt,
-      sourceLabel: "Community events API",
-      // Real API data - not a simulated reading.
-      isDemoData: false,
-    }));
-}
+// Notices come in pages; a township feed stays small, so a few pages are plenty.
+const MAX_NOTICE_PAGES = 5;
 
-const NON_EVENT_ITEMS = COMMUNITY_ITEMS.filter((i) => i.category !== "event");
-const MOCK_EVENTS = COMMUNITY_ITEMS.filter((i): i is EventItem => i.category === "event");
-
-async function loadEvents(userId: string | null): Promise<Result> {
-  try {
-    const events = mapApiEvents(await apiFetch<EventsResponse>("/api/events", { userId }));
-    // Signed out, an empty list falls back to labelled sample events so the demo is not blank.
-    if (!userId && events.length === 0) {
-      return { events: MOCK_EVENTS, error: null, usingSampleData: true };
-    }
-    return { events, error: null, usingSampleData: false };
-  } catch (err) {
-    if (userId) return { events: [], error: errorMessage(err), usingSampleData: false };
-    return { events: MOCK_EVENTS, error: null, usingSampleData: true };
+async function loadNotices(userId: string | null): Promise<Notice[]> {
+  const notices: Notice[] = [];
+  let cursor: string | undefined;
+  for (let page = 0; page < MAX_NOTICE_PAGES; page += 1) {
+    const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
+    const res = await apiFetch<Paged<Notice>>(`/api/notices${query}`, { userId });
+    notices.push(...res.items);
+    cursor = res.nextCursor;
+    if (!cursor) break;
   }
+  return notices;
 }
 
-// Loads community items. Events come from the events API. Signed out, sample
-// events stand in when the API is empty or unreachable and the page says so.
-// Signed in, an unreachable API is reported rather than hidden behind samples.
-// Maintenance, volunteer and township items are always sample content.
-export function useCommunityItems(): CommunityItemsState {
-  const { userId } = useSession();
-  const { loaded, reload } = useLoader(userId, loadEvents);
-  const ready = loaded !== null && loaded.scope === userId ? loaded.value : null;
+function upcoming(events: CommunityEvent[]): CommunityEvent[] {
+  return events.filter((event) => event.status === "upcoming");
+}
 
-  const items = useMemo<CommunityItem[]>(
-    () =>
-      [...(ready?.events ?? []), ...NON_EVENT_ITEMS].sort(
-        (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-      ),
-    [ready],
-  );
-
+// One feed of notices (maintenance and updates), volunteer drives and events. A failing source is
+// reported but never hides the other.
+async function load(userId: string | null): Promise<Result> {
+  const [notices, events] = await Promise.allSettled([
+    loadNotices(userId),
+    apiFetch<EventsResponse>("/api/events", { userId }),
+  ]);
+  const items = [
+    ...(notices.status === "fulfilled" ? notices.value.map(noticeToItem) : []),
+    ...(events.status === "fulfilled" ? upcoming(events.value.events).map(eventToItem) : []),
+  ];
+  const failed = [notices, events].find((r) => r.status === "rejected");
   return {
-    items,
-    loading: ready === null,
-    error: ready?.error ?? null,
-    usingSampleData: ready?.usingSampleData ?? false,
-    reload,
+    items: sortFeed(items),
+    error: failed?.status === "rejected" ? errorMessage(failed.reason) : null,
   };
 }
 
-// The three newest sample items of any category for the Home summary card.
-export function useLatestCommunityItems(townshipId?: string): CommunityItem[] {
-  return COMMUNITY_ITEMS.filter((item) => !townshipId || item.townshipId === townshipId).slice(
-    0,
-    3,
+export function useCommunityItems(): CommunityItemsState {
+  const { userId } = useSession();
+  const { loaded, reload } = useLoader(userId, load);
+  const ready = loaded !== null && loaded.scope === userId ? loaded.value : null;
+  return useMemo(
+    () => ({
+      items: ready?.items ?? [],
+      loading: ready === null,
+      error: ready?.error ?? null,
+      reload,
+    }),
+    [ready, reload],
   );
 }

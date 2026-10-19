@@ -1,8 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import { useSession } from "@sdh/api-client";
 import { FONT_LABEL, useAccessibility } from "../context/AccessibilityContext";
-import { DEMO_MEDICAL_ID, DEMO_SECURITY_LINE, isMockMode, tokenModeEnabled } from "../config";
-import { DemoTag } from "../ui/DemoTag";
+import { tokenModeEnabled } from "../config";
+import { useMedicalId } from "../hooks/useMedicalId";
+import { useTownship } from "../hooks/useTownship";
+import { bloodGroupText } from "../medical/bloodGroup";
+import { Spinner } from "../ui/Spinner";
+import { Banner } from "../ui/Banner";
 import { useResident } from "../session/useResident";
 import {
   IconUser,
@@ -13,15 +17,20 @@ import {
   IconChevronRight,
   IconUsers,
   IconVolume2,
+  IconPencil,
+  IconPlus,
 } from "../ui/Icons";
 
 // Me page: who is signed in, one-tap text and sound settings, and the township
-// security number. The Medical ID is demo data shown to every resident.
+// security number. The Medical ID is the resident's own, saved on the server.
 export function MePage() {
   const { openSheet, fontSize, highContrast, voiceAssist, speak } = useAccessibility();
   const resident = useResident();
   const { signOut } = useSession();
   const navigate = useNavigate();
+  const medical = useMedicalId();
+  const township = useTownship();
+  const securityLine = township.data?.securityLine;
   const name = resident?.name ?? "";
   const area = resident?.area ?? "";
 
@@ -84,7 +93,7 @@ export function MePage() {
               <span>Sign out</span>
             </button>
           </>
-        ) : isMockMode() ? null : (
+        ) : (
           <button type="button" className="ui-button ui-button--secondary" onClick={switchPerson}>
             <IconUsers className="icon-gap" size={18} strokeWidth={2} />
             <span>Switch person</span>
@@ -123,40 +132,94 @@ export function MePage() {
       <div className="apple-profile-section">
         <span className="apple-profile-section-title">Emergency &amp; Medical ID</span>
         <div className="apple-inset-group">
-          <div className="apple-inset-row">
-            <div className="medical-row__label">
-              <IconHeartPulse className="text-brand" size={18} strokeWidth={1.8} />
-              <span className="app-detail-label m-0">Blood Group</span>
+          {medical.status === "loading" && !medical.data ? (
+            <div className="apple-inset-row">
+              <Spinner label="Loading your Medical ID" />
             </div>
-            <span className="apple-inset-value text-strong">{DEMO_MEDICAL_ID.bloodGroup}</span>
-          </div>
+          ) : null}
 
-          <div className="apple-inset-row">
-            <div className="medical-row__label">
-              <IconPhone className="text-brand" size={18} strokeWidth={1.8} />
-              <span className="app-detail-label m-0">Next of Kin</span>
+          {medical.status === "error" && medical.error?.code !== "NOT_FOUND" ? (
+            <Banner
+              message={medical.error?.message ?? "We could not load your Medical ID."}
+              onRetry={medical.refetch}
+            />
+          ) : null}
+
+          {medical.status === "error" && medical.error?.code === "NOT_FOUND" ? (
+            <div className="apple-inset-row medical-empty">
+              <p className="apple-inset-value m-0">
+                Your Medical ID is empty. Add your blood group and a person to call in an emergency.
+              </p>
+              <button
+                type="button"
+                className="ui-button ui-button--primary"
+                onClick={() => navigate("/me/medical-id")}
+              >
+                <IconPlus className="icon-gap" size={18} strokeWidth={2.2} aria-hidden="true" />
+                <span>Add your Medical ID</span>
+              </button>
             </div>
-            <span className="apple-inset-value">
-              {DEMO_MEDICAL_ID.nextOfKin} ·{" "}
-              <span className="text-nowrap">{DEMO_MEDICAL_ID.nextOfKinPhone}</span>
-            </span>
-          </div>
+          ) : null}
 
-          <a href={`tel:${DEMO_SECURITY_LINE.tel}`} className="apple-inset-btn-row">
-            <div className="apple-inset-btn-row__left">
-              <span className="apple-inset-btn-row__icon text-brand">
-                <IconPhone size={18} strokeWidth={2} />
-              </span>
-              <div>
-                <span className="apple-inset-btn-row__title">
-                  Township security
-                  <DemoTag />
+          {medical.data ? (
+            <>
+              <div className="apple-inset-row">
+                <div className="medical-row__label">
+                  <IconHeartPulse className="text-brand" size={18} strokeWidth={1.8} />
+                  <span className="app-detail-label m-0">Blood Group</span>
+                </div>
+                <span className="apple-inset-value text-strong">
+                  {bloodGroupText(medical.data.bloodGroup)}
                 </span>
-                <span className="apple-inset-btn-row__subtitle">Demo number, not a real line</span>
               </div>
-            </div>
-            <span className="text-strong text-brand">{DEMO_SECURITY_LINE.display}</span>
-          </a>
+
+              <div className="apple-inset-row">
+                <div className="medical-row__label">
+                  <IconPhone className="text-brand" size={18} strokeWidth={1.8} />
+                  <span className="app-detail-label m-0">Next of Kin</span>
+                </div>
+                <span className="apple-inset-value">
+                  {medical.data.nextOfKinName} ({medical.data.nextOfKinRelation}) ·{" "}
+                  <a
+                    className="text-nowrap"
+                    href={`tel:${medical.data.nextOfKinPhone.replace(/[^\d+]/g, "")}`}
+                  >
+                    {medical.data.nextOfKinPhone}
+                  </a>
+                </span>
+              </div>
+
+              <button
+                type="button"
+                className="apple-inset-btn-row"
+                onClick={() => navigate("/me/medical-id")}
+              >
+                <div className="apple-inset-btn-row__left">
+                  <span className="apple-inset-btn-row__icon text-brand" aria-hidden="true">
+                    <IconPencil size={18} strokeWidth={2} />
+                  </span>
+                  <span className="apple-inset-btn-row__title">Change your Medical ID</span>
+                </div>
+                <span className="apple-card-button__arrow" aria-hidden="true">
+                  <IconChevronRight size={18} strokeWidth={2} />
+                </span>
+              </button>
+            </>
+          ) : null}
+
+          {securityLine ? (
+            <a href={`tel:${securityLine.tel}`} className="apple-inset-btn-row">
+              <div className="apple-inset-btn-row__left">
+                <span className="apple-inset-btn-row__icon text-brand">
+                  <IconPhone size={18} strokeWidth={2} />
+                </span>
+                <div>
+                  <span className="apple-inset-btn-row__title">Township security</span>
+                </div>
+              </div>
+              <span className="text-strong text-brand">{securityLine.display}</span>
+            </a>
+          ) : null}
         </div>
       </div>
 

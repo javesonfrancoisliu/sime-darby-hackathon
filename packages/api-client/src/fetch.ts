@@ -27,7 +27,7 @@ export class ApiError extends Error {
 }
 
 export type ApiOptions = {
-  method?: "GET" | "POST" | "PATCH";
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: unknown;
   // Demo user to act as. Defaults to the stored demo sign-in.
   userId?: string | null;
@@ -84,6 +84,9 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promi
     } catch {
       throw new ApiError(0, "NETWORK", NETWORK_MESSAGE);
     }
+
+    // A successful reply with no body (204) has nothing to read.
+    if (res.status === 204) return undefined as T;
 
     let data: unknown;
     try {

@@ -1,12 +1,11 @@
-import { useId, useState, type ReactNode } from "react";
-import { EVENT_CATEGORY_TEXT, spotsLeft } from "../community/events";
+import { useId, type ReactNode } from "react";
+import { EVENT_CATEGORY_TEXT, maintenanceLabel, spotsLeft } from "../community/events";
 import { useEvents, useJoinEvent } from "../hooks/useEvents";
-import { formatWhen } from "../requests/schedule";
+import { formatShortDate, formatWhen, formatWindow, minutesLabel } from "../requests/schedule";
 import { useResident } from "../session/useResident";
 import { Banner } from "../ui/Banner";
-import { DemoTag } from "../ui/DemoTag";
 import { Spinner } from "../ui/Spinner";
-import { useCommunityContent } from "../hooks/useCommunityContent";
+import { useNotices } from "../hooks/useNotices";
 import {
   IconCalendar,
   IconAlertTriangle,
@@ -27,24 +26,13 @@ type CommunityTab = "events" | "maintenance" | "volunteer" | "updates";
 const COMMUNITY_TABS: readonly CommunityTab[] = ["events", "maintenance", "volunteer", "updates"];
 
 // Shared section heading with standardized outline icon
-function SectionHeading({
-  icon,
-  title,
-  demo = false,
-}: {
-  icon: ReactNode;
-  title: string;
-  demo?: boolean;
-}) {
+function SectionHeading({ icon, title }: { icon: ReactNode; title: string }) {
   return (
     <div className="safety-section__heading">
       <span className="safety-section__heading-icon" aria-hidden="true">
         {icon}
       </span>
-      <h2 className="safety-section__heading-text">
-        {title}
-        {demo ? <DemoTag /> : null}
-      </h2>
+      <h2 className="safety-section__heading-text">{title}</h2>
     </div>
   );
 }
@@ -56,17 +44,20 @@ function SectionHeading({
 // c. Community volunteering opportunities
 // d. Important township updates
 export function CommunityPage() {
-  const { maintenanceNotices, volunteerOpportunities, townshipUpdates } = useCommunityContent();
+  const maintenance = useNotices("maintenance");
+  const updates = useNotices("update");
   const { speak, voiceAssist, triggerHaptic } = useAccessibility();
   const [tab, setTab] = useHashTab<CommunityTab>(COMMUNITY_TABS, "events");
   const groupId = useId();
 
   const resident = useResident();
-  const events = useEvents();
+  const events = useEvents("activity");
   const join = useJoinEvent();
-  const [joinedVolunteer, setJoinedVolunteer] = useState<Set<string>>(new Set());
+  const drives = useEvents("volunteer_drive");
+  const joinDrive = useJoinEvent();
 
   const upcoming = (events.data ?? []).filter((e) => e.status === "upcoming");
+  const upcomingDrives = (drives.data ?? []).filter((e) => e.status === "upcoming");
 
   async function joinEvent(id: string, title: string) {
     triggerHaptic(18);
@@ -76,18 +67,12 @@ export function CommunityPage() {
     if (voiceAssist) speak(`You are registered for ${title}.`);
   }
 
-  function toggleVolunteer(id: string, title: string) {
+  async function signUpForDrive(id: string, title: string) {
     triggerHaptic(18);
-    setJoinedVolunteer((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-        if (voiceAssist) speak(`Thank you for signing up to help with ${title}.`);
-      }
-      return next;
-    });
+    const updated = await joinDrive.run(id);
+    if (!updated) return;
+    drives.update((list) => list.map((e) => (e.id === updated.id ? updated : e)));
+    if (voiceAssist) speak(`Thank you for signing up to help with ${title}.`);
   }
 
   const TABS: TabItem<CommunityTab>[] = [
@@ -100,7 +85,7 @@ export function CommunityPage() {
   function handleReadCommunitySummary() {
     const place = resident?.area ?? "your township";
     speak(
-      `Township community updates for ${place}. ${upcoming.length} upcoming ${upcoming.length === 1 ? "event" : "events"}. The notices, volunteering and updates tabs show demo data.`,
+      `Township community updates for ${place}. ${upcoming.length} upcoming ${upcoming.length === 1 ? "event" : "events"}.`,
     );
   }
 
@@ -204,6 +189,7 @@ export function CommunityPage() {
                       <button
                         type="button"
                         className={`community-register-btn${e.joined ? " community-register-btn--done" : ""}`}
+                        aria-label={e.joined || spots === 0 ? undefined : `Register for ${e.title}`}
                         aria-pressed={Boolean(e.joined)}
                         disabled={Boolean(e.joined) || spots === 0 || join.status === "loading"}
                         onClick={() => void joinEvent(e.id, e.title)}
@@ -238,10 +224,21 @@ export function CommunityPage() {
             <SectionHeading
               icon={<IconAlertTriangle size={22} strokeWidth={1.8} />}
               title="Facility Maintenance Announcements"
-              demo
             />
+            {maintenance.status === "loading" && !maintenance.data ? (
+              <Spinner label="Loading notices" />
+            ) : null}
+            {maintenance.status === "error" ? (
+              <Banner
+                message={maintenance.error?.message ?? "We could not load the notices."}
+                onRetry={maintenance.refetch}
+              />
+            ) : null}
+            {maintenance.data && maintenance.data.length === 0 ? (
+              <p className="ui-page-subtitle app-page-lead">There are no notices right now.</p>
+            ) : null}
             <div className="ui-stack">
-              {maintenanceNotices.map((m) => (
+              {(maintenance.data ?? []).map((m) => (
                 <div key={m.id} className="safety-card">
                   <div className="safety-card__row">
                     <div className="community-event-card__icon" aria-hidden="true">
@@ -251,15 +248,22 @@ export function CommunityPage() {
                       <p className="safety-card__location">{m.title}</p>
                       <p className="safety-card__meta">
                         <IconMapPin className="icon-inline" size={12} strokeWidth={2} />
-                        {m.affectedArea}
+                        {m.area}
                       </p>
-                      <p className="safety-card__meta">
-                        <IconCalendar className="icon-inline" size={12} strokeWidth={2} />
-                        {m.dateRange}
-                      </p>
+                      {m.windowStart && m.windowEnd ? (
+                        <p className="safety-card__meta">
+                          <IconCalendar className="icon-inline" size={12} strokeWidth={2} />
+                          {formatWindow(m.windowStart, m.windowEnd)}
+                        </p>
+                      ) : null}
                     </div>
+                    {m.status ? (
+                      <span className="community-category-chip">
+                        {maintenanceLabel(m.status, m.windowEnd)}
+                      </span>
+                    ) : null}
                   </div>
-                  <p className="safety-card__description">{m.impact}</p>
+                  {m.impact ? <p className="safety-card__description">{m.impact}</p> : null}
                 </div>
               ))}
             </div>
@@ -277,13 +281,31 @@ export function CommunityPage() {
             <SectionHeading
               icon={<IconHeartHandshake size={22} strokeWidth={1.8} />}
               title="Community Volunteering Opportunities"
-              demo
             />
+            {drives.status === "loading" && !drives.data ? (
+              <Spinner label="Loading volunteering" />
+            ) : null}
+            {drives.status === "error" ? (
+              <Banner
+                message={drives.error?.message ?? "We could not load volunteering."}
+                onRetry={drives.refetch}
+              />
+            ) : null}
+            {joinDrive.status === "error" ? (
+              <Banner
+                message={joinDrive.error?.message ?? "We could not sign you up. Please try again."}
+              />
+            ) : null}
+            {drives.data && upcomingDrives.length === 0 ? (
+              <p className="ui-page-subtitle app-page-lead">
+                No volunteering is planned right now.
+              </p>
+            ) : null}
             <div className="ui-stack">
-              {volunteerOpportunities.map((v) => {
-                const joined = joinedVolunteer.has(v.id);
-                const signedUp = joined ? v.volunteersSignedUp + 1 : v.volunteersSignedUp;
-                const pct = Math.min(Math.round((signedUp / v.volunteersNeeded) * 100), 100);
+              {upcomingDrives.map((v) => {
+                const spots = spotsLeft(v);
+                const pct = Math.min(Math.round((v.signupCount / v.capacity) * 100), 100);
+                const joined = Boolean(v.joined);
                 return (
                   <div key={v.id} className="safety-card">
                     <div className="safety-card__row">
@@ -294,12 +316,15 @@ export function CommunityPage() {
                         <p className="safety-card__location">{v.title}</p>
                         <p className="safety-card__meta">
                           <IconCalendar className="icon-inline" size={12} strokeWidth={2} />
-                          {v.date} · {v.duration}
+                          {formatWhen(v.startsAt)} · {minutesLabel(v.durationMinutes)}
                         </p>
                         <p className="safety-card__meta">
                           <IconMapPin className="icon-inline" size={12} strokeWidth={2} />
-                          {v.location}
+                          {v.location.area}
                         </p>
+                        {v.organiser ? (
+                          <p className="safety-card__meta">Organised by {v.organiser}</p>
+                        ) : null}
                       </div>
                     </div>
                     <div className="community-vol-progress">
@@ -310,20 +335,24 @@ export function CommunityPage() {
                         />
                       </div>
                       <p className="community-vol-progress__label">
-                        {signedUp} / {v.volunteersNeeded} volunteers signed up
+                        {v.signupCount} / {v.capacity} volunteers signed up
                       </p>
                     </div>
                     <button
                       type="button"
                       className={`community-register-btn community-register-btn--full${joined ? " community-register-btn--done" : ""}`}
+                      aria-label={joined || spots === 0 ? undefined : `I can help with ${v.title}`}
                       aria-pressed={joined}
-                      onClick={() => toggleVolunteer(v.id, v.title)}
+                      disabled={joined || spots === 0 || joinDrive.status === "loading"}
+                      onClick={() => void signUpForDrive(v.id, v.title)}
                     >
                       {joined ? (
                         <>
                           <IconCheck size={18} strokeWidth={2.4} aria-hidden="true" />
                           You&rsquo;re signed up
                         </>
+                      ) : spots === 0 ? (
+                        "Full"
                       ) : (
                         "I can help"
                       )}
@@ -346,34 +375,51 @@ export function CommunityPage() {
             <SectionHeading
               icon={<IconBell size={22} strokeWidth={1.8} />}
               title="Important Township Updates"
-              demo
             />
+            {updates.status === "loading" && !updates.data ? (
+              <Spinner label="Loading updates" />
+            ) : null}
+            {updates.status === "error" ? (
+              <Banner
+                message={updates.error?.message ?? "We could not load the updates."}
+                onRetry={updates.refetch}
+              />
+            ) : null}
+            {updates.data && updates.data.length === 0 ? (
+              <p className="ui-page-subtitle app-page-lead">There are no updates right now.</p>
+            ) : null}
             <div className="ui-stack">
-              {townshipUpdates.map((u) => (
-                <div key={u.id} className={`safety-card${u.pinned ? " safety-card--pinned" : ""}`}>
-                  <div className="safety-card__row">
-                    <div className="community-event-card__icon" aria-hidden="true">
-                      <IconBell size={24} strokeWidth={1.8} />
-                    </div>
-                    <div className="flex-fill">
-                      <div className="row-center">
-                        <p className="safety-card__location m-0">{u.title}</p>
-                        {u.pinned && (
-                          <span className="safety-chip tone-alert no-shrink">
-                            <IconPin className="icon-inline" size={11} strokeWidth={2} />
-                            Pinned
-                          </span>
-                        )}
+              {(updates.data ?? []).map((u) => {
+                const important = u.priority === "high";
+                return (
+                  <div
+                    key={u.id}
+                    className={`safety-card${important ? " safety-card--pinned" : ""}`}
+                  >
+                    <div className="safety-card__row">
+                      <div className="community-event-card__icon" aria-hidden="true">
+                        <IconBell size={24} strokeWidth={1.8} />
                       </div>
-                      <p className="safety-card__meta">
-                        <IconCalendar className="icon-inline" size={12} strokeWidth={2} />
-                        {u.category} · {u.date}
-                      </p>
+                      <div className="flex-fill">
+                        <div className="row-center">
+                          <p className="safety-card__location m-0">{u.title}</p>
+                          {important && (
+                            <span className="safety-chip tone-alert no-shrink">
+                              <IconPin className="icon-inline" size={11} strokeWidth={2} />
+                              Important
+                            </span>
+                          )}
+                        </div>
+                        <p className="safety-card__meta">
+                          <IconCalendar className="icon-inline" size={12} strokeWidth={2} />
+                          {u.topic} · {formatShortDate(u.publishedAt)}
+                        </p>
+                      </div>
                     </div>
+                    <p className="safety-card__description">{u.description}</p>
                   </div>
-                  <p className="safety-card__description">{u.body}</p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </section>
         </TabPanel>

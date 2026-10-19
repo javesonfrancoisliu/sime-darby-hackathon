@@ -1,4 +1,4 @@
-import type { AlertLevel, FacilityStatus, HazardLevel, WaterStatus } from "../types/safety";
+import type { AirLevel, FacilityStatus, HeatLevel, WaterLevel } from "@sdh/contracts";
 
 // One place for the words and colour of each safety reading, so Home and the
 // Safety page always show the same reading the same way.
@@ -9,21 +9,21 @@ export interface LevelInfo {
   label: string;
 }
 
-export const HAZARD_LEVEL: Record<HazardLevel, LevelInfo> = {
+export const HAZARD_LEVEL: Record<AirLevel, LevelInfo> = {
   good: { tone: "good", label: "Good" },
   moderate: { tone: "caution", label: "Moderate" },
   unhealthy: { tone: "alert", label: "Unhealthy" },
   hazardous: { tone: "extreme", label: "Hazardous" },
 };
 
-export const WATER_STATUS: Record<WaterStatus, LevelInfo> = {
+export const WATER_STATUS: Record<WaterLevel, LevelInfo> = {
   normal: { tone: "good", label: "Normal" },
   watch: { tone: "caution", label: "Watch" },
   warning: { tone: "alert", label: "Warning" },
   danger: { tone: "solid-danger", label: "Danger" },
 };
 
-export const ALERT_LEVEL: Record<AlertLevel, LevelInfo> = {
+export const ALERT_LEVEL: Record<HeatLevel, LevelInfo> = {
   normal: { tone: "good", label: "Normal" },
   warning: { tone: "caution", label: "Heat Advisory" },
   danger: { tone: "alert", label: "Extreme Heat" },
@@ -32,7 +32,7 @@ export const ALERT_LEVEL: Record<AlertLevel, LevelInfo> = {
 export const FACILITY_STATUS: Record<FacilityStatus, LevelInfo> = {
   reported: { tone: "alert", label: "Reported" },
   in_progress: { tone: "caution", label: "In Progress" },
-  fixed: { tone: "good", label: "Fixed" },
+  resolved: { tone: "good", label: "Fixed" },
 };
 
 // Top of the Air Pollutant Index bar; readings above it fill the bar.

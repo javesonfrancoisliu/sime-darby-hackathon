@@ -1,19 +1,12 @@
 import { screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { ELDER, NO_CONTRIBUTIONS, VOLUNTEER } from "./test/fixtures";
+import { ELDER, VOLUNTEER } from "./test/fixtures";
 import { installFakeApi, signInAs } from "./test/fakeApi";
 import { renderApp } from "./test/renderApp";
+import { signedInRoutes } from "./test/routes";
 
-function liveRoutes(user: typeof VOLUNTEER | typeof ELDER) {
-  return {
-    "GET /api/me": { body: user },
-    "GET /api/events": { body: { events: [] } },
-    "GET /api/requests/mine": { body: { requests: [] } },
-    "GET /api/opportunities": { body: { items: [] } },
-    "GET /api/contributions/mine": { body: NO_CONTRIBUTIONS },
-  };
-}
+const liveRoutes = (user: typeof VOLUNTEER | typeof ELDER) => signedInRoutes(user);
 
 describe("session wiring", () => {
   it("keeps the navigation on screen while the signed-in user loads", async () => {
@@ -37,7 +30,7 @@ describe("session wiring", () => {
     expect(live.every((c) => c.headers["x-demo-user"] === VOLUNTEER.id)).toBe(true);
   });
 
-  it("falls back to the signed-out demo app when the stored user no longer exists", async () => {
+  it("shows the signed-out profile when the stored user no longer exists", async () => {
     installFakeApi({
       "GET /api/me": { status: 401, body: { error: { code: "UNAUTHENTICATED", message: "No" } } },
       "GET /api/events": { body: { events: [] } },

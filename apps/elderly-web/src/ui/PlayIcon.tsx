@@ -1,39 +1,49 @@
 import type { ComponentType } from "react";
-import type { PlayIconName } from "../types/challenges";
+import type { IconKey } from "@sdh/contracts";
 import {
-  IconCheck,
-  IconDevice,
-  IconFlame,
+  IconActivity,
+  IconBook,
+  IconCart,
+  IconCoffee,
+  IconDroplet,
+  IconFootprints,
   IconGift,
-  IconHeartHandshake,
-  IconHeartPulse,
-  IconMapPin,
-  IconShieldCheck,
-  IconShoppingBag,
-  IconSparkles,
+  IconHeart,
+  IconLeaf,
+  IconMedal,
+  IconRecycle,
+  IconShield,
+  IconStar,
   IconSun,
+  IconTicket,
+  IconTree,
   IconTrophy,
-  IconUser,
+  IconUsers,
   type IconProps,
 } from "./Icons";
 
-const PLAY_ICONS: Record<PlayIconName, ComponentType<IconProps>> = {
-  walk: IconMapPin,
-  plant: IconSparkles,
-  device: IconDevice,
-  check: IconCheck,
-  streak: IconFlame,
-  neighbour: IconHeartHandshake,
+const PLAY_ICONS: Record<IconKey, ComponentType<IconProps>> = {
+  walk: IconFootprints,
+  run: IconActivity,
+  tree: IconTree,
+  recycle: IconRecycle,
+  leaf: IconLeaf,
+  droplet: IconDroplet,
   sun: IconSun,
+  heart: IconHeart,
+  users: IconUsers,
+  book: IconBook,
   trophy: IconTrophy,
-  groceries: IconShoppingBag,
-  health: IconHeartPulse,
+  medal: IconMedal,
+  star: IconStar,
+  shield: IconShield,
   gift: IconGift,
-  pharmacy: IconShieldCheck,
-  person: IconUser,
+  ticket: IconTicket,
+  coffee: IconCoffee,
+  cart: IconCart,
 };
 
-export function PlayIcon({ name, className }: { name: PlayIconName; className?: string }) {
+export function PlayIcon({ name, className }: { name: IconKey; className?: string }) {
   const Icon = PLAY_ICONS[name];
   return <Icon size={28} strokeWidth={1.8} className={className} aria-hidden="true" />;
 }

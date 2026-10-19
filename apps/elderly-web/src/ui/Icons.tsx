@@ -1,5 +1,20 @@
 import {
+  Activity,
   AlertTriangle,
+  TreeDeciduous,
+  Trash2,
+  Ticket,
+  Star,
+  ShoppingCart,
+  Recycle,
+  Pencil,
+  Medal,
+  Leaf,
+  Heart,
+  Footprints,
+  Droplet,
+  Coffee,
+  BookOpen,
   Bell,
   Calendar,
   Car,
@@ -91,3 +106,18 @@ export const IconTrophy = withDefaults(Trophy);
 export const IconFlame = withDefaults(Flame);
 export const IconGift = withDefaults(Gift);
 export const IconSparkles = withDefaults(Sparkles);
+export const IconActivity = withDefaults(Activity);
+export const IconBook = withDefaults(BookOpen);
+export const IconCoffee = withDefaults(Coffee);
+export const IconDroplet = withDefaults(Droplet);
+export const IconFootprints = withDefaults(Footprints);
+export const IconHeart = withDefaults(Heart);
+export const IconLeaf = withDefaults(Leaf);
+export const IconMedal = withDefaults(Medal);
+export const IconPencil = withDefaults(Pencil);
+export const IconRecycle = withDefaults(Recycle);
+export const IconCart = withDefaults(ShoppingCart);
+export const IconStar = withDefaults(Star);
+export const IconTicket = withDefaults(Ticket);
+export const IconTrash = withDefaults(Trash2);
+export const IconTree = withDefaults(TreeDeciduous);

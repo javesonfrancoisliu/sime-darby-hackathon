@@ -5,11 +5,10 @@ import { Carousel } from "../ui/Carousel";
 import { RequestCard } from "../ui/RequestCard";
 import { useMyRequests } from "../hooks/useRequests";
 import { CATEGORY_OPTIONS } from "../requests/categories";
-import { formatWhen } from "../requests/schedule";
+import { formatWhen, formatWindow } from "../requests/schedule";
 import { CategoryIcon } from "../ui/CategoryIcon";
 import { Spinner } from "../ui/Spinner";
 import { Banner } from "../ui/Banner";
-import { DemoTag } from "../ui/DemoTag";
 import { EmergencyCallButton } from "../ui/EmergencyCallButton";
 import { useResident } from "../session/useResident";
 import {
@@ -32,8 +31,9 @@ import {
   severityOf,
   type Severity,
 } from "../safety/levels";
-import { useCommunityContent } from "../hooks/useCommunityContent";
-import { useSafetyData } from "../hooks/useSafetyData";
+import { useNotices } from "../hooks/useNotices";
+import { pickLocal, useSafetyData } from "../hooks/useSafetyData";
+import { formatTemperature } from "../safety/format";
 
 // Home page: mobile-first dashboard.
 // Displays:
@@ -46,28 +46,24 @@ export function HomePage() {
   const navigate = useNavigate();
   const { data, status, error, refetch } = useMyRequests();
   const resident = useResident();
-  const { hazeReadings, temperatureAlert, facilityReports } = useSafetyData();
-  const { maintenanceNotices } = useCommunityContent();
+  const safety = useSafetyData();
+  const maintenance = useNotices("maintenance");
 
-  // Local township data for Elmina West. Under noUncheckedIndexedAccess these
-  // lookups are typed as possibly undefined, so each card below renders only
-  // when its datum exists.
-  const localHaze = hazeReadings.find((h) => h.location === "Elmina West") ?? hazeReadings[0];
-  const localMaintenance = maintenanceNotices[0];
-  const localFacilityDamage =
-    facilityReports.find((f) => f.status === "in_progress") ?? facilityReports[0];
+  const localAir = pickLocal(safety.air, resident?.area);
+  const localHeat = pickLocal(safety.heat, resident?.area);
+  const localMaintenance = maintenance.data?.[0];
+  const localFacilityDamage = safety.facilities.find((f) => f.status === "in_progress");
 
   // One condition card per carousel slide (shown one at a time).
   const conditionSlides: ReactNode[] = [];
-  if (localHaze) {
-    const haze = HAZARD_LEVEL[localHaze.level];
-    const sev = severityOf(haze);
+  if (localAir) {
+    const haze = HAZARD_LEVEL[localAir.level];
     conditionSlides.push(
       <button
         key="haze"
         type="button"
         className="apple-condition-card apple-condition-card--sev"
-        data-severity={sev}
+        data-severity={severityOf(haze)}
         onClick={() => navigate("/safety#haze")}
       >
         <div className="apple-condition-card__top">
@@ -77,32 +73,30 @@ export function HomePage() {
           <span className="safety-chip safety-chip--sm apple-condition-card__chip">
             {haze.label}
           </span>
-          <DemoTag />
         </div>
         <div className="apple-condition-card__main">
-          <span className="apple-condition-card__value">{localHaze.api}</span>
-          <span className="apple-condition-card__unit">API</span>
+          <span className="apple-condition-card__value">{localAir.value}</span>
+          <span className="apple-condition-card__unit">{localAir.unit}</span>
         </div>
         <div className="safety-bar">
           <div
             className="safety-bar__fill safety-bar__fill--sev"
-            style={{ width: `${Math.min((localHaze.api / HAZE_API_SCALE_MAX) * 100, 100)}%` }}
+            style={{ width: `${Math.min((localAir.value / HAZE_API_SCALE_MAX) * 100, 100)}%` }}
           />
         </div>
         <span className="apple-condition-card__label">Air Quality (Haze)</span>
-        <span className="apple-condition-card__sub">Sensitive groups take care</span>
+        <span className="apple-condition-card__sub">{localAir.advice}</span>
       </button>,
     );
   }
-  {
-    const temp = ALERT_LEVEL[temperatureAlert.level];
-    const sev = severityOf(temp);
+  if (localHeat) {
+    const temp = ALERT_LEVEL[localHeat.level];
     conditionSlides.push(
       <button
         key="temp"
         type="button"
         className="apple-condition-card apple-condition-card--sev"
-        data-severity={sev}
+        data-severity={severityOf(temp)}
         onClick={() => navigate("/safety#temp")}
       >
         <div className="apple-condition-card__top">
@@ -112,14 +106,17 @@ export function HomePage() {
           <span className="safety-chip safety-chip--sm apple-condition-card__chip">
             {temp.label}
           </span>
-          <DemoTag />
         </div>
         <div className="apple-condition-card__main">
-          <span className="apple-condition-card__value">{temperatureAlert.tempC}°C</span>
-          <span className="apple-condition-card__unit">Feels {temperatureAlert.feelsLikeC}°</span>
+          <span className="apple-condition-card__value">
+            {formatTemperature(localHeat.value, localHeat.unit)}
+          </span>
+          <span className="apple-condition-card__unit">
+            Feels {formatTemperature(localHeat.feelsLike, localHeat.unit)}
+          </span>
         </div>
         <span className="apple-condition-card__label">Temperature Alert</span>
-        <span className="apple-condition-card__sub">Stay hydrated &amp; rest in shade</span>
+        <span className="apple-condition-card__sub">{localHeat.advice}</span>
       </button>,
     );
   }
@@ -141,26 +138,26 @@ export function HomePage() {
           <span className="safety-chip safety-chip--sm apple-condition-card__chip">
             Maintenance
           </span>
-          <DemoTag />
         </div>
         <span className="apple-condition-card__title-line">{localMaintenance.title}</span>
-        <span className="apple-condition-card__location">{localMaintenance.affectedArea}</span>
-        <span className="apple-condition-card__sub">
-          <IconClock className="icon-inline" size={11} strokeWidth={2} />
-          {localMaintenance.dateRange}
-        </span>
+        <span className="apple-condition-card__location">{localMaintenance.area}</span>
+        {localMaintenance.windowStart && localMaintenance.windowEnd ? (
+          <span className="apple-condition-card__sub">
+            <IconClock className="icon-inline" size={11} strokeWidth={2} />
+            {formatWindow(localMaintenance.windowStart, localMaintenance.windowEnd)}
+          </span>
+        ) : null}
       </button>,
     );
   }
   if (localFacilityDamage) {
     const facility = FACILITY_STATUS[localFacilityDamage.status];
-    const sev = severityOf(facility);
     conditionSlides.push(
       <button
         key="facility"
         type="button"
         className="apple-condition-card apple-condition-card--sev"
-        data-severity={sev}
+        data-severity={severityOf(facility)}
         onClick={() => navigate("/safety#facilities")}
       >
         <div className="apple-condition-card__top">
@@ -170,17 +167,14 @@ export function HomePage() {
           <span className="safety-chip safety-chip--sm apple-condition-card__chip">
             {facility.label}
           </span>
-          <DemoTag />
         </div>
         <span className="apple-condition-card__title-line">{localFacilityDamage.title}</span>
-        <span className="apple-condition-card__location">{localFacilityDamage.location}</span>
-        <span className="apple-condition-card__sub">
-          {localFacilityDamage.status === "in_progress" ? "Crew dispatched" : facility.label} ·{" "}
-          {localFacilityDamage.category}
-        </span>
+        <span className="apple-condition-card__location">{localFacilityDamage.area}</span>
+        <span className="apple-condition-card__sub">{localFacilityDamage.category}</span>
       </button>,
     );
   }
+  const conditionsLoading = safety.status === "loading" && !safety.loaded;
 
   return (
     <div className="app-home">
@@ -198,7 +192,7 @@ export function HomePage() {
             </h2>
             <p className="app-home__section-subtitle">
               <IconMapPin className="icon-inline" size={12} strokeWidth={2} />
-              Elmina West · Example readings
+              {resident?.area ?? "Elmina"}
             </p>
           </div>
           <button type="button" className="app-home__see-all" onClick={() => navigate("/safety")}>
@@ -206,7 +200,19 @@ export function HomePage() {
           </button>
         </div>
 
-        <Carousel ariaLabel="Township live conditions" slides={conditionSlides} />
+        {conditionsLoading ? <Spinner label="Loading conditions" /> : null}
+        {safety.status === "error" && conditionSlides.length === 0 ? (
+          <Banner
+            message={safety.error?.message ?? "We could not load the conditions."}
+            onRetry={safety.refetch}
+          />
+        ) : null}
+        {conditionSlides.length > 0 ? (
+          <Carousel ariaLabel="Township live conditions" slides={conditionSlides} />
+        ) : null}
+        {safety.loaded && conditionSlides.length === 0 ? (
+          <p className="ui-page-subtitle">Nothing to report in the township right now.</p>
+        ) : null}
       </section>
 
       <section className="app-home__section">
