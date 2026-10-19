@@ -42,7 +42,7 @@ export function HeroHeader({ name, location = "Elmina West" }: HeroHeaderProps) 
           width={40}
           height={40}
         />
-        <span className="app-hero__brand-name">Help a Neighbour</span>
+        <span className="app-hero__brand-name">Township Connect</span>
       </div>
 
       <div className="app-hero__location">

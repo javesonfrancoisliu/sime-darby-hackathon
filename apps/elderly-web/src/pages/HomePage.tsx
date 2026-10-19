@@ -245,7 +245,7 @@ export function HomePage() {
       <section className="app-home__section" aria-labelledby="daily-support-heading">
         <div className="app-home__section-header">
           <h2 id="daily-support-heading" className="app-home__section-title">
-            Help a Neighbour Services
+            Township Connect Services
           </h2>
           <button type="button" className="app-home__see-all" onClick={() => navigate("/request")}>
             All services

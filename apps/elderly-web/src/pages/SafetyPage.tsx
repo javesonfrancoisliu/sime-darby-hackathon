@@ -14,9 +14,10 @@ import {
   IconAlertTriangle,
   IconMapPin,
   IconInfo,
-  IconVolume2,
 } from "../ui/Icons";
 import { SegmentedTabs, TabPanel, type TabItem } from "../ui/SegmentedTabs";
+import { Drawer } from "../ui/Drawer";
+import { PageHeaderActions } from "../ui/PageHeaderActions";
 import { useAccessibility } from "../context/AccessibilityContext";
 import { useHashTab } from "../ui/useHashTab";
 import {
@@ -70,6 +71,7 @@ export function SafetyPage() {
   const { air: airReadings, water: waterReadings, heat: heatReadings } = safety;
   const facilityReports = safety.facilities;
   const [facilityFilter, setFacilityFilter] = useState<FilterStatus>("all");
+  const [openFacility, setOpenFacility] = useState<string | null>(null);
   const [tab, setTab] = useHashTab<SafetyTab>(SAFETY_TABS, "haze");
   const groupId = useId();
   const { speak, triggerHaptic } = useAccessibility();
@@ -120,16 +122,7 @@ export function SafetyPage() {
               {resident?.area ?? "Elmina"} · Township Hazard Monitoring
             </p>
           </div>
-          <button
-            type="button"
-            className="ui-button ui-button--ghost apple-header-voice-btn"
-            onClick={handleReadSafetySummary}
-            aria-label="Read safety hazard summary aloud"
-            title="Read summary aloud"
-          >
-            <IconVolume2 size={18} strokeWidth={2.2} />
-            <span className="apple-header-voice-text">Listen</span>
-          </button>
+          <PageHeaderActions onReadAloud={handleReadSafetySummary} />
         </div>
       </div>
 
@@ -347,17 +340,28 @@ export function SafetyPage() {
               {filteredFacilities.map((r) => {
                 const s = FACILITY_STATUS[r.status];
                 return (
-                  <div key={r.id} className="safety-card">
-                    <div className="safety-card__row">
-                      <div className="flex-fill">
-                        <p className="safety-card__location">{r.title}</p>
-                        <p className="safety-card__meta">
-                          <IconMapPin className="icon-inline" size={12} strokeWidth={2} />
-                          {r.area}
-                        </p>
+                  <Drawer
+                    key={r.id}
+                    className="safety-card safety-card--drawer"
+                    label={r.title}
+                    open={openFacility === r.id}
+                    onToggle={() => {
+                      triggerHaptic(10);
+                      setOpenFacility((cur) => (cur === r.id ? null : r.id));
+                    }}
+                    header={
+                      <div className="safety-card__row m-0">
+                        <div className="flex-fill">
+                          <p className="safety-card__location">{r.title}</p>
+                          <p className="safety-card__meta">
+                            <IconMapPin className="icon-inline" size={12} strokeWidth={2} />
+                            {r.area}
+                          </p>
+                        </div>
+                        <span className={`safety-chip tone-${s.tone}`}>{s.label}</span>
                       </div>
-                      <span className={`safety-chip tone-${s.tone}`}>{s.label}</span>
-                    </div>
+                    }
+                  >
                     <p className="safety-card__description">{r.description}</p>
                     <div className="safety-card__footer">
                       <span className="safety-card__category">{r.category}</span>
@@ -366,7 +370,7 @@ export function SafetyPage() {
                         {r.status !== "reported" && ` · Updated ${formatWhen(r.updatedAt)}`}
                       </span>
                     </div>
-                  </div>
+                  </Drawer>
                 );
               })}
             </div>

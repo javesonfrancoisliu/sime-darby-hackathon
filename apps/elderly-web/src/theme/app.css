@@ -16,13 +16,15 @@
   margin-inline: auto;
 }
 
-/* Sub-pages still get comfortable padding */
-.app-main > *:not(.app-home) {
-  padding: var(--space-8) var(--space-4);
+/* All pages follow the home layout: full-bleed-header pages (.safety-page)
+   get no outer padding like .app-home; plain content pages keep comfortable
+   padding. This removes the extra outer gap sub-pages used to get. */
+.app-main > *:not(.app-home):not(.safety-page) {
+  padding: var(--space-6) var(--space-4) var(--space-8);
 }
 
 @media (max-width: 639px) {
-  .app-main > *:not(.app-home) {
+  .app-main > *:not(.app-home):not(.safety-page) {
     padding: var(--space-4);
   }
 }
@@ -499,8 +501,6 @@
   height: 100%;
   border-radius: var(--radius-pill);
   transition: width 600ms ease;
-  /* The dark edge keeps every fill at 3:1 or more against the light track, including yellow, orange and green. */
-  box-shadow: inset 0 0 0 1.5px var(--text-primary);
 }
 
 /* ── Status chip ─────────────────────────────────────────────── */
@@ -2136,41 +2136,49 @@ button:active,
   height: 248px;
 }
 
-.carousel__controls {
+.carousel__dots {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-4);
+  gap: 10px;
   margin-top: var(--space-3);
 }
-.carousel__step {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
+.carousel__dot {
+  width: 10px;
+  height: 10px;
   padding: 0;
-  border: 2px solid var(--brand-primary);
-  border-radius: 50%;
-  background: var(--surface);
-  color: var(--brand-primary);
+  border: none;
+  border-radius: 999px;
+  background: rgba(17, 24, 39, 0.22);
   cursor: pointer;
-  transition: transform 90ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  position: relative;
+  transition:
+    width 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 200ms ease;
 }
-.carousel__step:active {
-  transform: scale(0.94);
+.carousel__dot::before {
+  content: "";
+  position: absolute;
+  inset: -14px;
 }
-.carousel__count {
-  min-width: 5rem;
-  text-align: center;
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text-primary);
+.carousel__dot--active {
+  width: 26px;
+  background: var(--brand-primary);
+}
+.carousel__dot:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 4px;
+}
+.high-contrast .carousel__dot {
+  background: rgba(0, 0, 0, 0.35);
+}
+.high-contrast .carousel__dot--active {
+  background: #000000;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .carousel__track,
-  .carousel__step {
+  .carousel__dot {
     transition: none;
   }
 }
@@ -2575,9 +2583,11 @@ button:active,
 .emergency-call {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  justify-content: center;
+  gap: var(--space-4);
   min-height: 72px;
-  padding: var(--space-3) var(--space-5);
+  padding: var(--space-3) var(--space-6);
+  width: 100%;
   border-radius: var(--radius-card);
   background: var(--brand-deep);
   color: #fff;
@@ -2862,4 +2872,504 @@ main:focus {
 .app-spinner-text {
   color: var(--text-secondary);
   font-weight: 600;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Drawer — tap-to-expand card (Safety facilities, Community
+   notices/updates, Play goals). apple-design: the body uses a
+   grid-template-rows 0fr→1fr collapse (animates to real content
+   height, no magic numbers), a single critically-damped curve for
+   a calm settle, a chevron that rotates to hint the reveal
+   direction, and an instant collapse under reduced motion.
+───────────────────────────────────────────────────────────── */
+.drawer {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+/* The whole top row is the toggle. */
+.drawer__header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-4);
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  min-height: 56px;
+  transition: background-color 160ms ease;
+}
+.drawer__header:hover {
+  background: rgba(17, 24, 39, 0.02);
+}
+.drawer__header:active {
+  background: rgba(17, 24, 39, 0.04);
+}
+.drawer__header:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: -3px;
+}
+.drawer__header-content {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Chevron points right when closed, rotates down when open (hints the reveal). */
+.drawer__chevron {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-top: 2px;
+  color: var(--text-secondary);
+  transform: rotate(0deg);
+  transition: transform 340ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.drawer--open .drawer__chevron {
+  transform: rotate(90deg);
+  color: var(--brand-primary);
+}
+
+/* Collapsible body: 0fr (collapsed) → 1fr (full content height). */
+.drawer__body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 340ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.drawer--open .drawer__body {
+  grid-template-rows: 1fr;
+}
+/* The inner wrapper is the overflow clip; min-height:0 lets the row shrink. */
+.drawer__body-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+/* Content padding lives inside the clip so it fades with the collapse.
+   Padding sits on one content wrapper (not each child) so bodies with
+   multiple children don't get doubled gaps. */
+.drawer__content {
+  padding: 0 var(--space-4) var(--space-4);
+}
+.drawer__content > :first-child {
+  margin-top: 0;
+}
+
+/* High-contrast: hard border + keep the structure obvious. */
+.high-contrast .drawer {
+  border: 2px solid #000000;
+  box-shadow: 0 4px 0 #000000;
+}
+
+/* Reduced motion: no slide/rotate easing — snap open/closed. */
+.reduced-motion .drawer__body,
+.reduced-motion .drawer__chevron {
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .drawer__body,
+  .drawer__chevron {
+    transition: none;
+  }
+}
+
+/* Play goal as a drawer: the Drawer wrapper owns the card box, so strip the
+   duplicated padding/background/border the plain .play-challenge adds. The
+   progress bar sits in the always-visible header and needs a little bottom
+   room so it doesn't collide with the collapsing body. */
+.play-challenge--drawer {
+  padding: 0;
+}
+.play-challenge--drawer .play-challenge__top {
+  margin-bottom: var(--space-3);
+}
+.play-challenge--drawer .play-challenge__bar {
+  margin-bottom: 0;
+}
+.play-challenge--drawer .play-challenge__meta {
+  margin-top: var(--space-3);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Volunteer level badge + legend (replaces the old verified shield).
+   The pill colour comes from the level (--level-color) and is always
+   paired with a text label, so meaning never rests on colour alone.
+───────────────────────────────────────────────────────────── */
+.level-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--level-color) 14%, #ffffff);
+  color: color-mix(in srgb, var(--level-color) 72%, #000000);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.level-badge__icon {
+  display: inline-flex;
+  color: var(--level-color);
+}
+@supports not (background: color-mix(in srgb, red 10%, white)) {
+  .level-badge {
+    background: #f1f5f9;
+    color: #1f2937;
+  }
+}
+.high-contrast .level-badge {
+  background: #ffffff;
+  color: #000000;
+  border: 1.5px solid #000000;
+}
+
+/* Me-page profile level sits just under the location line. */
+.apple-profile-level {
+  margin-top: var(--space-2);
+}
+
+/* Legend: one row per level on a matched request's detail page. */
+.level-legend {
+  margin-top: var(--space-6);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-4);
+}
+.level-legend__title {
+  margin: 0 0 var(--space-3);
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+.level-legend__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.level-legend__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.level-legend__icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--level-color) 14%, #ffffff);
+  color: var(--level-color);
+}
+@supports not (background: color-mix(in srgb, red 10%, white)) {
+  .level-legend__icon {
+    background: #f1f5f9;
+  }
+}
+.level-legend__name {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.level-legend__range {
+  margin: 2px 0 0;
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+.high-contrast .level-legend__icon {
+  background: #ffffff;
+  border: 2px solid #000000;
+  color: #000000;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Neighbourhood leaderboard (Community Play → Streak tab).
+   Ported from the volunteer app; the resident's own row is
+   highlighted. Display names only, simulated points.
+───────────────────────────────────────────────────────────── */
+.leaderboard-card {
+  margin-top: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-4);
+}
+.leaderboard-card__title {
+  margin: 0 0 var(--space-3);
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+.leaderboard {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.leaderboard-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-control);
+  min-height: 48px;
+}
+.leaderboard-row--me {
+  background: #fff6f3;
+  border: 1px solid var(--brand-primary);
+}
+.leaderboard-rank {
+  flex: 0 0 auto;
+  width: 26px;
+  text-align: center;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+.leaderboard-name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-primary);
+}
+.leaderboard-you {
+  color: var(--brand-primary);
+  font-weight: 700;
+}
+.leaderboard-points {
+  flex: 0 0 auto;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.high-contrast .leaderboard-row--me {
+  background: #ffffff;
+  border: 2px solid #000000;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Call confirmation sheet. Reuses the bottom-sheet chrome
+   (.apple-sheet-backdrop / .apple-sheet-panel) with a centred confirm
+   layout. The call is placed only after a deliberate slide-to-confirm
+   gesture, so a mis-tap never dials.
+───────────────────────────────────────────────────────────── */
+.call-confirm-panel {
+  text-align: center;
+}
+.call-confirm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.call-confirm__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--brand-primary) 14%, #ffffff);
+  color: var(--brand-primary);
+  margin-bottom: var(--space-3);
+}
+.call-confirm__icon--danger {
+  background: var(--brand-deep);
+  color: #fff;
+}
+@supports not (background: color-mix(in srgb, red 10%, white)) {
+  .call-confirm__icon {
+    background: #fff6f3;
+  }
+}
+.call-confirm__title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+.call-confirm__sub {
+  margin: var(--space-2) 0 0;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+.call-confirm__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 100%;
+  margin-top: var(--space-6);
+}
+.call-confirm__cancel {
+  width: 100%;
+  min-height: 56px;
+}
+.high-contrast .call-confirm__icon {
+  background: #ffffff;
+  border: 2px solid #000000;
+  color: #000000;
+}
+.high-contrast .call-confirm__icon--danger {
+  background: #000000;
+  color: #ffffff;
+}
+
+/* ── Slide-to-confirm control (drag the knob across to call) ──── */
+.slide-confirm {
+  position: relative;
+  width: 100%;
+  height: 64px;
+  border-radius: 999px;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.slide-confirm:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 3px;
+}
+/* The filled trail grows under the knob as it travels. */
+.slide-confirm__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--knob-progress, 0) * 100%);
+  background: color-mix(in srgb, var(--brand-primary) 22%, transparent);
+  transition: width 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.slide-confirm--danger .slide-confirm__fill {
+  background: color-mix(in srgb, var(--brand-deep) 28%, transparent);
+}
+@supports not (background: color-mix(in srgb, red 10%, white)) {
+  .slide-confirm__fill {
+    background: rgba(215, 25, 32, 0.22);
+  }
+}
+.slide-confirm__label {
+  position: relative;
+  z-index: 1;
+  padding-left: 40px;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+.slide-confirm__knob {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  z-index: 2;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--brand-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  cursor: grab;
+  touch-action: none;
+  /* Travel = (track width − knob − side insets) × progress. */
+  transform: translateX(calc(var(--knob-progress, 0) * (100cqw - 64px)));
+  transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* Enable cqw travel by making the track a size container. */
+.slide-confirm {
+  container-type: inline-size;
+}
+.slide-confirm--danger .slide-confirm__knob {
+  background: var(--brand-deep);
+}
+.slide-confirm--dragging .slide-confirm__knob {
+  cursor: grabbing;
+  /* Follow the finger 1:1 with no easing while dragging (apple-design §2). */
+  transition: none;
+}
+.slide-confirm--dragging .slide-confirm__fill {
+  transition: none;
+}
+.slide-confirm--confirmed .slide-confirm__knob {
+  background: var(--success);
+}
+.slide-confirm--confirmed .slide-confirm__label {
+  color: var(--success);
+}
+.slide-confirm--rm .slide-confirm__knob,
+.slide-confirm--rm .slide-confirm__fill {
+  transition: none;
+}
+.high-contrast .slide-confirm {
+  background: #ffffff;
+  border: 2px solid #000000;
+}
+.high-contrast .slide-confirm__knob {
+  border: 2px solid #ffffff;
+}
+@media (prefers-reduced-motion: reduce) {
+  .slide-confirm__knob,
+  .slide-confirm__fill {
+    transition: none;
+  }
+}
+
+/* Me-page top action pair (read-aloud + Aa), same controls as every page. */
+.apple-profile-topbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--space-2);
+}
+.apple-profile-topbar .app-hero__btn-icon,
+.apple-profile-topbar .app-hero__aa-btn {
+  background: var(--brand-primary);
+  color: #fff;
+}
+.apple-profile-topbar .app-hero__btn-icon--active {
+  background: #fff;
+  color: var(--brand-primary);
+}
+
+/* Volunteer level badge under the profile name. */
+.apple-profile-level {
+  margin-top: var(--space-2);
+}
+
+/* A text button that reads as an inline link (next-of-kin phone), brand red,
+   no underline — not a blue browser hyperlink. */
+.link-button {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--brand-primary);
+  font-weight: 700;
+  cursor: pointer;
+}
+.link-button:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
 }

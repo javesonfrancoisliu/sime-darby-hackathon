@@ -14,7 +14,7 @@ describe("page changes", () => {
     installFakeApi({ "GET /api/requests/mine": { body: { requests: [] } } });
     await renderApp("/");
     await userEvent.click(screen.getByRole("button", { name: "Safety" }));
-    expect(document.title).toBe("Health and safety - Help a Neighbour");
+    expect(document.title).toBe("Health and safety - Township Connect");
     await waitFor(() => expect(screen.getByRole("heading", { level: 1 })).toHaveFocus());
   });
 });

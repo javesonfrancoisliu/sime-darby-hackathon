@@ -16,23 +16,26 @@ function pointer(target: Element, type: string, clientX: number) {
   fireEvent(target, new MouseEvent(type, { bubbles: true, clientX }));
 }
 
+function activeDot() {
+  return screen.getAllByRole("tab").findIndex((d) => d.getAttribute("aria-selected") === "true");
+}
+
 describe("Carousel", () => {
-  it("never advances on its own", () => {
+  it("auto-advances on a timer when motion is allowed", () => {
     vi.useFakeTimers();
-    render(<Carousel ariaLabel="Conditions" slides={slides} />);
+    render(<Carousel ariaLabel="Conditions" intervalMs={5000} slides={slides} />);
+    expect(activeDot()).toBe(0);
     act(() => {
-      vi.advanceTimersByTime(60_000);
+      vi.advanceTimersByTime(5000);
     });
-    expect(screen.getByText("1 of 3")).toBeInTheDocument();
+    expect(activeDot()).toBe(1);
   });
 
-  it("moves with Next and Previous and shows the position", async () => {
+  it("jumps to a slide when its dot is tapped", async () => {
     render(<Carousel ariaLabel="Conditions" slides={slides} />);
-    await userEvent.click(screen.getByRole("button", { name: "Next item" }));
-    expect(screen.getByText("2 of 3")).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "Previous item" }));
-    await userEvent.click(screen.getByRole("button", { name: "Previous item" }));
-    expect(screen.getByText("3 of 3")).toBeInTheDocument();
+    const dots = screen.getAllByRole("tab");
+    await userEvent.click(dots[2]!);
+    expect(activeDot()).toBe(2);
   });
 
   it("makes slides that are not showing inert instead of aria-hidden", async () => {
@@ -41,7 +44,7 @@ describe("Carousel", () => {
     expect(first).not.toHaveAttribute("inert");
     expect(second).toHaveAttribute("inert");
     expect(second).not.toHaveAttribute("aria-hidden");
-    await userEvent.click(screen.getByRole("button", { name: "Next item" }));
+    await userEvent.click(screen.getAllByRole("tab")[1]!);
     expect(first).toHaveAttribute("inert");
     expect(second).not.toHaveAttribute("inert");
   });
@@ -50,7 +53,7 @@ describe("Carousel", () => {
     render(<Carousel ariaLabel="Conditions" slides={slides} />);
     screen.getByRole("button", { name: "Air" }).focus();
     await userEvent.keyboard("{ArrowRight}");
-    expect(screen.getByText("2 of 3")).toBeInTheDocument();
+    expect(activeDot()).toBe(1);
   });
 
   it("does not click the card under a mouse drag", () => {

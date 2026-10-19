@@ -1,4 +1,4 @@
-import { useId, type ReactNode } from "react";
+import { useId, useState, type ReactNode } from "react";
 import { EVENT_CATEGORY_TEXT, maintenanceLabel, spotsLeft } from "../community/events";
 import { useEvents, useJoinEvent } from "../hooks/useEvents";
 import { formatShortDate, formatWhen, formatWindow, minutesLabel } from "../requests/schedule";
@@ -15,10 +15,11 @@ import {
   IconClock,
   IconPin,
   IconUsers,
-  IconVolume2,
   IconCheck,
 } from "../ui/Icons";
 import { SegmentedTabs, TabPanel, type TabItem } from "../ui/SegmentedTabs";
+import { Drawer } from "../ui/Drawer";
+import { PageHeaderActions } from "../ui/PageHeaderActions";
 import { useHashTab } from "../ui/useHashTab";
 import { useAccessibility } from "../context/AccessibilityContext";
 
@@ -55,6 +56,8 @@ export function CommunityPage() {
   const join = useJoinEvent();
   const drives = useEvents("volunteer_drive");
   const joinDrive = useJoinEvent();
+  const [openNotice, setOpenNotice] = useState<string | null>(null);
+  const [openUpdate, setOpenUpdate] = useState<string | null>(null);
 
   const upcoming = (events.data ?? []).filter((e) => e.status === "upcoming");
   const upcomingDrives = (drives.data ?? []).filter((e) => e.status === "upcoming");
@@ -99,16 +102,7 @@ export function CommunityPage() {
               {resident?.area ?? "Elmina"} · Centralised Township Info
             </p>
           </div>
-          <button
-            type="button"
-            className="ui-button ui-button--ghost apple-header-voice-btn"
-            onClick={handleReadCommunitySummary}
-            aria-label="Read community announcements aloud"
-            title="Read summary aloud"
-          >
-            <IconVolume2 size={18} strokeWidth={2.2} />
-            <span className="apple-header-voice-text">Listen</span>
-          </button>
+          <PageHeaderActions onReadAloud={handleReadCommunitySummary} />
         </div>
       </div>
 
@@ -239,32 +233,45 @@ export function CommunityPage() {
             ) : null}
             <div className="ui-stack">
               {(maintenance.data ?? []).map((m) => (
-                <div key={m.id} className="safety-card">
-                  <div className="safety-card__row">
-                    <div className="community-event-card__icon" aria-hidden="true">
-                      <IconAlertTriangle size={24} strokeWidth={1.8} />
-                    </div>
-                    <div className="flex-fill">
-                      <p className="safety-card__location">{m.title}</p>
-                      <p className="safety-card__meta">
-                        <IconMapPin className="icon-inline" size={12} strokeWidth={2} />
-                        {m.area}
-                      </p>
-                      {m.windowStart && m.windowEnd ? (
+                <Drawer
+                  key={m.id}
+                  className="safety-card safety-card--drawer"
+                  label={m.title}
+                  open={openNotice === m.id}
+                  onToggle={() => {
+                    triggerHaptic(10);
+                    setOpenNotice((cur) => (cur === m.id ? null : m.id));
+                  }}
+                  header={
+                    <div className="safety-card__row m-0">
+                      <div className="community-event-card__icon" aria-hidden="true">
+                        <IconAlertTriangle size={24} strokeWidth={1.8} />
+                      </div>
+                      <div className="flex-fill">
+                        <p className="safety-card__location">{m.title}</p>
                         <p className="safety-card__meta">
-                          <IconCalendar className="icon-inline" size={12} strokeWidth={2} />
-                          {formatWindow(m.windowStart, m.windowEnd)}
+                          <IconMapPin className="icon-inline" size={12} strokeWidth={2} />
+                          {m.area}
                         </p>
+                        {m.windowStart && m.windowEnd ? (
+                          <p className="safety-card__meta">
+                            <IconCalendar className="icon-inline" size={12} strokeWidth={2} />
+                            {formatWindow(m.windowStart, m.windowEnd)}
+                          </p>
+                        ) : null}
+                      </div>
+                      {m.status ? (
+                        <span className="community-category-chip">
+                          {maintenanceLabel(m.status, m.windowEnd)}
+                        </span>
                       ) : null}
                     </div>
-                    {m.status ? (
-                      <span className="community-category-chip">
-                        {maintenanceLabel(m.status, m.windowEnd)}
-                      </span>
-                    ) : null}
-                  </div>
-                  {m.impact ? <p className="safety-card__description">{m.impact}</p> : null}
-                </div>
+                  }
+                >
+                  <p className="safety-card__description">
+                    {m.impact ?? "No further details were provided for this notice."}
+                  </p>
+                </Drawer>
               ))}
             </div>
           </section>
@@ -392,32 +399,40 @@ export function CommunityPage() {
               {(updates.data ?? []).map((u) => {
                 const important = u.priority === "high";
                 return (
-                  <div
+                  <Drawer
                     key={u.id}
-                    className={`safety-card${important ? " safety-card--pinned" : ""}`}
-                  >
-                    <div className="safety-card__row">
-                      <div className="community-event-card__icon" aria-hidden="true">
-                        <IconBell size={24} strokeWidth={1.8} />
-                      </div>
-                      <div className="flex-fill">
-                        <div className="row-center">
-                          <p className="safety-card__location m-0">{u.title}</p>
-                          {important && (
-                            <span className="safety-chip tone-alert no-shrink">
-                              <IconPin className="icon-inline" size={11} strokeWidth={2} />
-                              Important
-                            </span>
-                          )}
+                    className={`safety-card safety-card--drawer${important ? " safety-card--pinned" : ""}`}
+                    label={u.title}
+                    open={openUpdate === u.id}
+                    onToggle={() => {
+                      triggerHaptic(10);
+                      setOpenUpdate((cur) => (cur === u.id ? null : u.id));
+                    }}
+                    header={
+                      <div className="safety-card__row m-0">
+                        <div className="community-event-card__icon" aria-hidden="true">
+                          <IconBell size={24} strokeWidth={1.8} />
                         </div>
-                        <p className="safety-card__meta">
-                          <IconCalendar className="icon-inline" size={12} strokeWidth={2} />
-                          {u.topic} · {formatShortDate(u.publishedAt)}
-                        </p>
+                        <div className="flex-fill">
+                          <div className="row-center">
+                            <p className="safety-card__location m-0">{u.title}</p>
+                            {important && (
+                              <span className="safety-chip tone-alert no-shrink">
+                                <IconPin className="icon-inline" size={11} strokeWidth={2} />
+                                Important
+                              </span>
+                            )}
+                          </div>
+                          <p className="safety-card__meta">
+                            <IconCalendar className="icon-inline" size={12} strokeWidth={2} />
+                            {u.topic} · {formatShortDate(u.publishedAt)}
+                          </p>
+                        </div>
                       </div>
-                    </div>
+                    }
+                  >
                     <p className="safety-card__description">{u.description}</p>
-                  </div>
+                  </Drawer>
                 );
               })}
             </div>
