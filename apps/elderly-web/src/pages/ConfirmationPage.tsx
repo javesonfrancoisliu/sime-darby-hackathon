@@ -30,7 +30,7 @@ export function ConfirmationPage() {
 
       <h1 className="ui-page-title text-center mt-3">Request sent</h1>
       <p className="ui-page-subtitle app-page-lead text-center mb-6">
-        We will check it and then find a volunteer to help you.
+        Volunteers nearby can see your request now. We will tell you when one says yes.
       </p>
 
       <div className="apple-inset-group mb-6">

@@ -1,6 +1,12 @@
 import type { HelpRequest, OpportunitiesResponse, User } from "@sdh/contracts";
 import { beforeAll, describe, expect, it } from "vitest";
-import { call, createUser, createVerifiedVolunteer, createVolunteerInState } from "../../test/api";
+import {
+  call,
+  createUser,
+  createVerifiedVolunteer,
+  createVolunteerInState,
+  setPendingReview,
+} from "../../test/api";
 import { useTestTable } from "../../test/table";
 
 useTestTable();
@@ -26,13 +32,7 @@ describe("GET /api/opportunities", () => {
       body: { durationMinutes: 60, location: HOME, ...body },
     });
     const request = created.body as HelpRequest;
-    if (approve) {
-      await call("POST", `/api/requests/${request.id}/review`, {
-        as: coordinator.id,
-        body: { decision: "approved" },
-      });
-    }
-    return request;
+    return approve ? request : setPendingReview(request);
   }
 
   beforeAll(async () => {

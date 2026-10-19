@@ -75,7 +75,8 @@ export async function createRequest(elder: User, body: CreateRequestBody): Promi
     id: randomUUID(),
     elderId: elder.id,
     elderName: elder.name,
-    status: "pending_review",
+    // No coordinator queue: a new request is visible to volunteers straight away.
+    status: "open",
     createdAt: now,
     updatedAt: now,
   };

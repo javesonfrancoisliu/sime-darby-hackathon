@@ -16,7 +16,7 @@ export const matchingRoutes: Route[] = [
       const request = await getRequest(parse(Id, req.params.id));
       const visible = request && (user.role === "coordinator" || request.elderId === user.id);
       if (!request || !visible) throw new HttpError("NOT_FOUND", "Request not found");
-      // Elders see suggestions once approved, so unreviewed requests cannot be used to probe
+      // Elders see suggestions once a request is open, so held requests cannot be used to probe
       // where volunteers live; coordinators also see them while reviewing.
       const matchable =
         request.status === "open" ||

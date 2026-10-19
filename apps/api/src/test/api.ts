@@ -1,5 +1,6 @@
-import type { CreateUserBody, Role, User, Verification } from "@sdh/contracts";
+import type { CreateUserBody, HelpRequest, Role, User, Verification } from "@sdh/contracts";
 import { DEMO_USER_HEADER } from "../lib/identity";
+import { transitionRequest } from "../modules/requests/repository";
 import { setVerification } from "../modules/users/repository";
 import { createUser as insertUser } from "../modules/users/service";
 import { dispatch } from "../app";
@@ -63,4 +64,13 @@ export async function createVolunteerInState(
 ): Promise<User> {
   const volunteer = await createUser("volunteer", overrides);
   return setVerification(volunteer, verification, new Date().toISOString());
+}
+
+// New requests start open, so review-gate tests move one back to pending_review through the repository.
+export async function setPendingReview(request: HelpRequest): Promise<HelpRequest> {
+  return transitionRequest(
+    request,
+    { from: "open" },
+    { status: "pending_review", updatedAt: new Date().toISOString() },
+  );
 }
