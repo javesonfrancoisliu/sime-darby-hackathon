@@ -428,6 +428,7 @@
 }
 .icon-inline {
   vertical-align: -1px;
+  margin-right: 4px;
 }
 
 .carousel {
@@ -1397,6 +1398,434 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Safety page — ported from the elderly app (rule bodies verbatim).
+   Colours come from @sdh/design-tokens. The elderly .safety-section
+   (horizontal padding) is intentionally NOT ported — the young page
+   keeps its own .ui-section wrapper to avoid double-padding / the
+   prior 360–390px overflow. Elderly .safety-chip is ported here as
+   .safety-chip-tone so it won't clobber the young Home .safety-chip.
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── Section heading ─────────────────────────────────────────── */
+.safety-section__heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.safety-section__heading-icon {
+  font-size: 1.375rem;
+}
+
+.safety-section__heading-text {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+/* ── Safety card ─────────────────────────────────────────────── */
+.safety-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-card);
+}
+
+.safety-card--temperature {
+  border-width: 2px;
+}
+
+.safety-card--alert {
+  border-color: var(--warn-accent);
+}
+
+.safety-card__row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.safety-card__location {
+  overflow-wrap: anywhere;
+  margin: 0 0 2px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.safety-card__meta {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.safety-card__description {
+  overflow-wrap: anywhere;
+  margin: 0 0 var(--space-3);
+  font-size: 1rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.safety-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.safety-card__category {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--brand-primary);
+  background: var(--danger-bg);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+}
+
+.safety-card__tip {
+  margin: var(--space-2) 0 0;
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+.safety-card__badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+  border-radius: var(--radius-card);
+  min-width: 80px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.safety-card__badge-value {
+  font-size: 1.375rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.safety-card__badge-label {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* ── Progress bar ────────────────────────────────────────────── */
+.safety-bar {
+  height: 8px;
+  background: var(--surface-muted);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  margin: var(--space-2) 0;
+}
+
+.safety-bar__fill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  transition: width 600ms ease;
+}
+
+.safety-bar__fill--tone {
+  background: var(--tone-bar);
+}
+
+.safety-bar__fill--ok {
+  background: var(--success);
+}
+
+.safety-bar__fill--mid {
+  background: var(--tone-bar-mid);
+}
+
+.safety-bar__fill--high {
+  background: var(--tone-alert-text);
+}
+
+/* ── Status chip (ported as -tone to avoid the Home .safety-chip) ── */
+.safety-chip-tone {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 1rem;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Advisory banner ─────────────────────────────────────────── */
+.safety-advisory {
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  background: var(--warning-bg);
+  border: 1px solid #fcd34d;
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  color: var(--tone-caution-text);
+  line-height: 1.5;
+}
+
+/* ── Temperature card ────────────────────────────────────────── */
+.safety-temp__main {
+  margin-bottom: var(--space-3);
+}
+
+.safety-temp__reading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: 4px;
+}
+
+.safety-temp__value {
+  font-size: 3rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--text-primary);
+}
+
+.safety-temp__stats {
+  display: flex;
+  gap: var(--space-6);
+  margin-bottom: var(--space-3);
+}
+
+.safety-temp__stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.safety-temp__stat-label {
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+.safety-temp__stat-value {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+/* ── Facility filter tabs ────────────────────────────────────── */
+.safety-filter {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.safety-filter__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 48px;
+  padding: 6px 16px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--control-border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 150ms ease;
+}
+
+.safety-filter__btn--active {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: #fff;
+}
+
+.safety-filter__count {
+  background: rgba(0 0 0 / 0.12);
+  border-radius: var(--radius-pill);
+  padding: 0 6px;
+  font-size: 1rem;
+}
+
+/* ── Facility summary strip ──────────────────────────────────── */
+.safety-facility-summary {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.safety-facility-summary__item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-3);
+  border-radius: var(--radius-card);
+}
+
+.safety-facility-summary__count {
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.safety-facility-summary__label {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 3px;
+}
+
+/* ── Status tones ────────────────────────────────────────────── */
+.tone-good {
+  --tone-bar: var(--tone-good-text);
+  background: var(--tone-good-bg);
+  color: var(--tone-good-text);
+}
+.tone-caution {
+  --tone-bar: var(--warning-fill);
+  background: var(--tone-caution-bg);
+  color: var(--tone-caution-text);
+}
+.tone-alert {
+  --tone-bar: var(--tone-alert-text);
+  background: var(--tone-alert-bg);
+  color: var(--tone-alert-text);
+}
+.tone-extreme {
+  --tone-bar: var(--tone-extreme-bg);
+  background: var(--tone-extreme-bg);
+  color: var(--tone-solid-text);
+}
+.tone-solid-danger {
+  --tone-bar: var(--tone-alert-text);
+  background: var(--tone-alert-text);
+  color: var(--tone-solid-text);
+}
+
+/* ── Inline icon + layout helpers ────────────────────────────── */
+.icon-inline-low {
+  vertical-align: -2px;
+  margin-right: 4px;
+}
+
+.flex-fill {
+  flex: 1;
+  min-width: 0;
+}
+
+.ui-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.safety-card--drawer {
+  padding: 0;
+}
+
+.safety-card__row.m-0 {
+  margin-bottom: 0;
+}
+
+/* ── Drawer (tap-to-expand card) ─────────────────────────────── */
+.drawer {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+/* The whole top row is the toggle. */
+.drawer__header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-4);
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  min-height: 56px;
+  transition: background-color 160ms ease;
+}
+.drawer__header:hover {
+  background: rgba(17, 24, 39, 0.02);
+}
+.drawer__header:active {
+  background: rgba(17, 24, 39, 0.04);
+}
+.drawer__header:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: -3px;
+}
+.drawer__header-content {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Chevron points right when closed, rotates down when open (hints the reveal). */
+.drawer__chevron {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-top: 2px;
+  color: var(--text-secondary);
+  transform: rotate(0deg);
+  transition: transform 340ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.drawer--open .drawer__chevron {
+  transform: rotate(90deg);
+  color: var(--brand-primary);
+}
+
+/* Collapsible body: 0fr (collapsed) → 1fr (full content height). */
+.drawer__body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 340ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.drawer--open .drawer__body {
+  grid-template-rows: 1fr;
+}
+/* The inner wrapper is the overflow clip; min-height:0 lets the row shrink. */
+.drawer__body-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+/* Content padding lives inside the clip so it fades with the collapse.
+   Padding sits on one content wrapper (not each child) so bodies with
+   multiple children don't get doubled gaps. */
+.drawer__content {
+  padding: 0 var(--space-4) var(--space-4);
+}
+.drawer__content > :first-child {
+  margin-top: 0;
+}
+
+/* Reduced motion: no slide/rotate easing — snap open/closed. */
+.reduced-motion .drawer__body,
+.reduced-motion .drawer__chevron {
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .drawer__body,
+  .drawer__chevron {
+    transition: none;
+  }
 }
 
 .skip-link {
