@@ -8,7 +8,7 @@ import { useTownship } from "../data/useTownship";
 
 // Shared Home - the integrated General Dashboard. Prioritises the three primary
 // dashboard functions: Health & Safety, Community updates, and (for the young
-// role) a slim Help a Neighbour entry point.
+// role) a slim Township Connect entry point.
 export function HomePage() {
   const { role } = useRole();
   const young = role === "young";

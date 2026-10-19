@@ -101,8 +101,8 @@ describe("sign in", () => {
 
   it("focuses the heading and sets the tab title", async () => {
     setup();
-    const heading = await screen.findByRole("heading", { level: 1, name: "Help a Neighbour" });
+    const heading = await screen.findByRole("heading", { level: 1, name: "Township Connect" });
     expect(heading).toHaveFocus();
-    expect(document.title).toBe("Sign in - Help a Neighbour");
+    expect(document.title).toBe("Sign in - Township Connect");
   });
 });

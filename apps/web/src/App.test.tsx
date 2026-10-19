@@ -16,7 +16,7 @@ describe("session wiring", () => {
 
     expect(await screen.findByRole("status", { name: "Signing in" })).toBeInTheDocument();
     expect(screen.getAllByRole("navigation", { name: "Primary" }).length).toBeGreaterThan(0);
-    expect(screen.getByRole("link", { name: /Help a Neighbour/ })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Township Connect/ })).toBeInTheDocument();
   });
 
   it("sends the signed-in user id on live calls", async () => {

@@ -12,7 +12,7 @@ export type MyTasksSectionProps = {
   pointsByTask: ReadonlyMap<string, number>;
 };
 
-// Compact tracking list of accepted Help-a-Neighbour tasks. Status flow:
+// Compact tracking list of accepted Township Connect tasks. Status flow:
 //   accepted  -> "Mark complete"; joined events wait for the organiser
 //   completed -> waiting for the resident to confirm; only the resident can do that
 //   confirmed -> confirmed by the resident, with the points the server awarded
