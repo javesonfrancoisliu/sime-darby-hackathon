@@ -110,5 +110,5 @@ variable "matching_ai_model_id" {
 variable "bedrock_app_inference_profile_id" {
   description = "The only Bedrock inference profile the app IAM user may call."
   type        = string
-  default     = "global.anthropic.claude-haiku-5-5"
+  default     = "global.anthropic.claude-haiku-4-5-20251001-v1:0"
 }

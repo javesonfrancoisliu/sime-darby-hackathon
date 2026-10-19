@@ -9,6 +9,6 @@ variable "user_name" {
 }
 
 variable "inference_profile_id" {
-  description = "The only Bedrock inference profile the app may call, for example global.anthropic.claude-haiku-5-5."
+  description = "The only Bedrock inference profile the app may call, for example global.anthropic.claude-haiku-4-5-20251001-v1:0."
   type        = string
 }
