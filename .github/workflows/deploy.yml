@@ -1,0 +1,58 @@
+name: deploy
+
+# After ci passes on main: update the Lambda code, upload the three sites and invalidate CloudFront.
+# Infrastructure changes stay manual (infra/scripts/deploy.sh). Settings come from repository variables.
+on:
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.event.workflow_run.conclusion == 'success' && vars.AWS_DEPLOY_ROLE_ARN != ''
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build
+        env:
+          VITE_COGNITO_REGION: ${{ vars.AWS_REGION }}
+          VITE_COGNITO_USER_POOL_ID: ${{ vars.COGNITO_USER_POOL_ID }}
+          VITE_COGNITO_CLIENT_ID: ${{ vars.COGNITO_CLIENT_ID }}
+          VITE_DEMO_SIGN_IN: "false"
+        run: pnpm --filter @sdh/api --filter @sdh/portal --filter @sdh/elderly-web --filter @sdh/web build
+      - uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+      - name: Update Lambda code
+        run: |
+          (cd apps/api/dist/core && zip -qr "$RUNNER_TEMP/core.zip" .)
+          (cd apps/api/dist/matching && zip -qr "$RUNNER_TEMP/matching.zip" .)
+          aws lambda update-function-code --function-name "${{ vars.LAMBDA_API_NAME }}" --zip-file "fileb://$RUNNER_TEMP/core.zip" --query LastModified --output text
+          aws lambda update-function-code --function-name "${{ vars.LAMBDA_MATCHING_NAME }}" --zip-file "fileb://$RUNNER_TEMP/matching.zip" --query LastModified --output text
+          aws lambda wait function-updated --function-name "${{ vars.LAMBDA_API_NAME }}"
+          aws lambda wait function-updated --function-name "${{ vars.LAMBDA_MATCHING_NAME }}"
+      - name: Publish the sites
+        run: infra/scripts/publish-site.sh "${{ vars.SITE_BUCKET }}" "$AWS_REGION"
+      - name: Invalidate CloudFront
+        run: aws cloudfront create-invalidation --distribution-id "${{ vars.DISTRIBUTION_ID }}" --paths "/*" --query Invalidation.Id --output text
