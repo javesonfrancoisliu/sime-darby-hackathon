@@ -156,3 +156,17 @@ describe("Safety page", () => {
     expect(screen.queryByText(/API level/)).not.toBeInTheDocument();
   });
 });
+
+describe("Facility filter chips", () => {
+  it("expose which status filter is pressed", async () => {
+    const user = userEvent.setup();
+    installFakeApi(safetyRoutes);
+    await renderApp("/safety#facilities");
+    const group = await screen.findByRole("group", { name: /filter by status/i });
+    const buttons = within(group).getAllByRole("button");
+    expect(buttons[0]).toHaveAttribute("aria-pressed", "true");
+    await user.click(buttons[1]!);
+    expect(buttons[1]).toHaveAttribute("aria-pressed", "true");
+    expect(buttons[0]).toHaveAttribute("aria-pressed", "false");
+  });
+});
