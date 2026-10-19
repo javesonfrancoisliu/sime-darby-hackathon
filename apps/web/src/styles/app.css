@@ -373,105 +373,263 @@
   }
 }
 
-/* ---------- Manual carousel (CSS scroll-snap) ---------- */
-.ui-carousel {
+/* ---------- Township live conditions (ported from the elderly home) ----------
+   The young safety summary reuses the elderly home's "Township Live Conditions"
+   design exactly: section header + "All hazards" link, a manual carousel, and
+   themed, severity-coloured condition cards. Classes and values are copied from
+   apps/elderly-web so the two homes look identical; the severity ramp tokens
+   (--sev-*) come from the shared @sdh/design-tokens. The elderly app is not
+   touched. Difference by design: this carousel never auto-advances. */
+.app-home__section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.app-home__section-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.app-home__section-subtitle {
+  margin: 4px 0 0;
+  font-size: var(--font-small);
+  color: var(--text-secondary);
+  line-height: 1.35;
+}
+.app-home__see-all {
+  flex-shrink: 0;
+  align-self: center;
+  color: var(--brand-primary);
+  font-weight: 600;
+  font-size: var(--font-small);
+  white-space: nowrap;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 4px;
+}
+.icon-inline {
+  vertical-align: -1px;
+}
+
+.carousel {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
 }
-.ui-carousel-viewport {
+.carousel__viewport {
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  cursor: grab;
+  touch-action: pan-y;
+}
+.carousel__viewport:active {
+  cursor: grabbing;
+}
+.carousel__track {
   display: flex;
-  gap: var(--space-3);
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scroll-behavior: smooth;
-  /* Hide the scrollbar; the dots are the affordance. */
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
+  transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
 }
-.ui-carousel-viewport::-webkit-scrollbar {
-  display: none;
+.carousel__track--dragging {
+  transition: none;
 }
-.ui-carousel-slide {
-  flex: 0 0 88%; /* a sliver of the next card peeks in */
-  scroll-snap-align: start;
+.carousel__slide {
+  flex: 0 0 100%;
+  min-width: 100%;
+  /* Room so the card's shadow is not clipped by the viewport. */
+  padding: 4px;
+  box-sizing: border-box;
 }
-.ui-carousel-dots {
+.carousel__dots {
   display: flex;
+  align-items: center;
   justify-content: center;
-  gap: var(--space-2);
+  gap: 10px;
+  margin-top: var(--space-3);
 }
-.ui-carousel-dot {
-  width: 8px;
-  height: 8px;
+.carousel__dot {
+  width: 10px;
+  height: 10px;
   padding: 0;
   border: none;
-  border-radius: var(--radius-pill);
-  background: var(--border);
+  border-radius: 999px;
+  background: rgba(17, 24, 39, 0.22);
   cursor: pointer;
+  position: relative;
+  transition:
+    width 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 200ms ease;
 }
-.ui-carousel-dot--active {
-  background: var(--brand-primary);
-}
-/* Keep a 44px tap target around each 8px dot without enlarging the dot itself. */
-.ui-carousel-dot::before {
+.carousel__dot::before {
   content: "";
   position: absolute;
-  width: 44px;
-  height: 44px;
-  margin: -18px;
+  inset: -14px;
 }
-.ui-carousel-dots .ui-carousel-dot {
-  position: relative;
+.carousel__dot--active {
+  width: 26px;
+  background: var(--brand-primary);
 }
-.ui-carousel-dot:focus-visible {
-  outline: 2px solid var(--brand-primary);
-  outline-offset: 3px;
+.carousel__dot:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 4px;
 }
 @media (prefers-reduced-motion: reduce) {
-  .ui-carousel-viewport {
-    scroll-behavior: auto;
+  .carousel__track,
+  .carousel__dot {
+    transition: none;
   }
 }
 
-/* ---------- Compact safety condition card (Young home carousel) ---------- */
-.safety-condition-card {
+/* Condition card (copied from the elderly home). */
+.apple-condition-card {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
-  height: 100%;
-  padding: var(--space-3);
-  border: 1px solid var(--border);
+  gap: 6px;
+  min-height: 148px;
+  padding: var(--space-4);
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid rgba(17, 24, 39, 0.08);
   border-radius: var(--radius-card);
-  background: var(--surface-muted, #f3f4f6);
+  box-shadow:
+    0 1px 2px rgba(17, 24, 39, 0.04),
+    0 6px 16px rgba(17, 24, 39, 0.05);
 }
-.safety-condition-card-top {
+.apple-condition-card__top {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
 }
-.safety-condition-card-icon {
+.apple-condition-card__icon {
   display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--surface-muted);
   color: var(--text-secondary);
 }
-.safety-condition-card-value {
-  margin: 2px 0 0;
-  font-size: 24px;
+.apple-condition-card__main {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 2px;
+}
+.apple-condition-card__value {
+  font-size: 1.875rem;
   font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
   color: var(--text-primary);
 }
-.safety-condition-card-label {
-  margin: 0;
-  font-size: var(--font-small);
+.apple-condition-card__unit {
+  font-size: 1rem;
+  font-weight: 600;
   color: var(--text-secondary);
 }
-/* Compact persistent warning line, always visible above the carousel. */
+.apple-condition-card__label {
+  margin-top: auto;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text-primary);
+}
+.apple-condition-card__location {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  line-height: 1.35;
+}
+/* Every carousel card is the same fixed size so the height never jumps. */
+.carousel__slide .apple-condition-card {
+  width: 100%;
+  height: 196px;
+  min-height: 0;
+  justify-content: flex-start;
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(17, 24, 39, 0.06);
+}
+.carousel__slide .apple-condition-card__label {
+  margin-top: auto;
+}
+
+/* Severity-driven theming: a soft severity chip, tinted icon, and a gentle
+   top-to-bottom gradient. The --sev-* ramp lives in @sdh/design-tokens. */
+.safety-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  font-size: var(--font-small);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.apple-condition-card--sev {
+  background: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    color-mix(in srgb, var(--sev-accent) 14%, #ffffff) 100%
+  );
+  border-color: color-mix(in srgb, var(--sev-accent) 22%, rgba(17, 24, 39, 0.08));
+}
+.apple-condition-card__chip {
+  background: var(--sev-chip-bg);
+  color: var(--sev-chip-text);
+}
+.apple-condition-card--sev .apple-condition-card__icon {
+  background: var(--sev-chip-bg);
+  color: var(--sev-chip-text);
+}
+.apple-condition-card--sev > * {
+  position: relative;
+  z-index: 1;
+}
+@supports not (background: color-mix(in srgb, red 10%, white)) {
+  .apple-condition-card--sev {
+    background: #ffffff;
+    border-color: rgba(17, 24, 39, 0.1);
+  }
+}
+[data-severity="1"] {
+  --sev-accent: var(--sev-1-accent);
+  --sev-chip-bg: var(--sev-1-chip-bg);
+  --sev-chip-text: var(--sev-1-chip-text);
+}
+[data-severity="2"] {
+  --sev-accent: var(--sev-2-accent);
+  --sev-chip-bg: var(--sev-2-chip-bg);
+  --sev-chip-text: var(--sev-2-chip-text);
+}
+[data-severity="3"] {
+  --sev-accent: var(--sev-3-accent);
+  --sev-chip-bg: var(--sev-3-chip-bg);
+  --sev-chip-text: var(--sev-3-chip-text);
+}
+[data-severity="4"] {
+  --sev-accent: var(--sev-4-accent);
+  --sev-chip-bg: var(--sev-4-chip-bg);
+  --sev-chip-text: var(--sev-4-chip-text);
+}
+[data-severity="5"] {
+  --sev-accent: var(--sev-5-accent);
+  --sev-chip-bg: var(--sev-5-chip-bg);
+  --sev-chip-text: var(--sev-5-chip-text);
+}
+
+/* Persistent warning line, always visible above the carousel. */
 .safety-alert-line {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  margin: 0 0 var(--space-2);
+  margin: 0 0 var(--space-3);
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-control);
   background: var(--danger-bg, #fef2f2);

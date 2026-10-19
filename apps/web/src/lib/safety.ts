@@ -53,3 +53,18 @@ export const FACILITY_STATUS: Record<FacilityStatus, { label: string; variant: B
 };
 
 export const READING_TITLE = { air: "Air quality", water: "Water levels", heat: "Heat" } as const;
+
+// 1 (safest) to 5 (most severe), matching the shared --sev-* ramp in
+// @sdh/design-tokens. Mirrors the elderly home's tone→severity mapping so both
+// roles colour the same reading the same way. Each reading level maps straight
+// to a step; the card exposes it via a data-severity attribute.
+export const LEVEL_SEVERITY_STEP: Record<ReadingLevel, 1 | 2 | 3 | 4 | 5> = {
+  good: 1,
+  normal: 1,
+  moderate: 3,
+  watch: 3,
+  warning: 4,
+  unhealthy: 4,
+  hazardous: 5,
+  danger: 5,
+};

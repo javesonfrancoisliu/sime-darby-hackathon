@@ -2,8 +2,7 @@ import { Thermometer, Waves, Wind, type LucideIcon } from "lucide-react";
 
 import type { SafetyReading } from "@sdh/contracts";
 import { formatReadingValue } from "../../lib/format";
-import { LEVEL_LABEL, LEVEL_VARIANT, READING_TITLE } from "../../lib/safety";
-import { StatusBadge } from "../ui";
+import { LEVEL_LABEL, LEVEL_SEVERITY_STEP, READING_TITLE } from "../../lib/safety";
 
 const TYPE_ICON: Record<SafetyReading["type"], LucideIcon> = {
   air: Wind,
@@ -13,26 +12,36 @@ const TYPE_ICON: Record<SafetyReading["type"], LucideIcon> = {
 
 export type SafetyConditionCardProps = { reading: SafetyReading };
 
-// Compact safety condition card for the Young home carousel. Shares the elderly
-// visual language (leading icon, severity chip, prominent value) but smaller,
-// using young design tokens and the shared StatusBadge (text + icon + colour,
-// never colour alone).
+// Safety condition card for the Young home carousel. Reuses the elderly home's
+// condition-card design exactly (leading icon chip, severity chip, big value +
+// unit, label/location), driven by the shared --sev-* severity ramp via the
+// data-severity attribute. Styling is ported into the young app.css under the
+// same class names; the elderly app is untouched.
 export function SafetyConditionCard({ reading }: SafetyConditionCardProps) {
   const Icon = TYPE_ICON[reading.type];
+  const severity = LEVEL_SEVERITY_STEP[reading.level];
+  const [value, unit] = splitValueUnit(formatReadingValue(reading.value, reading.unit));
+
   return (
-    <div className="safety-condition-card">
-      <div className="safety-condition-card-top">
-        <span className="safety-condition-card-icon" aria-hidden="true">
-          <Icon size={18} />
+    <div className="apple-condition-card apple-condition-card--sev" data-severity={severity}>
+      <div className="apple-condition-card__top">
+        <span className="apple-condition-card__icon" aria-hidden="true">
+          <Icon size={20} strokeWidth={1.8} />
         </span>
-        <StatusBadge label={LEVEL_LABEL[reading.level]} variant={LEVEL_VARIANT[reading.level]} />
+        <span className="safety-chip apple-condition-card__chip">{LEVEL_LABEL[reading.level]}</span>
       </div>
-      <p className="safety-condition-card-value">
-        {formatReadingValue(reading.value, reading.unit)}
-      </p>
-      <p className="safety-condition-card-label">
-        {READING_TITLE[reading.type]} · {reading.area}
-      </p>
+      <div className="apple-condition-card__main">
+        <span className="apple-condition-card__value">{value}</span>
+        {unit && <span className="apple-condition-card__unit">{unit}</span>}
+      </div>
+      <span className="apple-condition-card__label">{READING_TITLE[reading.type]}</span>
+      <span className="apple-condition-card__location">{reading.area}</span>
     </div>
   );
+}
+
+// "62 AQI" -> ["62", "AQI"]; "34°C" -> ["34°C", ""] so the temperature stays whole.
+function splitValueUnit(formatted: string): [string, string] {
+  const spaced = formatted.split(" ");
+  return spaced.length === 2 ? [spaced[0]!, spaced[1]!] : [formatted, ""];
 }
