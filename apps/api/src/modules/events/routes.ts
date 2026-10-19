@@ -1,4 +1,10 @@
-import { CreateEventBody, Id, type CommunityEvent, type EventsResponse } from "@sdh/contracts";
+import {
+  CreateEventBody,
+  EventsQuery,
+  Id,
+  type CommunityEvent,
+  type EventsResponse,
+} from "@sdh/contracts";
 import { HttpError, ok, type Route } from "../../lib/http";
 import { optionalUser, requireUser } from "../../lib/identity";
 import { parse } from "../../lib/validate";
@@ -11,7 +17,8 @@ export const eventRoutes: Route[] = [
     handler: async (req) => {
       // Public route: no, unknown or unverifiable identity just omits the joined flag.
       const viewer = await optionalUser(req);
-      return ok({ events: await listEvents(viewer) } satisfies EventsResponse);
+      const { purpose } = parse(EventsQuery, req.query);
+      return ok({ events: await listEvents(viewer, purpose) } satisfies EventsResponse);
     },
   },
   {

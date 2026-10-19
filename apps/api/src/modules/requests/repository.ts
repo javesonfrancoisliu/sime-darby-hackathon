@@ -6,7 +6,7 @@ import {
   UpdateCommand,
 } from "@aws-sdk/lib-dynamodb";
 import type { Contribution, HelpRequest, RequestStatus } from "@sdh/contracts";
-import { db, fromItem, table } from "../../lib/db";
+import { db, fromItem, isConditionFailure, table, type TransactItem } from "../../lib/db";
 import { contributionPut } from "../contributions/repository";
 
 const ENTITY = "REQUEST";
@@ -158,4 +158,46 @@ export async function completeWithContribution(
       ],
     }),
   );
+}
+
+// Extra item for the confirm transaction. Orders after the award items, so its failure is
+// reported as "rejected". Without callerElderId (coordinator) the owner condition is dropped.
+export function confirmItem(
+  requestId: string,
+  confirmedAt: string,
+  callerElderId?: string,
+): TransactItem {
+  const owner = callerElderId ? "elderId = :caller AND " : "";
+  return {
+    Update: {
+      TableName: table(),
+      Key: key(requestId),
+      UpdateExpression: "SET confirmedAt = :at, updatedAt = :at",
+      ConditionExpression: `${owner}#status = :completed AND attribute_not_exists(confirmedAt) AND attribute_exists(volunteerId)`,
+      ExpressionAttributeNames: { "#status": "status" },
+      ExpressionAttributeValues: {
+        ":at": confirmedAt,
+        ":completed": "completed",
+        ...(callerElderId ? { ":caller": callerElderId } : {}),
+      },
+    },
+  };
+}
+
+// Backfills confirmedAt when the award already landed; a lost race is harmless.
+export async function backfillConfirmedAt(requestId: string, confirmedAt: string): Promise<void> {
+  try {
+    await db().send(
+      new UpdateCommand({
+        TableName: table(),
+        Key: key(requestId),
+        UpdateExpression: "SET confirmedAt = :at, updatedAt = :at",
+        ConditionExpression: "#status = :completed AND attribute_not_exists(confirmedAt)",
+        ExpressionAttributeNames: { "#status": "status" },
+        ExpressionAttributeValues: { ":at": confirmedAt, ":completed": "completed" },
+      }),
+    );
+  } catch (error) {
+    if (!isConditionFailure(error)) throw error;
+  }
 }

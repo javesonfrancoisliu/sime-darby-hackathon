@@ -9,6 +9,8 @@ import type {
 import { beforeAll, describe, expect, it } from "vitest";
 import { call, createUser, createVerifiedVolunteer } from "../../test/api";
 import { useTestTable } from "../../test/table";
+import { VOLUNTEERING_POINTS } from "../points/service";
+import { getUser } from "../users/repository";
 
 useTestTable();
 
@@ -399,6 +401,82 @@ describe("help requests", () => {
         body: { minutesSpent: 30 },
       });
       expect(res.status).toBe(404);
+    });
+  });
+
+  describe("confirm", () => {
+    async function completed(ownerId = elder.id) {
+      const open = await createOpen();
+      expect(open.elderId).toBe(ownerId);
+      await call("POST", `/api/requests/${open.id}/accept`, { as: volunteer.id });
+      const done = await call("POST", `/api/requests/${open.id}/complete`, {
+        as: volunteer.id,
+        body: { minutesSpent: 30 },
+      });
+      expect(done.status).toBe(200);
+      return open;
+    }
+    const confirm = (id: string, as: string) => call("POST", `/api/requests/${id}/confirm`, { as });
+    const balance = async () => {
+      const user = await getUser(volunteer.id);
+      return { points: user?.points, lifetimePoints: user?.lifetimePoints };
+    };
+
+    it("confirms once, pays the volunteer once and rejects a double confirm", async () => {
+      const before = (await balance()).points ?? 0;
+      const request = await completed();
+      const res = await confirm(request.id, elder.id);
+      expect(res.status).toBe(200);
+      expect(res.body).toMatchObject({ id: request.id, status: "completed" });
+      expect((res.body as HelpRequest).confirmedAt).toBeDefined();
+      expect((await balance()).points).toBe(before + VOLUNTEERING_POINTS);
+
+      const again = await confirm(request.id, elder.id);
+      expect(again.status).toBe(409);
+      expect(again.body).toMatchObject({ error: { code: "ALREADY_DONE" } });
+      expect((await balance()).points).toBe(before + VOLUNTEERING_POINTS);
+    });
+
+    it("parallel confirms pay the volunteer exactly once", async () => {
+      const before = (await balance()).points ?? 0;
+      const request = await completed();
+      const results = await Promise.all([
+        confirm(request.id, elder.id),
+        confirm(request.id, elder.id),
+        confirm(request.id, elder.id),
+      ]);
+      expect(results.some((r) => r.status === 200)).toBe(true);
+      expect(results.every((r) => r.status === 200 || r.status === 409)).toBe(true);
+      expect((await balance()).points).toBe(before + VOLUNTEERING_POINTS);
+    });
+
+    it("hides the request from another elder and forbids volunteers", async () => {
+      const request = await completed();
+      const other = await createUser("elder");
+      expect((await confirm(request.id, other.id)).status).toBe(404);
+      expect((await confirm(request.id, volunteer.id)).status).toBe(403);
+      const stored = await call("GET", `/api/requests/${request.id}`, { as: elder.id });
+      expect((stored.body as HelpRequest).confirmedAt).toBeUndefined();
+    });
+
+    it("refuses a request that is not completed", async () => {
+      const open = await createOpen();
+      const res = await confirm(open.id, elder.id);
+      expect(res.status).toBe(409);
+      await call("POST", `/api/requests/${open.id}/accept`, { as: volunteer.id });
+      expect((await confirm(open.id, elder.id)).status).toBe(409);
+      expect((await confirm(randomUUID(), elder.id)).status).toBe(404);
+    });
+
+    it("lets a coordinator confirm as a fallback, once", async () => {
+      const before = (await balance()).points ?? 0;
+      const request = await completed();
+      const res = await confirm(request.id, coordinator.id);
+      expect(res.status).toBe(200);
+      expect((res.body as HelpRequest).confirmedAt).toBeDefined();
+      expect((await confirm(request.id, coordinator.id)).status).toBe(409);
+      expect((await confirm(request.id, elder.id)).status).toBe(409);
+      expect((await balance()).points).toBe(before + VOLUNTEERING_POINTS);
     });
   });
 });

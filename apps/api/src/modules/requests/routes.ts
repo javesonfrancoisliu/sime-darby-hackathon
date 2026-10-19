@@ -15,6 +15,7 @@ import {
   acceptRequest,
   cancelRequest,
   completeRequest,
+  confirmRequest,
   createRequest,
   listByStatus,
   listMine,
@@ -94,6 +95,15 @@ export const requestRoutes: Route[] = [
       const id = parse(Id, req.params.id);
       const body = parse(CompleteRequestBody, req.body);
       return ok((await completeRequest(volunteer, id, body)) satisfies HelpRequest);
+    },
+  },
+  {
+    method: "POST",
+    path: "/api/requests/{id}/confirm",
+    handler: async (req) => {
+      const user = await requireUser(req, "elder", "coordinator");
+      const id = parse(Id, req.params.id);
+      return ok((await confirmRequest(user, id)) satisfies HelpRequest);
     },
   },
 ];

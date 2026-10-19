@@ -9,6 +9,9 @@ import type {
 import { beforeAll, describe, expect, it } from "vitest";
 import { call, createUser, createVerifiedVolunteer } from "../../test/api";
 import { useTestTable } from "../../test/table";
+import { VOLUNTEERING_POINTS } from "../points/service";
+import { getUser } from "../users/repository";
+import { completeEvent } from "./repository";
 
 useTestTable();
 
@@ -155,17 +158,73 @@ describe("events", () => {
     expect((await join(event.id, (await createUser("elder")).id)).status).toBe(409);
   });
 
-  it("returns 409 when completing twice and 404 for an unknown event", async () => {
+  it("completing twice returns 200 and 404 for an unknown event", async () => {
     const event = await createEvent();
     const path = `/api/events/${event.id}/complete`;
     expect((await call("POST", path, { as: coordinator.id })).status).toBe(200);
-    expect((await call("POST", path, { as: coordinator.id })).status).toBe(409);
+    expect((await call("POST", path, { as: coordinator.id })).status).toBe(200);
     const missing = await call("POST", `/api/events/${randomUUID()}/complete`, {
       as: coordinator.id,
     });
     expect(missing.status).toBe(404);
   });
+
+  it("stores purpose and organiser, defaults old shapes and filters by purpose", async () => {
+    const plain = await createEvent();
+    expect(plain).toMatchObject({ purpose: "activity", organiser: "" });
+    const drive = await createEvent({
+      purpose: "volunteer_drive",
+      organiser: "Elmina Residents Association",
+    });
+    expect(drive).toMatchObject({
+      purpose: "volunteer_drive",
+      organiser: "Elmina Residents Association",
+    });
+    const drives = ids(await call("GET", "/api/events", { query: { purpose: "volunteer_drive" } }));
+    expect(drives).toContain(drive.id);
+    expect(drives).not.toContain(plain.id);
+    const activities = ids(await call("GET", "/api/events", { query: { purpose: "activity" } }));
+    expect(activities).toContain(plain.id);
+    expect(activities).not.toContain(drive.id);
+    expect((await call("GET", "/api/events", { query: { purpose: "party" } })).status).toBe(400);
+  });
+
+  it("awards volunteering points once per volunteer, even when completed twice", async () => {
+    const event = await createEvent();
+    const elder = await createUser("elder");
+    const volunteer = await createVerifiedVolunteer(coordinator.id);
+    await join(event.id, elder.id);
+    await join(event.id, volunteer.id);
+    const path = `/api/events/${event.id}/complete`;
+    expect((await call("POST", path, { as: coordinator.id })).status).toBe(200);
+    expect((await call("POST", path, { as: coordinator.id })).status).toBe(200);
+    expect(await pointsOf(volunteer.id)).toEqual({
+      points: VOLUNTEERING_POINTS,
+      lifetimePoints: VOLUNTEERING_POINTS,
+    });
+    expect(await pointsOf(elder.id)).toEqual({ points: 0, lifetimePoints: 0 });
+    const mine = (await call("GET", "/api/contributions/mine", { as: volunteer.id }))
+      .body as ContributionsResponse;
+    expect(mine.items).toHaveLength(1);
+  });
+
+  it("a repeat complete finishes awards that a crashed first run left out", async () => {
+    const event = await createEvent();
+    const volunteer = await createVerifiedVolunteer(coordinator.id);
+    await join(event.id, volunteer.id);
+    // Simulate a crash after the status flip: complete without awards.
+    await completeEvent(event.id, new Date().toISOString(), []);
+    expect(await pointsOf(volunteer.id)).toEqual({ points: 0, lifetimePoints: 0 });
+    const path = `/api/events/${event.id}/complete`;
+    expect((await call("POST", path, { as: coordinator.id })).status).toBe(200);
+    expect((await pointsOf(volunteer.id)).points).toBe(VOLUNTEERING_POINTS);
+  });
 });
+
+async function pointsOf(userId: string) {
+  const user = await getUser(userId);
+  return { points: user?.points, lifetimePoints: user?.lifetimePoints };
+}
 
 function ids(res: { body: unknown }): string[] {
   return (res.body as EventsResponse).events.map((e) => e.id);

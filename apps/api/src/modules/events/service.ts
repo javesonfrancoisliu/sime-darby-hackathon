@@ -1,7 +1,8 @@
 import { randomUUID } from "node:crypto";
-import type { CommunityEvent, CreateEventBody, User } from "@sdh/contracts";
+import type { CommunityEvent, CreateEventBody, EventPurpose, User } from "@sdh/contracts";
 import { HttpError } from "../../lib/http";
 import { newContribution } from "../contributions/service";
+import { VOLUNTEERING_POINTS, awardOnce } from "../points/service";
 import {
   completeEvent,
   getEvent,
@@ -37,9 +38,10 @@ export async function createEvent(coordinator: User, body: CreateEventBody) {
   return event;
 }
 
-export async function listEvents(viewer?: User): Promise<CommunityEvent[]> {
+export async function listEvents(viewer?: User, purpose?: EventPurpose): Promise<CommunityEvent[]> {
   const now = new Date().toISOString();
-  const events = await listUpcomingEvents(now);
+  const all = await listUpcomingEvents(now);
+  const events = purpose ? all.filter((event) => event.purpose === purpose) : all;
   if (!viewer) return events;
   const joined = await listJoinedEventIds(viewer.id, now);
   return events.map((event) => ({ ...event, joined: joined.has(event.id) }));
@@ -53,21 +55,39 @@ export async function join(user: User, eventId: string): Promise<CommunityEvent>
   return { ...(await requireEvent(eventId)), joined: true };
 }
 
+const AWARD_ATTEMPTS = 3;
+
+// One transaction per volunteer; a guard failure means they were already paid. A transient
+// conflict is retried, so a repeat complete call can finish awards a crashed run left behind.
+async function awardVolunteer(volunteerId: string, event: CommunityEvent): Promise<void> {
+  for (let attempt = 0; attempt < AWARD_ATTEMPTS; attempt += 1) {
+    const outcome = await awardOnce(volunteerId, {
+      awardKey: `volunteering:${event.id}`,
+      sourceType: "volunteering",
+      sourceId: event.id,
+      points: VOLUNTEERING_POINTS,
+      title: event.title,
+    });
+    if (outcome !== "conflict") return;
+  }
+  throw new HttpError("CONFLICT_RETRY", "Try again in a moment");
+}
+
+// Idempotent: a repeat call on a completed event re-runs the awards and still returns 200.
 export async function complete(eventId: string): Promise<CommunityEvent> {
   const event = await requireEvent(eventId);
   const signups = await listSignups(eventId);
-  const contributions = signups
-    .filter((signup) => signup.role === "volunteer")
-    .map((signup) =>
-      newContribution({
-        volunteerId: signup.userId,
-        source: "event",
-        sourceId: event.id,
-        title: event.title,
-        minutes: event.durationMinutes,
-      }),
-    );
-  const completed = await completeEvent(event.id, new Date().toISOString(), contributions);
-  if (!completed) throw new HttpError("CONFLICT", "Event is already completed");
+  const volunteers = signups.filter((signup) => signup.role === "volunteer");
+  const contributions = volunteers.map((signup) =>
+    newContribution({
+      volunteerId: signup.userId,
+      source: "event",
+      sourceId: event.id,
+      title: event.title,
+      minutes: event.durationMinutes,
+    }),
+  );
+  await completeEvent(event.id, new Date().toISOString(), contributions);
+  for (const signup of volunteers) await awardVolunteer(signup.userId, event);
   return requireEvent(eventId);
 }
