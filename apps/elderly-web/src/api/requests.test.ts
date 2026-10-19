@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { CreateRequestBody, HelpRequest } from "@sdh/contracts";
 import { requestsApi } from "./requests";
 import { installFakeApi, signInAs } from "../test/fakeApi";
@@ -76,13 +76,16 @@ describe("requestsApi against the contract", () => {
     await expect(requestsApi.cancel(request.id)).rejects.toMatchObject({ code: "CONFLICT" });
   });
 
-  it("serves labelled demo data only when VITE_USE_MOCK is true, with no network call", async () => {
-    const { fetchMock } = installFakeApi();
-    vi.stubEnv("VITE_USE_MOCK", "true");
-    const list = await requestsApi.listMine();
-    expect(list.length).toBeGreaterThan(0);
-    for (const r of list) HelpRequest.parse(r);
-    expect(fetchMock).not.toHaveBeenCalled();
+  it("confirms with POST /api/requests/{id}/confirm", async () => {
+    signInAs();
+    const { calls } = installFakeApi({
+      [`POST /api/requests/${request.id}/confirm`]: {
+        body: { ...request, status: "completed", confirmedAt: "2026-10-19T10:00:00Z" },
+      },
+    });
+    const confirmed = await requestsApi.confirm(request.id);
+    expect(confirmed.confirmedAt).toBeDefined();
+    expect(calls[0]).toMatchObject({ method: "POST", path: `/api/requests/${request.id}/confirm` });
   });
 
   it("never falls back to demo data when a live call fails", async () => {

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { useSession } from "@sdh/api-client";
 import { logApiError } from "../api/errors";
-import { demoSignInEnabled, isMockMode, tokenModeEnabled } from "../config";
+import { demoSignInEnabled, tokenModeEnabled } from "../config";
 import { AppShell } from "../ui/AppShell";
 import { WhoIsUsingPage } from "../pages/WhoIsUsingPage";
 import { Banner } from "../ui/Banner";
@@ -10,7 +10,6 @@ import { useSessionRedirect } from "./useSessionRedirect";
 
 // Shows the app only once someone is chosen; otherwise asks who is using the phone.
 export function SessionGate({ children }: { children: ReactNode }) {
-  if (isMockMode()) return <>{children}</>;
   return tokenModeEnabled() ? (
     <TokenSessionGate>{children}</TokenSessionGate>
   ) : (

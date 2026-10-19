@@ -1,7 +1,17 @@
-import { useId, useState } from "react";
+import { useId, useState, type ReactNode } from "react";
 import { PlayIcon } from "../ui/PlayIcon";
-import { useChallengesData } from "../hooks/useChallengesData";
-import type { StreakState } from "../types/challenges";
+import {
+  useBadges,
+  useCheckIn,
+  useChallenges,
+  useContribute,
+  usePoints,
+  useRedeem,
+  useRewards,
+  useStreak,
+} from "../hooks/useChallengesData";
+import { formatDate, malaysiaToday } from "../requests/schedule";
+import { useResident } from "../session/useResident";
 import {
   IconTrophy,
   IconFlame,
@@ -13,26 +23,70 @@ import {
 } from "../ui/Icons";
 import { SegmentedTabs, TabPanel, type TabItem } from "../ui/SegmentedTabs";
 import { useAccessibility } from "../context/AccessibilityContext";
-import { DemoTag } from "../ui/DemoTag";
+import { Banner } from "../ui/Banner";
+import { Spinner } from "../ui/Spinner";
+import type { FriendlyError } from "../api/errors";
 
 type PlayTab = "streak" | "challenges" | "badges" | "rewards";
 
-// Challenges - gamified community features for residents (for fun).
-// Team/neighbourhood goals (never individual rankings), participation badges &
-// a daily check-in streak, and rewards/vouchers for township shops & clinics.
-// Stateful demo: nothing here is saved or granted, so the page says so.
+const DAY_LETTERS = ["S", "M", "T", "W", "T", "F", "S"];
+const WEEK_DAYS = 7;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// The last seven Malaysia dates ending today, oldest first.
+function lastSevenDays(now: Date): string[] {
+  return Array.from({ length: WEEK_DAYS }, (_, i) =>
+    malaysiaToday(new Date(now.getTime() - (WEEK_DAYS - 1 - i) * DAY_MS)),
+  );
+}
+
+function dayLetter(date: string): string {
+  return DAY_LETTERS[new Date(`${date}T00:00:00Z`).getUTCDay()] ?? "";
+}
+
+// Kinder words for the "already done" answer than the shared default.
+function kindMessage(error: FriendlyError | undefined, alreadyDone: string, fallback: string) {
+  if (!error) return fallback;
+  if (error.code === "ALREADY_DONE") return alreadyDone;
+  return error.message;
+}
+
+function Loadable({
+  query,
+  label,
+  children,
+}: {
+  query: { status: string; data?: unknown; error?: FriendlyError; refetch: () => void };
+  label: string;
+  children: ReactNode;
+}) {
+  if (query.status === "loading" && query.data === undefined) return <Spinner label={label} />;
+  if (query.status === "error" && query.data === undefined) {
+    return (
+      <Banner message={query.error?.message ?? "Something went wrong."} onRetry={query.refetch} />
+    );
+  }
+  return <>{children}</>;
+}
+
+// Community Play: team goals for the neighbourhood, a daily check-in streak,
+// participation badges and rewards. Everything comes from the township API.
 export function ChallengesPage() {
-  const {
-    neighbourhood,
-    communityChallenges,
-    badgeList,
-    rewardList,
-    initialStreak,
-    initialPoints,
-  } = useChallengesData();
+  const resident = useResident();
   const { speak, voiceAssist, triggerHaptic } = useAccessibility();
+  const neighbourhood = resident?.area ?? "Your neighbourhood";
+
+  const challenges = useChallenges();
+  const points = usePoints();
+  const streak = useStreak();
+  const rewards = useRewards();
+  const badges = useBadges();
+  const contribute = useContribute();
+  const checkIn = useCheckIn();
+  const redeem = useRedeem();
 
   const [tab, setTab] = useState<PlayTab>("streak");
+  const [toast, setToast] = useState("");
   const groupId = useId();
   const TABS: TabItem<PlayTab>[] = [
     { id: "streak", label: "Streak", icon: <IconFlame size={18} strokeWidth={2} /> },
@@ -41,75 +95,83 @@ export function ChallengesPage() {
     { id: "rewards", label: "Rewards", icon: <IconGift size={18} strokeWidth={2} /> },
   ];
 
-  const [points, setPoints] = useState(initialPoints);
-  const [streak, setStreak] = useState<StreakState>(initialStreak);
-  const [checkedInToday, setCheckedInToday] = useState(false);
-  const [challengeBoost, setChallengeBoost] = useState<Record<string, number>>({});
-  const [redeemed, setRedeemed] = useState<Set<string>>(new Set());
-  const [justEarnedBadge, setJustEarnedBadge] = useState(false);
+  const balance = points.data?.points;
+  const today = malaysiaToday();
+  const week = lastSevenDays(new Date());
+  const checkedInToday = streak.data?.recent.includes(today) ?? false;
+  const teamChallenges = (challenges.data ?? []).filter((c) => c.mode === "team");
 
-  const firstChallenge = communityChallenges[0];
+  function setBalance(next: number) {
+    points.update((p) => ({ ...p, points: next }));
+  }
 
-  function handleCheckIn() {
-    if (checkedInToday) return;
+  async function handleCheckIn() {
     triggerHaptic(25);
-    setCheckedInToday(true);
-    setStreak((s) => ({
-      current: s.current + 1,
-      best: Math.max(s.best, s.current + 1),
-      week: [...s.week.slice(1), true],
-    }));
-    setPoints((p) => p + 10);
-    // Today's check-in adds to our neighbourhood's shared walk goal.
-    if (firstChallenge) {
-      setChallengeBoost((b) => ({ ...b, [firstChallenge.id]: (b[firstChallenge.id] ?? 0) + 1 }));
-    }
-    setJustEarnedBadge(true);
-    window.setTimeout(() => setJustEarnedBadge(false), 2200);
+    const result = await checkIn.run();
+    if (!result) return;
+    streak.update(() => result.streak);
+    setBalance(result.points);
+    setToast(`Nice! +${result.pointsAwarded} points`);
+    window.setTimeout(() => setToast(""), 2200);
     if (voiceAssist) {
       speak(
-        `Checked in for the demo. The example streak is now ${streak.current + 1} days, with 10 example points added.`,
+        `Checked in. Your streak is now ${result.streak.current} days, with ${result.pointsAwarded} points added.`,
       );
     }
   }
 
-  function handleRedeem(id: string, cost: number, title: string, partner: string) {
-    if (redeemed.has(id) || points < cost) return;
+  async function handleContribute(id: string) {
     triggerHaptic(20);
-    setPoints((p) => p - cost);
-    setRedeemed((prev) => new Set(prev).add(id));
-    if (voiceAssist)
-      speak(`Example voucher redeemed: ${title} at ${partner}. Nothing real was spent.`);
+    const result = await contribute.run(id);
+    if (!result) return;
+    challenges.update((list) =>
+      list.map((c) => (c.id === id ? { ...c, teamProgress: result.teamProgress } : c)),
+    );
+    if (result.pointsAwarded > 0) {
+      points.update((p) => ({ ...p, points: p.points + result.pointsAwarded }));
+    }
+    setToast(`Thank you! +${result.pointsAwarded} points for ${neighbourhood}`);
+    window.setTimeout(() => setToast(""), 2200);
+  }
+
+  async function handleRedeem(id: string, title: string) {
+    triggerHaptic(20);
+    const result = await redeem.run(id);
+    if (!result) return;
+    setBalance(result.points);
+    rewards.update((list) =>
+      list.map((r) =>
+        r.id === id ? { ...r, status: "redeemed", redeemedAt: result.redemption.redeemedAt } : r,
+      ),
+    );
+    if (voiceAssist) speak(`Redeemed: ${title}.`);
   }
 
   function handleReadSummary() {
-    const earned = badgeList.filter((b) => b.earned).length + (justEarnedBadge ? 0 : 0);
+    const earned = (badges.data ?? []).filter((b) => b.earned).length;
     speak(
-      `Community play for ${neighbourhood.name}. These are example values, not real points. The demo shows ${points} points and a ${streak.current} day check-in streak. ${earned} badges earned. Join a neighbourhood challenge or redeem a reward at a township shop or clinic.`,
+      `Community play for ${neighbourhood}. You have ${balance ?? 0} points and a ${streak.data?.current ?? 0} day check-in streak. ${earned} badges earned. Join a neighbourhood challenge or redeem a reward.`,
     );
   }
-
-  const dayLabels = ["M", "T", "W", "T", "F", "S", "S"];
 
   return (
     <div className="safety-page">
       <div className="safety-page__header">
         <div className="row-between">
           <div>
-            <h1 className="safety-page__title">
-              Community Play
-              <DemoTag />
-            </h1>
+            <h1 className="safety-page__title">Community Play</h1>
             <p className="safety-page__subtitle">
               <IconUsers className="icon-inline-low" size={13} strokeWidth={2} />
-              {neighbourhood.name} · {neighbourhood.members} neighbours
+              {neighbourhood}
             </p>
           </div>
           <div className="row-center">
-            <span className="play-header-points" aria-label={`${points} neighbour points`}>
-              <IconSparkles size={15} strokeWidth={2} aria-hidden="true" />
-              {points}
-            </span>
+            {balance !== undefined ? (
+              <span className="play-header-points" aria-label={`${balance} neighbour points`}>
+                <IconSparkles size={15} strokeWidth={2} aria-hidden="true" />
+                {balance}
+              </span>
+            ) : null}
             <button
               type="button"
               className="ui-button ui-button--ghost apple-header-voice-btn"
@@ -132,72 +194,88 @@ export function ChallengesPage() {
         ariaLabel="Choose a community play area"
       />
 
+      {toast ? (
+        <p className="play-toast" role="status">
+          {toast}
+        </p>
+      ) : null}
+
       {tab === "streak" && (
         <TabPanel id="streak" groupId={groupId}>
           <section className="safety-section seg-panel-enter" aria-label="Your points and streak">
-            <div className="play-summary">
-              <div className="play-summary__points">
-                <span className="play-summary__points-icon" aria-hidden="true">
-                  <IconSparkles size={22} strokeWidth={1.8} />
-                </span>
-                <div>
-                  <span className="play-summary__points-value">{points}</span>
-                  <span className="play-summary__points-label">
-                    neighbour points <DemoTag />
+            <Loadable query={streak} label="Loading your streak">
+              <div className="play-summary">
+                <div className="play-summary__points">
+                  <span className="play-summary__points-icon" aria-hidden="true">
+                    <IconSparkles size={22} strokeWidth={1.8} />
                   </span>
+                  <div>
+                    <span className="play-summary__points-value">{balance ?? 0}</span>
+                    <span className="play-summary__points-label">neighbour points</span>
+                  </div>
+                </div>
+                <div
+                  className="play-summary__streak"
+                  aria-label={`Current streak ${streak.data?.current ?? 0} days`}
+                >
+                  <span className="play-summary__streak-flame" aria-hidden="true">
+                    <IconFlame size={20} strokeWidth={1.8} />
+                  </span>
+                  <span className="play-summary__streak-value">{streak.data?.current ?? 0}</span>
+                  <span className="play-summary__streak-label">day streak</span>
                 </div>
               </div>
+
               <div
-                className="play-summary__streak"
-                aria-label={`Current streak ${streak.current} days`}
+                className="play-week"
+                role="img"
+                aria-label={`Checked in ${week.filter((d) => streak.data?.recent.includes(d)).length} of the last 7 days`}
               >
-                <span className="play-summary__streak-flame" aria-hidden="true">
-                  <IconFlame size={20} strokeWidth={1.8} />
-                </span>
-                <span className="play-summary__streak-value">{streak.current}</span>
-                <span className="play-summary__streak-label">day streak</span>
+                {week.map((day) => {
+                  const done = streak.data?.recent.includes(day) ?? false;
+                  return (
+                    <div key={day} className="play-week__day">
+                      <span
+                        className={`play-week__dot${done ? " play-week__dot--done" : ""}`}
+                        aria-hidden="true"
+                      >
+                        {done ? <IconCheck size={14} strokeWidth={2.6} /> : null}
+                      </span>
+                      <span className="play-week__label">{dayLetter(day)}</span>
+                    </div>
+                  );
+                })}
               </div>
-            </div>
 
-            <div
-              className="play-week"
-              role="img"
-              aria-label={`Checked in ${streak.week.filter(Boolean).length} of the last 7 days`}
-            >
-              {streak.week.map((done, i) => (
-                <div key={i} className="play-week__day">
-                  <span
-                    className={`play-week__dot${done ? " play-week__dot--done" : ""}`}
-                    aria-hidden="true"
-                  >
-                    {done ? <IconCheck size={14} strokeWidth={2.6} /> : null}
-                  </span>
-                  <span className="play-week__label">{dayLabels[i]}</span>
-                </div>
-              ))}
-            </div>
+              {checkIn.status === "error" ? (
+                <Banner
+                  message={kindMessage(
+                    checkIn.error,
+                    "You have already checked in today. Come back tomorrow.",
+                    "We could not check you in.",
+                  )}
+                  onRetry={checkIn.error?.code === "ALREADY_DONE" ? streak.refetch : undefined}
+                  retryLabel="Refresh"
+                />
+              ) : null}
 
-            <button
-              type="button"
-              className={`ui-button ui-button--primary play-checkin-btn${checkedInToday ? " play-checkin-btn--done" : ""}`}
-              onClick={handleCheckIn}
-              disabled={checkedInToday}
-              aria-pressed={checkedInToday}
-            >
-              {checkedInToday ? (
-                <>
-                  <IconCheck size={18} strokeWidth={2.4} aria-hidden="true" />
-                  Checked in today · +10
-                </>
-              ) : (
-                "Check in today"
-              )}
-            </button>
-            {justEarnedBadge && (
-              <p className="play-toast" role="status">
-                Nice! +10 points added to {neighbourhood.name}
-              </p>
-            )}
+              <button
+                type="button"
+                className={`ui-button ui-button--primary play-checkin-btn${checkedInToday ? " play-checkin-btn--done" : ""}`}
+                onClick={() => void handleCheckIn()}
+                disabled={checkedInToday || checkIn.status === "loading"}
+                aria-pressed={checkedInToday}
+              >
+                {checkedInToday ? (
+                  <>
+                    <IconCheck size={18} strokeWidth={2.4} aria-hidden="true" />
+                    Checked in today
+                  </>
+                ) : (
+                  "Check in today"
+                )}
+              </button>
+            </Loadable>
           </section>
         </TabPanel>
       )}
@@ -212,47 +290,74 @@ export function ChallengesPage() {
               <h2 className="safety-section__heading-text">Neighbourhood Challenges</h2>
             </div>
             <p className="play-section-note">
-              We reach these goals <strong>together</strong> - every neighbour&rsquo;s check-in
-              counts.
+              We reach these goals <strong>together</strong> - every neighbour&rsquo;s part counts.
             </p>
-            <div className="ui-stack">
-              {communityChallenges.map((c) => {
-                const boost = challengeBoost[c.id] ?? 0;
-                const progress = Math.min(c.progress + boost, c.goal);
-                const pct = Math.min(Math.round((progress / c.goal) * 100), 100);
-                const done = progress >= c.goal;
-                return (
-                  <div key={c.id} className="play-challenge">
-                    <div className="play-challenge__top">
-                      <PlayIcon name={c.icon} className="play-challenge__icon" />
-                      <div className="flex-fill">
-                        <p className="play-challenge__title">{c.title}</p>
-                        <p className="play-challenge__desc">{c.description}</p>
+            <Loadable query={challenges} label="Loading challenges">
+              {contribute.status === "error" ? (
+                <Banner
+                  message={kindMessage(
+                    contribute.error,
+                    "You have already added your part today. Come back tomorrow.",
+                    "We could not add your part.",
+                  )}
+                />
+              ) : null}
+              {challenges.data && teamChallenges.length === 0 ? (
+                <p className="ui-page-subtitle">No neighbourhood challenges are running yet.</p>
+              ) : null}
+              <div className="ui-stack">
+                {teamChallenges.map((c) => {
+                  const progress = c.teamProgress?.current ?? 0;
+                  const goal = c.goal.target;
+                  const pct = Math.min(Math.round((progress / goal) * 100), 100);
+                  const done = progress >= goal;
+                  return (
+                    <div key={c.id} className="play-challenge">
+                      <div className="play-challenge__top">
+                        <PlayIcon name={c.icon} className="play-challenge__icon" />
+                        <div className="flex-fill">
+                          <p className="play-challenge__title">{c.title}</p>
+                          <p className="play-challenge__desc">{c.description}</p>
+                        </div>
                       </div>
+                      <div className="safety-bar play-challenge__bar">
+                        <div
+                          className="safety-bar__fill"
+                          style={{
+                            width: `${pct}%`,
+                            background: done ? "var(--success)" : "var(--brand-primary)",
+                          }}
+                        />
+                      </div>
+                      <div className="play-challenge__meta">
+                        <span className="play-challenge__count">
+                          {progress} / {goal} {c.goal.unit}
+                        </span>
+                        <span className="play-challenge__ends">
+                          {c.ended ? "Ended" : "Ends"} {formatDate(c.endsOn)}
+                        </span>
+                      </div>
+                      {c.teamReward ? (
+                        <p className="play-challenge__reward">
+                          <IconGift className="icon-inline-low" size={14} strokeWidth={2} />
+                          Team reward: {c.teamReward}
+                        </p>
+                      ) : null}
+                      {!c.ended ? (
+                        <button
+                          type="button"
+                          className="ui-button ui-button--primary play-checkin-btn"
+                          disabled={contribute.status === "loading"}
+                          onClick={() => void handleContribute(c.id)}
+                        >
+                          Add my part today
+                        </button>
+                      ) : null}
                     </div>
-                    <div className="safety-bar play-challenge__bar">
-                      <div
-                        className="safety-bar__fill"
-                        style={{
-                          width: `${pct}%`,
-                          background: done ? "var(--success)" : "var(--brand-primary)",
-                        }}
-                      />
-                    </div>
-                    <div className="play-challenge__meta">
-                      <span className="play-challenge__count">
-                        {progress} / {c.goal} {c.unit}
-                      </span>
-                      <span className="play-challenge__ends">Ends {c.endsOn}</span>
-                    </div>
-                    <p className="play-challenge__reward">
-                      <IconGift className="icon-inline-low" size={14} strokeWidth={2} />
-                      Team reward: {c.teamReward}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            </Loadable>
           </section>
         </TabPanel>
       )}
@@ -266,16 +371,21 @@ export function ChallengesPage() {
               </span>
               <h2 className="safety-section__heading-text">Participation Badges</h2>
             </div>
-            <div className="play-badges">
-              {badgeList.map((b) => (
-                <div key={b.id} className={`play-badge${b.earned ? " play-badge--earned" : ""}`}>
-                  <PlayIcon name={b.icon} className="play-badge__icon" />
-                  <span className="play-badge__name">{b.name}</span>
-                  <span className="play-badge__desc">{b.description}</span>
-                  {!b.earned && <span className="play-badge__locked">Locked</span>}
-                </div>
-              ))}
-            </div>
+            <Loadable query={badges} label="Loading badges">
+              {badges.data && badges.data.length === 0 ? (
+                <p className="ui-page-subtitle">No badges are available yet.</p>
+              ) : null}
+              <div className="play-badges">
+                {(badges.data ?? []).map((b) => (
+                  <div key={b.id} className={`play-badge${b.earned ? " play-badge--earned" : ""}`}>
+                    <PlayIcon name={b.icon} className="play-badge__icon" />
+                    <span className="play-badge__name">{b.title}</span>
+                    <span className="play-badge__desc">{b.description}</span>
+                    {!b.earned && <span className="play-badge__locked">Locked</span>}
+                  </div>
+                ))}
+              </div>
+            </Loadable>
           </section>
         </TabPanel>
       )}
@@ -288,48 +398,62 @@ export function ChallengesPage() {
                 <IconGift size={22} strokeWidth={1.8} />
               </span>
               <h2 className="safety-section__heading-text">Rewards &amp; Vouchers</h2>
-              <DemoTag />
             </div>
-            <p className="play-section-note">
-              Example rewards. Redeeming here only changes this demo and gives nothing real.
-            </p>
-            <div className="ui-stack">
-              {rewardList.map((r) => {
-                const isRedeemed = redeemed.has(r.id);
-                const affordable = points >= r.cost;
-                return (
-                  <div key={r.id} className="play-reward">
-                    <PlayIcon name={r.icon} className="play-reward__icon" />
-                    <div className="play-reward__body">
-                      <p className="play-reward__title">{r.title}</p>
-                      <p className="play-reward__partner">{r.partner}</p>
+            <Loadable query={rewards} label="Loading rewards">
+              {redeem.status === "error" ? (
+                <Banner
+                  message={kindMessage(
+                    redeem.error,
+                    "You have already redeemed this reward.",
+                    "We could not redeem that reward.",
+                  )}
+                />
+              ) : null}
+              {rewards.data && rewards.data.length === 0 ? (
+                <p className="ui-page-subtitle">No rewards are available yet.</p>
+              ) : null}
+              <div className="ui-stack">
+                {(rewards.data ?? []).map((r) => {
+                  const isRedeemed = r.status === "redeemed";
+                  const locked = r.status === "locked";
+                  const affordable = (balance ?? 0) >= r.pointsCost;
+                  return (
+                    <div key={r.id} className="play-reward">
+                      <PlayIcon name={r.icon} className="play-reward__icon" />
+                      <div className="play-reward__body">
+                        <p className="play-reward__title">{r.title}</p>
+                        {r.partner ? <p className="play-reward__partner">{r.partner}</p> : null}
+                      </div>
+                      <div className="play-reward__action">
+                        <span className="play-reward__cost">{r.pointsCost} pts</span>
+                        <button
+                          type="button"
+                          className={`community-register-btn${isRedeemed ? " community-register-btn--done" : ""}`}
+                          onClick={() => void handleRedeem(r.id, r.title)}
+                          disabled={
+                            isRedeemed || locked || !affordable || redeem.status === "loading"
+                          }
+                          aria-pressed={isRedeemed}
+                        >
+                          {isRedeemed ? (
+                            <>
+                              <IconCheck size={15} strokeWidth={2.4} aria-hidden="true" />
+                              Redeemed
+                            </>
+                          ) : locked ? (
+                            "Locked"
+                          ) : affordable ? (
+                            "Redeem"
+                          ) : (
+                            "Not enough"
+                          )}
+                        </button>
+                      </div>
                     </div>
-                    <div className="play-reward__action">
-                      <span className="play-reward__cost">{r.cost} pts</span>
-                      <button
-                        type="button"
-                        className={`community-register-btn${isRedeemed ? " community-register-btn--done" : ""}`}
-                        onClick={() => handleRedeem(r.id, r.cost, r.title, r.partner)}
-                        disabled={isRedeemed || !affordable}
-                        aria-pressed={isRedeemed}
-                      >
-                        {isRedeemed ? (
-                          <>
-                            <IconCheck size={15} strokeWidth={2.4} aria-hidden="true" />
-                            Redeemed
-                          </>
-                        ) : affordable ? (
-                          "Redeem"
-                        ) : (
-                          "Not enough"
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            <p className="safety-source">Demo rewards · Township partner offers are illustrative</p>
+                  );
+                })}
+              </div>
+            </Loadable>
           </section>
         </TabPanel>
       )}

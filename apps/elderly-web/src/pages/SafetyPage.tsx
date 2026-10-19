@@ -1,6 +1,10 @@
 import { useId, useState, type ReactNode } from "react";
+import type { FacilityStatus } from "@sdh/contracts";
 import { useSafetyData } from "../hooks/useSafetyData";
-import type { FacilityStatus } from "../types/safety";
+import { useResident } from "../session/useResident";
+import { formatWhen } from "../requests/schedule";
+import { Banner } from "../ui/Banner";
+import { Spinner } from "../ui/Spinner";
 import {
   IconWind,
   IconWaves,
@@ -13,7 +17,6 @@ import {
 } from "../ui/Icons";
 import { SegmentedTabs, TabPanel, type TabItem } from "../ui/SegmentedTabs";
 import { useAccessibility } from "../context/AccessibilityContext";
-import { DemoTag } from "../ui/DemoTag";
 import { useHashTab } from "../ui/useHashTab";
 import {
   ALERT_LEVEL,
@@ -36,7 +39,7 @@ function waterBarLevel(pct: number): "ok" | "mid" | "high" {
 }
 
 type FilterStatus = "all" | FacilityStatus;
-const FACILITY_STATUSES: FacilityStatus[] = ["reported", "in_progress", "fixed"];
+const FACILITY_STATUSES: FacilityStatus[] = ["reported", "in_progress", "resolved"];
 const FILTER_STATUSES: FilterStatus[] = ["all", ...FACILITY_STATUSES];
 
 // Section heading with an outline icon. The id is what the section's aria-labelledby points to.
@@ -59,8 +62,16 @@ function SectionHeading({ id, icon, title }: { id: string; icon: ReactNode; titl
 // b. Water Level of Rivers and Lakes within the township
 // c. Temperature Alerts
 // d. Broken or Damaged Facilities within the Township (Reported, In progress, Fixed)
+// Everything shown comes from the township feed; nothing is made up on the phone.
+function withUnit(value: number, unit: string): string {
+  return unit.startsWith("°") || unit === "%" ? `${value}${unit}` : `${value} ${unit}`;
+}
+
 export function SafetyPage() {
-  const { hazeReadings, waterReadings, temperatureAlert, facilityReports } = useSafetyData();
+  const safety = useSafetyData();
+  const resident = useResident();
+  const { air: airReadings, water: waterReadings, heat: heatReadings } = safety;
+  const facilityReports = safety.facilities;
   const [facilityFilter, setFacilityFilter] = useState<FilterStatus>("all");
   const [tab, setTab] = useHashTab<SafetyTab>(SAFETY_TABS, "haze");
   const groupId = useId();
@@ -78,16 +89,23 @@ export function SafetyPage() {
       ? facilityReports
       : facilityReports.filter((f) => f.status === facilityFilter);
 
-  const tempStyle = ALERT_LEVEL[temperatureAlert.level];
-  const localHaze = hazeReadings[0] ?? { location: "Elmina West", level: "good", api: 0 };
-
   function handleReadSafetySummary() {
-    const open = facilityReports.filter((f) => f.status !== "fixed").length;
-    speak(
-      `Health and safety. These are example readings, not live data. Air quality in ${localHaze.location} is ${localHaze.level}, API ${localHaze.api}. ` +
-        `Temperature is ${temperatureAlert.tempC} degrees, ${tempStyle.label}. ` +
-        `${open} facility repairs are not yet fixed.`,
-    );
+    const open = facilityReports.filter((f) => f.status !== "resolved").length;
+    const parts = ["Health and safety."];
+    const air = airReadings[0];
+    if (air) {
+      parts.push(
+        `Air quality in ${air.area} is ${HAZARD_LEVEL[air.level].label}, API ${air.value}.`,
+      );
+    }
+    const heat = heatReadings[0];
+    if (heat) {
+      parts.push(
+        `Temperature is ${withUnit(heat.value, heat.unit)}, ${ALERT_LEVEL[heat.level].label}.`,
+      );
+    }
+    parts.push(`${open} facility repairs are not yet fixed.`);
+    speak(parts.join(" "));
   }
 
   function handleFilterClick(status: FilterStatus) {
@@ -100,11 +118,10 @@ export function SafetyPage() {
       <div className="safety-page__header">
         <div className="row-between">
           <div>
-            <h1 className="safety-page__title">
-              Health &amp; Safety
-              <DemoTag />
-            </h1>
-            <p className="safety-page__subtitle">Elmina West · Township Hazard Monitoring</p>
+            <h1 className="safety-page__title">Health &amp; Safety</h1>
+            <p className="safety-page__subtitle">
+              {resident?.area ?? "Elmina"} · Township Hazard Monitoring
+            </p>
           </div>
           <button
             type="button"
@@ -122,6 +139,14 @@ export function SafetyPage() {
       <div className="safety-page__call">
         <EmergencyCallButton compact />
       </div>
+
+      {safety.status === "loading" && !safety.loaded ? <Spinner label="Loading readings" /> : null}
+      {safety.status === "error" ? (
+        <Banner
+          message={safety.error?.message ?? "We could not load the readings."}
+          onRetry={safety.refetch}
+        />
+      ) : null}
 
       <SegmentedTabs
         groupId={groupId}
@@ -144,24 +169,27 @@ export function SafetyPage() {
               title="Air Quality &amp; Haze API"
             />
             <div className="ui-stack">
-              {hazeReadings.map((r) => {
+              {airReadings.length === 0 && safety.loaded ? (
+                <p className="ui-page-subtitle">No air quality readings have been posted yet.</p>
+              ) : null}
+              {airReadings.map((r) => {
                 const s = HAZARD_LEVEL[r.level];
-                const pct = Math.min((r.api / HAZE_API_SCALE_MAX) * 100, 100);
+                const pct = Math.min((r.value / HAZE_API_SCALE_MAX) * 100, 100);
                 return (
-                  <div key={r.location} className="safety-card">
+                  <div key={r.area} className="safety-card">
                     <div className="safety-card__row">
                       <div>
-                        <p className="safety-card__location">{r.location}</p>
-                        <p className="safety-card__meta">Updated: {r.updatedAt}</p>
+                        <p className="safety-card__location">{r.area}</p>
+                        <p className="safety-card__meta">Updated: {formatWhen(r.measuredAt)}</p>
                       </div>
                       <div className={`safety-card__badge tone-${s.tone}`}>
-                        <span className="safety-card__badge-value">{r.api}</span>
+                        <span className="safety-card__badge-value">{r.value}</span>
                         <span className="safety-card__badge-label">API · {s.label}</span>
                       </div>
                     </div>
                     <div
                       className="safety-bar"
-                      aria-label={`API level ${r.api} out of ${HAZE_API_SCALE_MAX}`}
+                      aria-label={`API level ${r.value} out of ${HAZE_API_SCALE_MAX}`}
                     >
                       <div
                         className={`safety-bar__fill safety-bar__fill--tone tone-${s.tone}`}
@@ -170,13 +198,12 @@ export function SafetyPage() {
                     </div>
                     <p className="safety-card__tip">
                       <IconInfo className="icon-inline-low" size={14} strokeWidth={2} />
-                      {r.recommendation}
+                      {r.advice}
                     </p>
                   </div>
                 );
               })}
             </div>
-            <p className="safety-source">Example data, not from any agency</p>
           </section>
         </TabPanel>
       )}
@@ -190,24 +217,28 @@ export function SafetyPage() {
               title="River &amp; Lake Water Levels"
             />
             <div className="ui-stack">
+              {waterReadings.length === 0 && safety.loaded ? (
+                <p className="ui-page-subtitle">No water level readings have been posted yet.</p>
+              ) : null}
               {waterReadings.map((r) => {
-                const s = WATER_STATUS[r.status];
-                const pct = Math.min((r.levelM / r.normalMaxM) * 100, 100);
+                const s = WATER_STATUS[r.level];
+                const pct = Math.min((r.value / r.normalMax) * 100, 100);
                 return (
-                  <div key={r.name} className="safety-card">
+                  <div key={`${r.name}-${r.area}`} className="safety-card">
                     <div className="safety-card__row">
                       <div>
                         <p className="safety-card__location">{r.name}</p>
                         <p className="safety-card__meta">
-                          {r.type === "river" ? "River gauge" : "Lake retention basin"} · {r.levelM}{" "}
-                          m / {r.normalMaxM} m normal max · {r.updatedAt}
+                          {r.waterBody === "river" ? "River gauge" : "Lake"} ·{" "}
+                          {withUnit(r.value, r.unit)} / {withUnit(r.normalMax, r.unit)} normal max ·{" "}
+                          {formatWhen(r.measuredAt)}
                         </p>
                       </div>
                       <span className={`safety-chip tone-${s.tone}`}>{s.label}</span>
                     </div>
                     <div
                       className="safety-bar"
-                      aria-label={`Water level ${r.levelM}m of ${r.normalMaxM}m`}
+                      aria-label={`Water level ${withUnit(r.value, r.unit)} of ${withUnit(r.normalMax, r.unit)}`}
                     >
                       <div
                         className={`safety-bar__fill safety-bar__fill--${waterBarLevel(pct)}`}
@@ -218,7 +249,6 @@ export function SafetyPage() {
                 );
               })}
             </div>
-            <p className="safety-source">Example data, not from any agency</p>
           </section>
         </TabPanel>
       )}
@@ -235,37 +265,47 @@ export function SafetyPage() {
               icon={<IconThermometer size={22} strokeWidth={1.8} />}
               title="Temperature Alerts"
             />
-            <div
-              className={`safety-card safety-card--temperature${temperatureAlert.level === "normal" ? "" : " safety-card--alert"}`}
-            >
-              <div className="safety-temp__main">
-                <div className="safety-temp__reading">
-                  <span className="safety-temp__value">{temperatureAlert.tempC}°C</span>
-                  <span className={`safety-chip tone-${tempStyle.tone}`}>{tempStyle.label}</span>
-                </div>
-                <p className="safety-card__meta">
-                  <IconMapPin className="icon-inline" size={12} strokeWidth={2} />
-                  {temperatureAlert.location} · {temperatureAlert.updatedAt}
-                </p>
-              </div>
-              <div className="safety-temp__stats">
-                <div className="safety-temp__stat">
-                  <span className="safety-temp__stat-label">Feels like</span>
-                  <span className="safety-temp__stat-value">{temperatureAlert.feelsLikeC}°C</span>
-                </div>
-                <div className="safety-temp__stat">
-                  <span className="safety-temp__stat-label">Humidity</span>
-                  <span className="safety-temp__stat-value">{temperatureAlert.humidity}%</span>
-                </div>
-              </div>
-              {temperatureAlert.advisory && (
-                <div className="safety-advisory">
-                  <IconAlertTriangle className="icon-inline-low" size={16} strokeWidth={2} />
-                  {temperatureAlert.advisory}
-                </div>
-              )}
+            {heatReadings.length === 0 && safety.loaded ? (
+              <p className="ui-page-subtitle">No temperature readings have been posted yet.</p>
+            ) : null}
+            <div className="ui-stack">
+              {heatReadings.map((t) => {
+                const style = ALERT_LEVEL[t.level];
+                return (
+                  <div
+                    key={t.area}
+                    className={`safety-card safety-card--temperature${t.level === "normal" ? "" : " safety-card--alert"}`}
+                  >
+                    <div className="safety-temp__main">
+                      <div className="safety-temp__reading">
+                        <span className="safety-temp__value">{withUnit(t.value, t.unit)}</span>
+                        <span className={`safety-chip tone-${style.tone}`}>{style.label}</span>
+                      </div>
+                      <p className="safety-card__meta">
+                        <IconMapPin className="icon-inline" size={12} strokeWidth={2} />
+                        {t.area} · {formatWhen(t.measuredAt)}
+                      </p>
+                    </div>
+                    <div className="safety-temp__stats">
+                      <div className="safety-temp__stat">
+                        <span className="safety-temp__stat-label">Feels like</span>
+                        <span className="safety-temp__stat-value">
+                          {withUnit(t.feelsLike, t.unit)}
+                        </span>
+                      </div>
+                      <div className="safety-temp__stat">
+                        <span className="safety-temp__stat-label">Humidity</span>
+                        <span className="safety-temp__stat-value">{t.humidity}%</span>
+                      </div>
+                    </div>
+                    <div className="safety-advisory">
+                      <IconAlertTriangle className="icon-inline-low" size={16} strokeWidth={2} />
+                      {t.advice}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-            <p className="safety-source">Example data, not from any agency</p>
           </section>
         </TabPanel>
       )}
@@ -301,6 +341,9 @@ export function SafetyPage() {
               ))}
             </div>
 
+            {facilityReports.length === 0 && safety.loaded ? (
+              <p className="ui-page-subtitle">No facility problems have been reported.</p>
+            ) : null}
             <div className="ui-stack">
               {filteredFacilities.map((r) => {
                 const s = FACILITY_STATUS[r.status];
@@ -311,7 +354,7 @@ export function SafetyPage() {
                         <p className="safety-card__location">{r.title}</p>
                         <p className="safety-card__meta">
                           <IconMapPin className="icon-inline" size={12} strokeWidth={2} />
-                          {r.location}
+                          {r.area}
                         </p>
                       </div>
                       <span className={`safety-chip tone-${s.tone}`}>{s.label}</span>
@@ -320,8 +363,8 @@ export function SafetyPage() {
                     <div className="safety-card__footer">
                       <span className="safety-card__category">{r.category}</span>
                       <span className="safety-card__meta">
-                        Reported {r.reportedAt}
-                        {r.status !== "reported" && ` · Updated ${r.updatedAt}`}
+                        Reported {formatWhen(r.reportedAt)}
+                        {r.status !== "reported" && ` · Updated ${formatWhen(r.updatedAt)}`}
                       </span>
                     </div>
                   </div>

@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { useInRouterContext } from "react-router-dom";
 import { BottomTabBar } from "./BottomTabBar";
-import { DemoBanner } from "./DemoBanner";
 import { AccessibilitySheet } from "./AccessibilitySheet";
 import { AnnouncerProvider } from "./Announcer";
 import { RouteFocus } from "./RouteFocus";
@@ -33,7 +32,6 @@ export function AppShell({
     <AnnouncerProvider>
       <div className={rootClasses}>
         {inRouter && <RouteFocus />}
-        <DemoBanner />
         <main className="app-main">{children}</main>
         {inRouter && !hideTabs && <BottomTabBar />}
         <AccessibilitySheet />

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import { useCancelRequest, useRequest } from "../hooks/useRequests";
+import { useCancelRequest, useConfirmRequest, useRequest } from "../hooks/useRequests";
 import { CATEGORY_TEXT } from "../requests/categories";
 import { formatWhen, minutesLabel } from "../requests/schedule";
 import { useAnnounce } from "../ui/Announcer";
@@ -24,6 +24,7 @@ export function RequestDetailPage() {
   const { id = "" } = useParams();
   const { data, status, error, refetch, update } = useRequest(id);
   const cancelMutation = useCancelRequest();
+  const confirmMutation = useConfirmRequest();
   const [confirming, setConfirming] = useState(false);
   const announce = useAnnounce();
   const confirmRef = useRef<HTMLDivElement>(null);
@@ -63,6 +64,16 @@ export function RequestDetailPage() {
     setConfirming(false);
     titleRef.current?.focus();
   }
+
+  async function onConfirmHelped() {
+    const updated = await confirmMutation.run(req.id);
+    if (updated) {
+      update(() => updated);
+      announce("Thank you. You confirmed your volunteer came.");
+    }
+  }
+
+  const alreadyConfirmed = confirmMutation.error?.code === "ALREADY_DONE";
 
   return (
     <div className="apple-subpage">
@@ -126,6 +137,38 @@ export function RequestDetailPage() {
           )}
         </div>
       </div>
+
+      {req.status === "completed" ? (
+        req.confirmedAt || alreadyConfirmed ? (
+          <div className="apple-confirm-card" role="status">
+            <p className="apple-confirm-card__title">Thank you, you confirmed</p>
+            <p className="apple-confirm-card__sub">We are glad your volunteer could help.</p>
+          </div>
+        ) : (
+          <div className="apple-confirm-card">
+            <p className="apple-confirm-card__title">Did your volunteer come?</p>
+            <p className="apple-confirm-card__sub">
+              Please tell us so we can thank them for helping you.
+            </p>
+            {confirmMutation.status === "error" ? (
+              <Banner
+                message={
+                  confirmMutation.error?.message ?? "We could not save that. Please try again."
+                }
+              />
+            ) : null}
+            <div className="mt-4">
+              <Button
+                block
+                onClick={() => void onConfirmHelped()}
+                disabled={confirmMutation.status === "loading"}
+              >
+                {confirmMutation.status === "loading" ? "Saving…" : "Yes, they helped me"}
+              </Button>
+            </div>
+          </div>
+        )
+      ) : null}
 
       <div className="request-detail__call">
         <EmergencyCallButton compact />
