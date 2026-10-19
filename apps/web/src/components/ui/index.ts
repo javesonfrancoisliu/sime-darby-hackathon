@@ -1,7 +1,6 @@
 export { AppButton } from "./AppButton";
 export { AppLinkButton } from "./AppLinkButton";
 export { ConfirmationDialog } from "./ConfirmationDialog";
-export { DemoTag } from "./DemoTag";
 export { EmptyState } from "./EmptyState";
 export { FormField } from "./FormField";
 export { InfoCard } from "./InfoCard";
@@ -12,3 +11,4 @@ export { Pill } from "./Pill";
 export { ProgressBar } from "./ProgressBar";
 export { StatusBadge } from "./StatusBadge";
 export { Tabs, TabPanel, type TabItem, type TabsProps } from "./Tabs";
+export { SignInPrompt } from "./SignInPrompt";

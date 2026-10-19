@@ -13,9 +13,8 @@ export type EditPersonalModalProps = {
 };
 
 // Edit display name and area. The avatar is initials-based and previews live.
-// Signed in, the change is saved to the API; signed out, on this device.
 export function EditPersonalModal({ open, onClose }: EditPersonalModalProps) {
-  const { prefs, updatePrefs, isDemo } = useProfile();
+  const { prefs, updatePrefs } = useProfile();
   const [name, setName] = useState(prefs.displayName);
   const [area, setArea] = useState(prefs.area);
   const [nameError, setNameError] = useState<string | null>(null);
@@ -74,7 +73,7 @@ export function EditPersonalModal({ open, onClose }: EditPersonalModalProps) {
         maxLength={MAX_NAME_LENGTH}
         onChange={(e) => setArea(e.target.value)}
         error={areaError ?? undefined}
-        helper={isDemo ? "Saved on this device for the demo." : "Saved to your account."}
+        helper="Saved to your account."
       />
       {saveError && (
         <p className="ui-error ui-flush" role="alert">

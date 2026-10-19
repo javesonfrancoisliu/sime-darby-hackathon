@@ -1,7 +1,7 @@
 import { CalendarDays, CheckCircle2, HandHeart, MapPin, Users } from "lucide-react";
 
 import type { VolunteerItem } from "../../types/community";
-import { formatDate } from "../../lib/format";
+import { formatDate, formatTimeRange } from "../../lib/format";
 import { AppButton, InfoCard, Pill } from "../ui";
 import { CardMeta } from "./CardMeta";
 
@@ -28,30 +28,24 @@ export function VolunteerCard({ item, joined, onJoin }: VolunteerCardProps) {
         </div>
 
         <div className="ui-stack ui-gap-2">
-          <span>{item.organisation}</span>
+          {item.organiser && <span>{item.organiser}</span>}
           <span className="inline-icon">
             <CalendarDays size={16} className="icon-dim" aria-hidden="true" />
-            {formatDate(item.startsAt)}
+            {formatDate(item.startsAt)}, {formatTimeRange(item.startsAt, item.durationMinutes)}
           </span>
           <span className="inline-icon">
             <MapPin size={16} className="icon-dim" aria-hidden="true" />
             {item.location}
           </span>
-          {typeof item.slotsAvailable === "number" && (
-            <span className="inline-icon">
-              <Users size={16} className="icon-dim" aria-hidden="true" />
-              {item.slotsAvailable} slots available
-            </span>
-          )}
+          <span className="inline-icon">
+            <Users size={16} className="icon-dim" aria-hidden="true" />
+            {item.slotsAvailable} {item.slotsAvailable === 1 ? "slot" : "slots"} left
+          </span>
         </div>
 
         <p className="feature-card-desc">{item.summary}</p>
 
-        <CardMeta
-          updatedAt={item.updatedAt}
-          sourceLabel={item.sourceLabel}
-          isDemoData={item.isDemoData}
-        />
+        <CardMeta updatedAt={item.updatedAt} />
 
         <div className="feature-card-foot">
           {joined ? (
@@ -60,8 +54,12 @@ export function VolunteerCard({ item, joined, onJoin }: VolunteerCardProps) {
               You&rsquo;re signed up
             </span>
           ) : (
-            <AppButton variant="primary" onClick={() => onJoin(item)}>
-              Join
+            <AppButton
+              variant="primary"
+              disabled={item.slotsAvailable === 0}
+              onClick={() => onJoin(item)}
+            >
+              {item.slotsAvailable === 0 ? "Full" : "Join"}
             </AppButton>
           )}
         </div>

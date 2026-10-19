@@ -7,16 +7,12 @@ import { signInWithToken } from "@sdh/api-client/testing";
 
 import { App } from "../App";
 import { installFakeApi } from "../test/fakeApi";
-import { ELDER, NO_CONTRIBUTIONS, VOLUNTEER } from "../test/fixtures";
+import { ELDER, VOLUNTEER } from "../test/fixtures";
+import { signedInRoutes } from "../test/routes";
 
 const assign = vi.fn();
 
-const liveRoutes = {
-  "GET /api/events": { body: { events: [] } },
-  "GET /api/requests/mine": { body: { requests: [] } },
-  "GET /api/opportunities": { body: { items: [] } },
-  "GET /api/contributions/mine": { body: NO_CONTRIBUTIONS },
-};
+const liveRoutes = signedInRoutes(VOLUNTEER);
 
 function renderToken(path: string, signOut = vi.fn(async () => {})) {
   const auth = { getAccessToken: async () => "tok", signOut };
@@ -78,7 +74,7 @@ describe("token mode guard", () => {
     renderToken("/profile");
     expect(await screen.findByRole("link", { name: "Account settings" })).toBeInTheDocument();
     expect(assign).not.toHaveBeenCalled();
-    expect(screen.queryByText("Demo sign-in")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Local sign-in")).not.toBeInTheDocument();
   });
 
   it("offers a retry when the details cannot load", async () => {

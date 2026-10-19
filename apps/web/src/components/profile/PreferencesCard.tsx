@@ -27,7 +27,7 @@ function PillRow({ label, values }: { label: string; values: string[] }) {
 // Read view of volunteering preferences (skills, interests, availability,
 // languages). Edited via a separate modal. Notes these feed future matching.
 export function PreferencesCard({ onEdit }: PreferencesCardProps) {
-  const { prefs, isDemo } = useProfile();
+  const { prefs } = useProfile();
   const availability = [
     ...prefs.availability.days.map((d) => PREFERRED_DAY_LABEL[d]),
     ...prefs.availability.times.map((t) => TIME_OF_DAY_LABEL[t]),
@@ -50,9 +50,7 @@ export function PreferencesCard({ onEdit }: PreferencesCardProps) {
         <PillRow label="Languages" values={prefs.languages.map((l) => LANGUAGE_LABEL[l])} />
 
         <p className="ui-helper ui-flush">
-          {isDemo
-            ? "Saved on this device for the demo."
-            : "Skills and availability feed volunteer matching."}
+          Saved to your account. Skills and availability feed volunteer matching.
         </p>
       </div>
     </InfoCard>

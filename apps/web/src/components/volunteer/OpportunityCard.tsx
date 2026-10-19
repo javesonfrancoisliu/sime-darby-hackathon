@@ -3,15 +3,12 @@ import { CalendarDays, Clock, MapPin, Sparkles } from "lucide-react";
 import type { Opportunity, Urgency } from "../../types/volunteer";
 import { TASK_CATEGORY_LABEL, URGENCY_LABEL } from "../../types/volunteer";
 import { formatDate, formatTimeRange } from "../../lib/format";
-import { approxKm } from "../../lib/geo";
-import { AppButton, DemoTag, InfoCard, Pill, StatusBadge } from "../ui";
+import { AppButton, InfoCard, Pill, StatusBadge } from "../ui";
 
 export type OpportunityCardProps = {
   opportunity: Opportunity;
   // Worked out by the page from the start time and the current clock.
   urgency: Urgency;
-  // Live distance (km) computed from the user's location, when available.
-  liveDistanceKm?: number;
   joined: boolean;
   // True while this card's accept is being saved.
   accepting?: boolean;
@@ -23,12 +20,11 @@ export type OpportunityCardProps = {
 export function OpportunityCard({
   opportunity,
   urgency,
-  liveDistanceKm,
   joined,
   accepting = false,
   onAccept,
 }: OpportunityCardProps) {
-  const distance = liveDistanceKm != null ? approxKm(liveDistanceKm) : opportunity.distanceKm;
+  const distance = opportunity.distanceKm;
   const urgencyVariant = urgency === "high" ? "danger" : urgency === "medium" ? "warning" : "info";
 
   return (
@@ -72,11 +68,6 @@ export function OpportunityCard({
             ))}
           </ul>
         )}
-
-        <div className="ui-meta-row">
-          <span>Source: {opportunity.sourceLabel}</span>
-          {opportunity.isDemoData && <DemoTag />}
-        </div>
 
         <div className="feature-card-foot">
           {joined ? (

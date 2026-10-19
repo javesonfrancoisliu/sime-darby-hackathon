@@ -1,120 +1,127 @@
 import { CheckCircle2, XCircle } from "lucide-react";
 import { useRef, useState, type KeyboardEvent } from "react";
 
-import type { QuizQuestion } from "../../types/gamification";
-import { AppButton, Modal } from "../ui";
+import type { QuizPublic, QuizResult } from "@sdh/contracts";
 
-export type QuizResult = { correct: number; total: number; passed: boolean };
+import { AppButton, Modal } from "../ui";
 
 export type QuizModalProps = {
   open: boolean;
-  questions: QuizQuestion[];
-  // Correct answers needed to pass and earn points.
-  passTarget: number;
-  // Whether points were already earned (quiz completed before) - shown as info.
-  alreadyEarned: boolean;
+  // The quiz without its right answers; null while it loads.
+  quiz: QuizPublic | null;
+  loadError: string | null;
+  // Sends the answers; resolves with the score and verdict, or rejects with a message to show.
+  onSubmit: (answers: { questionId: string; optionIndex: number }[]) => Promise<QuizResult>;
   onClose: () => void;
-  onPassed: (result: QuizResult) => void;
 };
 
-// Environmental awareness quiz, one question at a time. Gives per-answer
-// feedback and only reports a pass (awarding points) when the pass target is met.
-// Demo content.
-export function QuizModal({
-  open,
-  questions,
-  passTarget,
-  alreadyEarned,
-  onClose,
-  onPassed,
-}: QuizModalProps) {
+// A quiz, one question at a time. The right answers stay on the server, so the only feedback is the
+// score and whether it was passed once every question is answered.
+export function QuizModal({ open, quiz, loadError, onSubmit, onClose }: QuizModalProps) {
   const [index, setIndex] = useState(0);
-  const [selected, setSelected] = useState<number | null>(null);
-  const [revealed, setRevealed] = useState(false);
-  const [correctCount, setCorrectCount] = useState(0);
-  const [finished, setFinished] = useState(false);
+  const [chosen, setChosen] = useState<Record<string, number>>({});
+  const [result, setResult] = useState<QuizResult | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const optionRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
+  const questions = quiz?.questions ?? [];
   const question = questions[index];
+  const selected = question ? (chosen[question.id] ?? null) : null;
   const isLast = index === questions.length - 1;
 
-  function check() {
-    if (selected == null || !question) return;
-    setRevealed(true);
-    if (selected === question.correctIndex) setCorrectCount((c) => c + 1);
+  function select(optionIndex: number) {
+    if (question) setChosen((prev) => ({ ...prev, [question.id]: optionIndex }));
+  }
+
+  async function submit() {
+    setBusy(true);
+    setSubmitError(null);
+    try {
+      const answers = questions.flatMap((q) =>
+        chosen[q.id] === undefined ? [] : [{ questionId: q.id, optionIndex: chosen[q.id]! }],
+      );
+      setResult(await onSubmit(answers));
+    } catch (err) {
+      setSubmitError(
+        err instanceof Error ? err.message : "Something went wrong. Please try again.",
+      );
+    } finally {
+      setBusy(false);
+    }
   }
 
   function next() {
     if (isLast) {
-      const total = questions.length;
-      const passed = correctCount >= passTarget;
-      setFinished(true);
-      if (passed && !alreadyEarned) onPassed({ correct: correctCount, total, passed });
+      void submit();
       return;
     }
     setIndex((i) => i + 1);
-    setSelected(null);
-    setRevealed(false);
   }
 
   // Radio group keyboard pattern: arrows move and select, wrapping at the ends.
   function onOptionKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-    if (!question || revealed) return;
+    if (!question) return;
     const count = question.options.length;
     const from = selected ?? -1;
-    let next: number;
-    if (event.key === "ArrowDown" || event.key === "ArrowRight") next = (from + 1) % count;
+    let target: number;
+    if (event.key === "ArrowDown" || event.key === "ArrowRight") target = (from + 1) % count;
     else if (event.key === "ArrowUp" || event.key === "ArrowLeft") {
-      next = from <= 0 ? count - 1 : from - 1;
+      target = from <= 0 ? count - 1 : from - 1;
     } else return;
     event.preventDefault();
-    setSelected(next);
-    optionRefs.current[next]?.focus();
+    select(target);
+    optionRefs.current[target]?.focus();
   }
 
   function handleClose() {
     // Reset for a clean next open.
     setIndex(0);
-    setSelected(null);
-    setRevealed(false);
-    setCorrectCount(0);
-    setFinished(false);
+    setChosen({});
+    setResult(null);
+    setSubmitError(null);
     onClose();
   }
 
   return (
     <Modal
       open={open}
-      title="Environmental quiz (demo)"
+      title={quiz?.title ?? "Quiz"}
       onClose={handleClose}
       footer={
-        finished ? (
+        result ? (
           <AppButton variant="primary" onClick={handleClose}>
             Done
           </AppButton>
-        ) : !revealed ? (
-          <AppButton variant="primary" onClick={check} disabled={selected == null}>
-            Check answer
+        ) : question ? (
+          <AppButton variant="primary" onClick={next} disabled={selected == null} loading={busy}>
+            {isLast ? "Submit answers" : "Next question"}
           </AppButton>
         ) : (
-          <AppButton variant="primary" onClick={next}>
-            {isLast ? "See result" : "Next question"}
+          <AppButton variant="ghost" onClick={handleClose}>
+            Close
           </AppButton>
         )
       }
     >
-      {finished ? (
+      {loadError ? (
+        <p className="ui-error ui-flush" role="alert">
+          {loadError}
+        </p>
+      ) : !quiz ? (
+        <p className="ui-helper ui-flush" role="status">
+          Loading the quiz…
+        </p>
+      ) : result ? (
         <div role="status">
           <p className="ui-flush ui-semibold">
-            You got {correctCount} of {questions.length} correct.
+            You got {result.score} of {result.total} correct.
           </p>
           <p className="ui-helper" style={{ marginTop: "var(--space-2)" }}>
-            {correctCount >= passTarget
-              ? alreadyEarned
-                ? "You passed. Points were already earned for this quiz (no double rewards)."
-                : "You passed and earned the demo quiz points."
-              : `You need ${passTarget} correct to earn points. Try again anytime.`}
+            {result.passed
+              ? "You passed. Any points are added to your total."
+              : `You need ${quiz.passMark} correct to pass. Try again anytime.`}
           </p>
         </div>
       ) : (
@@ -131,17 +138,7 @@ export function QuizModal({
               onKeyDown={onOptionKeyDown}
             >
               {question.options.map((option, i) => {
-                const isCorrect = i === question.correctIndex;
                 const isChosen = i === selected;
-                const stateClass = revealed
-                  ? isCorrect
-                    ? " quiz-option--correct"
-                    : isChosen
-                      ? " quiz-option--wrong"
-                      : ""
-                  : isChosen
-                    ? " quiz-option--chosen"
-                    : "";
                 return (
                   <button
                     key={option}
@@ -152,17 +149,20 @@ export function QuizModal({
                     role="radio"
                     aria-checked={isChosen}
                     tabIndex={isChosen || (selected == null && i === 0) ? 0 : -1}
-                    className={`quiz-option${stateClass}`}
-                    disabled={revealed}
-                    onClick={() => setSelected(i)}
+                    className={`quiz-option${isChosen ? " quiz-option--chosen" : ""}`}
+                    onClick={() => select(i)}
                   >
                     {option}
-                    {revealed && isCorrect && <CheckCircle2 size={16} aria-hidden="true" />}
-                    {revealed && isChosen && !isCorrect && <XCircle size={16} aria-hidden="true" />}
+                    {isChosen && <CheckCircle2 size={16} aria-hidden="true" />}
                   </button>
                 );
               })}
             </div>
+            {submitError && (
+              <p className="ui-error ui-flush" role="alert">
+                <XCircle size={14} aria-hidden="true" /> {submitError}
+              </p>
+            )}
           </>
         )
       )}

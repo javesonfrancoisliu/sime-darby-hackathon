@@ -2,12 +2,13 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
-import { DEMO_TOWNSHIP } from "./lib/township";
-import { installFakeApi } from "./test/fakeApi";
+import { installFakeApi, signInAs } from "./test/fakeApi";
+import { TOWNSHIP, VOLUNTEER } from "./test/fixtures";
 import { renderApp } from "./test/renderApp";
+import { signedInRoutes } from "./test/routes";
 
 const PAGES: [path: string, title: string][] = [
-  ["/", `Welcome to ${DEMO_TOWNSHIP.name} - Help a Neighbour`],
+  ["/", `Welcome to ${TOWNSHIP.name} - Help a Neighbour`],
   ["/community", "Neighbourhood Hub - Help a Neighbour"],
   ["/community/challenges", "Community Challenges - Help a Neighbour"],
   ["/volunteer", "Volunteer nearby - Help a Neighbour"],
@@ -23,13 +24,15 @@ async function settled() {
 
 describe("page structure", () => {
   it.each(PAGES)("%s sets its own document title", async (path, title) => {
-    installFakeApi();
+    installFakeApi(signedInRoutes(VOLUNTEER));
+    signInAs(VOLUNTEER.id);
     renderApp(path);
     await waitFor(() => expect(document.title).toBe(title));
   });
 
   it.each(PAGES)("%s never skips a heading level", async (path) => {
-    installFakeApi();
+    installFakeApi(signedInRoutes(VOLUNTEER));
+    signInAs(VOLUNTEER.id);
     renderApp(path);
     await screen.findByRole("heading", { level: 1 });
     await settled();
@@ -46,7 +49,8 @@ describe("page structure", () => {
 
 describe("skip link", () => {
   it("is the first control and targets the main region", async () => {
-    installFakeApi();
+    installFakeApi(signedInRoutes(VOLUNTEER));
+    signInAs(VOLUNTEER.id);
     renderApp("/");
     const user = userEvent.setup();
     await user.tab();
@@ -59,8 +63,10 @@ describe("skip link", () => {
 
 describe("community results", () => {
   it("announces only the count, not the whole list", async () => {
-    installFakeApi();
+    installFakeApi(signedInRoutes(VOLUNTEER));
+    signInAs(VOLUNTEER.id);
     renderApp("/community");
+    await screen.findByText(/\d+ updates? shown/);
     await settled();
     const live = document.querySelectorAll("main [aria-live]");
     expect(live).toHaveLength(1);

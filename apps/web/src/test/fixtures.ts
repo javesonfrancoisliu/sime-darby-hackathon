@@ -1,10 +1,21 @@
 import {
+  Badge,
+  Challenge,
   CommunityEvent,
   ContributionsResponse,
+  FacilityReport,
   HelpRequest,
   HelpRequestSummary,
+  Notice,
+  PointsSummary,
+  Quiz,
+  QuizPublic,
+  Reward,
+  Settings,
+  Township,
   User,
   type OpportunitiesResponse,
+  type SafetyResponse,
 } from "@sdh/contracts";
 
 // Fixtures are parsed with the contract schemas so a drifting shape fails the test.
@@ -118,4 +129,220 @@ export const NO_CONTRIBUTIONS = ContributionsResponse.parse({
   totalMinutes: 0,
   completedCount: 0,
   items: [],
+});
+
+const ID_A = "0a1b2c3d-1111-4a11-8a11-000000000001";
+const ID_B = "0a1b2c3d-2222-4a22-8a22-000000000002";
+const ID_C = "0a1b2c3d-3333-4a33-8a33-000000000003";
+
+export const TOWNSHIP = Township.parse({
+  id: "elmina",
+  name: "Elmina",
+  securityLine: { display: "03-5000 1234", tel: "0350001234" },
+  emergencyNumber: "999",
+  updatedAt: STAMP,
+});
+
+export function makeNotice(overrides: Partial<Notice> = {}): Notice {
+  return Notice.parse({
+    id: ID_A,
+    kind: "update",
+    title: "New recycling hours",
+    description: "The recycling centre opens an hour earlier.",
+    area: "Elmina Valley",
+    topic: "Recycling",
+    priority: "normal",
+    source: "Township office",
+    publishedAt: "2026-10-17T09:00:00Z",
+    createdBy: VOLUNTEER.id,
+    createdAt: "2026-10-17T09:00:00Z",
+    updatedAt: "2026-10-17T09:00:00Z",
+    ...overrides,
+  });
+}
+
+export function makeMaintenance(overrides: Partial<Notice> = {}): Notice {
+  return makeNotice({
+    id: ID_B,
+    kind: "maintenance",
+    title: "Lift service at Block C",
+    topic: "Lifts",
+    windowStart: "2026-10-21T01:00:00Z",
+    windowEnd: "2026-10-21T05:00:00Z",
+    impact: "The lift is closed for the morning.",
+    status: "scheduled",
+    publishedAt: "2026-10-16T09:00:00Z",
+    ...overrides,
+  });
+}
+
+export function makeDrive(overrides: Partial<CommunityEvent> = {}): CommunityEvent {
+  return makeEvent({
+    id: ID_C,
+    title: "River clean-up drive",
+    purpose: "volunteer_drive",
+    organiser: "Green Elmina",
+    capacity: 10,
+    signupCount: 4,
+    ...overrides,
+  });
+}
+
+export function makeFacility(overrides: Partial<FacilityReport> = {}): FacilityReport {
+  return FacilityReport.parse({
+    id: ID_A,
+    title: "Broken swing",
+    area: "Elmina West",
+    category: "Playground",
+    status: "reported",
+    description: "The seat is cracked.",
+    reportedAt: "2026-10-18T01:00:00Z",
+    updatedAt: "2026-10-18T01:00:00Z",
+    ...overrides,
+  });
+}
+
+export const SAFETY: SafetyResponse = {
+  readings: [
+    {
+      type: "air",
+      level: "moderate",
+      area: "Elmina West",
+      value: 62,
+      unit: "AQI",
+      advice: "Limit long outdoor exercise.",
+      measuredAt: "2026-10-19T00:30:00Z",
+    },
+    {
+      type: "water",
+      level: "watch",
+      name: "Sungai Buloh",
+      waterBody: "river",
+      normalMax: 2,
+      area: "Elmina Valley",
+      value: 2.4,
+      unit: "m",
+      advice: "Stay away from the bank.",
+      measuredAt: "2026-10-19T00:30:00Z",
+    },
+    {
+      type: "heat",
+      level: "warning",
+      area: "Elmina East",
+      value: 34,
+      unit: "°C",
+      feelsLike: 39,
+      humidity: 70,
+      advice: "Drink water often.",
+      measuredAt: "2026-10-19T00:30:00Z",
+    },
+  ],
+  facilityReports: [
+    makeFacility(),
+    makeFacility({ id: ID_B, title: "Fixed gate", status: "resolved" }),
+  ],
+};
+
+export function makeChallenge(overrides: Partial<Challenge> = {}) {
+  return {
+    ...Challenge.parse({
+      id: ID_A,
+      title: "Walk 20,000 steps",
+      description: "Walk with your neighbours.",
+      icon: "walk",
+      category: "fitness",
+      mode: "individual",
+      audience: "all",
+      goal: { target: 20000, unit: "steps", type: "steps" },
+      points: 50,
+      requiresVerification: false,
+      endsOn: "2026-12-01T00:00:00Z",
+      createdBy: VOLUNTEER.id,
+      createdAt: STAMP,
+      updatedAt: STAMP,
+      ...overrides,
+    }),
+    ended: false,
+  };
+}
+
+export function makeReward(
+  overrides: Partial<Reward> & { status?: string; redeemedAt?: string } = {},
+) {
+  const { status = "available", redeemedAt, ...rest } = overrides;
+  return {
+    ...Reward.parse({
+      id: ID_A,
+      title: "Coffee voucher",
+      description: "A free coffee.",
+      pointsCost: 40,
+      icon: "coffee",
+      audience: "all",
+      category: "food",
+      active: true,
+      createdAt: STAMP,
+      updatedAt: STAMP,
+      ...rest,
+    }),
+    status,
+    ...(redeemedAt && { redeemedAt }),
+  };
+}
+
+export function makeBadge(overrides: Partial<Badge> & { earned?: boolean } = {}) {
+  const { earned = false, ...rest } = overrides;
+  return {
+    ...Badge.parse({
+      id: ID_A,
+      title: "First steps",
+      description: "Reach 50 points.",
+      icon: "star",
+      kind: "points",
+      threshold: 50,
+      audience: "all",
+      createdAt: STAMP,
+      ...rest,
+    }),
+    earned,
+  };
+}
+
+export const QUIZ = Quiz.parse({
+  id: ID_A,
+  title: "Eco quiz",
+  questions: [
+    {
+      id: "q1",
+      question: "Which bin?",
+      options: ["Red", "Blue", "Green", "Black"],
+      correctIndex: 1,
+    },
+    { id: "q2", question: "Second?", options: ["Yes", "No", "Maybe", "Never"], correctIndex: 0 },
+  ],
+  passMark: 2,
+  createdAt: STAMP,
+  updatedAt: STAMP,
+});
+
+export const QUIZ_PUBLIC = QuizPublic.parse({
+  ...QUIZ,
+  questions: QUIZ.questions.map(({ correctIndex: _correct, ...question }) => {
+    void _correct;
+    return question;
+  }),
+});
+
+export function makePoints(points: number, ledger: PointsSummary["ledger"]["items"] = []) {
+  return PointsSummary.parse({ points, lifetimePoints: points, ledger: { items: ledger } });
+}
+
+export const SETTINGS = Settings.parse({
+  notifyEvents: true,
+  notifyVolunteering: false,
+  shareApproxLocation: false,
+  fontSize: "normal",
+  highContrast: false,
+  reducedMotion: false,
+  voiceAssist: false,
+  updatedAt: STAMP,
 });

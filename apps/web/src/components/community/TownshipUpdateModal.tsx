@@ -1,6 +1,6 @@
 import type { TownshipUpdateItem } from "../../types/community";
 import { formatDate } from "../../lib/format";
-import { AppButton, DemoTag, Modal, Pill } from "../ui";
+import { AppButton, Modal, Pill } from "../ui";
 
 export type TownshipUpdateModalProps = {
   item: TownshipUpdateItem | null;
@@ -28,8 +28,7 @@ export function TownshipUpdateModal({ item, onClose }: TownshipUpdateModalProps)
           </div>
           <p className="ui-flush">{item.summary}</p>
           <div className="ui-meta-row">
-            <span>Source: {item.sourceLabel}</span>
-            {item.isDemoData && <DemoTag />}
+            <span>Source: {item.source}</span>
           </div>
         </>
       )}
