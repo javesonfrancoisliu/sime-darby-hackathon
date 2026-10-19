@@ -1,6 +1,6 @@
 import type { Match } from "@sdh/contracts";
 import { config } from "../../lib/config";
-import { createBedrockReranker } from "./bedrockReranker";
+import { createClaudeReranker } from "./claudeReranker";
 import { ruleReason, type MatchTarget, type ScoredVolunteer } from "./scoring";
 import { RESULT_SIZE } from "./weights";
 
@@ -28,7 +28,7 @@ export const rulesReranker: Reranker = {
 };
 
 export function selectReranker(): Reranker {
-  return config.matchingAiModelId ? createBedrockReranker() : rulesReranker;
+  return config.matchingAiModelId ? createClaudeReranker() : rulesReranker;
 }
 
 export function toMatches(result: RerankResult, candidates: Candidate[]): Match[] {

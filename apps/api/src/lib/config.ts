@@ -43,6 +43,9 @@ export const config = {
   get matchingAiModelId(): string | undefined {
     return process.env.MATCHING_AI_MODEL_ID || undefined;
   },
+  get anthropicApiKeyParam(): string | undefined {
+    return process.env.ANTHROPIC_API_KEY_PARAM || undefined;
+  },
   get matchingAiTimeoutMs(): number {
     const value = Number(process.env.MATCHING_AI_TIMEOUT_MS);
     return Number.isFinite(value) && value > 0 ? value : DEFAULT_MATCHING_AI_TIMEOUT_MS;

@@ -1,36 +1,40 @@
-import {
-  BedrockRuntimeClient,
-  ConverseCommand,
-  type ConverseCommandInput,
-  type ConverseCommandOutput,
-} from "@aws-sdk/client-bedrock-runtime";
+import Anthropic from "@anthropic-ai/sdk";
+import type {
+  Message,
+  MessageCreateParamsNonStreaming,
+} from "@anthropic-ai/sdk/resources/messages";
 import { MAX_REASON_LENGTH } from "@sdh/contracts";
+import { getAnthropicApiKey } from "../../lib/anthropicKey";
 import { config } from "../../lib/config";
 import { logger } from "../../lib/logger";
-import { buildConverseRequest, candidateLabel, RANKING_TOOL_NAME, RankingInput } from "./prompt";
+import { buildMessageRequest, candidateLabel, RANKING_TOOL_NAME, RankingInput } from "./prompt";
 import type { Reranker, RerankResult } from "./reranker";
 import { ruleReason, type MatchTarget, type ScoredVolunteer } from "./scoring";
 
-export type SendConverse = (
-  input: ConverseCommandInput,
+export type SendMessage = (
+  request: MessageCreateParamsNonStreaming,
   signal: AbortSignal,
-) => Promise<ConverseCommandOutput>;
+) => Promise<Message>;
 
-export interface BedrockDeps {
-  send: SendConverse;
+export interface ClaudeDeps {
+  send: SendMessage;
   modelId: string | undefined;
   timeoutMs: number;
 }
 
-let client: BedrockRuntimeClient | undefined;
+let client: { apiKey: string; instance: Anthropic } | undefined;
 
-// Created on first use so importing the module never needs AWS config.
-const defaultSend: SendConverse = (input, signal) => {
-  client ??= new BedrockRuntimeClient({});
-  return client.send(new ConverseCommand(input), { abortSignal: signal });
+// The key is loaded inside the call so a slow SSM read counts against the re-rank timeout.
+// The client is rebuilt only when the key rotates; retries are off because the timeout is tight.
+const defaultSend: SendMessage = async (request, signal) => {
+  const apiKey = await getAnthropicApiKey();
+  if (client?.apiKey !== apiKey) {
+    client = { apiKey, instance: new Anthropic({ apiKey, maxRetries: 0 }) };
+  }
+  return client.instance.messages.create(request, { signal });
 };
 
-const defaultDeps = (): BedrockDeps => ({
+const defaultDeps = (): ClaudeDeps => ({
   send: defaultSend,
   modelId: config.matchingAiModelId,
   timeoutMs: config.matchingAiTimeoutMs,
@@ -53,16 +57,17 @@ function withTimeout<T>(run: (signal: AbortSignal) => Promise<T>, timeoutMs: num
   const timeout = new Promise<never>((_, reject) => {
     timer = setTimeout(() => {
       controller.abort();
-      reject(new Error("Bedrock re-rank timed out"));
+      reject(new Error("Claude re-rank timed out"));
     }, timeoutMs);
   });
   return Promise.race([run(controller.signal), timeout]).finally(() => clearTimeout(timer));
 }
 
-function extractRanking(output: ConverseCommandOutput): RankingInput {
-  const blocks = output.output?.message?.content ?? [];
-  const toolUse = blocks.find((block) => block.toolUse?.name === RANKING_TOOL_NAME)?.toolUse;
-  return RankingInput.parse(toolUse?.input);
+function extractRanking(message: Message): RankingInput {
+  const toolUse = message.content.find(
+    (block) => block.type === "tool_use" && block.name === RANKING_TOOL_NAME,
+  );
+  return RankingInput.parse(toolUse?.type === "tool_use" ? toolUse.input : undefined);
 }
 
 // Model output is untrusted: only known labels survive, and missing candidates are appended.
@@ -96,18 +101,18 @@ export const isSafeReason = (reason: string): boolean =>
   !LINK_OR_EMAIL.test(reason) &&
   reason.replace(/\D/g, "").length <= MAX_DIGITS;
 
-export function createBedrockReranker(deps: Partial<BedrockDeps> = {}): Reranker {
+export function createClaudeReranker(deps: Partial<ClaudeDeps> = {}): Reranker {
   return {
     async rerank(target: MatchTarget, candidates: ScoredVolunteer[]): Promise<RerankResult> {
       const { send, modelId, timeoutMs } = { ...defaultDeps(), ...deps };
       if (!modelId || candidates.length === 0) return rulesResult(candidates);
       try {
-        const request = buildConverseRequest(modelId, target, candidates);
-        const output = await withTimeout((signal) => send(request, signal), timeoutMs);
-        return mergeRanking(extractRanking(output), candidates);
+        const request = buildMessageRequest(modelId, target, candidates);
+        const message = await withTimeout((signal) => send(request, signal), timeoutMs);
+        return mergeRanking(extractRanking(message), candidates);
       } catch (error) {
-        // Log only the failure kind; never candidate or request data.
-        logger.warn("Bedrock re-rank failed, using rules", {
+        // Log only the failure kind; never candidate, request or key data.
+        logger.warn("Claude re-rank failed, using rules", {
           error: error instanceof Error ? error.name : "unknown",
         });
         return rulesResult(candidates);
