@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAccessibility } from "../context/AccessibilityContext";
 import { useMyRequests } from "../hooks/useRequests";
 import { formatWhen } from "../requests/schedule";
 import { useAnnounce } from "../ui/Announcer";
@@ -14,6 +15,7 @@ export function RequestsListPage() {
   const navigate = useNavigate();
   const { data, status, error, refetch } = useMyRequests();
   const announce = useAnnounce();
+  const { speak } = useAccessibility();
 
   // Tell screen reader users when a refresh changes the list, but not on the first load.
   const lastSeen = useRef<string | null>(null);
@@ -26,9 +28,17 @@ export function RequestsListPage() {
     lastSeen.current = signature;
   }, [signature, announce]);
 
+  const count = data?.length ?? 0;
+  const readAloud = () =>
+    speak(
+      status === "success"
+        ? `My requests. You have ${count} ${count === 1 ? "request" : "requests"}.`
+        : "My requests.",
+    );
+
   return (
     <div className="apple-subpage">
-      <BackLink />
+      <BackLink onReadAloud={readAloud} />
 
       <div className="apple-page-header">
         <h1 className="ui-page-title">My requests</h1>

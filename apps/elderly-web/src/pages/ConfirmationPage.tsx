@@ -3,6 +3,8 @@ import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import type { HelpRequest } from "@sdh/contracts";
 import { CATEGORY_TEXT } from "../requests/categories";
 import { formatWhen, minutesLabel } from "../requests/schedule";
+import { useAccessibility } from "../context/AccessibilityContext";
+import { PageHeaderActions } from "../ui/PageHeaderActions";
 import { useAnnounce } from "../ui/Announcer";
 import { Button } from "../ui/Button";
 import { IconCheck, IconHome, IconList } from "../ui/Icons";
@@ -16,6 +18,7 @@ export function ConfirmationPage() {
   const navigate = useNavigate();
   const request = (useLocation().state as { request?: HelpRequest } | null)?.request;
   const announce = useAnnounce();
+  const { speak } = useAccessibility();
   const sent = Boolean(request);
   useEffect(() => {
     if (sent) announce("Your request was sent.");
@@ -24,6 +27,11 @@ export function ConfirmationPage() {
 
   return (
     <div className="apple-subpage apple-confirmation-page">
+      <div className="apple-profile-topbar">
+        <PageHeaderActions
+          onReadAloud={() => speak("Request sent. Volunteers nearby can see your request now.")}
+        />
+      </div>
       <div className="apple-success-badge" aria-hidden="true">
         <IconCheck size={36} strokeWidth={2.4} />
       </div>
