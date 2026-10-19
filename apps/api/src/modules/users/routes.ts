@@ -3,10 +3,14 @@ import {
   CreateUserBody,
   DemoUsersQuery,
   Id,
+  PutMedicalIdBody,
+  PutSettingsBody,
   ReviewVolunteerBody,
   UpdateMeBody,
   VolunteersQuery,
   type DemoUsersResponse,
+  type MedicalId,
+  type Settings,
   type User,
   type VolunteersResponse,
 } from "@sdh/contracts";
@@ -18,7 +22,12 @@ import {
   createUser,
   listDemoUsers,
   listVolunteers,
+  readMedicalId,
+  readSettings,
+  removeMedicalId,
   reviewVolunteer,
+  saveMedicalId,
+  saveSettings,
   updateMe,
 } from "./service";
 
@@ -84,6 +93,46 @@ export const userRoutes: Route[] = [
       const id = parse(Id, req.params.id);
       const { decision } = parse(ReviewVolunteerBody, req.body);
       return ok((await reviewVolunteer(id, decision)) satisfies User);
+    },
+  },
+  {
+    method: "GET",
+    path: "/api/me/medical-id",
+    handler: async (req) => {
+      const elder = await requireUser(req, "elder");
+      return ok((await readMedicalId(elder)) satisfies MedicalId);
+    },
+  },
+  {
+    method: "PUT",
+    path: "/api/me/medical-id",
+    handler: async (req) => {
+      const elder = await requireUser(req, "elder");
+      const body = parse(PutMedicalIdBody, req.body);
+      return ok((await saveMedicalId(elder, body)) satisfies MedicalId);
+    },
+  },
+  {
+    method: "DELETE",
+    path: "/api/me/medical-id",
+    handler: async (req) => {
+      const elder = await requireUser(req, "elder");
+      await removeMedicalId(elder);
+      return { status: 204, body: undefined };
+    },
+  },
+  {
+    method: "GET",
+    path: "/api/me/settings",
+    handler: async (req) => ok((await readSettings(await requireUser(req))) satisfies Settings),
+  },
+  {
+    method: "PUT",
+    path: "/api/me/settings",
+    handler: async (req) => {
+      const user = await requireUser(req);
+      const body = parse(PutSettingsBody, req.body);
+      return ok((await saveSettings(user, body)) satisfies Settings);
     },
   },
 ];
