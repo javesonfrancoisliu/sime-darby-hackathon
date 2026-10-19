@@ -1,4 +1,4 @@
-export const APP_NAME = "Help a Neighbour";
+export const APP_NAME = "Township Connect";
 
 export const CODE_LENGTH = 6;
 

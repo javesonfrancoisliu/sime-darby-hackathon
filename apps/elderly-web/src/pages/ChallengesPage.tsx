@@ -12,14 +12,7 @@ import {
 } from "../hooks/useChallengesData";
 import { formatDate, malaysiaToday } from "../requests/schedule";
 import { useResident } from "../session/useResident";
-import {
-  IconTrophy,
-  IconFlame,
-  IconGift,
-  IconSparkles,
-  IconUsers,
-  IconCheck,
-} from "../ui/Icons";
+import { IconTrophy, IconFlame, IconGift, IconSparkles, IconUsers, IconCheck } from "../ui/Icons";
 import { SegmentedTabs, TabPanel, type TabItem } from "../ui/SegmentedTabs";
 import { Drawer } from "../ui/Drawer";
 import { PageHeaderActions } from "../ui/PageHeaderActions";
@@ -270,7 +263,11 @@ export function ChallengesPage() {
                 )}
               </button>
 
-              <Leaderboard others={NEIGHBOUR_LEADERBOARD} myPoints={balance ?? 0} />
+              <Leaderboard
+                others={NEIGHBOUR_LEADERBOARD}
+                myPoints={balance ?? 0}
+                myName={resident?.name ?? ""}
+              />
             </Loadable>
           </section>
         </TabPanel>

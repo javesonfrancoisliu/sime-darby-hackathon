@@ -56,11 +56,13 @@ export const CreateUserBody = Profile.extend({
 });
 export type CreateUserBody = z.infer<typeof CreateUserBody>;
 
-export const UpdateMeBody = Profile.extend({
-  interests: Interests,
-  languages: Languages,
-  leaderboardOptIn: z.boolean(),
-})
+// The saved location is set at sign-up from the precinct and cannot be changed here, so requests and matches cannot be moved.
+export const UpdateMeBody = Profile.omit({ location: true })
+  .extend({
+    interests: Interests,
+    languages: Languages,
+    leaderboardOptIn: z.boolean(),
+  })
   .partial()
   .strict()
   .refine((body) => Object.keys(body).length > 0, { message: "Nothing to update" });

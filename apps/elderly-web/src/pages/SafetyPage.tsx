@@ -322,6 +322,7 @@ export function SafetyPage() {
                   type="button"
                   className={`safety-filter__btn${facilityFilter === f ? " safety-filter__btn--active" : ""}`}
                   onClick={() => handleFilterClick(f)}
+                  aria-pressed={facilityFilter === f}
                 >
                   {f === "all" ? "All" : FACILITY_STATUS[f].label}
                   <span className="safety-filter__count">

@@ -27,7 +27,7 @@ describe("account page", () => {
       screen.getByText("Your role comes with your account. To change it, ask a coordinator."),
     ).toBeVisible();
     expect(screen.getByText("Elmina West")).toBeVisible();
-    expect(document.title).toBe("Your account - Help a Neighbour");
+    expect(document.title).toBe("Your account - Township Connect");
   });
 
   it("labels the youth role as Youth", async () => {

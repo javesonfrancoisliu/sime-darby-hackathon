@@ -22,7 +22,7 @@ export default defineConfig(({ mode }) => {
       VitePWA({
         ...pwaBase(),
         manifest: {
-          name: "Help a Neighbour Volunteer",
+          name: "Township Connect Volunteer",
           short_name: "Volunteer",
           description:
             "Neighbourhood hub for community events, volunteering, and township updates.",
@@ -62,6 +62,8 @@ export default defineConfig(({ mode }) => {
     test: {
       globals: true,
       environment: "jsdom",
+      // Shared CI runners are slower and busier than a laptop, so the default 5 seconds is too tight for full-flow tests.
+      testTimeout: 20_000,
       setupFiles: ["./src/test/setup.ts"],
     },
   };

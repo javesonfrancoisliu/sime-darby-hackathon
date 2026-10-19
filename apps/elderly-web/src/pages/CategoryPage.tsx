@@ -1,10 +1,11 @@
 import { useNavigate } from "react-router-dom";
+import { useAccessibility } from "../context/AccessibilityContext";
 import { CATEGORY_OPTIONS } from "../requests/categories";
 import { BackLink } from "../ui/BackLink";
 import { CategoryIcon } from "../ui/CategoryIcon";
 import { IconChevronRight } from "../ui/Icons";
 
-// Help a Neighbour - Category Selection
+// Township Connect - Category Selection
 // Covers the 5 daily support areas requested for Elderly:
 // a. A trip to groceries together with younger volunteers
 // b. Transport to nearby amenities (clinic, groceries or any other simple daily needs)
@@ -13,10 +14,13 @@ import { IconChevronRight } from "../ui/Icons";
 // e. Health Literacy and Events
 export function CategoryPage() {
   const navigate = useNavigate();
+  const { speak } = useAccessibility();
 
   return (
     <div className="category-selection-page">
-      <BackLink />
+      <BackLink
+        onReadAloud={() => speak("What do you need help with? Choose a daily support area.")}
+      />
       <h1 className="ui-page-title">What do you need help with?</h1>
       <p className="ui-page-subtitle app-page-lead">
         Choose a daily support area to match with a verified youth volunteer in Elmina.

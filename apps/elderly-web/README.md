@@ -1,4 +1,4 @@
-# Help a Neighbour (elderly web)
+# Township Connect (elderly web)
 
 Mobile-first PWA for elderly residents. Vite, React 18, TypeScript and React Router 6. Large readable text, few steps, read-aloud voice assist, and Safety, Community and Play sections in the Sime Darby red theme.
 

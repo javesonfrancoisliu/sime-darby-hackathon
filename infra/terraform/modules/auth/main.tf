@@ -37,8 +37,8 @@ resource "aws_cognito_user_pool" "users" {
 
   verification_message_template {
     default_email_option = "CONFIRM_WITH_CODE"
-    email_subject        = "Your Help a Neighbour code"
-    email_message        = "Your Help a Neighbour code is {####}. If you did not ask for it, you can ignore this email."
+    email_subject        = "Your Township Connect code"
+    email_message        = "Your Township Connect code is {####}. If you did not ask for it, you can ignore this email."
   }
 
   admin_create_user_config {

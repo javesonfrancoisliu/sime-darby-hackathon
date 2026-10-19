@@ -30,7 +30,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               height={32}
             />
           </span>
-          Help a Neighbour
+          Township Connect
         </Link>
       </header>
 

@@ -6,7 +6,7 @@ import { apiFetch, errorMessage, useSession } from "@sdh/api-client";
 import { useLoader } from "../lib/useLoader";
 import type { Opportunity, OpportunityKind } from "../types/volunteer";
 
-// Tracks the volunteer's accepted Help-a-Neighbour tasks, read from GET /api/requests/mine and the
+// Tracks the volunteer's accepted Township Connect tasks, read from GET /api/requests/mine and the
 // events the volunteer joined. Held once at the app root so every screen shares one instance.
 //
 // Status model:

@@ -39,7 +39,7 @@ import { formatTemperature } from "../safety/format";
 // Displays:
 // 1. Red hero header with greeting, resident location & Voice read-aloud assist
 // 2. Township Live Hazard & Facility conditions (Haze API, Temperature Alert, Maintenance Notice, Facility Damage)
-// 3. Help a Neighbour primary call-to-action
+// 3. Township Connect primary call-to-action
 // 4. 5 Daily Support Pillars for Elderly
 // 5. Recent help requests
 export function HomePage() {
