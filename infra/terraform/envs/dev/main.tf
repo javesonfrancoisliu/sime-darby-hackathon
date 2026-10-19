@@ -71,3 +71,17 @@ module "developer_access" {
 
   anthropic_api_key_parameter_arn = module.api.anthropic_api_key_parameter_arn == null ? "" : module.api.anthropic_api_key_parameter_arn
 }
+
+# Code-only deploys from GitHub Actions; infrastructure changes stay manual (infra/scripts/deploy.sh).
+module "ci_deploy" {
+  source = "../../modules/ci-deploy"
+  count  = var.github_repository == "" ? 0 : 1
+
+  name_prefix                = local.name_prefix
+  github_repository          = var.github_repository
+  create_oidc_provider       = !var.github_oidc_provider_exists
+  existing_oidc_provider_arn = var.github_oidc_provider_arn
+  function_arns              = module.api.function_arns
+  bucket_arn                 = module.web.bucket_arn
+  distribution_arn           = module.web.distribution_arn
+}
