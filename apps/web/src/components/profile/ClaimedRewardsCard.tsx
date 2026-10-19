@@ -1,18 +1,25 @@
-import { Gift, Ticket } from "lucide-react";
+import { CloudOff, Gift, Ticket } from "lucide-react";
 import { Link } from "react-router-dom";
 
-import type { ClaimedReward } from "../../data/useGamification";
+import type { RewardWithStatus } from "@sdh/contracts";
+
 import { formatDate } from "../../lib/format";
-import { DemoTag, EmptyState, InfoCard, StatusBadge } from "../ui";
+import { EmptyState, InfoCard, LoadingState, StatusBadge } from "../ui";
 
 export type ClaimedRewardsCardProps = {
-  claimed: ClaimedReward[];
+  // Redeemed rewards, newest first.
+  claimed: RewardWithStatus[];
+  loading?: boolean;
+  error?: string | null;
 };
 
-// Profile → My Rewards: the user's claimed (redeemed) rewards, reusing the
-// gamification redemption state. Available rewards / badges / leaderboard stay in
-// Community Challenges - this only shows what was claimed. All fictional / demo.
-export function ClaimedRewardsCard({ claimed }: ClaimedRewardsCardProps) {
+// Profile -> My Rewards: what the signed-in person has redeemed. Available rewards, badges and the
+// leaderboard stay in Community Challenges.
+export function ClaimedRewardsCard({
+  claimed,
+  loading = false,
+  error = null,
+}: ClaimedRewardsCardProps) {
   return (
     <InfoCard ariaLabel="My rewards">
       <div className="feature-card">
@@ -23,10 +30,13 @@ export function ClaimedRewardsCard({ claimed }: ClaimedRewardsCardProps) {
               My rewards
             </span>
           </h2>
-          <DemoTag />
         </div>
 
-        {claimed.length === 0 ? (
+        {loading ? (
+          <LoadingState rows={1} label="Loading your rewards" />
+        ) : error ? (
+          <EmptyState icon={CloudOff} title="Couldn't load your rewards" description={error} />
+        ) : claimed.length === 0 ? (
           <EmptyState
             icon={Gift}
             title="No claimed rewards yet"
@@ -37,12 +47,10 @@ export function ClaimedRewardsCard({ claimed }: ClaimedRewardsCardProps) {
             {claimed.map((reward) => (
               <li key={reward.id} className="claimed-reward">
                 <div className="claimed-reward-body">
-                  <span className="claimed-reward-title">{reward.label}</span>
-                  <span className="ui-meta-row">
-                    {reward.redeemedAt
-                      ? `Claimed ${formatDate(reward.redeemedAt)}`
-                      : "Claimed (demo)"}
-                  </span>
+                  <span className="claimed-reward-title">{reward.title}</span>
+                  {reward.redeemedAt && (
+                    <span className="ui-meta-row">Claimed {formatDate(reward.redeemedAt)}</span>
+                  )}
                 </div>
                 <StatusBadge label="Claimed" variant="success" />
               </li>
@@ -51,7 +59,6 @@ export function ClaimedRewardsCard({ claimed }: ClaimedRewardsCardProps) {
         )}
 
         <p className="ui-helper ui-flush">
-          Fictional demo rewards - no real voucher, code or payment is issued.{" "}
           <Link to="/community/challenges">See available rewards in Challenges</Link>.
         </p>
       </div>

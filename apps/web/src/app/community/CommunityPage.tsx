@@ -14,7 +14,6 @@ import {
 import {
   AppButton,
   ConfirmationDialog,
-  DemoTag,
   EmptyState,
   FormField,
   InfoCard,
@@ -26,16 +25,28 @@ import {
 import { ChallengesEntryCard } from "../../components/challenges";
 import { useRole } from "../../components/layout";
 import { useAcceptedTasks } from "../../data/AcceptedTasksContext";
-import { errorMessage, useSession } from "@sdh/api-client";
+import { errorMessage } from "@sdh/api-client";
 import { useCommunityItems } from "../../data/useCommunityItems";
 import { formatDate } from "../../lib/format";
-import { DEMO_TOWNSHIP } from "../../lib/township";
+import { useTownship } from "../../data/useTownship";
+import { pickFeatured } from "../../lib/community";
 import type {
   CommunityItem,
   EventItem,
   TownshipUpdateItem,
   VolunteerItem,
 } from "../../types/community";
+
+function featuredSource(item: CommunityItem): string {
+  switch (item.category) {
+    case "township":
+    case "maintenance":
+      return item.source;
+    case "event":
+    case "volunteer":
+      return item.organiser;
+  }
+}
 
 const EMPTY_COUNTS: Record<FilterValue, number> = {
   all: 0,
@@ -46,8 +57,8 @@ const EMPTY_COUNTS: Record<FilterValue, number> = {
 };
 
 export function CommunityPage() {
-  const { items, loading, error, usingSampleData, reload } = useCommunityItems();
-  const { userId } = useSession();
+  const { items, loading, error, reload } = useCommunityItems();
+  const { township } = useTownship();
   // Joined events also show in Volunteer → My accepted tasks.
   const { joinEvent } = useAcceptedTasks();
   const { role } = useRole();
@@ -56,20 +67,11 @@ export function CommunityPage() {
   const [search, setSearch] = useState("");
   const [activeEvent, setActiveEvent] = useState<EventItem | null>(null);
   const [activeUpdate, setActiveUpdate] = useState<TownshipUpdateItem | null>(null);
-  const [joinedVolunteerIds, setJoinedVolunteerIds] = useState<Set<string>>(new Set());
-  const [registeredEventIds, setRegisteredEventIds] = useState<Set<string>>(new Set());
   // Success confirmation shown after registering/joining. null = hidden.
   const [confirmation, setConfirmation] = useState<{ title: string; message: string } | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
 
-  // Highest-priority township update, else the newest item, as the featured notice.
-  const featured = useMemo<CommunityItem | undefined>(() => {
-    const highPriority = items.find(
-      (item): item is TownshipUpdateItem =>
-        item.category === "township" && item.priority === "high",
-    );
-    return highPriority ?? items[0];
-  }, [items]);
+  const featured = useMemo(() => pickFeatured(items), [items]);
 
   const counts = useMemo<Record<FilterValue, number>>(() => {
     const next = { ...EMPTY_COUNTS, all: items.length };
@@ -86,33 +88,34 @@ export function CommunityPage() {
     });
   }, [items, filter, search]);
 
-  function joinVolunteer(item: VolunteerItem) {
-    setJoinedVolunteerIds((prev) => new Set(prev).add(item.id));
+  // Joins through the API, then reloads so the card shows the saved state and the new count.
+  async function join(item: EventItem | VolunteerItem): Promise<boolean> {
+    try {
+      await joinEvent(item.id);
+      return true;
+    } catch (err) {
+      setFailure(errorMessage(err));
+      return false;
+    } finally {
+      await reload();
+    }
+  }
+
+  async function joinVolunteer(item: VolunteerItem) {
+    if (!(await join(item))) return;
     setConfirmation({
       title: "You're signed up to volunteer",
-      message: `Thanks for joining "${item.title}" with ${item.organisation}. This is a demo sign-up saved only in this browser session.`,
+      message: `Thanks for joining "${item.title}"${item.organiser ? ` with ${item.organiser}` : ""}. We'll see you on ${formatDate(item.startsAt)}.`,
     });
   }
 
   async function registerEvent(event: EventItem) {
-    // Live events need a signed-in demo user; otherwise it's a local demo sign-up.
-    const live = userId !== null && !event.isDemoData;
     // Close the details dialog so the success confirmation takes over.
     setActiveEvent(null);
-    if (live) {
-      try {
-        await joinEvent(event.id);
-      } catch (err) {
-        setFailure(errorMessage(err));
-        return;
-      } finally {
-        await reload();
-      }
-    }
-    setRegisteredEventIds((prev) => new Set(prev).add(event.id));
+    if (!(await join(event))) return;
     setConfirmation({
       title: "You're registered",
-      message: `See you at "${event.title}" on ${formatDate(event.startsAt)}.${live ? "" : " This is a demo sign-up saved only in this browser session."}`,
+      message: `See you at "${event.title}" on ${formatDate(event.startsAt)}.`,
     });
   }
 
@@ -127,8 +130,8 @@ export function CommunityPage() {
           <VolunteerCard
             key={item.id}
             item={item}
-            joined={joinedVolunteerIds.has(item.id)}
-            onJoin={joinVolunteer}
+            joined={item.joined === true}
+            onJoin={(drive) => void joinVolunteer(drive)}
           />
         );
       case "township":
@@ -141,7 +144,7 @@ export function CommunityPage() {
       <PageHeader
         title="Neighbourhood Hub"
         subtitle="Everything happening in your township - events, maintenance, volunteering and official updates."
-        actions={<Pill>{DEMO_TOWNSHIP.name}</Pill>}
+        actions={township ? <Pill>{township.name}</Pill> : undefined}
       />
 
       {role === "young" && (
@@ -158,7 +161,7 @@ export function CommunityPage() {
             <InfoCard>
               <EmptyState
                 icon={CloudOff}
-                title="Couldn't load community events"
+                title="Couldn't load community updates"
                 description={error}
                 action={
                   <AppButton variant="secondary" onClick={() => void reload()}>
@@ -167,11 +170,6 @@ export function CommunityPage() {
                 }
               />
             </InfoCard>
-          )}
-          {usingSampleData && (
-            <p className="ui-helper live-hint" role="status">
-              Showing sample data. The live events list was empty or could not be reached.
-            </p>
           )}
           {featured && (
             <section className="ui-section" aria-labelledby="featured-heading">
@@ -188,16 +186,19 @@ export function CommunityPage() {
                       <Star size={18} aria-hidden="true" />
                       Featured update
                     </span>
-                    {featured.isDemoData && <DemoTag />}
                   </div>
                   <h3 className="feature-card-title">{featured.title}</h3>
                   <p className="feature-card-desc">{featured.summary}</p>
                   <div className="ui-meta-row">
-                    <span>{formatDate(featured.updatedAt)}</span>
-                    <span className="ui-meta-dot" aria-hidden="true">
-                      •
-                    </span>
-                    <span>{featured.sourceLabel}</span>
+                    <span>{formatDate(featured.publishedAt)}</span>
+                    {featuredSource(featured) && (
+                      <>
+                        <span className="ui-meta-dot" aria-hidden="true">
+                          •
+                        </span>
+                        <span>{featuredSource(featured)}</span>
+                      </>
+                    )}
                   </div>
                 </div>
               </InfoCard>
@@ -246,11 +247,7 @@ export function CommunityPage() {
 
       <EventDetailsModal
         event={activeEvent}
-        registered={
-          activeEvent
-            ? registeredEventIds.has(activeEvent.id) || activeEvent.joined === true
-            : false
-        }
+        registered={activeEvent?.joined === true}
         onClose={() => setActiveEvent(null)}
         onRegister={(event) => void registerEvent(event)}
       />

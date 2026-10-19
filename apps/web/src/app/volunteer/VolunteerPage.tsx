@@ -1,5 +1,4 @@
-import { CloudOff, MapPin, Navigation, ShieldQuestion } from "lucide-react";
-import { Link } from "react-router-dom";
+import { CloudOff, MapPin, ShieldQuestion } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import {
@@ -19,40 +18,35 @@ import {
   LoadingState,
   Modal,
   PageHeader,
+  SignInPrompt,
 } from "../../components/ui";
 import { useAcceptedTasks, type AcceptedTask } from "../../data/AcceptedTasksContext";
 import { useProfile } from "../../data/ProfileContext";
-import { useGamification } from "../../data/useGamification";
+import { usePoints } from "../../data/useGamification";
 import { useVolunteerData } from "../../data/useVolunteer";
-import { errorMessage } from "@sdh/api-client";
+import { errorMessage, useSession } from "@sdh/api-client";
 import { formatDate } from "../../lib/format";
-import { distanceKm } from "../../lib/geo";
-import { useGeolocation } from "../../lib/useGeolocation";
 import { useNow } from "../../lib/useNow";
 import { urgencyFor } from "../../lib/urgency";
 import { URGENCY_RANK, type Opportunity } from "../../types/volunteer";
 
-// Demo points granted for a VERIFIED volunteering task. Flat value for the
-// prototype; a real system would derive this server-side.
-const VOLUNTEERING_POINTS = 60;
 // How often the urgency badges and the "Most urgent" order are worked out again.
 const URGENCY_REFRESH_MS = 60_000;
 
 export function VolunteerPage() {
-  const { opportunities, loading, error, notVerified, live, reload } = useVolunteerData();
-  const geo = useGeolocation();
+  const { opportunities, loading, error, notVerified, reload } = useVolunteerData();
+  const { user } = useSession();
   const now = useNow(URGENCY_REFRESH_MS);
   const {
     tasks,
     isAccepted,
     accept,
     complete,
-    verify,
     loading: tasksLoading,
     error: tasksError,
     refresh: refreshTasks,
   } = useAcceptedTasks();
-  const { verifyVolunteering } = useGamification();
+  const points = usePoints();
   const { verification } = useProfile();
 
   const [sort, setSort] = useState<SortOption>("nearest");
@@ -63,27 +57,17 @@ export function VolunteerPage() {
   const [failure, setFailure] = useState<{ title: string; message: string } | null>(null);
   const [confirmation, setConfirmation] = useState<{ title: string; message: string } | null>(null);
 
-  // Signed in, distances come from the server only: it measures from the saved
-  // profile location, and mixing in the device position would disagree with it.
-  const useDevice = !live && geo.status === "granted";
-
-  // Effective distance per opportunity: from the device when allowed and the
-  // item has approximate coords; else the distance on the item. Keyed by id so
-  // the card and the sort agree.
-  const distances = useMemo(() => {
+  // Points the server awarded per volunteering task, to show next to each confirmed task.
+  const pointsByTask = useMemo(() => {
     const map = new Map<string, number>();
-    for (const o of opportunities) {
-      if (useDevice && geo.coords && o.coords) {
-        map.set(o.id, distanceKm(geo.coords, o.coords));
-      } else {
-        map.set(o.id, o.distanceKm);
-      }
+    for (const entry of points.data?.ledger.items ?? []) {
+      if (entry.sourceType === "volunteering") map.set(entry.sourceId, entry.points);
     }
     return map;
-  }, [opportunities, useDevice, geo.coords]);
+  }, [points.data]);
 
   const visible = useMemo(() => {
-    const dist = (o: Opportunity) => distances.get(o.id) ?? o.distanceKm;
+    const dist = (o: Opportunity) => o.distanceKm;
     const sorted = [...opportunities];
     switch (sort) {
       case "nearest":
@@ -107,22 +91,23 @@ export function VolunteerPage() {
         break;
     }
     return sorted;
-  }, [opportunities, sort, distances, now]);
+  }, [opportunities, sort, now]);
 
   async function handleAccept(opportunity: Opportunity) {
     setAcceptingId(opportunity.id);
     try {
       await accept(opportunity);
       // Refresh the feed first so the accepted card is already gone from it.
-      if (live) await reload();
+      await reload();
+      void points.reload();
       setConfirmation({
         title: "Thanks for stepping up",
-        message: `You ${opportunity.kind === "event" ? "joined" : "accepted"} "${opportunity.title}" on ${formatDate(opportunity.scheduledAt)}. It's now in "My accepted tasks".${live ? "" : " This is a demo sign-up saved only in this browser."}`,
+        message: `You ${opportunity.kind === "event" ? "joined" : "accepted"} "${opportunity.title}" on ${formatDate(opportunity.scheduledAt)}. It's now in "My accepted tasks".`,
       });
     } catch (err) {
       setFailure({ title: "Couldn't accept this task", message: errorMessage(err) });
       // Someone else may have taken it, so the feed has changed.
-      if (live) await reload();
+      await reload();
     } finally {
       setAcceptingId(null);
     }
@@ -139,11 +124,11 @@ export function VolunteerPage() {
     setCompleteError(null);
     try {
       await complete(task.id, minutesSpent);
-      if (live) await reload(); // volunteer hours changed
+      await reload(); // volunteer hours changed
       setCompleting(null);
       setConfirmation({
         title: "Marked as completed",
-        message: `You marked "${task.title}" as completed (${minutesSpent} min). It still needs the resident's confirmation before it counts as verified.`,
+        message: `You marked "${task.title}" as completed (${minutesSpent} min). Your points are added once the resident confirms it.`,
       });
     } catch (err) {
       setCompleteError(errorMessage(err));
@@ -152,33 +137,21 @@ export function VolunteerPage() {
     }
   }
 
-  function handleVerify(task: AcceptedTask) {
-    // Simulated resident confirmation. Marks the task verified AND awards
-    // de-duped volunteering points (shared dedupeKey prevents paying the same
-    // activity twice if it is also a challenge). Counted as one verified task.
-    verify(task.id);
-    verifyVolunteering({
-      taskId: task.id,
-      points: VOLUNTEERING_POINTS,
-      label: task.title,
-      dedupeKey: task.dedupeKey,
-    });
-    setConfirmation({
-      title: "Participation verified (demo)",
-      message: `"${task.title}" is verified. You earned ${VOLUNTEERING_POINTS} demo points and it counts toward your volunteering milestones.`,
-    });
+  if (!user) {
+    return (
+      <>
+        <PageHeader title="Volunteer nearby" />
+        <SignInPrompt what="ways to help nearby" />
+      </>
+    );
   }
 
   return (
     <>
-      <PageHeader title="Volunteer nearby" actions={<VerifiedBadge status={verification} />} />
-
-      {!live && (
-        <p className="ui-helper live-hint">
-          Showing demo data. <Link to="/profile">Sign in as a demo user</Link> to use the live
-          service.
-        </p>
-      )}
+      <PageHeader
+        title="Volunteer nearby"
+        actions={verification ? <VerifiedBadge status={verification} /> : undefined}
+      />
 
       {loading || tasksLoading ? (
         <LoadingState rows={3} label="Loading volunteering opportunities" />
@@ -198,7 +171,7 @@ export function VolunteerPage() {
               />
             </InfoCard>
           )}
-          <MyTasksSection tasks={tasks} onComplete={openComplete} onVerify={handleVerify} />
+          <MyTasksSection tasks={tasks} onComplete={openComplete} pointsByTask={pointsByTask} />
 
           {notVerified ? (
             <InfoCard>
@@ -238,29 +211,7 @@ export function VolunteerPage() {
 
               <div className="geo-hint">
                 <MapPin size={16} aria-hidden="true" />
-                {live ? (
-                  <span>Distances are measured from your saved area.</span>
-                ) : useDevice ? (
-                  <span>Sorted by your current location.</span>
-                ) : (
-                  <>
-                    <span>
-                      {geo.status === "denied" || geo.status === "unavailable"
-                        ? "Using demo locations."
-                        : "Using demo locations until you share your location."}
-                    </span>
-                    {geo.status !== "unavailable" && (
-                      <AppButton
-                        variant="ghost"
-                        onClick={geo.request}
-                        loading={geo.status === "locating"}
-                      >
-                        <Navigation size={16} aria-hidden="true" />
-                        Use my location
-                      </AppButton>
-                    )}
-                  </>
-                )}
+                <span>Distances are measured from your saved area.</span>
               </div>
 
               <div className="results-bar">
@@ -285,9 +236,6 @@ export function VolunteerPage() {
                       key={opportunity.id}
                       opportunity={opportunity}
                       urgency={urgencyFor(opportunity.scheduledAt, now)}
-                      liveDistanceKm={
-                        useDevice && opportunity.coords ? distances.get(opportunity.id) : undefined
-                      }
                       joined={isAccepted(opportunity.id)}
                       accepting={acceptingId === opportunity.id}
                       onAccept={(o) => void handleAccept(o)}

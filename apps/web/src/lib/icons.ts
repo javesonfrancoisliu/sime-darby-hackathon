@@ -1,0 +1,45 @@
+import {
+  Activity,
+  BookOpen,
+  Coffee,
+  Droplet,
+  Footprints,
+  Gift,
+  Heart,
+  Leaf,
+  Medal,
+  Recycle,
+  Shield,
+  ShoppingCart,
+  Star,
+  Sun,
+  Ticket,
+  TreePine,
+  Trophy,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
+
+import type { IconKey } from "@sdh/contracts";
+
+// One SVG per shared icon key, the same vocabulary the API uses for challenges, rewards and badges.
+export const ICON_BY_KEY: Record<IconKey, LucideIcon> = {
+  walk: Footprints,
+  run: Activity,
+  tree: TreePine,
+  recycle: Recycle,
+  leaf: Leaf,
+  droplet: Droplet,
+  sun: Sun,
+  heart: Heart,
+  users: Users,
+  book: BookOpen,
+  trophy: Trophy,
+  medal: Medal,
+  star: Star,
+  shield: Shield,
+  gift: Gift,
+  ticket: Ticket,
+  coffee: Coffee,
+  cart: ShoppingCart,
+};

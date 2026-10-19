@@ -17,47 +17,44 @@ import {
 } from "./components/layout";
 import { AcceptedTasksProvider } from "./data/AcceptedTasksContext";
 import { ProfileProvider } from "./data/ProfileContext";
-import { GamificationProvider } from "./data/useGamification";
 
-// auth is set only when Cognito is configured; otherwise the local demo sign-in is used.
+// auth is set only when Cognito is configured; otherwise the local sign-in picker is used.
 export function App({ auth }: { auth?: SessionAuth }) {
   return (
     <SessionProvider auth={auth}>
       <SessionRoleProvider>
         <UserScope>
-          <GamificationProvider>
-            <AcceptedTasksProvider>
-              <ProfileProvider>
-                <AppShell>
-                  <SessionGate>
-                    <Routes>
-                      <Route path="/" element={<HomePage />} />
-                      <Route path="/community" element={<CommunityPage />} />
-                      <Route
-                        path="/community/challenges"
-                        element={
-                          <YoungOnly>
-                            <ChallengesPage />
-                          </YoungOnly>
-                        }
-                      />
-                      <Route
-                        path="/volunteer"
-                        element={
-                          <YoungOnly>
-                            <VolunteerPage />
-                          </YoungOnly>
-                        }
-                      />
-                      <Route path="/safety" element={<SafetyPage />} />
-                      <Route path="/profile" element={<ProfilePage />} />
-                      <Route path="*" element={<HomePage />} />
-                    </Routes>
-                  </SessionGate>
-                </AppShell>
-              </ProfileProvider>
-            </AcceptedTasksProvider>
-          </GamificationProvider>
+          <AcceptedTasksProvider>
+            <ProfileProvider>
+              <AppShell>
+                <SessionGate>
+                  <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/community" element={<CommunityPage />} />
+                    <Route
+                      path="/community/challenges"
+                      element={
+                        <YoungOnly>
+                          <ChallengesPage />
+                        </YoungOnly>
+                      }
+                    />
+                    <Route
+                      path="/volunteer"
+                      element={
+                        <YoungOnly>
+                          <VolunteerPage />
+                        </YoungOnly>
+                      }
+                    />
+                    <Route path="/safety" element={<SafetyPage />} />
+                    <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="*" element={<HomePage />} />
+                  </Routes>
+                </SessionGate>
+              </AppShell>
+            </ProfileProvider>
+          </AcceptedTasksProvider>
         </UserScope>
       </SessionRoleProvider>
     </SessionProvider>

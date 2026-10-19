@@ -27,7 +27,7 @@ export class ApiError extends Error {
 }
 
 export type ApiOptions = {
-  method?: "GET" | "POST" | "PATCH";
+  method?: "GET" | "POST" | "PUT" | "PATCH";
   body?: unknown;
   // Demo user to act as. Defaults to the stored demo sign-in.
   userId?: string | null;

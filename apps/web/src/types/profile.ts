@@ -1,9 +1,7 @@
 import type { TaskCategory } from "./volunteer";
 
-// Frontend-only Young-resident profile model. Mirrors fields from the shared
-// @sdh/contracts User where they exist (name, area, skills, availability) and
-// adds frontend-only fields (languages, interests) NOT yet in the backend
-// contract. Persisted to localStorage for the demo - NOT saved to any backend.
+// Young-resident profile model, mapped from the signed-in user (name, area, skills, interests,
+// languages and availability).
 
 export const PREFERRED_DAYS = ["weekdays", "weekends"] as const;
 export type PreferredDay = (typeof PREFERRED_DAYS)[number];
@@ -29,7 +27,7 @@ export type ProfilePrefs = {
   // Preferred assistance interests - also task categories.
   interests: TaskCategory[];
   availability: AvailabilityPreference;
-  // Preferred communication languages (frontend-only; not in the User contract).
+  // Preferred communication languages.
   languages: Language[];
 };
 

@@ -61,7 +61,7 @@ function ChipGroup<T extends string>({
 // day-group + time-of-day), languages. Chip multi-selects keep it compact on
 // mobile.
 export function EditPreferencesModal({ open, onClose }: EditPreferencesModalProps) {
-  const { prefs, updatePrefs, isDemo } = useProfile();
+  const { prefs, updatePrefs } = useProfile();
   const [skills, setSkills] = useState(prefs.skills);
   const [interests, setInterests] = useState(prefs.interests);
   const [days, setDays] = useState(prefs.availability.days);
@@ -84,11 +84,11 @@ export function EditPreferencesModal({ open, onClose }: EditPreferencesModalProp
     setBusy(true);
     setSaveError(null);
     try {
-      // Availability is only sent when the chips changed, so saving other fields never rewrites it.
+      // Only the fields that changed are sent, so saving one never rewrites the others.
       await updatePrefs({
-        skills,
-        interests,
-        languages,
+        ...(!sameSet(skills, prefs.skills) && { skills }),
+        ...(!sameSet(interests, prefs.interests) && { interests }),
+        ...(!sameSet(languages, prefs.languages) && { languages }),
         ...(availabilityChanged && { availability: { days, times } }),
       });
       onClose();
@@ -151,9 +151,7 @@ export function EditPreferencesModal({ open, onClose }: EditPreferencesModalProp
         onToggle={(v) => setLanguages((prev) => toggle(prev, v))}
       />
       <p className="ui-helper ui-flush">
-        {isDemo
-          ? "Saved on this device for the demo."
-          : "Skills and availability are saved to your account and used for matching. Interests and languages stay on this device."}
+        Saved to your account. Skills and availability feed volunteer matching.
       </p>
       {saveError && (
         <p className="ui-error ui-flush" role="alert">

@@ -1,19 +1,29 @@
 import { useState } from "react";
 
-import type { Challenge } from "../../types/gamification";
+import type { ChallengeWithProgress } from "@sdh/contracts";
+
 import { AppButton, FormField, Modal } from "../ui";
 
 export type LogProgressModalProps = {
-  challenge: Challenge | null;
+  challenge: ChallengeWithProgress | null;
   current: number;
   onClose: () => void;
-  onSave: (challenge: Challenge, value: number) => void;
+  onSave: (challenge: ChallengeWithProgress, value: number) => void;
+  // True while the value is being saved.
+  busy?: boolean;
+  error?: string | null;
 };
 
-// Self-reported progress entry for a challenge. Clearly simulated - this is not
-// real fitness/step tracking. The parent passes `key={challenge.id}` so the
+// Self-reported progress entry for a challenge. The parent passes `key={challenge.id}` so the
 // field resets per challenge.
-export function LogProgressModal({ challenge, current, onClose, onSave }: LogProgressModalProps) {
+export function LogProgressModal({
+  challenge,
+  current,
+  onClose,
+  onSave,
+  busy = false,
+  error: saveError = null,
+}: LogProgressModalProps) {
   const [value, setValue] = useState(String(current));
   const [error, setError] = useState<string | null>(null);
 
@@ -33,10 +43,10 @@ export function LogProgressModal({ challenge, current, onClose, onSave }: LogPro
       onClose={onClose}
       footer={
         <>
-          <AppButton variant="ghost" onClick={onClose}>
+          <AppButton variant="ghost" onClick={onClose} disabled={busy}>
             Cancel
           </AppButton>
-          <AppButton variant="primary" onClick={submit}>
+          <AppButton variant="primary" onClick={submit} loading={busy}>
             Save progress
           </AppButton>
         </>
@@ -55,8 +65,8 @@ export function LogProgressModal({ challenge, current, onClose, onSave }: LogPro
             min={0}
             value={value}
             onChange={(event) => setValue(event.target.value)}
-            helper="Self-reported for this demo - not automatically tracked."
-            error={error ?? undefined}
+            helper="You enter this yourself; it is not tracked automatically."
+            error={error ?? saveError ?? undefined}
           />
         </>
       )}

@@ -3,31 +3,90 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
 import { installFakeApi, signInAs } from "../../test/fakeApi";
-import { makeEvent, NO_CONTRIBUTIONS, VOLUNTEER } from "../../test/fixtures";
+import { makeDrive, makeEvent, makeMaintenance, makeNotice, VOLUNTEER } from "../../test/fixtures";
 import { renderApp } from "../../test/renderApp";
+import { signedInRoutes } from "../../test/routes";
 
 const EVENT = makeEvent({ title: "Live tea morning" });
+const DRIVE = makeDrive();
+const URGENT = makeNotice({
+  id: "0a1b2c3d-4444-4a44-8a44-000000000004",
+  title: "Water cut tonight",
+  priority: "high",
+  publishedAt: "2026-10-15T09:00:00Z",
+});
 
-const liveRoutes = {
-  "GET /api/me": { body: VOLUNTEER },
-  "GET /api/events": { body: { events: [EVENT] } },
-  "GET /api/requests/mine": { body: { requests: [] } },
-  "GET /api/contributions/mine": { body: NO_CONTRIBUTIONS },
-};
+const feedRoutes = signedInRoutes(VOLUNTEER, {
+  "GET /api/notices": { body: { items: [makeNotice(), makeMaintenance(), URGENT] } },
+  "GET /api/events": { body: { events: [EVENT, DRIVE] } },
+});
 
 describe("community page", () => {
-  it("lists live events without a sample data note when signed in", async () => {
-    installFakeApi(liveRoutes);
+  it("shows notices, volunteer drives and events in one feed", async () => {
+    installFakeApi(feedRoutes);
     signInAs(VOLUNTEER.id);
     renderApp("/community");
 
-    expect(await screen.findByText("Live tea morning")).toBeInTheDocument();
-    expect(screen.queryByText(/Showing sample data/)).not.toBeInTheDocument();
+    expect(await screen.findByLabelText("Event: Live tea morning")).toBeInTheDocument();
+    expect(screen.getByLabelText("Volunteering: River clean-up drive")).toBeInTheDocument();
+    expect(screen.getByLabelText("Maintenance: Lift service at Block C")).toBeInTheDocument();
+    expect(screen.getByLabelText("Township update: New recycling hours")).toBeInTheDocument();
+    expect(screen.getByText("Elmina")).toBeInTheDocument();
+    expect(screen.getByText("5 updates shown")).toBeInTheDocument();
   });
 
-  it("reports the error instead of sample events when signed in and the API fails", async () => {
+  it("features the high priority update even when it is not the newest", async () => {
+    installFakeApi(feedRoutes);
+    signInAs(VOLUNTEER.id);
+    renderApp("/community");
+
+    const featured = await screen.findByRole("region", { name: "Featured update" });
+    expect(within(featured).getByText("Water cut tonight")).toBeInTheDocument();
+  });
+
+  it("shows free slots on a volunteer drive", async () => {
+    installFakeApi(feedRoutes);
+    signInAs(VOLUNTEER.id);
+    renderApp("/community");
+
+    const card = await screen.findByLabelText("Volunteering: River clean-up drive");
+    expect(within(card).getByText("6 slots left")).toBeInTheDocument();
+    expect(within(card).getByText("Green Elmina")).toBeInTheDocument();
+  });
+
+  it("joins a volunteer drive through the join endpoint and shows the saved state", async () => {
+    let joined = false;
+    const { calls } = installFakeApi({
+      ...feedRoutes,
+      "GET /api/events": () => ({
+        body: { events: [EVENT, { ...DRIVE, joined, signupCount: joined ? 5 : 4 }] },
+      }),
+      [`POST /api/events/${DRIVE.id}/join`]: () => {
+        joined = true;
+        return { body: { ...DRIVE, joined: true } };
+      },
+    });
+    signInAs(VOLUNTEER.id);
+    renderApp("/community");
+    const user = userEvent.setup();
+
+    const card = await screen.findByLabelText("Volunteering: River clean-up drive");
+    await user.click(within(card).getByRole("button", { name: "Join" }));
+
+    expect(
+      await screen.findByRole("dialog", { name: "You're signed up to volunteer" }),
+    ).toBeVisible();
+    expect(calls.find((c) => c.method === "POST")?.path).toBe(`/api/events/${DRIVE.id}/join`);
+    expect(
+      await within(screen.getByLabelText("Volunteering: River clean-up drive")).findByText(
+        /signed up/,
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("reports the error when the community feed cannot load", async () => {
     installFakeApi({
-      ...liveRoutes,
+      ...feedRoutes,
       "GET /api/events": {
         status: 500,
         body: { error: { code: "INTERNAL", message: "Events are down" } },
@@ -36,32 +95,16 @@ describe("community page", () => {
     signInAs(VOLUNTEER.id);
     renderApp("/community");
 
-    expect(await screen.findByText("Couldn't load community events")).toBeInTheDocument();
+    expect(await screen.findByText("Couldn't load community updates")).toBeInTheDocument();
     expect(screen.getByText("Events are down")).toBeInTheDocument();
-    expect(screen.queryByText(/Showing sample data/)).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument();
-  });
-
-  it("says it is showing sample data when signed out and the API is unreachable", async () => {
-    installFakeApi();
-    renderApp("/community");
-
-    const note = await screen.findByRole("status", { name: "" });
-    expect(note).toHaveTextContent(/Showing sample data/);
-    expect(screen.queryByText("Couldn't load community events")).not.toBeInTheDocument();
-  });
-
-  it("shows live events without the note when signed out and the API has some", async () => {
-    installFakeApi({ "GET /api/events": { body: { events: [EVENT] } } });
-    renderApp("/community");
-
-    expect(await screen.findByText("Live tea morning")).toBeInTheDocument();
-    expect(screen.queryByText(/Showing sample data/)).not.toBeInTheDocument();
+    // The notices that did load stay visible.
+    expect(screen.getByLabelText("Township update: New recycling hours")).toBeInTheDocument();
   });
 
   it("registers with the signed-in user id and the join endpoint", async () => {
     const { calls } = installFakeApi({
-      ...liveRoutes,
+      ...feedRoutes,
       [`POST /api/events/${EVENT.id}/join`]: { body: { ...EVENT, joined: true } },
     });
     signInAs(VOLUNTEER.id);

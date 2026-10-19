@@ -32,11 +32,7 @@ export function TownshipUpdateCard({ item, onReadMore }: TownshipUpdateCardProps
 
         <p className="feature-card-desc">{item.summary}</p>
 
-        <CardMeta
-          updatedAt={item.updatedAt}
-          sourceLabel={item.sourceLabel}
-          isDemoData={item.isDemoData}
-        />
+        <CardMeta updatedAt={item.updatedAt} source={item.source} />
 
         <div className="feature-card-foot">
           <AppButton variant="secondary" onClick={() => onReadMore(item)}>

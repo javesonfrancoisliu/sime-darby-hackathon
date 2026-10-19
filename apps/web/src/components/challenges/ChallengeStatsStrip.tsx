@@ -1,19 +1,20 @@
 import { Award, CheckCircle2, Star } from "lucide-react";
 
-import type { GamificationSummary } from "../../types/gamification";
-import { DemoTag, InfoCard } from "../ui";
+import { InfoCard } from "../ui";
 
 export type ChallengeStatsStripProps = {
-  summary: GamificationSummary;
+  points: number;
+  completed: number;
+  badges: number;
 };
 
 // Compact points / completed / badges summary. Reuses the amber reward styling
 // and the impact-grid layout so it matches the Home impact card.
-export function ChallengeStatsStrip({ summary }: ChallengeStatsStripProps) {
+export function ChallengeStatsStrip({ points, completed, badges }: ChallengeStatsStripProps) {
   const stats = [
-    { icon: Star, value: summary.totalPoints, label: "Points" },
-    { icon: CheckCircle2, value: summary.completedChallenges, label: "Completed" },
-    { icon: Award, value: summary.earnedBadgeIds.length, label: "Badges" },
+    { icon: Star, value: points, label: "Points" },
+    { icon: CheckCircle2, value: completed, label: "Completed" },
+    { icon: Award, value: badges, label: "Badges" },
   ];
 
   return (
@@ -21,7 +22,6 @@ export function ChallengeStatsStrip({ summary }: ChallengeStatsStripProps) {
       <div className="feature-card">
         <div className="feature-card-head">
           <span className="inline-icon ui-strong">Your progress</span>
-          <DemoTag />
         </div>
         <dl className="impact-grid">
           {stats.map(({ icon: Icon, value, label }) => (

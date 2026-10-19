@@ -1,67 +1,38 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { UpdateMeBody, User } from "@sdh/contracts";
+import { PutSettingsBody, UpdateMeBody, User } from "@sdh/contracts";
 import { describe, expect, it, vi } from "vitest";
 
 import { installFakeApi, signInAs } from "../../test/fakeApi";
-import { VOLUNTEER } from "../../test/fixtures";
+import { makeReward, VOLUNTEER } from "../../test/fixtures";
 import { renderApp } from "../../test/renderApp";
+import { signedInRoutes } from "../../test/routes";
+
+const signedIn = (overrides: Record<string, unknown> = {}) => signedInRoutes(VOLUNTEER, overrides);
 
 describe("profile page", () => {
-  it("labels the profile as demo data when signed out", async () => {
-    installFakeApi({ "GET /api/demo/users": { body: { users: [] } } });
-    renderApp("/profile");
-    const card = await screen.findByLabelText("Your profile");
-    expect(within(card).getByText("Alex Tan")).toBeInTheDocument();
-    expect(within(card).getByText("Demo data")).toBeInTheDocument();
-  });
-
-  it("shows City of Elmina for a profile saved before the township was renamed", async () => {
-    localStorage.setItem(
-      "tc.profile.prefs:signed-out",
-      JSON.stringify({ displayName: "Alex Tan", area: "Bandar Serai" }),
-    );
-    installFakeApi({ "GET /api/demo/users": { body: { users: [] } } });
-    renderApp("/profile");
-    const card = await screen.findByLabelText("Your profile");
-    expect(within(card).getByText("City of Elmina")).toBeInTheDocument();
-    expect(within(card).queryByText("Bandar Serai")).not.toBeInTheDocument();
-  });
-
-  it("explains the demo settings toggles in plain words", async () => {
+  it("offers the local sign-in and no profile when signed out", async () => {
     installFakeApi({ "GET /api/demo/users": { body: { users: [] } } });
     renderApp("/profile");
     expect(
-      await screen.findByText(
-        "Demo only: these toggles are saved on this device and do not send real notifications or change who can see your information.",
-      ),
+      await screen.findByText("No people are set up yet. Please ask the team to add them."),
     ).toBeInTheDocument();
-    expect(screen.queryByText(/backend|enforce/i)).not.toBeInTheDocument();
-  });
-
-  it("explains in plain words when no demo people exist yet", async () => {
-    installFakeApi({ "GET /api/demo/users": { body: { users: [] } } });
-    renderApp("/profile");
-    expect(
-      await screen.findByText("No demo people are set up yet. Please ask the team to add them."),
-    ).toBeInTheDocument();
+    expect(screen.queryByLabelText("Your profile")).not.toBeInTheDocument();
     expect(screen.queryByText(/pnpm|db:seed/)).not.toBeInTheDocument();
   });
 
-  it("shows the signed-in user name and area without a demo label", async () => {
-    installFakeApi({ "GET /api/me": { body: VOLUNTEER } });
+  it("shows the signed-in user name and area", async () => {
+    installFakeApi(signedIn());
     signInAs(VOLUNTEER.id);
     renderApp("/profile");
     const card = await screen.findByLabelText("Your profile");
     expect(within(card).getByText(VOLUNTEER.name)).toBeInTheDocument();
     expect(within(card).getByText(VOLUNTEER.area)).toBeInTheDocument();
-    expect(within(card).queryByText("Demo data")).not.toBeInTheDocument();
-    expect(screen.queryByText("Alex Tan")).not.toBeInTheDocument();
   });
 
   it("saves the name and area with PATCH /api/me and shows the reply", async () => {
     const { calls } = installFakeApi({
-      "GET /api/me": { body: VOLUNTEER },
+      ...signedIn(),
       "PATCH /api/me": ({ body }) => ({ body: User.parse({ ...VOLUNTEER, ...(body as object) }) }),
     });
     signInAs(VOLUNTEER.id);
@@ -85,7 +56,7 @@ describe("profile page", () => {
 
   it("sends skills and availability slots when preferences are saved", async () => {
     const { calls } = installFakeApi({
-      "GET /api/me": { body: VOLUNTEER },
+      ...signedIn(),
       "PATCH /api/me": ({ body }) => ({ body: User.parse({ ...VOLUNTEER, ...(body as object) }) }),
     });
     signInAs(VOLUNTEER.id);
@@ -117,7 +88,7 @@ describe("profile page", () => {
       availability: [{ day: "mon", start: "09:00", end: "11:00" }],
     });
     const { calls } = installFakeApi({
-      "GET /api/me": { body: scheduled },
+      ...signedIn({ "GET /api/me": { body: scheduled } }),
       "PATCH /api/me": ({ body }) => ({ body: User.parse({ ...scheduled, ...(body as object) }) }),
     });
     signInAs(scheduled.id);
@@ -136,7 +107,7 @@ describe("profile page", () => {
   });
 
   it("asks for a day and a time together instead of wiping availability", async () => {
-    const { calls } = installFakeApi({ "GET /api/me": { body: VOLUNTEER } });
+    const { calls } = installFakeApi(signedIn());
     signInAs(VOLUNTEER.id);
     renderApp("/profile");
     const user = userEvent.setup();
@@ -152,7 +123,7 @@ describe("profile page", () => {
   });
 
   it("limits the display name field to the contract length", async () => {
-    const { calls } = installFakeApi({ "GET /api/me": { body: VOLUNTEER } });
+    const { calls } = installFakeApi(signedIn());
     signInAs(VOLUNTEER.id);
     renderApp("/profile");
     const user = userEvent.setup();
@@ -165,7 +136,7 @@ describe("profile page", () => {
 
   it("keeps the dialog open and shows the error when saving fails", async () => {
     installFakeApi({
-      "GET /api/me": { body: VOLUNTEER },
+      ...signedIn(),
       "PATCH /api/me": {
         status: 400,
         body: { error: { code: "VALIDATION_FAILED", message: "Name is too long" } },
@@ -183,12 +154,99 @@ describe("profile page", () => {
     expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
-  it("hides the demo sign-in picker in a build that switches it off", async () => {
-    vi.stubEnv("VITE_DEMO_SIGN_IN", "false");
-    const { calls } = installFakeApi({ "GET /api/demo/users": { body: { users: [] } } });
+  it("saves interests and languages with PATCH /api/me", async () => {
+    const { calls } = installFakeApi({
+      ...signedIn(),
+      "PATCH /api/me": ({ body }) => ({ body: User.parse({ ...VOLUNTEER, ...(body as object) }) }),
+    });
+    signInAs(VOLUNTEER.id);
     renderApp("/profile");
-    await screen.findByLabelText("Your profile");
-    expect(screen.queryByLabelText("Demo sign-in")).not.toBeInTheDocument();
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Edit volunteer preferences" }));
+    const dialog = await screen.findByRole("dialog");
+    const interests = within(dialog).getByRole("group", { name: "Assistance interests" });
+    await user.click(within(interests).getByRole("button", { name: "Transport" }));
+    const languages = within(dialog).getByRole("group", { name: "Communication languages" });
+    await user.click(within(languages).getByRole("button", { name: "Bahasa Melayu" }));
+    await user.click(within(dialog).getByRole("button", { name: "Save" }));
+
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    const body = UpdateMeBody.parse(calls.find((c) => c.method === "PATCH")?.body);
+    expect(body).toEqual({ interests: ["transport"], languages: ["ms"] });
+  });
+
+  it("saves a settings toggle with PUT /api/me/settings", async () => {
+    const { calls } = installFakeApi({
+      ...signedIn(),
+      "PUT /api/me/settings": ({ body }) => ({
+        body: { ...(body as object), updatedAt: "2026-10-19T00:00:00Z" },
+      }),
+    });
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    const user = userEvent.setup();
+
+    const toggle = await screen.findByRole("switch", { name: /Volunteering updates/ });
+    await waitFor(() => expect(toggle).toBeEnabled());
+    expect(toggle).not.toBeChecked();
+    await user.click(toggle);
+
+    await waitFor(() => expect(calls.some((c) => c.method === "PUT")).toBe(true));
+    const put = calls.find((c) => c.method === "PUT");
+    expect(put?.path).toBe("/api/me/settings");
+    expect(PutSettingsBody.parse(put?.body)).toMatchObject({ notifyVolunteering: true });
+  });
+
+  it("saves the leaderboard choice with PATCH /api/me", async () => {
+    const { calls } = installFakeApi({
+      ...signedIn(),
+      "PATCH /api/me": ({ body }) => ({ body: User.parse({ ...VOLUNTEER, ...(body as object) }) }),
+    });
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("switch", { name: /Show me on the leaderboard/ }));
+
+    await waitFor(() => expect(calls.some((c) => c.method === "PATCH")).toBe(true));
+    expect(UpdateMeBody.parse(calls.find((c) => c.method === "PATCH")?.body)).toEqual({
+      leaderboardOptIn: true,
+    });
+    expect(screen.getByRole("switch", { name: /Show me on the leaderboard/ })).toBeChecked();
+  });
+
+  it("lists the redeemed rewards with their date", async () => {
+    installFakeApi(
+      signedIn({
+        "GET /api/rewards": {
+          body: {
+            rewards: [
+              makeReward({
+                title: "Coffee voucher",
+                status: "redeemed",
+                redeemedAt: "2026-10-18T02:00:00Z",
+              }),
+              makeReward({ id: "0a1b2c3d-9999-4a99-8a99-000000000009", title: "Tote bag" }),
+            ],
+          },
+        },
+      }),
+    );
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+
+    expect(await screen.findByText("Coffee voucher")).toBeInTheDocument();
+    expect(screen.getByText(/Claimed 18 Oct 2026/)).toBeInTheDocument();
+    expect(screen.queryByText("Tote bag")).not.toBeInTheDocument();
+  });
+
+  it("hides the local sign-in picker in a build that switches it off", async () => {
+    vi.stubEnv("VITE_DEMO_SIGN_IN", "false");
+    const { calls } = installFakeApi();
+    renderApp("/profile");
+    expect(await screen.findByText("Please sign in")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Local sign-in")).not.toBeInTheDocument();
     expect(calls.some((c) => c.path.startsWith("/api/demo/users"))).toBe(false);
   });
 });

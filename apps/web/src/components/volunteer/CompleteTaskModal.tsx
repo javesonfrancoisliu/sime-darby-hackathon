@@ -21,7 +21,7 @@ export type CompleteTaskModalProps = {
 // Volunteer-reported completion with the time actually spent (the API records
 // it as volunteer hours). Prefilled with the planned duration so the common case
 // is one tap. This is NOT verified: it does not award points. Points come only
-// after the simulated resident confirmation step.
+// after the resident confirms the help.
 export function CompleteTaskModal({
   task,
   busy = false,

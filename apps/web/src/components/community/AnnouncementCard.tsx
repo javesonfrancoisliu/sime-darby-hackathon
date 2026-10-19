@@ -41,11 +41,7 @@ export function AnnouncementCard({ item }: AnnouncementCardProps) {
 
         <p className="feature-card-desc">{item.serviceImpact}</p>
 
-        <CardMeta
-          updatedAt={item.updatedAt}
-          sourceLabel={item.sourceLabel}
-          isDemoData={item.isDemoData}
-        />
+        <CardMeta updatedAt={item.updatedAt} source={item.source} />
 
         <div className="feature-card-foot">
           <StatusBadge label={status.label} variant={status.variant} />

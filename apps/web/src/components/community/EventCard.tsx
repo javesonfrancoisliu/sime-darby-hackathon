@@ -29,21 +29,15 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
             <MapPin size={16} className="icon-dim" aria-hidden="true" />
             {event.location}
           </span>
-          {typeof event.capacity === "number" && typeof event.signupCount === "number" && (
-            <span className="inline-icon">
-              <Users size={16} className="icon-dim" aria-hidden="true" />
-              {event.signupCount} of {event.capacity} joined
-            </span>
-          )}
+          <span className="inline-icon">
+            <Users size={16} className="icon-dim" aria-hidden="true" />
+            {event.signupCount} of {event.capacity} joined
+          </span>
         </div>
 
         <p className="feature-card-desc">{event.summary}</p>
 
-        <CardMeta
-          updatedAt={event.updatedAt}
-          sourceLabel={event.sourceLabel}
-          isDemoData={event.isDemoData}
-        />
+        <CardMeta updatedAt={event.updatedAt} source={event.organiser} />
 
         <div className="feature-card-foot">
           <AppButton variant="primary" onClick={() => onViewDetails(event)}>

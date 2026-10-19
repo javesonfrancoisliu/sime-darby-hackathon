@@ -1,8 +1,8 @@
-import { ArrowRight, Megaphone } from "lucide-react";
+import { ArrowRight, CloudOff, Megaphone } from "lucide-react";
 
-import { useLatestCommunityItems } from "../../data/useCommunityItems";
+import { useCommunityItems } from "../../data/useCommunityItems";
 import { formatRelative } from "../../lib/format";
-import { AppLinkButton, DemoTag, InfoCard, Pill } from "../ui";
+import { AppLinkButton, EmptyState, InfoCard, LoadingState, Pill } from "../ui";
 
 const CATEGORY_LABEL: Record<string, string> = {
   event: "Event",
@@ -11,13 +11,12 @@ const CATEGORY_LABEL: Record<string, string> = {
   township: "Township",
 };
 
-// Compact community summary for the shared Home page (the three latest items).
-// Exposed per the integration contract so Home composes it beside SafetyOverview
-// without duplicating the full community layout.
-export function CommunityOverview({ townshipId }: { townshipId?: string }) {
-  const items = useLatestCommunityItems(townshipId);
-  // Label the list whenever any item is simulated; live items carry isDemoData: false.
-  const showsDemoData = items.some((item) => item.isDemoData);
+const LATEST_COUNT = 3;
+
+// Compact community summary for Home: the latest notices, volunteer drives and events.
+export function CommunityOverview() {
+  const { items, loading, error } = useCommunityItems();
+  const latest = items.slice(0, LATEST_COUNT);
 
   return (
     <InfoCard ariaLabel="Latest community updates">
@@ -29,20 +28,27 @@ export function CommunityOverview({ townshipId }: { townshipId?: string }) {
               Latest community updates
             </span>
           </h2>
-          {showsDemoData && <DemoTag />}
         </div>
 
-        <ul className="ui-stack" style={{ listStyle: "none", margin: 0, padding: 0 }}>
-          {items.map((item) => (
-            <li key={item.id} className="overview-item">
-              <div className="inline-icon ui-gap-2">
-                <Pill>{CATEGORY_LABEL[item.category]}</Pill>
-                <span className="ui-meta-row">{formatRelative(item.updatedAt)}</span>
-              </div>
-              <p style={{ margin: "4px 0 0", fontWeight: 600 }}>{item.title}</p>
-            </li>
-          ))}
-        </ul>
+        {loading ? (
+          <LoadingState rows={2} label="Loading community updates" />
+        ) : error && latest.length === 0 ? (
+          <EmptyState icon={CloudOff} title="Couldn't load community updates" description={error} />
+        ) : latest.length === 0 ? (
+          <EmptyState title="Nothing new yet" description="Updates and events will show up here." />
+        ) : (
+          <ul className="ui-stack" style={{ listStyle: "none", margin: 0, padding: 0 }}>
+            {latest.map((item) => (
+              <li key={item.id} className="overview-item">
+                <div className="inline-icon ui-gap-2">
+                  <Pill>{CATEGORY_LABEL[item.category]}</Pill>
+                  <span className="ui-meta-row">{formatRelative(item.publishedAt)}</span>
+                </div>
+                <p style={{ margin: "4px 0 0", fontWeight: 600 }}>{item.title}</p>
+              </li>
+            ))}
+          </ul>
+        )}
 
         <div className="feature-card-foot">
           <AppLinkButton to="/community" variant="primary">
