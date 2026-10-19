@@ -66,6 +66,12 @@ variable "table_arn" {
   type        = string
 }
 
+variable "extra_table_arns" {
+  description = "Extra DynamoDB tables developers can read and edit, such as a sandbox table for local development."
+  type        = list(string)
+  default     = []
+}
+
 variable "function_arns" {
   description = "Core and matching Lambda function ARNs."
   type        = list(string)

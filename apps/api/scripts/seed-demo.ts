@@ -1,18 +1,21 @@
 // Fills DynamoDB Local with demo users, open help requests and upcoming events.
 // Goes through the services so every record follows the same rules as the API.
-// Refuses to run unless DYNAMODB_ENDPOINT is a loopback URL so it never touches AWS. Skips if users already exist.
+// Refuses to run unless DYNAMODB_ENDPOINT is a loopback URL, or TABLE_NAME ends in -sandbox-main with no endpoint, so it never touches the real dev table. Skips if users already exist.
 import type { Category, CreateUserBody, Day } from "@sdh/contracts";
 import { config, isLoopbackEndpoint } from "../src/lib/config";
 import { createEvent } from "../src/modules/events/service";
 import { createRequest } from "../src/modules/requests/service";
 import { createUser, listDemoUsers, reviewVolunteer } from "../src/modules/users/service";
 
-if (!config.dynamodbEndpoint) {
+// The shared sandbox table in AWS is the only non-local table this script may fill.
+const isSandbox = !config.dynamodbEndpoint && /-sandbox-main$/.test(process.env.TABLE_NAME ?? "");
+
+if (!isSandbox && !config.dynamodbEndpoint) {
   console.error("DYNAMODB_ENDPOINT is not set; copy apps/api/.env.example to apps/api/.env first.");
   process.exit(1);
 }
 
-if (!isLoopbackEndpoint(config.dynamodbEndpoint)) {
+if (!isSandbox && !isLoopbackEndpoint(config.dynamodbEndpoint)) {
   console.error(
     `Refusing to run: DYNAMODB_ENDPOINT must be localhost or 127.0.0.1, got ${config.dynamodbEndpoint}`,
   );

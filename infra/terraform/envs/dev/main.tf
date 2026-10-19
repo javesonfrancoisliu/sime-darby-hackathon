@@ -10,6 +10,15 @@ module "data" {
   deletion_protection = var.table_deletion_protection
 }
 
+# A second table for local development, so teammates can run the API without Docker and
+# without touching the data behind the deployed site.
+module "sandbox_data" {
+  source = "../../modules/data"
+
+  name_prefix         = "${local.name_prefix}-sandbox"
+  deletion_protection = false
+}
+
 module "auth" {
   source = "../../modules/auth"
 
@@ -60,6 +69,7 @@ module "developer_access" {
   require_mfa              = var.developer_require_mfa
   log_group_arns           = module.api.log_group_arns
   table_arn                = module.data.table_arn
+  extra_table_arns         = [module.sandbox_data.table_arn]
   function_arns            = module.api.function_arns
   function_role_arns       = module.api.role_arns
   api_id                   = module.api.api_id

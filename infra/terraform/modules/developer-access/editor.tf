@@ -87,7 +87,7 @@ data "aws_iam_policy_document" "edit" {
       "dynamodb:PartiQLUpdate",
       "dynamodb:PartiQLDelete",
     ]
-    resources = [var.table_arn, "${var.table_arn}/index/*"]
+    resources = concat([var.table_arn, "${var.table_arn}/index/*"], flatten([for arn in var.extra_table_arns : [arn, "${arn}/index/*"]]))
   }
 
   statement {

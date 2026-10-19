@@ -95,7 +95,7 @@ data "aws_iam_policy_document" "read" {
       "dynamodb:Scan",
       "dynamodb:PartiQLSelect",
     ]
-    resources = [var.table_arn, "${var.table_arn}/*"]
+    resources = concat([var.table_arn, "${var.table_arn}/*"], flatten([for arn in var.extra_table_arns : [arn, "${arn}/*"]]))
   }
 
   statement {

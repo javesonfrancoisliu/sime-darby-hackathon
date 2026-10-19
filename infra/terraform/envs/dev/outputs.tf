@@ -61,3 +61,8 @@ output "matching_function_name" {
   description = "Matching Lambda function name."
   value       = module.api.matching_function_name
 }
+
+output "sandbox_table_name" {
+  description = "DynamoDB table for local development without Docker."
+  value       = module.sandbox_data.table_name
+}
