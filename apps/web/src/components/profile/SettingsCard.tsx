@@ -1,0 +1,116 @@
+import { useId } from "react";
+import { HelpCircle } from "lucide-react";
+
+import { useProfile, type ProfileSettings } from "../../data/ProfileContext";
+import { InfoCard } from "../ui";
+
+type ToggleKey = keyof ProfileSettings;
+
+function ToggleRow({
+  label,
+  description,
+  checked,
+  onChange,
+}: {
+  label: string;
+  description: string;
+  checked: boolean;
+  onChange: (next: boolean) => void;
+}) {
+  const id = useId();
+  const descId = `${id}-desc`;
+  return (
+    <div className="settings-row">
+      <label className="settings-row-text" htmlFor={id}>
+        <span className="settings-row-label">{label}</span>
+        <span className="ui-meta-row" id={descId}>
+          {description}
+        </span>
+      </label>
+      <input
+        id={id}
+        type="checkbox"
+        role="switch"
+        className="settings-switch"
+        checked={checked}
+        aria-describedby={descId}
+        onChange={(e) => onChange(e.target.checked)}
+      />
+    </div>
+  );
+}
+
+/**
+ * Settings: mock notification + privacy toggles, help & support. Honest demo
+ * labelling — these do NOT control real push notifications or enforce backend
+ * privacy. Demo Controls are rendered by the page below this card.
+ */
+export function SettingsCard() {
+  const { settings, updateSettings } = useProfile();
+
+  const toggles: { key: ToggleKey; label: string; description: string }[] = [
+    { key: "notifyEvents", label: "Event reminders", description: "Notify me about community events (demo)." },
+    {
+      key: "notifyVolunteering",
+      label: "Volunteering updates",
+      description: "Notify me about nearby requests (demo).",
+    },
+    {
+      key: "shareApproxLocation",
+      label: "Share approximate area",
+      description: "Use my area for distance sorting (demo).",
+    },
+    {
+      key: "showOnLeaderboard",
+      label: "Show me on the leaderboard",
+      description: "Display my name in rankings (demo).",
+    },
+  ];
+
+  return (
+    <InfoCard ariaLabel="Settings">
+      <div className="feature-card">
+        <div className="feature-card-head">
+          <h3 className="feature-card-title">Settings</h3>
+        </div>
+
+        <h4 className="impact-subhead" style={{ marginTop: 0 }}>
+          Notifications
+        </h4>
+        {toggles.slice(0, 2).map((t) => (
+          <ToggleRow
+            key={t.key}
+            label={t.label}
+            description={t.description}
+            checked={settings[t.key]}
+            onChange={(next) => updateSettings({ [t.key]: next })}
+          />
+        ))}
+
+        <h4 className="impact-subhead">Privacy &amp; safety</h4>
+        {toggles.slice(2).map((t) => (
+          <ToggleRow
+            key={t.key}
+            label={t.label}
+            description={t.description}
+            checked={settings[t.key]}
+            onChange={(next) => updateSettings({ [t.key]: next })}
+          />
+        ))}
+        <p className="ui-helper" style={{ margin: "var(--space-2) 0 0" }}>
+          Demo only: these toggles are saved on this device and do not control real
+          notifications or enforce backend privacy.
+        </p>
+
+        <h4 className="impact-subhead">Help &amp; support</h4>
+        <p className="ui-meta-row" style={{ margin: 0 }}>
+          <span className="inline-icon">
+            <HelpCircle size={16} className="icon-dim" aria-hidden="true" />
+            Township Connect is a hackathon prototype. For demo questions, ask the
+            team.
+          </span>
+        </p>
+      </div>
+    </InfoCard>
+  );
+}
