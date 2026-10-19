@@ -19,6 +19,11 @@ export async function createUser(body: CreateUserBody, id: string = randomUUID()
     ...body,
     id,
     verification: body.role === "volunteer" ? "pending" : "not_required",
+    points: 0,
+    lifetimePoints: 0,
+    interests: [],
+    languages: [],
+    leaderboardOptIn: false,
     createdAt: now,
     updatedAt: now,
   };

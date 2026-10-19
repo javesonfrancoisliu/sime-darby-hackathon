@@ -24,7 +24,14 @@ const toRequest = (item: Record<string, unknown>) => fromItem<HelpRequest>(item)
 type Changes = Partial<
   Pick<
     HelpRequest,
-    "status" | "volunteerId" | "volunteerName" | "reviewNote" | "minutesSpent" | "updatedAt"
+    | "status"
+    | "volunteerId"
+    | "volunteerName"
+    | "reviewNote"
+    | "minutesSpent"
+    | "acceptedAt"
+    | "completedAt"
+    | "updatedAt"
   >
 >;
 

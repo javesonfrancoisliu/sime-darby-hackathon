@@ -11,6 +11,11 @@ export const MOCK_RESIDENT: User = {
   experience: "",
   availability: [],
   verification: "not_required",
+  points: 0,
+  lifetimePoints: 0,
+  interests: [],
+  languages: [],
+  leaderboardOptIn: false,
   createdAt: "2026-10-01T09:00:00+08:00",
   updatedAt: "2026-10-01T09:00:00+08:00",
 };

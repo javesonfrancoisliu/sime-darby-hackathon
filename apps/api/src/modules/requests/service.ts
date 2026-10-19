@@ -12,6 +12,7 @@ import type {
 import { isConditionFailure } from "../../lib/db";
 import { approxKm, distanceKm } from "../../lib/geo";
 import { HttpError } from "../../lib/http";
+import { nowIso } from "../../lib/time";
 import { newContribution } from "../contributions/service";
 import {
   completeWithContribution,
@@ -135,6 +136,7 @@ export async function cancelRequest(elder: User, id: string): Promise<HelpReques
 
 export async function acceptRequest(volunteer: User, id: string): Promise<HelpRequest> {
   const request = await loadOrThrow(id);
+  const now = nowIso();
   return guarded("Request was already taken", () =>
     transitionRequest(
       request,
@@ -143,7 +145,8 @@ export async function acceptRequest(volunteer: User, id: string): Promise<HelpRe
         status: "matched",
         volunteerId: volunteer.id,
         volunteerName: volunteer.name,
-        updatedAt: new Date().toISOString(),
+        acceptedAt: now,
+        updatedAt: now,
       },
     ),
   );
@@ -162,10 +165,12 @@ export async function completeRequest(
       `minutesSpent: at most ${request.durationMinutes * MAX_OVERRUN_FACTOR} for this request`,
     );
   }
+  const now = nowIso();
   const changes = {
     status: "completed",
     minutesSpent: body.minutesSpent,
-    updatedAt: new Date().toISOString(),
+    completedAt: now,
+    updatedAt: now,
   } as const;
   const contribution = newContribution({
     volunteerId: volunteer.id,

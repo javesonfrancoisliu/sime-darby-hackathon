@@ -24,7 +24,11 @@ const byStartKeys = (event: Pick<CommunityEvent, "startsAt">) => ({
   GSI1SK: event.startsAt,
 });
 
-const toEvent = (item: Record<string, unknown>) => fromItem<CommunityEvent>(item);
+// Older items predate purpose and organiser; defaults are applied on read.
+const toEvent = (item: Record<string, unknown>): CommunityEvent => {
+  const event = fromItem<CommunityEvent>(item);
+  return { ...event, purpose: event.purpose ?? "activity", organiser: event.organiser ?? "" };
+};
 
 export async function putEvent(event: CommunityEvent): Promise<void> {
   await db().send(

@@ -35,6 +35,9 @@ export const HelpRequest = z.object({
   volunteerName: z.string().optional(),
   reviewNote: z.string().optional(),
   minutesSpent: z.number().int().positive().optional(),
+  acceptedAt: IsoDateTime.optional(),
+  completedAt: IsoDateTime.optional(),
+  confirmedAt: IsoDateTime.optional(),
   createdAt: IsoDateTime,
   updatedAt: IsoDateTime,
 });

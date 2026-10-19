@@ -21,6 +21,8 @@ function demoEvent(
     id: `d0b90202-0000-4000-8000-00000000000${n}`,
     location: { ...MOCK_RESIDENT.location, area },
     status: "upcoming",
+    purpose: "activity",
+    organiser: "",
     createdBy: MOCK_RESIDENT.id,
     createdAt: CREATED,
     updatedAt: CREATED,

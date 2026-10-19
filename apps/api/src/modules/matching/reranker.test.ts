@@ -28,6 +28,11 @@ const make = (n: number): User => ({
   availability: [],
   role: "volunteer",
   verification: "verified",
+  points: 0,
+  lifetimePoints: 0,
+  interests: [],
+  languages: [],
+  leaderboardOptIn: false,
   createdAt: "2026-10-01T00:00:00Z",
   updatedAt: "2026-10-01T00:00:00Z",
 });

@@ -10,7 +10,18 @@ const byRoleKeys = (user: Pick<User, "role" | "verification" | "createdAt">) => 
   GSI1SK: `${user.verification}#${user.createdAt}`,
 });
 
-const toUser = (item: Record<string, unknown>) => fromItem<User>(item);
+// Older items predate the points and preference fields; defaults are applied on read.
+const toUser = (item: Record<string, unknown>): User => {
+  const user = fromItem<User>(item);
+  return {
+    ...user,
+    points: user.points ?? 0,
+    lifetimePoints: user.lifetimePoints ?? 0,
+    interests: user.interests ?? [],
+    languages: user.languages ?? [],
+    leaderboardOptIn: user.leaderboardOptIn ?? false,
+  };
+};
 
 export async function putUser(user: User): Promise<void> {
   await db().send(

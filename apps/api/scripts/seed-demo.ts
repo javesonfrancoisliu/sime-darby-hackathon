@@ -184,7 +184,9 @@ const events = [
   },
 ];
 
-for (const e of events) await createEvent(coordinator, e);
+for (const e of events) {
+  await createEvent(coordinator, { ...e, purpose: "activity", organiser: "" });
+}
 
 console.info(
   `Seeded ${requests.length} open requests and ${events.length} events in ${config.tableName}.`,

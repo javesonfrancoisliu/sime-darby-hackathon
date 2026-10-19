@@ -1,5 +1,9 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  TransactWriteCommand,
+  type TransactWriteCommandInput,
+} from "@aws-sdk/lib-dynamodb";
 import { config } from "./config";
 import { GSI_NAMES } from "./table-schema";
 
@@ -58,4 +62,32 @@ export function isConditionFailure(error: unknown): boolean {
   if (error.name !== "TransactionCanceledException") return false;
   const reasons = (error as { CancellationReasons?: { Code?: string }[] }).CancellationReasons;
   return reasons?.some((reason) => reason.Code === "ConditionalCheckFailed") ?? false;
+}
+
+export type TransactItem = NonNullable<TransactWriteCommandInput["TransactItems"]>[number];
+
+export type TransactResult =
+  | { ok: true }
+  | {
+      ok: false;
+      // Cancellation code per item, in item order ("None" for items that did not fail).
+      reasons: string[];
+      // True when another transaction touched the same items; safe to retry (map to 409 CONFLICT_RETRY).
+      conflict: boolean;
+    };
+
+const CONFLICT_CODE = "TransactionConflict";
+
+// Runs items atomically; a cancelled transaction becomes a typed result, other errors still throw.
+export async function transact(items: TransactItem[]): Promise<TransactResult> {
+  try {
+    await db().send(new TransactWriteCommand({ TransactItems: items }));
+    return { ok: true };
+  } catch (error) {
+    if (!(error instanceof Error) || error.name !== "TransactionCanceledException") throw error;
+    const cancellations =
+      (error as { CancellationReasons?: { Code?: string }[] }).CancellationReasons ?? [];
+    const reasons = cancellations.map((reason) => reason.Code ?? "None");
+    return { ok: false, reasons, conflict: reasons.includes(CONFLICT_CODE) };
+  }
 }
