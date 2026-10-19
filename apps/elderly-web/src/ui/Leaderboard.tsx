@@ -9,6 +9,8 @@ interface LeaderboardProps {
   others: { displayName: string; points: number }[];
   /** The resident's own live points — merged in and highlighted. */
   myPoints: number;
+  /** The resident's own name; a neighbour row with the same name is dropped so nobody shows twice. */
+  myName: string;
 }
 
 /**
@@ -16,10 +18,13 @@ interface LeaderboardProps {
  * Fictional neighbours + the resident's live points; the resident's own row is
  * highlighted with "(you)". Display names only. Ranked high to low.
  */
-export function Leaderboard({ others, myPoints }: LeaderboardProps) {
+export function Leaderboard({ others, myPoints, myName }: LeaderboardProps) {
+  const me = myName.trim();
   const rows: LeaderboardRow[] = [
-    ...others.map((o) => ({ ...o })),
-    { displayName: "You", points: myPoints, isCurrentUser: true },
+    ...others
+      .filter((o) => o.displayName.toLowerCase() !== me.toLowerCase())
+      .map((o) => ({ ...o })),
+    { displayName: me || "You", points: myPoints, isCurrentUser: true },
   ].sort((a, b) => b.points - a.points);
 
   return (
