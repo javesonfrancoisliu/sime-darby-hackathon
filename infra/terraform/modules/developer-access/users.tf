@@ -49,6 +49,19 @@ data "aws_iam_policy_document" "developers" {
     resources = ["arn:aws:iam::${local.account_id}:user/$${aws:username}"]
   }
 
+  # CLI access for local dev: each teammate manages access keys for their own user only.
+  statement {
+    sid = "AllowManageOwnAccessKeys"
+    actions = [
+      "iam:CreateAccessKey",
+      "iam:DeleteAccessKey",
+      "iam:GetAccessKeyLastUsed",
+      "iam:ListAccessKeys",
+      "iam:UpdateAccessKey",
+    ]
+    resources = ["arn:aws:iam::${local.account_id}:user/$${aws:username}"]
+  }
+
   statement {
     sid       = "AllowSwitchToDeveloperRoles"
     actions   = ["sts:AssumeRole"]
