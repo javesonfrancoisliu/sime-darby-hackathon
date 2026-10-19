@@ -488,6 +488,11 @@
   color: var(--success);
   animation: ui-confirm-pop 320ms cubic-bezier(0.18, 0.89, 0.32, 1.28);
 }
+/* Ask variant: shown before an action runs (yes/no), in brand red. */
+.ui-confirm-icon--ask {
+  background: var(--danger-bg);
+  color: var(--brand-primary);
+}
 .ui-confirm-message {
   margin: 0;
   color: var(--text-secondary);

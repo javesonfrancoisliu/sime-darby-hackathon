@@ -166,6 +166,8 @@ describe("volunteer page", () => {
     const user = userEvent.setup();
 
     await user.click(await screen.findByRole("button", { name: "Accept & help" }));
+    // A yes/no confirmation now precedes the accept.
+    await user.click(await screen.findByRole("button", { name: "Yes, accept" }));
     const dialog = await screen.findByRole("dialog", { name: "Thanks for stepping up" });
     expect(dialog).toBeInTheDocument();
     expect(screen.getByLabelText("Accepted task: Groceries")).toBeInTheDocument();
@@ -185,6 +187,7 @@ describe("volunteer page", () => {
     const user = userEvent.setup();
 
     await user.click(await screen.findByRole("button", { name: "Accept & help" }));
+    await user.click(await screen.findByRole("button", { name: "Yes, accept" }));
     expect(await screen.findByText("Someone else just took this")).toBeInTheDocument();
     await waitFor(() => expect(screen.getByRole("button", { name: "OK" })).toBeEnabled());
   });

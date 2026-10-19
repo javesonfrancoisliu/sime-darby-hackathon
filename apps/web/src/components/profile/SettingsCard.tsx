@@ -6,7 +6,8 @@ import { useProfile } from "../../data/ProfileContext";
 import { useSettings, type ProfileSettings } from "../../data/useSettings";
 import { useTownship } from "../../data/useTownship";
 import { errorMessage, useSession } from "@sdh/api-client";
-import { AppButton, InfoCard } from "../ui";
+import { useConfirm } from "../../lib/useConfirm";
+import { AppButton, ConfirmActionDialog, InfoCard } from "../ui";
 
 type ToggleKey = keyof ProfileSettings;
 
@@ -53,11 +54,22 @@ export function SettingsCard() {
   const { leaderboardOptIn, setLeaderboardOptIn } = useProfile();
   const { township } = useTownship();
   const { signOut } = useSession();
+  const confirm = useConfirm();
   const [optInError, setOptInError] = useState<string | null>(null);
 
   async function signOutOfAccount() {
     await signOut();
     window.location.assign("/");
+  }
+
+  function askSignOut() {
+    confirm.ask({
+      title: "Sign out?",
+      message: "Are you sure you want to sign out?",
+      confirmLabel: "Yes, sign out",
+      confirmVariant: "danger",
+      onConfirm: signOutOfAccount,
+    });
   }
 
   async function changeOptIn(next: boolean) {
@@ -145,7 +157,7 @@ export function SettingsCard() {
               <a href="/account" className="ui-button ui-button--secondary">
                 Account settings
               </a>
-              <AppButton variant="secondary" onClick={signOutOfAccount}>
+              <AppButton variant="secondary" onClick={askSignOut}>
                 Sign out
               </AppButton>
             </div>
@@ -170,6 +182,18 @@ export function SettingsCard() {
           </span>
         </p>
       </div>
+
+      <ConfirmActionDialog
+        open={confirm.open}
+        title={confirm.request?.title ?? ""}
+        message={confirm.request?.message ?? ""}
+        confirmLabel={confirm.request?.confirmLabel}
+        cancelLabel={confirm.request?.cancelLabel}
+        confirmVariant={confirm.request?.confirmVariant}
+        busy={confirm.busy}
+        onConfirm={confirm.confirm}
+        onCancel={confirm.cancel}
+      />
     </InfoCard>
   );
 }

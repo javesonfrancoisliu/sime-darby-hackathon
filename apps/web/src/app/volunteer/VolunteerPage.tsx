@@ -11,6 +11,7 @@ import {
 } from "../../components/volunteer";
 import {
   AppButton,
+  ConfirmActionDialog,
   ConfirmationDialog,
   AppLinkButton,
   EmptyState,
@@ -20,6 +21,7 @@ import {
   PageHeader,
   SignInPrompt,
 } from "../../components/ui";
+import { useConfirm } from "../../lib/useConfirm";
 import { useAcceptedTasks, type AcceptedTask } from "../../data/AcceptedTasksContext";
 import { useProfile } from "../../data/ProfileContext";
 import { usePoints } from "../../data/useGamification";
@@ -56,6 +58,7 @@ export function VolunteerPage() {
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
   const [failure, setFailure] = useState<{ title: string; message: string } | null>(null);
   const [confirmation, setConfirmation] = useState<{ title: string; message: string } | null>(null);
+  const confirm = useConfirm();
 
   // Points the server awarded per volunteering task, to show next to each confirmed task.
   const pointsByTask = useMemo(() => {
@@ -92,6 +95,15 @@ export function VolunteerPage() {
     }
     return sorted;
   }, [opportunities, sort, now]);
+
+  function askAccept(opportunity: Opportunity) {
+    confirm.ask({
+      title: opportunity.kind === "event" ? "Join this event?" : "Accept this request?",
+      message: `Do you want to ${opportunity.kind === "event" ? "join" : "help with"} "${opportunity.title}" on ${formatDate(opportunity.scheduledAt)}?`,
+      confirmLabel: opportunity.kind === "event" ? "Yes, join" : "Yes, accept",
+      onConfirm: () => handleAccept(opportunity),
+    });
+  }
 
   async function handleAccept(opportunity: Opportunity) {
     setAcceptingId(opportunity.id);
@@ -238,7 +250,7 @@ export function VolunteerPage() {
                       urgency={urgencyFor(opportunity.scheduledAt, now)}
                       joined={isAccepted(opportunity.id)}
                       accepting={acceptingId === opportunity.id}
-                      onAccept={(o) => void handleAccept(o)}
+                      onAccept={askAccept}
                     />
                   ))}
                 </ul>
@@ -271,6 +283,18 @@ export function VolunteerPage() {
           {failure?.message}
         </p>
       </Modal>
+
+      <ConfirmActionDialog
+        open={confirm.open}
+        title={confirm.request?.title ?? ""}
+        message={confirm.request?.message ?? ""}
+        confirmLabel={confirm.request?.confirmLabel}
+        cancelLabel={confirm.request?.cancelLabel}
+        confirmVariant={confirm.request?.confirmVariant}
+        busy={confirm.busy}
+        onConfirm={confirm.confirm}
+        onCancel={confirm.cancel}
+      />
 
       <ConfirmationDialog
         open={confirmation !== null}

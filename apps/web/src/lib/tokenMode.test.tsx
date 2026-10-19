@@ -95,6 +95,8 @@ describe("token mode account actions", () => {
     expect(link).toHaveAttribute("href", "/account");
 
     await userEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    // A yes/no confirmation now gates the sign-out action.
+    await userEvent.click(await screen.findByRole("button", { name: "Yes, sign out" }));
     await waitFor(() => expect(assign).toHaveBeenCalledWith("/"));
     expect(signOut).toHaveBeenCalled();
   });

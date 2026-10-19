@@ -13,6 +13,7 @@ import {
 } from "../../components/community";
 import {
   AppButton,
+  ConfirmActionDialog,
   ConfirmationDialog,
   EmptyState,
   FormField,
@@ -22,6 +23,7 @@ import {
   PageHeader,
   Pill,
 } from "../../components/ui";
+import { useConfirm } from "../../lib/useConfirm";
 import { ChallengesEntryCard } from "../../components/challenges";
 import { useRole } from "../../components/layout";
 import { useAcceptedTasks } from "../../data/AcceptedTasksContext";
@@ -70,6 +72,7 @@ export function CommunityPage() {
   // Success confirmation shown after registering/joining. null = hidden.
   const [confirmation, setConfirmation] = useState<{ title: string; message: string } | null>(null);
   const [failure, setFailure] = useState<{ title: string; message: string } | null>(null);
+  const confirm = useConfirm();
 
   const featured = useMemo(() => pickFeatured(items), [items]);
 
@@ -104,11 +107,29 @@ export function CommunityPage() {
     }
   }
 
+  function askJoinVolunteer(item: VolunteerItem) {
+    confirm.ask({
+      title: "Join this volunteering activity?",
+      message: `Sign up for "${item.title}"${item.organiser ? ` with ${item.organiser}` : ""}?`,
+      confirmLabel: "Yes, join",
+      onConfirm: () => joinVolunteer(item),
+    });
+  }
+
   async function joinVolunteer(item: VolunteerItem) {
     if (!(await join(item))) return;
     setConfirmation({
       title: "You're signed up to volunteer",
       message: `Thanks for joining "${item.title}"${item.organiser ? ` with ${item.organiser}` : ""}. We'll see you on ${formatDate(item.startsAt)}.`,
+    });
+  }
+
+  function askRegisterEvent(event: EventItem) {
+    confirm.ask({
+      title: "Register for this event?",
+      message: `Register to attend "${event.title}" on ${formatDate(event.startsAt)}?`,
+      confirmLabel: "Yes, register",
+      onConfirm: () => registerEvent(event),
     });
   }
 
@@ -134,7 +155,7 @@ export function CommunityPage() {
             key={item.id}
             item={item}
             joined={item.joined === true}
-            onJoin={(drive) => void joinVolunteer(drive)}
+            onJoin={askJoinVolunteer}
           />
         );
       case "township":
@@ -249,7 +270,7 @@ export function CommunityPage() {
         event={activeEvent}
         registered={activeEvent?.joined === true}
         onClose={() => setActiveEvent(null)}
-        onRegister={(event) => void registerEvent(event)}
+        onRegister={askRegisterEvent}
       />
       <TownshipUpdateModal item={activeUpdate} onClose={() => setActiveUpdate(null)} />
       <Modal
@@ -266,6 +287,18 @@ export function CommunityPage() {
           {failure?.message}
         </p>
       </Modal>
+      <ConfirmActionDialog
+        open={confirm.open}
+        title={confirm.request?.title ?? ""}
+        message={confirm.request?.message ?? ""}
+        confirmLabel={confirm.request?.confirmLabel}
+        cancelLabel={confirm.request?.cancelLabel}
+        confirmVariant={confirm.request?.confirmVariant}
+        busy={confirm.busy}
+        onConfirm={confirm.confirm}
+        onCancel={confirm.cancel}
+      />
+
       <ConfirmationDialog
         open={confirmation !== null}
         title={confirmation?.title ?? ""}

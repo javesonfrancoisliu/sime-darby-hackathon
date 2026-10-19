@@ -88,6 +88,8 @@ describe("challenges page", () => {
     const user = userEvent.setup();
 
     await user.click(await screen.findByRole("button", { name: "Join challenge" }));
+    // A yes/no confirmation now precedes joining.
+    await user.click(await screen.findByRole("button", { name: "Yes, join" }));
     expect(await screen.findByRole("dialog", { name: "Challenge joined" })).toBeInTheDocument();
     expect(calls.some((c) => c.method === "POST" && c.path.endsWith("/join"))).toBe(true);
   });
@@ -284,6 +286,8 @@ describe("challenges page", () => {
 
     const user = await openTab("Rewards");
     await user.click(await screen.findByRole("button", { name: "Redeem for 40 pts" }));
+    // A yes/no confirmation now precedes redeeming.
+    await user.click(await screen.findByRole("button", { name: "Yes, redeem" }));
 
     expect(
       await screen.findByText("You do not have enough points for that yet."),
@@ -316,6 +320,7 @@ describe("challenges page", () => {
 
     const user = await openTab("Rewards");
     await user.click(await screen.findByRole("button", { name: "Redeem for 40 pts" }));
+    await user.click(await screen.findByRole("button", { name: "Yes, redeem" }));
     expect(await screen.findByText(/You have 60 points left/)).toBeInTheDocument();
     expect(screen.getByText("First steps")).toBeInTheDocument();
   });

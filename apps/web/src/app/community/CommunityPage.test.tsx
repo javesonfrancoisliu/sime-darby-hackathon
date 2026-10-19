@@ -79,6 +79,8 @@ describe("community page", () => {
 
     const card = await screen.findByLabelText("Volunteering: River clean-up drive");
     await user.click(within(card).getByRole("button", { name: "Join" }));
+    // A yes/no confirmation now precedes the join.
+    await user.click(await screen.findByRole("button", { name: "Yes, join" }));
     expect(await screen.findByRole("dialog", { name: "Couldn't sign you up" })).toBeVisible();
   });
 
@@ -110,6 +112,7 @@ describe("community page", () => {
 
     const card = await screen.findByLabelText("Volunteering: River clean-up drive");
     await user.click(within(card).getByRole("button", { name: "Join" }));
+    await user.click(await screen.findByRole("button", { name: "Yes, join" }));
 
     expect(
       await screen.findByRole("dialog", { name: "You're signed up to volunteer" }),
@@ -155,7 +158,9 @@ describe("community page", () => {
       }),
     );
     const dialog = await screen.findByRole("dialog");
-    await user.click(within(dialog).getByRole("button", { name: /Register/ }));
+    await user.click(within(dialog).getByRole("button", { name: "Register to attend" }));
+    // A yes/no confirmation now precedes registration.
+    await user.click(await screen.findByRole("button", { name: "Yes, register" }));
 
     expect(await screen.findByRole("dialog", { name: "You're registered" })).toBeInTheDocument();
     const post = calls.find((c) => c.method === "POST");

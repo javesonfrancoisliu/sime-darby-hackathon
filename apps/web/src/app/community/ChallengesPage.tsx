@@ -21,6 +21,7 @@ import {
 import {
   AppButton,
   AppLinkButton,
+  ConfirmActionDialog,
   ConfirmationDialog,
   EmptyState,
   InfoCard,
@@ -31,6 +32,7 @@ import {
   TabPanel,
   Tabs,
 } from "../../components/ui";
+import { useConfirm } from "../../lib/useConfirm";
 import { useProfile } from "../../data/ProfileContext";
 import {
   actionErrorMessage,
@@ -94,6 +96,7 @@ export function ChallengesPage() {
   const [optInError, setOptInError] = useState<string | null>(null);
   const [confirmation, setConfirmation] = useState<Notice | null>(null);
   const [failure, setFailure] = useState<Notice | null>(null);
+  const confirm = useConfirm();
 
   const list = useMemo(() => challenges.data?.challenges ?? [], [challenges.data]);
   const visible = useMemo(
@@ -134,17 +137,23 @@ export function ChallengesPage() {
   }
 
   function handleJoin(challenge: ChallengeWithProgress) {
-    void run(
-      challenge.id,
-      () => joinChallenge(challenge.id),
-      () => ({
-        title: "Challenge joined",
-        message: challenge.quizId
-          ? `You joined "${challenge.title}". Take the quiz to earn your points.`
-          : `You joined "${challenge.title}". Log your progress as you go.`,
-      }),
-      "Couldn't join the challenge",
-    );
+    confirm.ask({
+      title: "Join this challenge?",
+      message: `Join "${challenge.title}"? You can log your progress afterwards.`,
+      confirmLabel: "Yes, join",
+      onConfirm: () =>
+        run(
+          challenge.id,
+          () => joinChallenge(challenge.id),
+          () => ({
+            title: "Challenge joined",
+            message: challenge.quizId
+              ? `You joined "${challenge.title}". Take the quiz to earn your points.`
+              : `You joined "${challenge.title}". Log your progress as you go.`,
+          }),
+          "Couldn't join the challenge",
+        ),
+    });
   }
 
   function handleComplete(challenge: ChallengeWithProgress) {
@@ -218,15 +227,21 @@ export function ChallengesPage() {
   }
 
   function handleRedeem(reward: RewardWithStatus) {
-    void run(
-      reward.id,
-      () => redeemReward(reward.id),
-      (result) => ({
-        title: "Reward redeemed",
-        message: `"${reward.title}" is yours. You have ${result.points} points left.`,
-      }),
-      "Couldn't redeem the reward",
-    );
+    confirm.ask({
+      title: "Redeem this reward?",
+      message: `Redeem "${reward.title}" for ${reward.pointsCost} points?`,
+      confirmLabel: "Yes, redeem",
+      onConfirm: () =>
+        run(
+          reward.id,
+          () => redeemReward(reward.id),
+          (result) => ({
+            title: "Reward redeemed",
+            message: `"${reward.title}" is yours. You have ${result.points} points left.`,
+          }),
+          "Couldn't redeem the reward",
+        ),
+    });
   }
 
   async function handleOptIn(next: boolean) {
@@ -411,6 +426,18 @@ export function ChallengesPage() {
           {failure?.message}
         </p>
       </Modal>
+
+      <ConfirmActionDialog
+        open={confirm.open}
+        title={confirm.request?.title ?? ""}
+        message={confirm.request?.message ?? ""}
+        confirmLabel={confirm.request?.confirmLabel}
+        cancelLabel={confirm.request?.cancelLabel}
+        confirmVariant={confirm.request?.confirmVariant}
+        busy={confirm.busy}
+        onConfirm={confirm.confirm}
+        onCancel={confirm.cancel}
+      />
 
       <ConfirmationDialog
         open={confirmation !== null}
