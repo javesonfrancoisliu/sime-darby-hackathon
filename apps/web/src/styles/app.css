@@ -366,7 +366,11 @@
 }
 @media (max-width: 639px) {
   .home-cta-row {
-    grid-template-columns: 1fr;
+    /* minmax(0, 1fr), not 1fr: a bare 1fr track keeps an implicit min-width of
+       auto (min-content), so the scroll-snap carousel inside the card would make
+       the single column grow past the viewport and clip the card's padding on
+       mobile. Clamping the track minimum to 0 lets the column shrink to fit. */
+    grid-template-columns: minmax(0, 1fr);
   }
   .ui-page-header {
     margin-bottom: var(--space-6);
@@ -387,11 +391,21 @@
   gap: var(--space-3);
   margin-bottom: var(--space-4);
 }
+/* Let the title/subtitle block shrink so the title can ellipsis instead of
+   wrapping when it sits beside the "All hazards" link on a narrow phone. */
+.app-home__section-header > div {
+  min-width: 0;
+}
 .app-home__section-title {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-weight: 700;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
+  /* Keep the title on one line beside the "All hazards" link; ellipsis rather
+     than wrap if it ever runs out of room on a very narrow phone. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .app-home__section-subtitle {
   margin: 4px 0 0;
@@ -419,30 +433,39 @@
 .carousel {
   display: flex;
   flex-direction: column;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
+/* Native scroll-snap viewport: it scrolls internally and never widens its
+   parent card, which the translate-track model could do inside a padded,
+   grid-column InfoCard on mobile. */
 .carousel__viewport {
-  overflow: hidden;
-  border-radius: var(--radius-card);
-  cursor: grab;
-  touch-action: pan-y;
-}
-.carousel__viewport:active {
-  cursor: grabbing;
-}
-.carousel__track {
   display: flex;
-  transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: transform;
+  gap: var(--space-3);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
-.carousel__track--dragging {
-  transition: none;
+.carousel__viewport::-webkit-scrollbar {
+  display: none;
 }
 .carousel__slide {
   flex: 0 0 100%;
-  min-width: 100%;
-  /* Room so the card's shadow is not clipped by the viewport. */
-  padding: 4px;
+  width: 100%;
+  min-width: 0;
   box-sizing: border-box;
+  scroll-snap-align: center;
+}
+@media (prefers-reduced-motion: reduce) {
+  .carousel__viewport {
+    scroll-behavior: auto;
+  }
 }
 .carousel__dots {
   display: flex;
@@ -478,7 +501,6 @@
   outline-offset: 4px;
 }
 @media (prefers-reduced-motion: reduce) {
-  .carousel__track,
   .carousel__dot {
     transition: none;
   }

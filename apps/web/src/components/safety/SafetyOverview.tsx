@@ -27,7 +27,6 @@ export function SafetyOverview({ townshipName }: SafetyOverviewProps) {
     return worst ? [worst] : [];
   }).sort((a, b) => LEVEL_SEVERITY_STEP[b.level] - LEVEL_SEVERITY_STEP[a.level]);
 
-  const open = (data?.facilityReports ?? []).filter((r) => r.status !== "resolved").length;
   // The most serious reading (now first). A compact warning line surfaces it so a
   // critical alert is never hidden behind a swipe.
   const worst = readings[0];
@@ -52,7 +51,7 @@ export function SafetyOverview({ townshipName }: SafetyOverviewProps) {
         <LoadingState rows={2} label="Loading safety readings" />
       ) : error ? (
         <EmptyState icon={CloudOff} title="Couldn't load safety readings" description={error} />
-      ) : readings.length === 0 && open === 0 ? (
+      ) : readings.length === 0 ? (
         <EmptyState
           title="No readings yet"
           description="Air, water and heat readings will show up here."
@@ -65,19 +64,12 @@ export function SafetyOverview({ townshipName }: SafetyOverviewProps) {
               {LEVEL_LABEL[alert.level]}: {READING_TITLE[alert.type]} in {alert.area}
             </p>
           )}
-          {readings.length > 0 && (
-            <Carousel
-              ariaLabel="Township live conditions"
-              slides={readings.map((reading) => (
-                <SafetyConditionCard key={`${reading.type}-${reading.area}`} reading={reading} />
-              ))}
-            />
-          )}
-          <p className="ui-meta-row ui-flush">
-            {open === 0
-              ? "No open facility reports."
-              : `${open} open facility report${open === 1 ? "" : "s"}.`}
-          </p>
+          <Carousel
+            ariaLabel="Township live conditions"
+            slides={readings.map((reading) => (
+              <SafetyConditionCard key={`${reading.type}-${reading.area}`} reading={reading} />
+            ))}
+          />
         </>
       )}
     </InfoCard>

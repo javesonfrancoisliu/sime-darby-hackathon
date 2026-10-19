@@ -31,7 +31,6 @@ describe("home page", () => {
     expect(within(safety).getByText("AQI")).toBeInTheDocument();
     expect(within(safety).getByText("Air quality")).toBeInTheDocument();
     expect(within(safety).getByText("34°C")).toBeInTheDocument();
-    expect(within(safety).getByText("1 open facility report.")).toBeInTheDocument();
     expect(within(safety).getByRole("link", { name: "All hazards" })).toHaveAttribute(
       "href",
       "/safety",
