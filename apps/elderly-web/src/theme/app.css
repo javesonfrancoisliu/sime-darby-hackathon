@@ -298,8 +298,13 @@
 .app-tab-bar {
   position: fixed;
   bottom: 0;
-  left: 0;
-  right: 0;
+  /* Match the centred .app-main column: full width on phones (<=480px),
+     aligned with the content column on wider screens instead of stretching
+     edge-to-edge across the whole window. */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
   display: flex;
   background: var(--surface);
   border-top: 1px solid var(--border);

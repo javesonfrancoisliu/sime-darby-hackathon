@@ -9,7 +9,7 @@ const TITLES: [string, string][] = [
   ["/safety", "Health and safety"],
   ["/community", "Community"],
   ["/challenges", "Play"],
-  ["/me", "Me"],
+  ["/me", "Profile"],
   ["/request/confirmation", "Request sent"],
   ["/request", "Ask for help"],
   ["/requests", "My requests"],
