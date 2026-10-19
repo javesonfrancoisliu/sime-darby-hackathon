@@ -60,7 +60,7 @@ describe("challenges page", () => {
     renderApp("/community/challenges");
 
     const card = await screen.findByLabelText("Challenge: Walk 20,000 steps");
-    expect(within(card).getByText("5000 / 20000 steps")).toBeInTheDocument();
+    expect(within(card).getByText("5,000 / 20,000 steps")).toBeInTheDocument();
     expect(within(card).getByRole("button", { name: "Log progress" })).toBeInTheDocument();
     expect(screen.getByLabelText("Your challenge progress")).toHaveTextContent("120");
     expect(screen.queryByText(/demo/i)).not.toBeInTheDocument();
@@ -90,6 +90,64 @@ describe("challenges page", () => {
     await user.click(await screen.findByRole("button", { name: "Join challenge" }));
     expect(await screen.findByRole("dialog", { name: "Challenge joined" })).toBeInTheDocument();
     expect(calls.some((c) => c.method === "POST" && c.path.endsWith("/join"))).toBe(true);
+  });
+
+  it("validates logged progress and notes a value above the goal", async () => {
+    const joined = {
+      ...CHALLENGE,
+      progress: {
+        challengeId: CHALLENGE.id,
+        status: "in_progress",
+        current: 100,
+        joinedAt: "2026-10-18T00:00:00Z",
+      },
+    };
+    const { calls } = installFakeApi(
+      signedInRoutes(VOLUNTEER, {
+        "GET /api/challenges": { body: { challenges: [joined] } },
+        [`PUT /api/challenges/${CHALLENGE.id}/progress`]: { body: {} },
+      }),
+    );
+    signInAs(VOLUNTEER.id);
+    renderApp("/community/challenges");
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Log progress" }));
+    const dialog = await screen.findByRole("dialog");
+    const field = within(dialog).getByLabelText("Total steps");
+    const save = within(dialog).getByRole("button", { name: "Save progress" });
+
+    for (const [typed, message] of [
+      ["0", "Enter a number above 0."],
+      ["1.5", "Use a whole number, with no decimals."],
+      ["-3", "Enter a number of 0 or more."],
+    ] as const) {
+      await user.clear(field);
+      await user.type(field, typed);
+      await user.click(save);
+      expect(await within(dialog).findByText(message)).toBeInTheDocument();
+    }
+    expect(calls.some((c) => c.method === "PUT")).toBe(false);
+
+    await user.clear(field);
+    await user.type(field, "25000");
+    expect(within(dialog).getByText(/counts as 20,000/)).toBeInTheDocument();
+    await user.click(save);
+    await waitFor(() =>
+      expect(calls.find((c) => c.method === "PUT")?.body).toEqual({ current: 20000 }),
+    );
+  });
+
+  it("links back to the community page", async () => {
+    installFakeApi(
+      signedInRoutes(VOLUNTEER, { "GET /api/challenges": { body: { challenges: [CHALLENGE] } } }),
+    );
+    signInAs(VOLUNTEER.id);
+    renderApp("/community/challenges");
+    expect(await screen.findByRole("link", { name: /Back to Community/ })).toHaveAttribute(
+      "href",
+      "/community",
+    );
   });
 
   it("saves logged progress with PUT and shows a pending verification state", async () => {
@@ -164,7 +222,7 @@ describe("challenges page", () => {
     const user = userEvent.setup();
 
     const card = await screen.findByLabelText("Challenge: Clean the park");
-    expect(within(card).getByText("40 / 20000 steps")).toBeInTheDocument();
+    expect(within(card).getByText("40 / 20,000 steps")).toBeInTheDocument();
     await user.click(within(card).getByRole("button", { name: /today.s contribution/ }));
     expect(
       await screen.findByText("You have already contributed today. Come back tomorrow."),

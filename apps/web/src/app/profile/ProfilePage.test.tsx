@@ -30,6 +30,29 @@ describe("profile page", () => {
     expect(within(card).getByText(VOLUNTEER.area)).toBeInTheDocument();
   });
 
+  it("keeps the previous initials in the avatar while the name is cleared", async () => {
+    installFakeApi(signedIn());
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Edit personal information" }));
+    const dialog = await screen.findByRole("dialog");
+    await user.clear(within(dialog).getByLabelText("Display name"));
+    expect(dialog.querySelector(".ui-avatar")).not.toHaveTextContent("?");
+  });
+
+  it("describes saved preferences without implying a fresh save", async () => {
+    installFakeApi(signedIn());
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    expect(
+      await screen.findByText(
+        "Your skills and availability are saved to your account and used for volunteer matching.",
+      ),
+    ).toBeInTheDocument();
+  });
+
   it("saves the name and area with PATCH /api/me and shows the reply", async () => {
     const { calls } = installFakeApi({
       ...signedIn(),

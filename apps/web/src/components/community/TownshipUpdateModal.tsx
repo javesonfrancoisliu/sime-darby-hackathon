@@ -1,6 +1,6 @@
 import type { TownshipUpdateItem } from "../../types/community";
 import { formatDate } from "../../lib/format";
-import { AppButton, Modal, Pill } from "../ui";
+import { AppButton, Modal, Pill, StatusBadge } from "../ui";
 
 export type TownshipUpdateModalProps = {
   item: TownshipUpdateItem | null;
@@ -23,6 +23,7 @@ export function TownshipUpdateModal({ item, onClose }: TownshipUpdateModalProps)
       {item && (
         <>
           <div className="inline-icon ui-gap-2">
+            {item.priority === "high" && <StatusBadge label="High priority" variant="warning" />}
             <Pill>{item.topic}</Pill>
             <span className="ui-meta-row">Published {formatDate(item.publishedAt)}</span>
           </div>

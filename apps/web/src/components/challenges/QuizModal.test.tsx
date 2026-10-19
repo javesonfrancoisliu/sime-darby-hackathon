@@ -52,6 +52,16 @@ describe("QuizModal", () => {
     expect(screen.getByText(/You passed/)).toBeInTheDocument();
   });
 
+  it("asks for an answer when Next is pressed with nothing chosen", async () => {
+    const { user } = setup();
+    await user.click(screen.getByRole("button", { name: "Next question" }));
+    expect(screen.getByRole("alert")).toHaveTextContent("Pick an answer to continue");
+    expect(screen.getByText("Question 1 of 2")).toBeInTheDocument();
+
+    await user.click(screen.getAllByRole("radio")[0]!);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
   it("shows only the score and verdict when the quiz is not passed", async () => {
     const { user } = setup({ score: 1, total: 2, passed: false });
     await user.click(screen.getAllByRole("radio")[0]!);

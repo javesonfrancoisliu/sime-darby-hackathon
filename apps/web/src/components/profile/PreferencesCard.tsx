@@ -50,7 +50,7 @@ export function PreferencesCard({ onEdit }: PreferencesCardProps) {
         <PillRow label="Languages" values={prefs.languages.map((l) => LANGUAGE_LABEL[l])} />
 
         <p className="ui-helper ui-flush">
-          Saved to your account. Skills and availability feed volunteer matching.
+          Your skills and availability are saved to your account and used for volunteer matching.
         </p>
       </div>
     </InfoCard>

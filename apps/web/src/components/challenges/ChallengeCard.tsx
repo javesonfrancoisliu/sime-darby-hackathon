@@ -3,7 +3,7 @@ import { CheckCircle2, Clock, ShieldCheck, Sparkles, Users } from "lucide-react"
 import type { ChallengeWithProgress } from "@sdh/contracts";
 
 import { CHALLENGE_CATEGORY_LABEL } from "../../types/gamification";
-import { formatDate } from "../../lib/format";
+import { formatCount, formatDate } from "../../lib/format";
 import { ICON_BY_KEY } from "../../lib/icons";
 import { AppButton, InfoCard, Pill, ProgressBar, StatusBadge } from "../ui";
 
@@ -84,7 +84,7 @@ export function ChallengeCard({
             value={shown}
             max={target}
             label={`${challenge.title} progress`}
-            caption={`${shown} / ${target} ${unit}`}
+            caption={`${formatCount(shown)} / ${formatCount(target)} ${unit}`}
           />
         )}
 

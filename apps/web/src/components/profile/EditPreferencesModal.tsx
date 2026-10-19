@@ -151,7 +151,7 @@ export function EditPreferencesModal({ open, onClose }: EditPreferencesModalProp
         onToggle={(v) => setLanguages((prev) => toggle(prev, v))}
       />
       <p className="ui-helper ui-flush">
-        Saved to your account. Skills and availability feed volunteer matching.
+        Your skills and availability are saved to your account and used for volunteer matching.
       </p>
       {saveError && (
         <p className="ui-error ui-flush" role="alert">

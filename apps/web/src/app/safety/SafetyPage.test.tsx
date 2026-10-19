@@ -28,7 +28,8 @@ describe("safety page", () => {
     expect(within(water).getByText(/normal up to 2 m/)).toBeInTheDocument();
 
     const heat = screen.getByLabelText("Heat: Elmina East");
-    expect(within(heat).getByText(/Feels like 39/)).toBeInTheDocument();
+    expect(within(heat).getByText("34°C")).toBeInTheDocument();
+    expect(within(heat).getByText(/Feels like 39°C/)).toBeInTheDocument();
   });
 
   it("filters facility reports by status", async () => {

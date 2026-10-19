@@ -1,6 +1,7 @@
 import { ArrowRight, CloudOff, ShieldAlert } from "lucide-react";
 
 import { useSafety } from "../../data/useSafety";
+import { formatReadingValue } from "../../lib/format";
 import { LEVEL_LABEL, LEVEL_VARIANT, READING_TITLE, worstReading } from "../../lib/safety";
 import { AppLinkButton, EmptyState, InfoCard, LoadingState, StatusBadge } from "../ui";
 
@@ -54,7 +55,7 @@ export function SafetyOverview({ townshipName }: SafetyOverviewProps) {
                     <span className="ui-meta-row">{reading.area}</span>
                   </div>
                   <p style={{ margin: "4px 0 0", fontWeight: 600 }}>
-                    {READING_TITLE[reading.type]}: {reading.value} {reading.unit}
+                    {READING_TITLE[reading.type]}: {formatReadingValue(reading.value, reading.unit)}
                   </p>
                 </li>
               ))}

@@ -69,7 +69,7 @@ export function CommunityPage() {
   const [activeUpdate, setActiveUpdate] = useState<TownshipUpdateItem | null>(null);
   // Success confirmation shown after registering/joining. null = hidden.
   const [confirmation, setConfirmation] = useState<{ title: string; message: string } | null>(null);
-  const [failure, setFailure] = useState<string | null>(null);
+  const [failure, setFailure] = useState<{ title: string; message: string } | null>(null);
 
   const featured = useMemo(() => pickFeatured(items), [items]);
 
@@ -94,7 +94,10 @@ export function CommunityPage() {
       await joinEvent(item.id);
       return true;
     } catch (err) {
-      setFailure(errorMessage(err));
+      setFailure({
+        title: item.category === "volunteer" ? "Couldn't sign you up" : "Couldn't register",
+        message: errorMessage(err),
+      });
       return false;
     } finally {
       await reload();
@@ -172,10 +175,7 @@ export function CommunityPage() {
             </InfoCard>
           )}
           {featured && (
-            <section className="ui-section" aria-labelledby="featured-heading">
-              <h2 className="ui-visually-hidden" id="featured-heading">
-                Featured update
-              </h2>
+            <section className="ui-section" aria-label="Featured update">
               <InfoCard className="featured-card">
                 <div className="feature-card">
                   <div className="feature-card-head">
@@ -254,7 +254,7 @@ export function CommunityPage() {
       <TownshipUpdateModal item={activeUpdate} onClose={() => setActiveUpdate(null)} />
       <Modal
         open={failure !== null}
-        title="Couldn't register"
+        title={failure?.title ?? ""}
         onClose={() => setFailure(null)}
         footer={
           <AppButton variant="primary" onClick={() => setFailure(null)}>
@@ -263,7 +263,7 @@ export function CommunityPage() {
         }
       >
         <p className="ui-flush" role="alert">
-          {failure}
+          {failure?.message}
         </p>
       </Modal>
       <ConfirmationDialog

@@ -16,7 +16,11 @@ import { signedInRoutes } from "../../test/routes";
 const REQUEST_ID = makeRequest().id;
 
 const baseRoutes = signedInRoutes(VOLUNTEER, {
-  "GET /api/opportunities": { body: { items: [makeRequestOpportunity()] } },
+  "GET /api/opportunities": {
+    body: {
+      items: [{ ...makeRequestOpportunity(), reasons: ["Close to you", "About 1.5 km away"] }],
+    },
+  },
 });
 
 describe("volunteer page", () => {
@@ -84,6 +88,7 @@ describe("volunteer page", () => {
     renderApp("/volunteer");
 
     const card = await screen.findByLabelText("Opportunity: Groceries");
+    expect(within(card).getAllByText(/km away/)).toHaveLength(1);
     expect(within(card).getByText(/1.5 km away/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Use my location/ })).not.toBeInTheDocument();
   });

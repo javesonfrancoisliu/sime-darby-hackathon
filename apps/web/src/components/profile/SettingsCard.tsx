@@ -159,7 +159,10 @@ export function SettingsCard() {
             {township ? (
               <>
                 Need help? Call the township security line on{" "}
-                <a href={`tel:${township.securityLine.tel}`}>{township.securityLine.display}</a>.
+                <a className="tap-link" href={`tel:${township.securityLine.tel}`}>
+                  {township.securityLine.display}
+                </a>
+                .
               </>
             ) : (
               "Need help? Contact your township office."

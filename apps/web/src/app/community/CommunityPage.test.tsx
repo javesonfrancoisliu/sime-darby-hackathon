@@ -44,6 +44,44 @@ describe("community page", () => {
     expect(within(featured).getByText("Water cut tonight")).toBeInTheDocument();
   });
 
+  it("shows the high priority badge in the update dialog and one featured heading", async () => {
+    installFakeApi(feedRoutes);
+    signInAs(VOLUNTEER.id);
+    renderApp("/community");
+    const user = userEvent.setup();
+
+    const card = await screen.findByLabelText("Township update: Water cut tonight");
+    await user.click(within(card).getByRole("button", { name: "Read more" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText("High priority")).toBeInTheDocument();
+    expect(screen.getAllByText("Featured update")).toHaveLength(1);
+  });
+
+  it("shows a maintenance window on one line when it starts and ends the same day", async () => {
+    installFakeApi(feedRoutes);
+    signInAs(VOLUNTEER.id);
+    renderApp("/community");
+    const card = await screen.findByLabelText("Maintenance: Lift service at Block C");
+    expect(within(card).getByText("21 Oct 2026, 9:00 am – 1:00 pm")).toBeInTheDocument();
+  });
+
+  it("says it could not sign you up when a drive join fails", async () => {
+    installFakeApi({
+      ...feedRoutes,
+      [`POST /api/events/${DRIVE.id}/join`]: {
+        status: 409,
+        body: { error: { code: "CONFLICT", message: "No slots left" } },
+      },
+    });
+    signInAs(VOLUNTEER.id);
+    renderApp("/community");
+    const user = userEvent.setup();
+
+    const card = await screen.findByLabelText("Volunteering: River clean-up drive");
+    await user.click(within(card).getByRole("button", { name: "Join" }));
+    expect(await screen.findByRole("dialog", { name: "Couldn't sign you up" })).toBeVisible();
+  });
+
   it("shows free slots on a volunteer drive", async () => {
     installFakeApi(feedRoutes);
     signInAs(VOLUNTEER.id);

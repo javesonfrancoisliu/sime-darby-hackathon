@@ -12,7 +12,7 @@ import {
   StatusBadge,
 } from "../../components/ui";
 import { useSafety } from "../../data/useSafety";
-import { formatDateTime } from "../../lib/format";
+import { formatDateTime, formatReadingValue } from "../../lib/format";
 import { FACILITY_STATUS, LEVEL_LABEL, LEVEL_VARIANT, READING_TITLE } from "../../lib/safety";
 
 type StatusFilter = "all" | FacilityStatus;
@@ -31,7 +31,7 @@ function detail(reading: SafetyReading): string | null {
     case "water":
       return `${reading.waterBody === "river" ? "River" : "Lake"}, normal up to ${reading.normalMax} ${reading.unit}`;
     case "heat":
-      return `Feels like ${reading.feelsLike}°C, humidity ${reading.humidity}%`;
+      return `Feels like ${formatReadingValue(reading.feelsLike, "°C")}, humidity ${reading.humidity}%`;
     case "air":
       return null;
   }
@@ -54,7 +54,7 @@ function ReadingCard({ reading }: { reading: SafetyReading }) {
           <StatusBadge label={LEVEL_LABEL[reading.level]} variant={LEVEL_VARIANT[reading.level]} />
         </div>
         <p className="reward-stat-value ui-flush">
-          {reading.value} {reading.unit}
+          {formatReadingValue(reading.value, reading.unit)}
         </p>
         {reading.type === "water" && <span className="ui-meta-row">{reading.area}</span>}
         {extra && <span className="ui-meta-row">{extra}</span>}

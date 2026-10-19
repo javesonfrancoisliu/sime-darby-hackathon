@@ -1,7 +1,7 @@
 import { CalendarClock, MapPin, Wrench } from "lucide-react";
 
 import type { MaintenanceItem } from "../../types/community";
-import { formatDateTime } from "../../lib/format";
+import { formatDateTimeRange } from "../../lib/format";
 import { maintenanceStatus } from "../../lib/status";
 import { InfoCard, Pill, StatusBadge } from "../ui";
 import { CardMeta } from "./CardMeta";
@@ -35,7 +35,7 @@ export function AnnouncementCard({ item }: AnnouncementCardProps) {
           </span>
           <span className="inline-icon">
             <CalendarClock size={16} className="icon-dim" aria-hidden="true" />
-            {formatDateTime(item.windowStart)} – {formatDateTime(item.windowEnd)}
+            {formatDateTimeRange(item.windowStart, item.windowEnd)}
           </span>
         </div>
 

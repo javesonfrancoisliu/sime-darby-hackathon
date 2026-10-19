@@ -1,4 +1,4 @@
-import { CloudOff, Trophy } from "lucide-react";
+import { ArrowLeft, CloudOff, Trophy } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { ApiError, errorMessage, useSession } from "@sdh/api-client";
@@ -20,6 +20,7 @@ import {
 } from "../../components/challenges";
 import {
   AppButton,
+  AppLinkButton,
   ConfirmationDialog,
   EmptyState,
   InfoCard,
@@ -138,7 +139,9 @@ export function ChallengesPage() {
       () => joinChallenge(challenge.id),
       () => ({
         title: "Challenge joined",
-        message: `You joined "${challenge.title}". Log your progress as you go.`,
+        message: challenge.quizId
+          ? `You joined "${challenge.title}". Take the quiz to earn your points.`
+          : `You joined "${challenge.title}". Log your progress as you go.`,
       }),
       "Couldn't join the challenge",
     );
@@ -250,6 +253,10 @@ export function ChallengesPage() {
 
   return (
     <>
+      <AppLinkButton to="/community" variant="ghost" className="back-link">
+        <ArrowLeft size={16} aria-hidden="true" />
+        Back to Community
+      </AppLinkButton>
       <PageHeader title="Community Challenges" />
 
       <ChallengeStatsStrip

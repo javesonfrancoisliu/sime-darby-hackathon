@@ -25,6 +25,8 @@ export function OpportunityCard({
   onAccept,
 }: OpportunityCardProps) {
   const distance = opportunity.distanceKm;
+  // The match reasons repeat the distance already shown in the location line.
+  const reasons = opportunity.reasons.filter((reason) => !/\bkm away\b/.test(reason));
   const urgencyVariant = urgency === "high" ? "danger" : urgency === "medium" ? "warning" : "info";
 
   return (
@@ -61,9 +63,9 @@ export function OpportunityCard({
 
         <p className="feature-card-desc">{opportunity.summary}</p>
 
-        {opportunity.reasons.length > 0 && (
+        {reasons.length > 0 && (
           <ul className="match-reasons" aria-label="Why this matches you">
-            {opportunity.reasons.map((reason) => (
+            {reasons.map((reason) => (
               <li key={reason}>{reason}</li>
             ))}
           </ul>

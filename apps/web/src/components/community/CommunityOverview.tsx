@@ -1,4 +1,5 @@
 import { ArrowRight, CloudOff, Megaphone } from "lucide-react";
+import { Link } from "react-router-dom";
 
 import { useCommunityItems } from "../../data/useCommunityItems";
 import { formatRelative } from "../../lib/format";
@@ -40,11 +41,13 @@ export function CommunityOverview() {
           <ul className="ui-stack" style={{ listStyle: "none", margin: 0, padding: 0 }}>
             {latest.map((item) => (
               <li key={item.id} className="overview-item">
-                <div className="inline-icon ui-gap-2">
-                  <Pill>{CATEGORY_LABEL[item.category]}</Pill>
-                  <span className="ui-meta-row">{formatRelative(item.publishedAt)}</span>
-                </div>
-                <p style={{ margin: "4px 0 0", fontWeight: 600 }}>{item.title}</p>
+                <Link to="/community" className="overview-link">
+                  <div className="inline-icon ui-gap-2">
+                    <Pill>{CATEGORY_LABEL[item.category]}</Pill>
+                    <span className="ui-meta-row">{formatRelative(item.publishedAt)}</span>
+                  </div>
+                  <p style={{ margin: "4px 0 0", fontWeight: 600 }}>{item.title}</p>
+                </Link>
               </li>
             ))}
           </ul>

@@ -23,6 +23,7 @@ export function QuizModal({ open, quiz, loadError, onSubmit, onClose }: QuizModa
   const [result, setResult] = useState<QuizResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [needsAnswer, setNeedsAnswer] = useState(false);
 
   const optionRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
@@ -32,6 +33,7 @@ export function QuizModal({ open, quiz, loadError, onSubmit, onClose }: QuizModa
   const isLast = index === questions.length - 1;
 
   function select(optionIndex: number) {
+    setNeedsAnswer(false);
     if (question) setChosen((prev) => ({ ...prev, [question.id]: optionIndex }));
   }
 
@@ -53,6 +55,10 @@ export function QuizModal({ open, quiz, loadError, onSubmit, onClose }: QuizModa
   }
 
   function next() {
+    if (selected == null) {
+      setNeedsAnswer(true);
+      return;
+    }
     if (isLast) {
       void submit();
       return;
@@ -81,6 +87,7 @@ export function QuizModal({ open, quiz, loadError, onSubmit, onClose }: QuizModa
     setChosen({});
     setResult(null);
     setSubmitError(null);
+    setNeedsAnswer(false);
     onClose();
   }
 
@@ -95,7 +102,7 @@ export function QuizModal({ open, quiz, loadError, onSubmit, onClose }: QuizModa
             Done
           </AppButton>
         ) : question ? (
-          <AppButton variant="primary" onClick={next} disabled={selected == null} loading={busy}>
+          <AppButton variant="primary" onClick={next} loading={busy}>
             {isLast ? "Submit answers" : "Next question"}
           </AppButton>
         ) : (
@@ -158,6 +165,11 @@ export function QuizModal({ open, quiz, loadError, onSubmit, onClose }: QuizModa
                 );
               })}
             </div>
+            {needsAnswer && (
+              <p className="ui-error ui-flush" role="alert">
+                Pick an answer to continue
+              </p>
+            )}
             {submitError && (
               <p className="ui-error ui-flush" role="alert">
                 <XCircle size={14} aria-hidden="true" /> {submitError}

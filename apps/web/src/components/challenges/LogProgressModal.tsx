@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import type { ChallengeWithProgress } from "@sdh/contracts";
 
+import { formatCount } from "../../lib/format";
 import { AppButton, FormField, Modal } from "../ui";
 
 export type LogProgressModalProps = {
@@ -26,6 +27,7 @@ export function LogProgressModal({
 }: LogProgressModalProps) {
   const [value, setValue] = useState(String(current));
   const [error, setError] = useState<string | null>(null);
+  const overGoal = challenge !== null && Number(value) > challenge.goal.target;
 
   function submit() {
     const n = Number(value);
@@ -33,7 +35,16 @@ export function LogProgressModal({
       setError("Enter a number of 0 or more.");
       return;
     }
-    if (challenge) onSave(challenge, Math.round(n));
+    if (!Number.isInteger(n)) {
+      setError("Use a whole number, with no decimals.");
+      return;
+    }
+    if (n === 0) {
+      setError("Enter a number above 0.");
+      return;
+    }
+    // Anything over the goal counts as the goal.
+    if (challenge) onSave(challenge, Math.min(n, challenge.goal.target));
   }
 
   return (
@@ -56,7 +67,7 @@ export function LogProgressModal({
         <>
           <p className="ui-flush">
             Update your total {challenge.goal.unit} for <strong>{challenge.title}</strong> (goal:{" "}
-            {challenge.goal.target}).
+            {formatCount(challenge.goal.target)}).
           </p>
           <FormField
             label={`Total ${challenge.goal.unit}`}
@@ -64,8 +75,15 @@ export function LogProgressModal({
             inputMode="numeric"
             min={0}
             value={value}
-            onChange={(event) => setValue(event.target.value)}
-            helper="You enter this yourself; it is not tracked automatically."
+            onChange={(event) => {
+              setValue(event.target.value);
+              setError(null);
+            }}
+            helper={
+              overGoal
+                ? `That is above the goal, so it counts as ${formatCount(challenge.goal.target)}.`
+                : "You enter this yourself; it is not tracked automatically."
+            }
             error={error ?? saveError ?? undefined}
           />
         </>

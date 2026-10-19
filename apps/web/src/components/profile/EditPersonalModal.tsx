@@ -57,7 +57,7 @@ export function EditPersonalModal({ open, onClose }: EditPersonalModalProps) {
       }
     >
       <div className="edit-avatar-preview">
-        <Avatar name={name || "?"} />
+        <Avatar name={name.trim() || prefs.displayName} />
         <span className="ui-meta-row">Avatar uses your initials.</span>
       </div>
       <FormField
