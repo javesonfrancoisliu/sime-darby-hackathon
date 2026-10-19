@@ -40,17 +40,11 @@ const ssmFetcher: KeyFetcher = async (parameterName) => {
   return value;
 };
 
-// Local dev uses ANTHROPIC_API_KEY; deployed Lambdas read the SSM parameter named by
-// ANTHROPIC_API_KEY_PARAM. The key is never logged and never placed in an error message.
+// The key is only ever read from the SSM parameter named by ANTHROPIC_API_KEY_PARAM, locally and
+// on Lambda, so it never sits in an env file or function config. It is never logged or put in an error.
 export async function getAnthropicApiKey(): Promise<string> {
-  // A plaintext key in Lambda config would be visible to anyone who can read the function, so it is ignored there.
-  const fromEnv = process.env.AWS_LAMBDA_FUNCTION_NAME ? undefined : process.env.ANTHROPIC_API_KEY;
-  if (fromEnv) return fromEnv;
-
   const parameterName = config.anthropicApiKeyParam;
-  if (!parameterName) {
-    throw new Error("Neither ANTHROPIC_API_KEY nor ANTHROPIC_API_KEY_PARAM is set");
-  }
+  if (!parameterName) throw new Error("ANTHROPIC_API_KEY_PARAM is not set");
   if (cached?.parameterName === parameterName && cached.expiresAt > now()) return cached.value;
   if (inFlight?.parameterName === parameterName) return inFlight.promise;
 
