@@ -106,6 +106,26 @@ describe("quizzes", () => {
     expect(manual.status).toBe(400);
   });
 
+  it("rejects a quiz id on a challenge that does not have a quiz goal", async () => {
+    const res = await call("POST", "/api/challenges", {
+      as: coordinator.id,
+      body: {
+        title: "Walk 5000 steps",
+        description: "Walk together",
+        icon: "walk",
+        category: "fitness",
+        mode: "individual",
+        audience: "all",
+        goal: { target: 5000, unit: "steps", type: "steps" },
+        points: 10,
+        requiresVerification: false,
+        quizId: quiz.id,
+        endsOn: new Date(Date.now() + 86_400_000).toISOString(),
+      },
+    });
+    expect(res.status).toBe(400);
+  });
+
   it("rejects a quiz challenge with no quiz", async () => {
     const res = await call("POST", "/api/challenges", {
       as: coordinator.id,

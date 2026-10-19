@@ -82,6 +82,9 @@ export async function createChallenge(
     }
     if (!body.quizId) throw new HttpError("VALIDATION_FAILED", "quizId: required for a quiz goal");
   }
+  if (body.quizId && body.goal.type !== "quiz") {
+    throw new HttpError("VALIDATION_FAILED", "quizId: only a quiz goal can use a quiz");
+  }
   if (body.quizId && !(await getQuiz(body.quizId))) {
     throw new HttpError("VALIDATION_FAILED", "quizId: quiz not found");
   }
@@ -303,7 +306,11 @@ export async function completeForQuiz(user: User, quizId: string): Promise<void>
   const nowMs = Date.now();
   const linked = (await listChallenges()).filter(
     (c) =>
-      c.quizId === quizId && c.mode === "individual" && visibleTo(user, c) && !isEnded(c, nowMs),
+      c.quizId === quizId &&
+      c.goal.type === "quiz" &&
+      c.mode === "individual" &&
+      visibleTo(user, c) &&
+      !isEnded(c, nowMs),
   );
   for (const challenge of linked) {
     const result = await finish(user.id, challenge, "not_completed", "quiz");
