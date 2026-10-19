@@ -35,6 +35,15 @@ describe("POST /api/me", () => {
     ...overrides,
   });
 
+  it("rejects a location in a profile update", async () => {
+    const elder = await createUser("elder");
+    const res = await call("PATCH", "/api/me", {
+      as: elder.id,
+      body: { location: { lat: 3.5, lng: 101.9 } },
+    });
+    expect(res.status).toBe(400);
+  });
+
   it("creates an elder with the sub as id and the precinct location", async () => {
     enableCognito();
     const sub = randomUUID();
