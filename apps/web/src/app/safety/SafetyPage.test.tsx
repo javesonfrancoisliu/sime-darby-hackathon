@@ -14,28 +14,33 @@ function setup(safety: unknown) {
 }
 
 describe("safety page", () => {
-  it("shows air, water and heat readings with Malaysia time", async () => {
+  it("shows air, water and heat readings with Malaysia time across tabs", async () => {
     setup({ body: SAFETY });
+    const user = userEvent.setup();
 
+    // Air is the default tab.
     const air = await screen.findByLabelText("Air quality: Elmina West");
     expect(within(air).getByText("62 AQI")).toBeInTheDocument();
     expect(within(air).getByText("Moderate")).toBeInTheDocument();
     // 00:30 UTC is 8:30 am in Kuala Lumpur.
     expect(within(air).getByText(/Measured 19 Oct 2026, 8:30 am/)).toBeInTheDocument();
 
-    const water = screen.getByLabelText("Water levels: Sungai Buloh");
+    await user.click(screen.getByRole("tab", { name: "Water" }));
+    const water = await screen.findByLabelText("Water levels: Sungai Buloh");
     expect(within(water).getByText("Watch")).toBeInTheDocument();
     expect(within(water).getByText(/normal up to 2 m/)).toBeInTheDocument();
 
-    const heat = screen.getByLabelText("Heat: Elmina East");
+    await user.click(screen.getByRole("tab", { name: "Heat" }));
+    const heat = await screen.findByLabelText("Heat: Elmina East");
     expect(within(heat).getByText("34°C")).toBeInTheDocument();
     expect(within(heat).getByText(/Feels like 39°C/)).toBeInTheDocument();
   });
 
-  it("filters facility reports by status", async () => {
+  it("filters facility reports by status in the Facilities tab", async () => {
     setup({ body: SAFETY });
     const user = userEvent.setup();
 
+    await user.click(await screen.findByRole("tab", { name: "Facilities" }));
     expect(await screen.findByLabelText("Facility report: Broken swing")).toBeInTheDocument();
     expect(screen.getByLabelText("Facility report: Fixed gate")).toBeInTheDocument();
 
@@ -49,8 +54,13 @@ describe("safety page", () => {
 
   it("explains when there are no readings or reports yet", async () => {
     setup({ body: { readings: [], facilityReports: [] } });
+    const user = userEvent.setup();
+
+    // The default Air tab shows its own empty state.
+    expect(await screen.findByText("No readings yet")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("tab", { name: "Facilities" }));
     expect(await screen.findByText("No facility reports")).toBeInTheDocument();
-    expect(screen.getAllByText("No readings yet")).toHaveLength(3);
   });
 
   it("reports an error and offers a retry", async () => {

@@ -10,10 +10,27 @@ import {
   LoadingState,
   PageHeader,
   StatusBadge,
+  TabPanel,
+  Tabs,
 } from "../../components/ui";
 import { useSafety } from "../../data/useSafety";
 import { formatDateTime, formatReadingValue } from "../../lib/format";
 import { FACILITY_STATUS, LEVEL_LABEL, LEVEL_VARIANT, READING_TITLE } from "../../lib/safety";
+
+type SafetyTab = "air" | "water" | "heat" | "facilities";
+
+const SAFETY_TABS: { id: SafetyTab; label: string }[] = [
+  { id: "air", label: "Air" },
+  { id: "water", label: "Water" },
+  { id: "heat", label: "Heat" },
+  { id: "facilities", label: "Facilities" },
+];
+
+const READING_TAB_TITLE: Record<"air" | "water" | "heat", string> = {
+  air: "Air quality",
+  water: "Water levels",
+  heat: "Heat",
+};
 
 type StatusFilter = "all" | FacilityStatus;
 
@@ -65,9 +82,12 @@ function ReadingCard({ reading }: { reading: SafetyReading }) {
   );
 }
 
-// Read-only safety page: the latest air, water and heat readings and the facility reports.
+// Read-only safety page. Air, water, heat and facility reports live in tabs
+// (like the elderly safety page) so residents switch between them instead of
+// scrolling one long page.
 export function SafetyPage() {
   const { data, loading, error, reload } = useSafety();
+  const [tab, setTab] = useState<SafetyTab>("air");
   const [status, setStatus] = useState<StatusFilter>("all");
 
   const readings = useMemo(
@@ -110,97 +130,116 @@ export function SafetyPage() {
         </InfoCard>
       ) : (
         <>
-          {(["air", "water", "heat"] as const).map((type) => (
-            <section key={type} className="ui-section" aria-labelledby={`${type}-heading`}>
-              <h2 className="ui-section-title" id={`${type}-heading`}>
-                {READING_TITLE[type]}
-              </h2>
-              {readings[type].length === 0 ? (
-                <InfoCard>
-                  <EmptyState
-                    icon={ShieldAlert}
-                    title="No readings yet"
-                    description="The latest readings will show up here."
-                  />
-                </InfoCard>
-              ) : (
-                <ul className="ui-grid community-list">
-                  {readings[type].map((reading) => (
-                    <ReadingCard
-                      key={`${reading.type}-${reading.area}-${reading.type === "water" ? reading.name : ""}`}
-                      reading={reading}
-                    />
-                  ))}
-                </ul>
-              )}
-            </section>
-          ))}
+          <Tabs
+            idBase="safety"
+            label="Safety sections"
+            tabs={SAFETY_TABS}
+            value={tab}
+            onChange={setTab}
+          />
 
-          <section className="ui-section" aria-labelledby="facility-heading">
-            <h2 className="ui-section-title" id="facility-heading">
-              Facility reports
-            </h2>
-            <div
-              className="ui-chip-row"
-              role="group"
-              aria-label="Filter facility reports by status"
-            >
-              {STATUS_FILTERS.map(({ value, label }) => (
-                <button
-                  key={value}
-                  type="button"
-                  className="ui-chip"
-                  aria-pressed={status === value}
-                  onClick={() => setStatus(value)}
+          {(["air", "water", "heat"] as const).map(
+            (type) =>
+              tab === type && (
+                <TabPanel key={type} idBase="safety" id={type}>
+                  <section className="ui-section" aria-labelledby={`${type}-heading`}>
+                    <h2 className="ui-section-title" id={`${type}-heading`}>
+                      {READING_TAB_TITLE[type]}
+                    </h2>
+                    {readings[type].length === 0 ? (
+                      <InfoCard>
+                        <EmptyState
+                          icon={ShieldAlert}
+                          title="No readings yet"
+                          description="The latest readings will show up here."
+                        />
+                      </InfoCard>
+                    ) : (
+                      <ul className="ui-grid community-list">
+                        {readings[type].map((reading) => (
+                          <ReadingCard
+                            key={`${reading.type}-${reading.area}-${reading.type === "water" ? reading.name : ""}`}
+                            reading={reading}
+                          />
+                        ))}
+                      </ul>
+                    )}
+                  </section>
+                </TabPanel>
+              ),
+          )}
+
+          {tab === "facilities" && (
+            <TabPanel idBase="safety" id="facilities">
+              <section className="ui-section" aria-labelledby="facility-heading">
+                <h2 className="ui-section-title" id="facility-heading">
+                  Facility reports
+                </h2>
+                <div
+                  className="ui-chip-row"
+                  role="group"
+                  aria-label="Filter facility reports by status"
                 >
-                  {label}
-                </button>
-              ))}
-            </div>
-            {reports.length === 0 ? (
-              <InfoCard>
-                <EmptyState
-                  icon={Wrench}
-                  title={status === "all" ? "No facility reports" : "No reports with this status"}
-                  description={
-                    status === "all"
-                      ? "Reports about local facilities will show up here."
-                      : "Try a different status."
-                  }
-                />
-              </InfoCard>
-            ) : (
-              <ul className="ui-grid community-list" style={{ marginTop: "var(--space-4)" }}>
-                {reports.map((report) => {
-                  const state = FACILITY_STATUS[report.status];
-                  return (
-                    <InfoCard
-                      as="li"
-                      key={report.id}
-                      ariaLabel={`Facility report: ${report.title}`}
+                  {STATUS_FILTERS.map(({ value, label }) => (
+                    <button
+                      key={value}
+                      type="button"
+                      className="ui-chip"
+                      aria-pressed={status === value}
+                      onClick={() => setStatus(value)}
                     >
-                      <div className="feature-card">
-                        <div className="feature-card-head">
-                          <h3 className="feature-card-title">{report.title}</h3>
-                          <StatusBadge label={state.label} variant={state.variant} />
-                        </div>
-                        <span className="ui-meta-row">
-                          {report.area} · {report.category}
-                        </span>
-                        {report.description && (
-                          <p className="feature-card-desc">{report.description}</p>
-                        )}
-                        <span className="ui-meta-row">
-                          Reported {formatDateTime(report.reportedAt)} · Updated{" "}
-                          {formatDateTime(report.updatedAt)}
-                        </span>
-                      </div>
-                    </InfoCard>
-                  );
-                })}
-              </ul>
-            )}
-          </section>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                {reports.length === 0 ? (
+                  <InfoCard>
+                    <EmptyState
+                      icon={Wrench}
+                      title={
+                        status === "all" ? "No facility reports" : "No reports with this status"
+                      }
+                      description={
+                        status === "all"
+                          ? "Reports about local facilities will show up here."
+                          : "Try a different status."
+                      }
+                    />
+                  </InfoCard>
+                ) : (
+                  <ul className="ui-grid community-list" style={{ marginTop: "var(--space-4)" }}>
+                    {reports.map((report) => {
+                      const state = FACILITY_STATUS[report.status];
+                      return (
+                        <InfoCard
+                          as="li"
+                          key={report.id}
+                          ariaLabel={`Facility report: ${report.title}`}
+                        >
+                          <div className="feature-card">
+                            <div className="feature-card-head">
+                              <h3 className="feature-card-title">{report.title}</h3>
+                              <StatusBadge label={state.label} variant={state.variant} />
+                            </div>
+                            <span className="ui-meta-row">
+                              {report.area} · {report.category}
+                            </span>
+                            {report.description && (
+                              <p className="feature-card-desc">{report.description}</p>
+                            )}
+                            <span className="ui-meta-row">
+                              Reported {formatDateTime(report.reportedAt)} · Updated{" "}
+                              {formatDateTime(report.updatedAt)}
+                            </span>
+                          </div>
+                        </InfoCard>
+                      );
+                    })}
+                  </ul>
+                )}
+              </section>
+            </TabPanel>
+          )}
         </>
       )}
     </>
