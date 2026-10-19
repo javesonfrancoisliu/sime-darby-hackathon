@@ -100,3 +100,21 @@ variable "matching_ai_model_id" {
   type        = string
   default     = ""
 }
+
+variable "github_repository" {
+  description = "GitHub repository (owner/name) whose main branch may deploy code through the ci-deploy role. Empty turns the role off."
+  type        = string
+  default     = ""
+}
+
+variable "github_oidc_provider_exists" {
+  description = "True when the account already has a GitHub OIDC provider; then github_oidc_provider_arn must be set."
+  type        = bool
+  default     = false
+}
+
+variable "github_oidc_provider_arn" {
+  description = "ARN of the account's existing GitHub OIDC provider."
+  type        = string
+  default     = ""
+}

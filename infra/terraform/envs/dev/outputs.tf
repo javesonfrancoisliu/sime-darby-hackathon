@@ -61,3 +61,8 @@ output "matching_function_name" {
   description = "Matching Lambda function name."
   value       = module.api.matching_function_name
 }
+
+output "ci_deploy_role_arn" {
+  description = "Role the GitHub deploy workflow assumes, or null when it is off."
+  value       = length(module.ci_deploy) > 0 ? module.ci_deploy[0].role_arn : null
+}
