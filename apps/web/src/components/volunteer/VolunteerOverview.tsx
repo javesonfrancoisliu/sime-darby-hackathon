@@ -15,12 +15,10 @@ function formatHours(totalMinutes: number): string {
   return `${hours}h ${minutes}m`;
 }
 
-/**
- * Compact young-role Home card: the volunteer's impact at a glance (people
- * helped, tasks completed, contribution time) plus a CTA to find opportunities.
- * Replaces the standalone My Impact panel that used to live on the Volunteer
- * page — kept small so Home does not grow.
- */
+// Compact young-role Home card: the volunteer's impact at a glance (people
+// helped, tasks completed, contribution time) plus a CTA to find opportunities.
+// Replaces the standalone My Impact panel that used to live on the Volunteer
+// page - kept small so Home does not grow.
 export function VolunteerOverview({ impact }: VolunteerOverviewProps) {
   const stats = [
     { icon: Users, value: impact.peopleHelped, label: "People helped" },
@@ -32,12 +30,12 @@ export function VolunteerOverview({ impact }: VolunteerOverviewProps) {
     <InfoCard className="reward-accent" ariaLabel="Your volunteering impact">
       <div className="feature-card">
         <div className="feature-card-head">
-          <h3 className="feature-card-title">
+          <h2 className="feature-card-title">
             <span className="inline-icon">
               <HandHeart size={18} aria-hidden="true" />
               My impact
             </span>
-          </h3>
+          </h2>
           {impact.isDemoData && <DemoTag />}
         </div>
 

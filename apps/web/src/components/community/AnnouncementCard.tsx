@@ -10,11 +10,9 @@ export type AnnouncementCardProps = {
   item: MaintenanceItem;
 };
 
-/**
- * Facility maintenance announcement: affected area, scheduled window, service
- * impact and status (Scheduled / In Progress / Completed).
- * NOTE: distinct from safety facility reports (Reported / In Progress / Resolved).
- */
+// Facility maintenance announcement: affected area, scheduled window, service
+// impact and status (Scheduled / In Progress / Completed).
+// NOTE: distinct from safety facility reports (Reported / In Progress / Resolved).
 export function AnnouncementCard({ item }: AnnouncementCardProps) {
   const status = maintenanceStatus(item.status);
   return (
@@ -30,7 +28,7 @@ export function AnnouncementCard({ item }: AnnouncementCardProps) {
           <Pill>Maintenance</Pill>
         </div>
 
-        <div className="ui-stack" style={{ gap: "var(--space-2)" }}>
+        <div className="ui-stack ui-gap-2">
           <span className="inline-icon">
             <MapPin size={16} className="icon-dim" aria-hidden="true" />
             {item.location}

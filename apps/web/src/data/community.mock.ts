@@ -20,7 +20,7 @@ const events: EventItem[] = [
     summary: "Bring a dish and meet the folks on your street over breakfast.",
     startsAt: "2026-10-25T09:00:00+08:00",
     durationMinutes: 120,
-    location: "Community Hall, Bandar Serai",
+    location: "Community Hall, Elmina West",
     audience: "All residents",
     capacity: 80,
     signupCount: 34,
@@ -49,10 +49,10 @@ const events: EventItem[] = [
     townshipId: T,
     category: "event",
     title: "Weekend community night market",
-    summary: "Local stalls, food and a kids' corner at the central green.",
+    summary: "Local stalls, food and a kids' corner at Central Park.",
     startsAt: "2026-10-24T18:00:00+08:00",
     durationMinutes: 180,
-    location: "Central Green",
+    location: "Central Park",
     audience: "All residents",
     capacity: 300,
     signupCount: 96,
@@ -82,7 +82,7 @@ const maintenance: MaintenanceItem[] = [
     id: "mnt-lift-blockc",
     townshipId: T,
     category: "maintenance",
-    title: "Lift servicing — Block C",
+    title: "Lift servicing - Block C",
     summary: "The left lift is being serviced; the right lift stays in use.",
     location: "Block C lobby",
     windowStart: "2026-10-16T10:00:00+08:00",
@@ -99,7 +99,7 @@ const maintenance: MaintenanceItem[] = [
     category: "maintenance",
     title: "Playground repainting completed",
     summary: "The central playground has reopened after safety repainting.",
-    location: "Central Green playground",
+    location: "Central Park playground",
     windowStart: "2026-10-10T08:00:00+08:00",
     windowEnd: "2026-10-12T17:00:00+08:00",
     serviceImpact: "Playground now fully reopened.",
@@ -131,12 +131,12 @@ const volunteer: VolunteerItem[] = [
     category: "volunteer",
     title: "Community garden tidy-up",
     summary: "Planting, weeding and general upkeep of the shared garden.",
-    organisation: "Green Serai",
+    organisation: "Green Elmina",
     startsAt: "2026-10-23T07:30:00+08:00",
     location: "Community Garden, Block B",
     slotsAvailable: 10,
     updatedAt: "2026-10-14T15:30:00+08:00",
-    sourceLabel: "Green Serai",
+    sourceLabel: "Green Elmina",
     isDemoData: true,
   },
   {
@@ -160,8 +160,7 @@ const township: TownshipUpdateItem[] = [
     townshipId: T,
     category: "township",
     title: "New evening security patrol route",
-    summary:
-      "Patrols now cover the central green and all block lobbies between 8pm and 2am.",
+    summary: "Patrols now cover Central Park and all block lobbies between 8pm and 2am.",
     publishedAt: "2026-10-15T18:00:00+08:00",
     topic: "Security",
     priority: "high",
@@ -184,7 +183,7 @@ const township: TownshipUpdateItem[] = [
   },
 ];
 
-/** All community items, newest first by updatedAt. */
+// All community items, newest first by updatedAt.
 export const COMMUNITY_ITEMS: CommunityItem[] = [
   ...events,
   ...maintenance,

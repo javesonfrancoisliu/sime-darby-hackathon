@@ -9,7 +9,7 @@ export type StatusDescriptor = {
 
 // Maintenance announcement statuses (Scheduled / In Progress / Completed).
 // Kept separate from safety facility-report statuses (Reported / In Progress / Resolved)
-// as required by the design system — do not merge the two vocabularies.
+// as required by the design system - do not merge the two vocabularies.
 const MAINTENANCE_STATUS: Record<MaintenanceStatus, StatusDescriptor> = {
   scheduled: { label: "Scheduled", variant: "info" },
   in_progress: { label: "In Progress", variant: "warning" },

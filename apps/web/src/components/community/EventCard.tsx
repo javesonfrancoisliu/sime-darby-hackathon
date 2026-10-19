@@ -10,7 +10,7 @@ export type EventCardProps = {
   onViewDetails: (event: EventItem) => void;
 };
 
-/** Event card: title, date/time, location, short description, View details CTA. */
+// Event card: title, date/time, location, short description, View details CTA.
 export function EventCard({ event, onViewDetails }: EventCardProps) {
   return (
     <InfoCard as="li" ariaLabel={`Event: ${event.title}`}>
@@ -20,7 +20,7 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
           <Pill>Event</Pill>
         </div>
 
-        <div className="ui-stack" style={{ gap: "var(--space-2)" }}>
+        <div className="ui-stack ui-gap-2">
           <span className="inline-icon">
             <CalendarDays size={16} className="icon-dim" aria-hidden="true" />
             {formatDate(event.startsAt)}, {formatTimeRange(event.startsAt, event.durationMinutes)}

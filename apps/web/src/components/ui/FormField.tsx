@@ -4,22 +4,18 @@ export type FormFieldProps = InputHTMLAttributes<HTMLInputElement> & {
   label: string;
   helper?: string;
   error?: string;
-  /** Optional leading content inside the field row, e.g. an icon. */
+  // Optional leading content inside the field row, e.g. an icon.
   icon?: ReactNode;
 };
 
-/**
- * Labelled input with persistent label, helper and error text (48px field via .ui-input).
- * Every input has a visible label and a programmatic association, per inclusive-UX rules.
- */
+// Labelled input with persistent label, helper and error text (48px field via .ui-input).
+// Every input has a visible label and a programmatic association, per inclusive-UX rules.
 export function FormField({ label, helper, error, id, icon, ...rest }: FormFieldProps) {
   const generatedId = useId();
   const fieldId = id ?? generatedId;
   const helperId = `${fieldId}-helper`;
   const errorId = `${fieldId}-error`;
-  const describedBy = [helper ? helperId : null, error ? errorId : null]
-    .filter(Boolean)
-    .join(" ");
+  const describedBy = [helper ? helperId : null, error ? errorId : null].filter(Boolean).join(" ");
 
   return (
     <div className="ui-field">
@@ -27,7 +23,11 @@ export function FormField({ label, helper, error, id, icon, ...rest }: FormField
         {label}
       </label>
       <div className="ui-input-wrap">
-        {icon && <span className="ui-input-icon" aria-hidden="true">{icon}</span>}
+        {icon && (
+          <span className="ui-input-icon" aria-hidden="true">
+            {icon}
+          </span>
+        )}
         <input
           id={fieldId}
           className="ui-input"

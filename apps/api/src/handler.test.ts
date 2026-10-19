@@ -18,3 +18,10 @@ describe("handler", () => {
     expect(JSON.parse(res.body ?? "")).toMatchObject({ error: { code: "NOT_FOUND" } });
   });
 });
+
+describe("core handler", () => {
+  it("does not serve matching, which runs in its own Lambda", async () => {
+    const res = await handler(apiEvent({ path: "/api/requests/x/matches" }));
+    expect(res.statusCode).toBe(404);
+  });
+});

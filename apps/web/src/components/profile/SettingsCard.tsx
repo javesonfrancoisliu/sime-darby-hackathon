@@ -1,8 +1,11 @@
 import { useId } from "react";
 import { HelpCircle } from "lucide-react";
 
+import { useSession } from "@sdh/api-client";
+
+import { tokenModeEnabled } from "../../lib/authMode";
 import { useProfile, type ProfileSettings } from "../../data/ProfileContext";
-import { InfoCard } from "../ui";
+import { AppButton, InfoCard } from "../ui";
 
 type ToggleKey = keyof ProfileSettings;
 
@@ -40,16 +43,24 @@ function ToggleRow({
   );
 }
 
-/**
- * Settings: mock notification + privacy toggles, help & support. Honest demo
- * labelling — these do NOT control real push notifications or enforce backend
- * privacy. Demo Controls are rendered by the page below this card.
- */
+// Settings: mock notification + privacy toggles, help & support. Honest demo
+// labelling - these do NOT control real push notifications or enforce backend
+// privacy. Demo Controls are rendered by the page below this card.
 export function SettingsCard() {
   const { settings, updateSettings } = useProfile();
+  const { signOut } = useSession();
+
+  async function signOutOfAccount() {
+    await signOut();
+    window.location.assign("/");
+  }
 
   const toggles: { key: ToggleKey; label: string; description: string }[] = [
-    { key: "notifyEvents", label: "Event reminders", description: "Notify me about community events (demo)." },
+    {
+      key: "notifyEvents",
+      label: "Event reminders",
+      description: "Notify me about community events (demo).",
+    },
     {
       key: "notifyVolunteering",
       label: "Volunteering updates",
@@ -71,12 +82,10 @@ export function SettingsCard() {
     <InfoCard ariaLabel="Settings">
       <div className="feature-card">
         <div className="feature-card-head">
-          <h3 className="feature-card-title">Settings</h3>
+          <h2 className="feature-card-title">Settings</h2>
         </div>
 
-        <h4 className="impact-subhead" style={{ marginTop: 0 }}>
-          Notifications
-        </h4>
+        <h3 className="impact-subhead ui-flush-top">Notifications</h3>
         {toggles.slice(0, 2).map((t) => (
           <ToggleRow
             key={t.key}
@@ -87,7 +96,7 @@ export function SettingsCard() {
           />
         ))}
 
-        <h4 className="impact-subhead">Privacy &amp; safety</h4>
+        <h3 className="impact-subhead">Privacy &amp; safety</h3>
         {toggles.slice(2).map((t) => (
           <ToggleRow
             key={t.key}
@@ -98,16 +107,29 @@ export function SettingsCard() {
           />
         ))}
         <p className="ui-helper" style={{ margin: "var(--space-2) 0 0" }}>
-          Demo only: these toggles are saved on this device and do not control real
-          notifications or enforce backend privacy.
+          Demo only: these toggles are saved on this device and do not send real notifications or
+          change who can see your information.
         </p>
 
-        <h4 className="impact-subhead">Help &amp; support</h4>
-        <p className="ui-meta-row" style={{ margin: 0 }}>
+        {tokenModeEnabled() && (
+          <>
+            <h3 className="impact-subhead">Account</h3>
+            <div className="settings-row">
+              <a href="/account" className="ui-button ui-button--secondary">
+                Account settings
+              </a>
+              <AppButton variant="secondary" onClick={signOutOfAccount}>
+                Sign out
+              </AppButton>
+            </div>
+          </>
+        )}
+
+        <h3 className="impact-subhead">Help &amp; support</h3>
+        <p className="ui-meta-row ui-flush">
           <span className="inline-icon">
             <HelpCircle size={16} className="icon-dim" aria-hidden="true" />
-            Township Connect is a hackathon prototype. For demo questions, ask the
-            team.
+            Help a Neighbour is a hackathon prototype. For demo questions, ask the team.
           </span>
         </p>
       </div>

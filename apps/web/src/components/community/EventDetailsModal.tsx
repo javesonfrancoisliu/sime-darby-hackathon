@@ -11,7 +11,7 @@ export type EventDetailsModalProps = {
   onRegister: (event: EventItem) => void;
 };
 
-/** Stateful event-details dialog with venue, time and a register action. */
+// Stateful event-details dialog with venue, time and a register action.
 export function EventDetailsModal({
   event,
   registered,
@@ -62,7 +62,7 @@ export function EventDetailsModal({
               {event.signupCount} of {event.capacity} residents joined
             </span>
           )}
-          <p style={{ margin: 0 }}>{event.summary}</p>
+          <p className="ui-flush">{event.summary}</p>
           {registered && (
             <span className="ui-badge ui-badge--success" role="status">
               <CheckCircle2 size={14} aria-hidden="true" />

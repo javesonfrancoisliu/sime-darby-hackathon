@@ -1,8 +1,11 @@
 import { useState } from "react";
 
+import { demoSignInEnabled } from "../../lib/demoFlag";
+import { tokenModeEnabled } from "../../lib/authMode";
 import { DemoControls } from "../../components/demo/DemoControls";
 import {
   ClaimedRewardsCard,
+  DemoSignInCard,
   EditPersonalModal,
   EditPreferencesModal,
   PreferencesCard,
@@ -12,12 +15,10 @@ import {
 import { PageHeader } from "../../components/ui";
 import { useGamification } from "../../data/useGamification";
 
-/**
- * Young-resident Profile — account management, not an activity dashboard.
- * Sections: Personal information, Volunteering preferences, My rewards (claimed),
- * Settings. Volunteering tasks live in Volunteer Nearby; points/badges/
- * leaderboard live in Community Challenges — not repeated here.
- */
+// Young-resident Profile - account management, not an activity dashboard.
+// Sections: Personal information, Volunteering preferences, My rewards (claimed),
+// Settings. Volunteering tasks live in Volunteer Nearby; points/badges/
+// leaderboard live in Community Challenges - not repeated here.
 export function ProfilePage() {
   const { claimedRewards } = useGamification();
   const [editPersonal, setEditPersonal] = useState(false);
@@ -45,6 +46,8 @@ export function ProfilePage() {
       <section className="ui-section" aria-label="Settings">
         <SettingsCard />
       </section>
+
+      {demoSignInEnabled() && !tokenModeEnabled() && <DemoSignInCard />}
 
       {/* Demo-only reset (hidden unless demo controls are enabled). */}
       <DemoControls />

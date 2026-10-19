@@ -1,23 +1,5 @@
 import { errorResponse, HttpError, type HttpResponse, type Route } from "./lib/http";
 import { logger } from "./lib/logger";
-import { contributionRoutes } from "./modules/contributions/routes";
-import { eventRoutes } from "./modules/events/routes";
-import { healthRoutes } from "./modules/health/routes";
-import { matchingRoutes } from "./modules/matching/routes";
-import { opportunityRoutes } from "./modules/opportunities/routes";
-import { requestRoutes } from "./modules/requests/routes";
-import { userRoutes } from "./modules/users/routes";
-
-// Literal paths (for example /api/requests/mine) must come before {param} paths they overlap.
-export const routes: Route[] = [
-  ...healthRoutes,
-  ...userRoutes,
-  ...contributionRoutes,
-  ...requestRoutes,
-  ...matchingRoutes,
-  ...opportunityRoutes,
-  ...eventRoutes,
-];
 
 export interface RawRequest {
   method: string;
@@ -98,5 +80,3 @@ export function createRouter(routeList: Route[]) {
     }
   };
 }
-
-export const dispatch = createRouter(routes);

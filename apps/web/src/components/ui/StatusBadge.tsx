@@ -12,14 +12,12 @@ const VARIANT_ICON: Record<BadgeVariant, LucideIcon> = {
 export type StatusBadgeProps = {
   label: string;
   variant: BadgeVariant;
-  /** Override the default icon for the variant. */
+  // Override the default icon for the variant.
   icon?: LucideIcon;
 };
 
-/**
- * Status pill with icon + text (never color alone), per the inclusive-UX rule.
- * Background/colors from .ui-badge--* tokens.
- */
+// Status pill with icon + text (never color alone), per the inclusive-UX rule.
+// Background/colors from .ui-badge--* tokens.
 export function StatusBadge({ label, variant, icon }: StatusBadgeProps) {
   const Icon = icon ?? VARIANT_ICON[variant];
   return (

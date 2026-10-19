@@ -1,0 +1,310 @@
+/* Help a Neighbour shared prototype tokens, v1.0. Proposed colors are not official brand specifications. */
+:root {
+  --brand-primary: #d71920;
+  --brand-primary-hover: #a61219;
+  --brand-orange: #f36b21;
+  --brand-amber: #ffb81c;
+
+  --page-bg: #f8f9fa;
+  --surface: #ffffff;
+  --surface-muted: #f3f4f6;
+  --text-primary: #1f2937;
+  --text-secondary: #4b5563;
+  --border: #e5e7eb;
+  --control-border: #6b7280; /* 4.8:1 on white, for input, chip and switch edges */
+
+  --success: #15803d;
+  --warning-ink: var(--text-primary); /* warning text stays dark, never amber or brown */
+  --warning-fill: #f59e0b; /* icon, dot, bar and fill roles only */
+  --danger: #b91c1c;
+  --info: #1d4ed8;
+  --success-bg: #f0fdf4;
+  --warning-tint: #fef3c7; /* caution backgrounds; dark text on it is about 14:1 */
+  --warning-bg: var(--warning-tint);
+  --danger-bg: #fef2f2;
+  --info-bg: #eff6ff;
+
+  --brand-deep: #ba0000;
+  --warn-accent: var(--warning-fill);
+
+  /* Status tones for readings and chips: soft background with readable text. */
+  --tone-good-bg: #d1fae5;
+  --tone-good-text: #065f46;
+  --tone-caution-bg: var(--warning-tint);
+  --tone-caution-text: var(--text-primary);
+  --caution-ink: var(--text-primary);
+  --tone-alert-bg: #fee2e2;
+  --tone-alert-text: #991b1b;
+  --tone-extreme-bg: #4b0082;
+  --tone-solid-text: #ffffff;
+  --tone-bar-mid: var(--warning-fill);
+
+  /* Condition severity ramp, 1 safest to 5 most severe. */
+  --sev-1-accent: #22c55e;
+  --sev-1-chip-bg: #dcfce7;
+  --sev-1-chip-text: #15803d;
+  --sev-2-accent: #16a34a;
+  --sev-2-chip-bg: var(--tone-good-bg);
+  --sev-2-chip-text: var(--tone-good-text);
+  --sev-3-accent: #eab308;
+  --sev-3-chip-bg: var(--tone-caution-bg);
+  --sev-3-chip-text: var(--tone-caution-text);
+  --sev-4-accent: #f97316;
+  --sev-4-chip-bg: #ffedd5;
+  --sev-4-chip-text: var(--text-primary);
+  --sev-5-accent: #dc2626;
+  --sev-5-chip-bg: var(--tone-alert-bg);
+  --sev-5-chip-text: var(--tone-alert-text);
+
+  --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-body: 16px;
+  --font-small: 14px;
+  --leading-body: 1.5;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+
+  --radius-sm: 8px;
+  --radius-control: 12px;
+  --radius-card: 16px;
+  --radius-pill: 9999px;
+  --shadow-card: 0 3px 16px rgba(31, 41, 55, 0.045);
+  --content-width: 1200px;
+  --sidebar-width: 248px;
+  --header-height: 72px;
+  --control-height: 48px;
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  overflow-x: hidden;
+}
+body {
+  margin: 0;
+  color: var(--text-primary);
+  background: var(--page-bg);
+  font-family: var(--font-sans);
+  font-size: var(--font-body);
+  line-height: var(--leading-body);
+  -webkit-text-size-adjust: 100%;
+}
+img {
+  max-width: 100%;
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 3px;
+}
+
+.ui-container {
+  width: min(100%, var(--content-width));
+  margin-inline: auto;
+  padding: 32px;
+}
+.ui-page-title {
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.27;
+  font-weight: 700;
+}
+.ui-page-subtitle {
+  margin: 8px 0 0;
+  color: var(--text-secondary);
+}
+.ui-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 24px;
+  box-shadow: var(--shadow-card);
+}
+.ui-card-title {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 600;
+}
+.ui-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.ui-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--control-height);
+  min-width: 44px;
+  padding: 10px 20px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+.ui-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.ui-button--primary {
+  background: var(--brand-primary);
+  color: white;
+}
+.ui-button--primary:hover:not(:disabled) {
+  background: var(--brand-primary-hover);
+}
+.ui-button--secondary {
+  background: white;
+  color: var(--brand-primary);
+  border-color: var(--brand-primary);
+}
+.ui-button--secondary:hover:not(:disabled) {
+  background: #fff4f4;
+}
+.ui-button--ghost {
+  background: transparent;
+  color: var(--text-primary);
+}
+.ui-button--ghost:hover:not(:disabled) {
+  background: var(--surface-muted);
+}
+.ui-button--danger {
+  background: var(--danger);
+  color: white;
+}
+
+.ui-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.ui-input {
+  width: 100%;
+  min-height: var(--control-height);
+  padding: 10px 14px;
+  background: var(--surface);
+  color: var(--text-primary);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-control);
+}
+.ui-input:focus {
+  border-color: var(--brand-primary);
+}
+.ui-helper {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+.ui-error {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: var(--danger);
+}
+
+.ui-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 600;
+}
+.ui-badge--success {
+  background: var(--success-bg);
+  color: var(--success);
+}
+.ui-badge--warning {
+  background: var(--warning-bg);
+  color: var(--warning-ink);
+}
+.ui-badge--warning svg {
+  color: var(--warning-fill);
+}
+.ui-badge--danger {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+.ui-badge--info {
+  background: var(--info-bg);
+  color: var(--info);
+}
+
+/* User-selected large-text option: apply .easy-view to a shared root element. */
+.easy-view {
+  --font-body: 18px;
+  --font-small: 16px;
+  --control-height: 56px;
+  font-size: var(--font-body);
+}
+.easy-view .ui-button {
+  font-size: 16px;
+}
+.easy-view .ui-card-title {
+  font-size: 20px;
+}
+.easy-view .ui-helper,
+.easy-view .ui-error,
+.easy-view .ui-label {
+  font-size: 16px;
+}
+
+@media (max-width: 1023px) {
+  .ui-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 639px) {
+  .ui-container {
+    padding: 16px;
+  }
+  .ui-page-title {
+    font-size: 26px;
+  }
+  .ui-card {
+    padding: 20px;
+  }
+  .ui-grid {
+    grid-template-columns: 1fr;
+  }
+  .ui-button {
+    font-size: 16px;
+  }
+}
+
+/* "Demo data" label shared by both apps: simulated feeds must never look live. */
+.ui-demo-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--info-bg);
+  color: var(--info);
+  font-size: var(--font-small);
+  font-weight: 700;
+}

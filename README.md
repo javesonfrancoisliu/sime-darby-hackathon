@@ -33,14 +33,19 @@ apps/
         health/           Health check
       test/               Test helpers
     scripts/              Local table setup
-  <frontend>/             React frontends (added by the frontend team)
+  web/                    Volunteer app (React 19, PWA), see apps/web/README.md
+  elderly-web/            Elderly app (React 18, PWA), see apps/elderly-web/README.md
+  portal/                 Shared sign-in and account app (React 19), see apps/portal/README.md
 packages/
   contracts/              Request and response schemas shared by frontends and API
-  config/                 Shared TypeScript config
+  config/                 Shared TypeScript config, Vite proxy and PWA settings
+  api-client/             Fetch wrapper, error mapping and demo sign-in session for both apps
+  design-tokens/          Shared tokens.css and design guidelines
 infra/terraform/
   bootstrap/              S3 bucket for Terraform state (run once)
-  modules/                api (Lambda, API Gateway), data (DynamoDB), web-hosting (S3, CloudFront)
-  envs/dev, envs/prod     Settings for each environment
+  modules/                api (Lambda, API Gateway), auth (Cognito), data (DynamoDB), web-hosting (S3, CloudFront)
+  envs/dev, envs/prod     Settings for each environment; each serves all three apps from one site
+infra/scripts/deploy.sh   Build, apply Terraform and publish the three frontends
 compose.yaml              DynamoDB Local for development
 ```
 
@@ -52,12 +57,15 @@ Most feature modules are split into three files:
 
 ## API
 
+The API accepts `Authorization: Bearer <Cognito access token>`. `POST /api/me` creates your profile after the first sign-in (Bearer token only).
+
 | Method | Path                        |
 | ------ | --------------------------- |
 | GET    | /api/health                 |
 | GET    | /api/demo/users             |
 | POST   | /api/users                  |
 | GET    | /api/me                     |
+| POST   | /api/me                     |
 | PATCH  | /api/me                     |
 | GET    | /api/volunteers             |
 | POST   | /api/volunteers/{id}/review |
@@ -87,16 +95,30 @@ Requires Node 24+, pnpm 11 and Docker.
 pnpm install
 pnpm db:up      # DynamoDB Local on 127.0.0.1:8000
 cp apps/api/.env.example apps/api/.env
-pnpm db:setup   # create the local table (once)
-pnpm dev        # API on http://127.0.0.1:3001
+pnpm db:setup   # create the local table (once); refuses non-loopback DYNAMODB_ENDPOINT
+pnpm db:seed    # add demo people, requests and events; skips if demo people already exist
+pnpm dev        # API on http://127.0.0.1:3001 and the apps; open http://localhost:5175 (sign-in app) for all three on one address
 pnpm test
 pnpm lint
 pnpm typecheck
 ```
 
+The seed never overwrites an existing table, so a table seeded before a demo-data rename keeps the old names. To reseed, run `docker compose down -v`, then `pnpm db:up`, `pnpm db:setup` and `pnpm db:seed` (this deletes the local table data).
+
+## Deploy
+
+Runs from your machine; there is no CI/CD. Needs the AWS CLI, Terraform 1.10+ and a named AWS profile.
+
+1. Once per account: `terraform -chdir=infra/terraform/bootstrap init`, then `apply` with `bootstrap/terraform.tfvars` filled in from the example. It creates the state bucket.
+2. Copy `envs/dev/terraform.tfvars.example` and `envs/dev/backend.hcl.example` (drop `.example`) and fill them in. Set `demo_auth_enabled = true` only while the demo needs sign-in, because anyone with the URL can then pick any demo user.
+3. Run `infra/scripts/deploy.sh dev <aws-profile>` (add `--yes` to skip both prompts). It builds the API, shows the Terraform plan and asks before applying, then reads the Cognito pool and client ids from the Terraform outputs and builds the three frontends with them. It uploads everything to one S3 bucket, clears the CloudFront cache once and prints the three URLs: `/` (sign in), `/elder/` (elderly app) and `/volunteer/` (volunteer app).
+
+Hashed files in `assets/` are cached for a year; `index.html`, `sw.js` and the manifest are always revalidated so installed PWAs pick up new releases.
+
 ## Frontend notes
 
 - Import API types from `@sdh/contracts` instead of redefining them.
+- Demo sign-in only works when the API runs with `DEMO_AUTH_ENABLED=true` (set by `pnpm dev` and `.env.example`) and Cognito is not configured; once `COGNITO_USER_POOL_ID` and `COGNITO_CLIENT_ID` are set, only Cognito sign-in is accepted. Otherwise every signed-in call returns 401 and `/api/demo/users` and `POST /api/users` return 404. `POST /api/users` never creates a coordinator.
 - After the demo sign-in, send the chosen profile id on every call as the `X-Demo-User` header.
 - Call the API with relative paths (`/api/...`); in local dev, proxy `/api` to `http://127.0.0.1:3001`.
 - Errors come back as `{ "error": { "code": "...", "message": "..." } }`.

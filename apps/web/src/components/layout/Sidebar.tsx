@@ -3,7 +3,7 @@ import { NavLink } from "react-router-dom";
 import { navItemsForRole } from "../../lib/navigation";
 import { useRole } from "./RoleContext";
 
-/** Desktop sidebar navigation (hidden under 1024px — see MobileNav). */
+// Desktop sidebar navigation (hidden under 1024px - see MobileNav).
 export function Sidebar() {
   const { role } = useRole();
   const items = navItemsForRole(role);

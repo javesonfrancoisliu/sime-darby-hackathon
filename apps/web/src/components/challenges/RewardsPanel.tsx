@@ -12,11 +12,9 @@ export type RewardsPanelProps = {
   onRedeem: (rewardId: string) => void;
 };
 
-/**
- * Rewards tab: simulated reward milestones (points and/or verified volunteering
- * counts) plus the badges/achievements grid. No real redemption — "redeem" only
- * flips a simulated state.
- */
+// Rewards tab: simulated reward milestones (points and/or verified volunteering
+// counts) plus the badges/achievements grid. No real redemption - "redeem" only
+// flips a simulated state.
 export function RewardsPanel({ rewards, badges, achievements, onRedeem }: RewardsPanelProps) {
   return (
     <div className="ui-stack">

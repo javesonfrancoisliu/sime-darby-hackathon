@@ -1,26 +1,24 @@
 import { useState } from "react";
 
+import { errorMessage } from "@sdh/api-client";
+import { Category } from "@sdh/contracts";
+
 import { useProfile } from "../../data/ProfileContext";
 import {
+  LANGUAGES,
   LANGUAGE_LABEL,
+  PREFERRED_DAYS,
   PREFERRED_DAY_LABEL,
+  TIMES_OF_DAY,
   TIME_OF_DAY_LABEL,
-  type Language,
-  type PreferredDay,
-  type TimeOfDay,
 } from "../../types/profile";
-import { TASK_CATEGORY_LABEL, type TaskCategory } from "../../types/volunteer";
+import { TASK_CATEGORY_LABEL } from "../../types/volunteer";
 import { AppButton, Modal } from "../ui";
 
 export type EditPreferencesModalProps = {
   open: boolean;
   onClose: () => void;
 };
-
-const ALL_CATEGORIES = Object.keys(TASK_CATEGORY_LABEL) as TaskCategory[];
-const ALL_DAYS = Object.keys(PREFERRED_DAY_LABEL) as PreferredDay[];
-const ALL_TIMES = Object.keys(TIME_OF_DAY_LABEL) as TimeOfDay[];
-const ALL_LANGS = Object.keys(LANGUAGE_LABEL) as Language[];
 
 function toggle<T>(list: T[], value: T): T[] {
   return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
@@ -34,7 +32,7 @@ function ChipGroup<T extends string>({
   onToggle,
 }: {
   legend: string;
-  options: T[];
+  options: readonly T[];
   labels: Record<T, string>;
   selected: T[];
   onToggle: (value: T) => void;
@@ -42,7 +40,7 @@ function ChipGroup<T extends string>({
   return (
     <fieldset className="chip-fieldset">
       <legend className="pref-row-label">{legend}</legend>
-      <div className="ui-chip-row" style={{ gap: "var(--space-2)" }}>
+      <div className="ui-chip-row ui-gap-2">
         {options.map((option) => (
           <button
             key={option}
@@ -59,23 +57,46 @@ function ChipGroup<T extends string>({
   );
 }
 
-/**
- * Edit volunteer preferences: skills, interests, availability (simplified
- * day-group + time-of-day), languages. Chip multi-selects keep it compact on
- * mobile. Saved to the frontend profile store (demo) — does not update backend
- * matching.
- */
+// Edit volunteer preferences: skills, interests, availability (simplified
+// day-group + time-of-day), languages. Chip multi-selects keep it compact on
+// mobile.
 export function EditPreferencesModal({ open, onClose }: EditPreferencesModalProps) {
-  const { prefs, updatePrefs } = useProfile();
+  const { prefs, updatePrefs, isDemo } = useProfile();
   const [skills, setSkills] = useState(prefs.skills);
   const [interests, setInterests] = useState(prefs.interests);
   const [days, setDays] = useState(prefs.availability.days);
   const [times, setTimes] = useState(prefs.availability.times);
   const [languages, setLanguages] = useState(prefs.languages);
+  const [busy, setBusy] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
-  function save() {
-    updatePrefs({ skills, interests, availability: { days, times }, languages });
-    onClose();
+  function sameSet(a: string[], b: string[]): boolean {
+    return a.length === b.length && a.every((value) => b.includes(value));
+  }
+
+  async function save() {
+    const availabilityChanged =
+      !sameSet(days, prefs.availability.days) || !sameSet(times, prefs.availability.times);
+    if (availabilityChanged && days.length > 0 !== times.length > 0) {
+      setSaveError("Pick at least one day and one time of day, or clear both.");
+      return;
+    }
+    setBusy(true);
+    setSaveError(null);
+    try {
+      // Availability is only sent when the chips changed, so saving other fields never rewrites it.
+      await updatePrefs({
+        skills,
+        interests,
+        languages,
+        ...(availabilityChanged && { availability: { days, times } }),
+      });
+      onClose();
+    } catch (err) {
+      setSaveError(errorMessage(err));
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -85,10 +106,10 @@ export function EditPreferencesModal({ open, onClose }: EditPreferencesModalProp
       onClose={onClose}
       footer={
         <>
-          <AppButton variant="ghost" onClick={onClose}>
+          <AppButton variant="ghost" onClick={onClose} disabled={busy}>
             Cancel
           </AppButton>
-          <AppButton variant="primary" onClick={save}>
+          <AppButton variant="primary" onClick={() => void save()} loading={busy}>
             Save
           </AppButton>
         </>
@@ -96,43 +117,49 @@ export function EditPreferencesModal({ open, onClose }: EditPreferencesModalProp
     >
       <ChipGroup
         legend="Skills"
-        options={ALL_CATEGORIES}
+        options={Category.options}
         labels={TASK_CATEGORY_LABEL}
         selected={skills}
         onToggle={(v) => setSkills((prev) => toggle(prev, v))}
       />
       <ChipGroup
         legend="Assistance interests"
-        options={ALL_CATEGORIES}
+        options={Category.options}
         labels={TASK_CATEGORY_LABEL}
         selected={interests}
         onToggle={(v) => setInterests((prev) => toggle(prev, v))}
       />
       <ChipGroup
         legend="Preferred days"
-        options={ALL_DAYS}
+        options={PREFERRED_DAYS}
         labels={PREFERRED_DAY_LABEL}
         selected={days}
         onToggle={(v) => setDays((prev) => toggle(prev, v))}
       />
       <ChipGroup
         legend="Preferred time of day"
-        options={ALL_TIMES}
+        options={TIMES_OF_DAY}
         labels={TIME_OF_DAY_LABEL}
         selected={times}
         onToggle={(v) => setTimes((prev) => toggle(prev, v))}
       />
       <ChipGroup
         legend="Communication languages"
-        options={ALL_LANGS}
+        options={LANGUAGES}
         labels={LANGUAGE_LABEL}
         selected={languages}
         onToggle={(v) => setLanguages((prev) => toggle(prev, v))}
       />
-      <p className="ui-helper" style={{ margin: 0 }}>
-        Saved on this device for the demo. Language preference is a prototype
-        setting and is not yet part of the shared backend profile.
+      <p className="ui-helper ui-flush">
+        {isDemo
+          ? "Saved on this device for the demo."
+          : "Skills and availability are saved to your account and used for matching. Interests and languages stay on this device."}
       </p>
+      {saveError && (
+        <p className="ui-error ui-flush" role="alert">
+          {saveError}
+        </p>
+      )}
     </Modal>
   );
 }

@@ -7,7 +7,7 @@ export type TownshipUpdateModalProps = {
   onClose: () => void;
 };
 
-/** Read-more dialog for a township update. */
+// Read-more dialog for a township update.
 export function TownshipUpdateModal({ item, onClose }: TownshipUpdateModalProps) {
   return (
     <Modal
@@ -22,11 +22,11 @@ export function TownshipUpdateModal({ item, onClose }: TownshipUpdateModalProps)
     >
       {item && (
         <>
-          <div className="inline-icon" style={{ gap: "var(--space-2)" }}>
+          <div className="inline-icon ui-gap-2">
             <Pill>{item.topic}</Pill>
             <span className="ui-meta-row">Published {formatDate(item.publishedAt)}</span>
           </div>
-          <p style={{ margin: 0 }}>{item.summary}</p>
+          <p className="ui-flush">{item.summary}</p>
           <div className="ui-meta-row">
             <span>Source: {item.sourceLabel}</span>
             {item.isDemoData && <DemoTag />}

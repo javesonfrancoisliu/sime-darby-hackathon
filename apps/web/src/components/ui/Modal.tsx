@@ -1,53 +1,67 @@
 import { X } from "lucide-react";
 import { useEffect, useId, useRef, type ReactNode } from "react";
 
+import { closeModal, isTopModal, openModal } from "./modalStack";
+
 export type ModalProps = {
   open: boolean;
   title: string;
   onClose: () => void;
   children: ReactNode;
-  /** Optional footer actions, e.g. buttons. */
+  // Optional footer actions, e.g. buttons.
   footer?: ReactNode;
 };
 
-/**
- * Accessible dialog: labelled title, Esc to close, backdrop click to close,
- * focus moved in on open and restored on close, and focus trapped while open.
- */
+const FOCUSABLE =
+  'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+// Accessible dialog: labelled title, Escape closes only the topmost dialog,
+// backdrop click closes, focus moves in once on open and returns on close,
+// Tab stays inside and the page behind is inert while it is open.
 export function Modal({ open, title, onClose, children, footer }: ModalProps) {
   const titleId = useId();
+  const backdropRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
-  const previouslyFocused = useRef<HTMLElement | null>(null);
+  // Callers pass inline handlers; reading the latest one here keeps the effect
+  // below from re-running (and stealing focus) on every parent render.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
 
   useEffect(() => {
-    if (!open) return;
-
-    previouslyFocused.current = document.activeElement as HTMLElement | null;
+    const backdrop = backdropRef.current;
     const dialog = dialogRef.current;
-    dialog?.focus();
+    if (!open || !backdrop || !dialog) return;
 
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const id = Symbol("modal");
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    openModal(id, backdrop);
+    dialog.focus();
 
     function onKeyDown(event: KeyboardEvent) {
+      if (!dialog || !isTopModal(id)) return;
       if (event.key === "Escape") {
         event.preventDefault();
-        onClose();
+        onCloseRef.current();
         return;
       }
-      if (event.key !== "Tab" || !dialog) return;
+      if (event.key !== "Tab") return;
 
-      const focusable = dialog.querySelectorAll<HTMLElement>(
-        'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])',
-      );
-      if (focusable.length === 0) return;
-      const first = focusable[0]!;
-      const last = focusable[focusable.length - 1]!;
-
-      if (event.shiftKey && document.activeElement === first) {
+      const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(FOCUSABLE));
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (!first || !last) {
+        event.preventDefault();
+        dialog.focus();
+        return;
+      }
+      const active = document.activeElement;
+      const inside = active !== null && dialog.contains(active);
+      if (event.shiftKey && (active === first || active === dialog || !inside)) {
         event.preventDefault();
         last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
+      } else if (!event.shiftKey && (active === last || !inside)) {
         event.preventDefault();
         first.focus();
       }
@@ -56,15 +70,16 @@ export function Modal({ open, title, onClose, children, footer }: ModalProps) {
     document.addEventListener("keydown", onKeyDown);
     return () => {
       document.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = previousOverflow;
-      previouslyFocused.current?.focus();
+      closeModal(id);
+      if (previouslyFocused?.isConnected) previouslyFocused.focus();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 
   return (
     <div
+      ref={backdropRef}
       className="ui-modal-backdrop"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();

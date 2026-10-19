@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CreateUserBody, UpdateMeBody } from "./index";
+import { CreateMeBody, CreateUserBody, PRECINCT_LOCATIONS, Precinct, UpdateMeBody } from "./index";
 
 const base = {
   role: "volunteer",
@@ -41,5 +41,25 @@ describe("UpdateMeBody", () => {
 
   it("does not inject defaults into a partial update", () => {
     expect(UpdateMeBody.parse({ name: "New" })).toEqual({ name: "New" });
+  });
+});
+
+describe("CreateMeBody", () => {
+  const me = { role: "elder", name: "Auntie Mary", precinct: "Elmina West" };
+
+  it("accepts a self-chosen role, a name and a known precinct", () => {
+    expect(CreateMeBody.parse(me)).toEqual(me);
+  });
+
+  it("rejects the coordinator role, an unknown precinct and extra fields such as id", () => {
+    expect(CreateMeBody.safeParse({ ...me, role: "coordinator" }).success).toBe(false);
+    expect(CreateMeBody.safeParse({ ...me, precinct: "Bandar Serai" }).success).toBe(false);
+    expect(CreateMeBody.safeParse({ ...me, id: "x" }).success).toBe(false);
+  });
+});
+
+describe("PRECINCT_LOCATIONS", () => {
+  it("has a location for every precinct", () => {
+    expect(Object.keys(PRECINCT_LOCATIONS).sort()).toEqual([...Precinct.options].sort());
   });
 });

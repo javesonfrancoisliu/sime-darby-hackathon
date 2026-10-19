@@ -10,7 +10,7 @@ export type TownshipUpdateCardProps = {
   onReadMore: (item: TownshipUpdateItem) => void;
 };
 
-/** Township update: official news, published date, topic, Read more CTA. */
+// Township update: official news, published date, topic, Read more CTA.
 export function TownshipUpdateCard({ item, onReadMore }: TownshipUpdateCardProps) {
   return (
     <InfoCard as="li" ariaLabel={`Township update: ${item.title}`}>
@@ -22,10 +22,8 @@ export function TownshipUpdateCard({ item, onReadMore }: TownshipUpdateCardProps
               {item.title}
             </span>
           </h3>
-          <div className="inline-icon" style={{ gap: "var(--space-2)" }}>
-            {item.priority === "high" && (
-              <StatusBadge label="High priority" variant="warning" />
-            )}
+          <div className="inline-icon ui-gap-2">
+            {item.priority === "high" && <StatusBadge label="High priority" variant="warning" />}
             <Pill>{item.topic}</Pill>
           </div>
         </div>

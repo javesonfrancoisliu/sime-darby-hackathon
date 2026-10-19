@@ -38,7 +38,7 @@ describe("claimReward", () => {
     expect(next).toEqual({ "rwd-a": { redeemedAt: AT } });
   });
 
-  it("is idempotent — does not overwrite an existing claim's timestamp", () => {
+  it("is idempotent - does not overwrite an existing claim's timestamp", () => {
     const existing = { "rwd-a": { redeemedAt: AT } };
     const next = claimReward(existing, "rwd-a", "2026-11-01T00:00:00+08:00");
     expect(next).toBe(existing); // unchanged reference

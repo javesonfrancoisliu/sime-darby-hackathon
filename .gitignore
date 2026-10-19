@@ -39,3 +39,7 @@ infra/terraform/build/
 
 # claude code agent worktrees
 .claude/worktrees/
+
+# ai assistant scratch folders
+.kiro/
+.agents/

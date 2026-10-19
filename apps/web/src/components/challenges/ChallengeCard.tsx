@@ -13,11 +13,9 @@ export type ChallengeCardProps = {
   onVerify: (challenge: Challenge) => void;
 };
 
-/**
- * One challenge: category, points reward, progress toward goal, status and the
- * single action appropriate to its current state. Points are only awarded on
- * verified completion — joining and logging progress never award points.
- */
+// One challenge: category, points reward, progress toward goal, status and the
+// single action appropriate to its current state. Points are only awarded on
+// verified completion - joining and logging progress never award points.
 export function ChallengeCard({
   challenge,
   progress,
@@ -38,7 +36,7 @@ export function ChallengeCard({
           <Pill>{CHALLENGE_CATEGORY_LABEL[challenge.category]}</Pill>
         </div>
 
-        <div className="ui-chip-row" style={{ gap: "var(--space-2)" }}>
+        <div className="ui-chip-row ui-gap-2">
           <span className="match-score" title="Points for verified completion">
             <Sparkles size={14} aria-hidden="true" />
             {challenge.points} pts
@@ -84,7 +82,7 @@ export function ChallengeCard({
           {status === "pending_verification" && (
             <>
               <StatusBadge label="Awaiting verification" variant="warning" />
-              {/* Simulated verification step — stands in for real verified participation. */}
+              {/* Simulated verification step - stands in for real verified participation. */}
               <AppButton variant="primary" onClick={() => onVerify(challenge)}>
                 Verify (demo)
               </AppButton>

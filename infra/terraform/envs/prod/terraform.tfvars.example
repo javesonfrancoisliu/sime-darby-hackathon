@@ -1,11 +1,16 @@
-aws_region                = "<region>"
-aws_profile               = "<profile>"
-project                   = "sime-darby-hackathon"
-environment               = "prod"
-table_deletion_protection = true
+aws_region                  = "<region>"
+aws_profile                 = "<profile>"
+project                     = "sime-darby-hackathon"
+environment                 = "prod"
+table_deletion_protection   = true
+cognito_deletion_protection = true
+demo_auth_enabled           = false
 
 # Optional overrides (defaults shown)
 # log_retention_days       = 14
 # api_throttle_burst_limit = 50
 # api_throttle_rate_limit  = 25
 # cloudfront_price_class   = "PriceClass_200"
+# developer_user_names     = ["<teammate-1>", "<teammate-2>", "<teammate-3>"]
+# developer_principal_arns = ["arn:aws:iam::<developer-account-id>:user/<name>"]
+# developer_sso_role_arns  = ["arn:aws:iam::<developer-account-id>:role/aws-reserved/sso.amazonaws.com/<region>/AWSReservedSSO_<set>_<id>"]

@@ -1,6 +1,6 @@
 import { CreateEventBody, Id, type CommunityEvent, type EventsResponse } from "@sdh/contracts";
 import { HttpError, ok, type Route } from "../../lib/http";
-import { DEMO_USER_HEADER, requireUser } from "../../lib/identity";
+import { optionalUser, requireUser } from "../../lib/identity";
 import { parse } from "../../lib/validate";
 import { complete, createEvent, join, listEvents } from "./service";
 
@@ -9,15 +9,8 @@ export const eventRoutes: Route[] = [
     method: "GET",
     path: "/api/events",
     handler: async (req) => {
-      // Public route: an unknown or absent demo user just omits the joined flag.
-      let viewer;
-      if (req.headers[DEMO_USER_HEADER]) {
-        try {
-          viewer = await requireUser(req);
-        } catch (error) {
-          if (!(error instanceof HttpError && error.code === "UNAUTHENTICATED")) throw error;
-        }
-      }
+      // Public route: no, unknown or unverifiable identity just omits the joined flag.
+      const viewer = await optionalUser(req);
       return ok({ events: await listEvents(viewer) } satisfies EventsResponse);
     },
   },

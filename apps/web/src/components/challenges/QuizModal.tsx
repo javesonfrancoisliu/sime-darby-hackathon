@@ -1,7 +1,7 @@
 import { CheckCircle2, XCircle } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState, type KeyboardEvent } from "react";
 
-import type { QuizQuestion } from "../../data/gamification.mock";
+import type { QuizQuestion } from "../../types/gamification";
 import { AppButton, Modal } from "../ui";
 
 export type QuizResult = { correct: number; total: number; passed: boolean };
@@ -9,19 +9,17 @@ export type QuizResult = { correct: number; total: number; passed: boolean };
 export type QuizModalProps = {
   open: boolean;
   questions: QuizQuestion[];
-  /** Correct answers needed to pass and earn points. */
+  // Correct answers needed to pass and earn points.
   passTarget: number;
-  /** Whether points were already earned (quiz completed before) — shown as info. */
+  // Whether points were already earned (quiz completed before) - shown as info.
   alreadyEarned: boolean;
   onClose: () => void;
   onPassed: (result: QuizResult) => void;
 };
 
-/**
- * Environmental awareness quiz, one question at a time. Gives per-answer
- * feedback and only reports a pass (awarding points) when the pass target is met.
- * Demo content.
- */
+// Environmental awareness quiz, one question at a time. Gives per-answer
+// feedback and only reports a pass (awarding points) when the pass target is met.
+// Demo content.
 export function QuizModal({
   open,
   questions,
@@ -35,6 +33,8 @@ export function QuizModal({
   const [revealed, setRevealed] = useState(false);
   const [correctCount, setCorrectCount] = useState(0);
   const [finished, setFinished] = useState(false);
+
+  const optionRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const question = questions[index];
   const isLast = index === questions.length - 1;
@@ -56,6 +56,21 @@ export function QuizModal({
     setIndex((i) => i + 1);
     setSelected(null);
     setRevealed(false);
+  }
+
+  // Radio group keyboard pattern: arrows move and select, wrapping at the ends.
+  function onOptionKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (!question || revealed) return;
+    const count = question.options.length;
+    const from = selected ?? -1;
+    let next: number;
+    if (event.key === "ArrowDown" || event.key === "ArrowRight") next = (from + 1) % count;
+    else if (event.key === "ArrowUp" || event.key === "ArrowLeft") {
+      next = from <= 0 ? count - 1 : from - 1;
+    } else return;
+    event.preventDefault();
+    setSelected(next);
+    optionRefs.current[next]?.focus();
   }
 
   function handleClose() {
@@ -91,7 +106,7 @@ export function QuizModal({
     >
       {finished ? (
         <div role="status">
-          <p style={{ margin: 0, fontWeight: 600 }}>
+          <p className="ui-flush ui-semibold">
             You got {correctCount} of {questions.length} correct.
           </p>
           <p className="ui-helper" style={{ marginTop: "var(--space-2)" }}>
@@ -108,8 +123,13 @@ export function QuizModal({
             <p className="ui-meta-row">
               Question {index + 1} of {questions.length}
             </p>
-            <p style={{ margin: 0, fontWeight: 600 }}>{question.question}</p>
-            <div className="quiz-options" role="radiogroup" aria-label="Answer options">
+            <p className="ui-flush ui-semibold">{question.question}</p>
+            <div
+              className="quiz-options"
+              role="radiogroup"
+              aria-label="Answer options"
+              onKeyDown={onOptionKeyDown}
+            >
               {question.options.map((option, i) => {
                 const isCorrect = i === question.correctIndex;
                 const isChosen = i === selected;
@@ -125,20 +145,20 @@ export function QuizModal({
                 return (
                   <button
                     key={option}
+                    ref={(node) => {
+                      optionRefs.current[i] = node;
+                    }}
                     type="button"
                     role="radio"
                     aria-checked={isChosen}
+                    tabIndex={isChosen || (selected == null && i === 0) ? 0 : -1}
                     className={`quiz-option${stateClass}`}
                     disabled={revealed}
                     onClick={() => setSelected(i)}
                   >
                     {option}
-                    {revealed && isCorrect && (
-                      <CheckCircle2 size={16} aria-hidden="true" />
-                    )}
-                    {revealed && isChosen && !isCorrect && (
-                      <XCircle size={16} aria-hidden="true" />
-                    )}
+                    {revealed && isCorrect && <CheckCircle2 size={16} aria-hidden="true" />}
+                    {revealed && isChosen && !isCorrect && <XCircle size={16} aria-hidden="true" />}
                   </button>
                 );
               })}

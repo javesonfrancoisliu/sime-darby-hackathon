@@ -10,11 +10,9 @@ export type LogProgressModalProps = {
   onSave: (challenge: Challenge, value: number) => void;
 };
 
-/**
- * Self-reported progress entry for a challenge. Clearly simulated — this is not
- * real fitness/step tracking. The parent passes `key={challenge.id}` so the
- * field resets per challenge.
- */
+// Self-reported progress entry for a challenge. Clearly simulated - this is not
+// real fitness/step tracking. The parent passes `key={challenge.id}` so the
+// field resets per challenge.
 export function LogProgressModal({ challenge, current, onClose, onSave }: LogProgressModalProps) {
   const [value, setValue] = useState(String(current));
   const [error, setError] = useState<string | null>(null);
@@ -46,9 +44,9 @@ export function LogProgressModal({ challenge, current, onClose, onSave }: LogPro
     >
       {challenge && (
         <>
-          <p style={{ margin: 0 }}>
-            Update your total {challenge.goal.unit} for <strong>{challenge.title}</strong>{" "}
-            (goal: {challenge.goal.target}).
+          <p className="ui-flush">
+            Update your total {challenge.goal.unit} for <strong>{challenge.title}</strong> (goal:{" "}
+            {challenge.goal.target}).
           </p>
           <FormField
             label={`Total ${challenge.goal.unit}`}
@@ -57,7 +55,7 @@ export function LogProgressModal({ challenge, current, onClose, onSave }: LogPro
             min={0}
             value={value}
             onChange={(event) => setValue(event.target.value)}
-            helper="Self-reported for this demo — not automatically tracked."
+            helper="Self-reported for this demo - not automatically tracked."
             error={error ?? undefined}
           />
         </>

@@ -14,6 +14,14 @@ resource "aws_cloudwatch_log_group" "access" {
   retention_in_days = var.log_retention_days
 }
 
+data "aws_caller_identity" "current" {}
+
+data "aws_region" "current" {}
+
+locals {
+  anthropic_api_key_parameter_arn = var.anthropic_api_key_parameter_name == "" ? null : "arn:aws:ssm:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:parameter${var.anthropic_api_key_parameter_name}"
+}
+
 data "aws_iam_policy_document" "assume" {
   statement {
     actions = ["sts:AssumeRole"]
@@ -76,9 +84,13 @@ resource "aws_lambda_function" "api" {
 
   environment {
     variables = {
-      TABLE_NAME   = var.table_name
-      SERVICE_NAME = "${var.name_prefix}-api"
-      NODE_OPTIONS = "--enable-source-maps"
+      TABLE_NAME        = var.table_name
+      SERVICE_NAME      = "${var.name_prefix}-api"
+      NODE_OPTIONS      = "--enable-source-maps"
+      DEMO_AUTH_ENABLED = var.demo_auth_enabled ? "true" : "false"
+
+      COGNITO_USER_POOL_ID = var.cognito_user_pool_id
+      COGNITO_CLIENT_ID    = var.cognito_client_id
     }
   }
 

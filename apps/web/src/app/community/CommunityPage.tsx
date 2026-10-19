@@ -1,4 +1,4 @@
-import { Search, Star } from "lucide-react";
+import { CloudOff, Search, Star } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import {
@@ -12,17 +12,21 @@ import {
   type FilterValue,
 } from "../../components/community";
 import {
+  AppButton,
   ConfirmationDialog,
   DemoTag,
   EmptyState,
   FormField,
   InfoCard,
   LoadingState,
+  Modal,
   PageHeader,
   Pill,
 } from "../../components/ui";
 import { ChallengesEntryCard } from "../../components/challenges";
 import { useRole } from "../../components/layout";
+import { useAcceptedTasks } from "../../data/AcceptedTasksContext";
+import { errorMessage, useSession } from "@sdh/api-client";
 import { useCommunityItems } from "../../data/useCommunityItems";
 import { formatDate } from "../../lib/format";
 import { DEMO_TOWNSHIP } from "../../lib/township";
@@ -42,7 +46,10 @@ const EMPTY_COUNTS: Record<FilterValue, number> = {
 };
 
 export function CommunityPage() {
-  const { items, loading } = useCommunityItems();
+  const { items, loading, error, usingSampleData, reload } = useCommunityItems();
+  const { userId } = useSession();
+  // Joined events also show in Volunteer → My accepted tasks.
+  const { joinEvent } = useAcceptedTasks();
   const { role } = useRole();
 
   const [filter, setFilter] = useState<FilterValue>("all");
@@ -52,9 +59,8 @@ export function CommunityPage() {
   const [joinedVolunteerIds, setJoinedVolunteerIds] = useState<Set<string>>(new Set());
   const [registeredEventIds, setRegisteredEventIds] = useState<Set<string>>(new Set());
   // Success confirmation shown after registering/joining. null = hidden.
-  const [confirmation, setConfirmation] = useState<{ title: string; message: string } | null>(
-    null,
-  );
+  const [confirmation, setConfirmation] = useState<{ title: string; message: string } | null>(null);
+  const [failure, setFailure] = useState<string | null>(null);
 
   // Highest-priority township update, else the newest item, as the featured notice.
   const featured = useMemo<CommunityItem | undefined>(() => {
@@ -76,10 +82,7 @@ export function CommunityPage() {
     return items.filter((item) => {
       if (filter !== "all" && item.category !== filter) return false;
       if (!query) return true;
-      return (
-        item.title.toLowerCase().includes(query) ||
-        item.summary.toLowerCase().includes(query)
-      );
+      return item.title.toLowerCase().includes(query) || item.summary.toLowerCase().includes(query);
     });
   }, [items, filter, search]);
 
@@ -91,13 +94,25 @@ export function CommunityPage() {
     });
   }
 
-  function registerEvent(event: EventItem) {
-    setRegisteredEventIds((prev) => new Set(prev).add(event.id));
+  async function registerEvent(event: EventItem) {
+    // Live events need a signed-in demo user; otherwise it's a local demo sign-up.
+    const live = userId !== null && !event.isDemoData;
     // Close the details dialog so the success confirmation takes over.
     setActiveEvent(null);
+    if (live) {
+      try {
+        await joinEvent(event.id);
+      } catch (err) {
+        setFailure(errorMessage(err));
+        return;
+      } finally {
+        await reload();
+      }
+    }
+    setRegisteredEventIds((prev) => new Set(prev).add(event.id));
     setConfirmation({
       title: "You're registered",
-      message: `See you at "${event.title}" on ${formatDate(event.startsAt)}. This is a demo sign-up saved only in this browser session.`,
+      message: `See you at "${event.title}" on ${formatDate(event.startsAt)}.${live ? "" : " This is a demo sign-up saved only in this browser session."}`,
     });
   }
 
@@ -117,9 +132,7 @@ export function CommunityPage() {
           />
         );
       case "township":
-        return (
-          <TownshipUpdateCard key={item.id} item={item} onReadMore={setActiveUpdate} />
-        );
+        return <TownshipUpdateCard key={item.id} item={item} onReadMore={setActiveUpdate} />;
     }
   }
 
@@ -127,7 +140,7 @@ export function CommunityPage() {
     <>
       <PageHeader
         title="Neighbourhood Hub"
-        subtitle="Everything happening in your township — events, maintenance, volunteering and official updates."
+        subtitle="Everything happening in your township - events, maintenance, volunteering and official updates."
         actions={<Pill>{DEMO_TOWNSHIP.name}</Pill>}
       />
 
@@ -141,6 +154,25 @@ export function CommunityPage() {
         <LoadingState rows={3} label="Loading community updates" />
       ) : (
         <>
+          {error && (
+            <InfoCard>
+              <EmptyState
+                icon={CloudOff}
+                title="Couldn't load community events"
+                description={error}
+                action={
+                  <AppButton variant="secondary" onClick={() => void reload()}>
+                    Try again
+                  </AppButton>
+                }
+              />
+            </InfoCard>
+          )}
+          {usingSampleData && (
+            <p className="ui-helper live-hint" role="status">
+              Showing sample data. The live events list was empty or could not be reached.
+            </p>
+          )}
           {featured && (
             <section className="ui-section" aria-labelledby="featured-heading">
               <h2 className="ui-visually-hidden" id="featured-heading">
@@ -149,7 +181,10 @@ export function CommunityPage() {
               <InfoCard className="featured-card">
                 <div className="feature-card">
                   <div className="feature-card-head">
-                    <span className="inline-icon" style={{ color: "var(--brand-primary)", fontWeight: 700 }}>
+                    <span
+                      className="inline-icon"
+                      style={{ color: "var(--brand-primary)", fontWeight: 700 }}
+                    >
                       <Star size={18} aria-hidden="true" />
                       Featured update
                     </span>
@@ -159,7 +194,9 @@ export function CommunityPage() {
                   <p className="feature-card-desc">{featured.summary}</p>
                   <div className="ui-meta-row">
                     <span>{formatDate(featured.updatedAt)}</span>
-                    <span className="ui-meta-dot" aria-hidden="true">•</span>
+                    <span className="ui-meta-dot" aria-hidden="true">
+                      •
+                    </span>
                     <span>{featured.sourceLabel}</span>
                   </div>
                 </div>
@@ -186,10 +223,13 @@ export function CommunityPage() {
             </div>
           </section>
 
-          <section className="ui-section" aria-labelledby="results-heading" aria-live="polite">
+          <section className="ui-section" aria-labelledby="results-heading">
             <h2 className="ui-section-title" id="results-heading">
               {filter === "all" ? "All updates" : `Filtered: ${counts[filter]} item(s)`}
             </h2>
+            <p className="results-count" aria-live="polite">
+              {visible.length} update{visible.length === 1 ? "" : "s"} shown
+            </p>
             {visible.length === 0 ? (
               <InfoCard>
                 <EmptyState
@@ -206,11 +246,29 @@ export function CommunityPage() {
 
       <EventDetailsModal
         event={activeEvent}
-        registered={activeEvent ? registeredEventIds.has(activeEvent.id) : false}
+        registered={
+          activeEvent
+            ? registeredEventIds.has(activeEvent.id) || activeEvent.joined === true
+            : false
+        }
         onClose={() => setActiveEvent(null)}
-        onRegister={registerEvent}
+        onRegister={(event) => void registerEvent(event)}
       />
       <TownshipUpdateModal item={activeUpdate} onClose={() => setActiveUpdate(null)} />
+      <Modal
+        open={failure !== null}
+        title="Couldn't register"
+        onClose={() => setFailure(null)}
+        footer={
+          <AppButton variant="primary" onClick={() => setFailure(null)}>
+            OK
+          </AppButton>
+        }
+      >
+        <p className="ui-flush" role="alert">
+          {failure}
+        </p>
+      </Modal>
       <ConfirmationDialog
         open={confirmation !== null}
         title={confirmation?.title ?? ""}

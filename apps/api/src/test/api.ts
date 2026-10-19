@@ -1,9 +1,11 @@
 import type { CreateUserBody, Role, User } from "@sdh/contracts";
 import { DEMO_USER_HEADER } from "../lib/identity";
-import { dispatch } from "../router";
+import { createUser as insertUser } from "../modules/users/service";
+import { dispatch } from "../app";
 
 interface CallOptions {
   as?: string;
+  token?: string;
   body?: unknown;
   query?: Record<string, string>;
 }
@@ -13,7 +15,10 @@ export async function call(method: string, path: string, options: CallOptions = 
     method,
     path,
     query: options.query ?? {},
-    headers: options.as ? { [DEMO_USER_HEADER]: options.as } : {},
+    headers: {
+      ...(options.as ? { [DEMO_USER_HEADER]: options.as } : {}),
+      ...(options.token ? { authorization: `Bearer ${options.token}` } : {}),
+    },
     rawBody: options.body === undefined ? undefined : JSON.stringify(options.body),
   });
 }
@@ -23,15 +28,16 @@ export async function createUser(
   role: Role,
   overrides: Partial<CreateUserBody> = {},
 ): Promise<User> {
-  const res = await call("POST", "/api/users", {
-    body: {
-      role,
-      name: `Test ${role}`,
-      area: "Precinct 1",
-      location: { lat: 3.0738, lng: 101.5183 },
-      ...overrides,
-    },
-  });
+  const body = {
+    role,
+    name: `Test ${role}`,
+    area: "Precinct 1",
+    location: { lat: 3.0738, lng: 101.5183 },
+    ...overrides,
+  };
+  // Coordinators cannot be created through the API, so insert them directly.
+  if (role === "coordinator") return insertUser(body as CreateUserBody);
+  const res = await call("POST", "/api/users", { body });
   if (res.status !== 201) throw new Error(`createUser failed: ${JSON.stringify(res.body)}`);
   return res.body as User;
 }

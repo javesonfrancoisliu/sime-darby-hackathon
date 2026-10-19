@@ -1,4 +1,4 @@
-import type { ConverseCommandInput } from "@aws-sdk/client-bedrock-runtime";
+import type { MessageCreateParamsNonStreaming } from "@anthropic-ai/sdk/resources/messages";
 import { MAX_REASON_LENGTH } from "@sdh/contracts";
 import { z } from "zod";
 import type { MatchTarget, ScoredVolunteer } from "./scoring";
@@ -7,7 +7,6 @@ import { CATEGORY_LABELS } from "./weights";
 export const RANKING_TOOL_NAME = "submit_ranking";
 
 const MAX_OUTPUT_TOKENS = 1024;
-const TEMPERATURE = 0;
 
 // Validates the tool input; unknown labels and long reasons are handled by the caller.
 export const RankingInput = z.object({
@@ -29,7 +28,7 @@ const SYSTEM_PROMPT = [
 ].join(" ");
 
 const TOOL_INPUT_SCHEMA = {
-  type: "object",
+  type: "object" as const,
   properties: {
     ranking: {
       type: "array",
@@ -66,32 +65,23 @@ export function buildPromptPayload(target: MatchTarget, candidates: ScoredVolunt
   };
 }
 
-export function buildConverseRequest(
+export function buildMessageRequest(
   modelId: string,
   target: MatchTarget,
   candidates: ScoredVolunteer[],
-): ConverseCommandInput {
+): MessageCreateParamsNonStreaming {
   return {
-    modelId,
-    system: [{ text: SYSTEM_PROMPT }],
-    messages: [
+    model: modelId,
+    max_tokens: MAX_OUTPUT_TOKENS,
+    system: SYSTEM_PROMPT,
+    messages: [{ role: "user", content: JSON.stringify(buildPromptPayload(target, candidates)) }],
+    tools: [
       {
-        role: "user",
-        content: [{ text: JSON.stringify(buildPromptPayload(target, candidates)) }],
+        name: RANKING_TOOL_NAME,
+        description: "Submit the reordered candidates with one reason each.",
+        input_schema: TOOL_INPUT_SCHEMA,
       },
     ],
-    toolConfig: {
-      tools: [
-        {
-          toolSpec: {
-            name: RANKING_TOOL_NAME,
-            description: "Submit the reordered candidates with one reason each.",
-            inputSchema: { json: TOOL_INPUT_SCHEMA },
-          },
-        },
-      ],
-      toolChoice: { tool: { name: RANKING_TOOL_NAME } },
-    },
-    inferenceConfig: { maxTokens: MAX_OUTPUT_TOKENS, temperature: TEMPERATURE },
+    tool_choice: { type: "tool", name: RANKING_TOOL_NAME },
   };
 }

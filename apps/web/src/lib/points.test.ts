@@ -37,10 +37,13 @@ describe("awardPoints", () => {
   });
 
   it("allows the same sourceId under a different sourceType", () => {
-    const ledger = awardPoints(
-      awardPoints([], challengeAward("x")),
-      { sourceType: "volunteering", sourceId: "x", points: 20, label: "Vol x", awardedAt: AT },
-    );
+    const ledger = awardPoints(awardPoints([], challengeAward("x")), {
+      sourceType: "volunteering",
+      sourceId: "x",
+      points: 20,
+      label: "Vol x",
+      awardedAt: AT,
+    });
     expect(ledger).toHaveLength(2);
   });
 });
@@ -176,7 +179,9 @@ describe("shared activity: points once, but counted as one volunteering task", (
       awardedAt: AT,
     });
     expect(totalPoints(ledger)).toBe(60);
-    expect(summarize(ledger, badges, achievements, verifiedTaskIds.size).completedVolunteerTasks).toBe(2);
+    expect(
+      summarize(ledger, badges, achievements, verifiedTaskIds.size).completedVolunteerTasks,
+    ).toBe(2);
   });
 });
 

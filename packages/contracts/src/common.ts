@@ -21,7 +21,9 @@ export const Location = z.object({
 });
 export type Location = z.infer<typeof Location>;
 
-export const Area = z.string().trim().min(1).max(80);
+export const MAX_NAME_LENGTH = 80;
+
+export const Area = z.string().trim().min(1).max(MAX_NAME_LENGTH);
 
 // Times are Malaysia local time (UTC+8), 24-hour HH:MM.
 const LocalTime = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Use HH:MM (24-hour)");

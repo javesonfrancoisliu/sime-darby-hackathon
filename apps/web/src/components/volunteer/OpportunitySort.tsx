@@ -1,4 +1,5 @@
-export type SortOption = "nearest" | "soonest" | "urgent";
+export const SORT_OPTIONS = ["nearest", "soonest", "urgent"] as const;
+export type SortOption = (typeof SORT_OPTIONS)[number];
 
 export const SORT_LABEL: Record<SortOption, string> = {
   nearest: "Nearest first",
@@ -11,28 +12,26 @@ export type OpportunitySortProps = {
   onChange: (next: SortOption) => void;
 };
 
-/** Compact results bar control: a single Sort dropdown. */
+// Compact results bar control: one themed chip per sort order.
 export function OpportunitySort({ value, onChange }: OpportunitySortProps) {
   return (
     <div className="sort-control">
-      <label className="ui-visually-hidden" htmlFor="opportunity-sort">
-        Sort opportunities
-      </label>
-      <span className="sort-control-label" aria-hidden="true">
+      <span className="sort-control-label" id="opportunity-sort-label">
         Sort
       </span>
-      <select
-        id="opportunity-sort"
-        className="ui-input sort-select"
-        value={value}
-        onChange={(event) => onChange(event.target.value as SortOption)}
-      >
-        {(Object.keys(SORT_LABEL) as SortOption[]).map((option) => (
-          <option key={option} value={option}>
+      <div className="ui-chip-row" role="group" aria-labelledby="opportunity-sort-label">
+        {SORT_OPTIONS.map((option) => (
+          <button
+            key={option}
+            type="button"
+            className="ui-chip"
+            aria-pressed={value === option}
+            onClick={() => onChange(option)}
+          >
             {SORT_LABEL[option]}
-          </option>
+          </button>
         ))}
-      </select>
+      </div>
     </div>
   );
 }

@@ -6,10 +6,8 @@ export type VerifiedBadgeProps = {
   status: VerificationStatus;
 };
 
-/**
- * Volunteer verification indicator. Text + icon (never color alone).
- * "not_required" renders nothing.
- */
+// Volunteer verification indicator. Text + icon (never color alone).
+// "not_required" renders nothing.
 export function VerifiedBadge({ status }: VerifiedBadgeProps) {
   if (status === "not_required") return null;
   if (status === "verified") {
@@ -17,6 +15,14 @@ export function VerifiedBadge({ status }: VerifiedBadgeProps) {
       <span className="ui-badge ui-badge--success">
         <BadgeCheck size={14} aria-hidden="true" />
         Verified volunteer
+      </span>
+    );
+  }
+  if (status === "rejected") {
+    return (
+      <span className="ui-badge ui-badge--danger">
+        <ShieldQuestion size={14} aria-hidden="true" />
+        Not verified
       </span>
     );
   }

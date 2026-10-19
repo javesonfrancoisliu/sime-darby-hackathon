@@ -11,3 +11,4 @@ export { PageHeader } from "./PageHeader";
 export { Pill } from "./Pill";
 export { ProgressBar } from "./ProgressBar";
 export { StatusBadge } from "./StatusBadge";
+export { Tabs, TabPanel, type TabItem, type TabsProps } from "./Tabs";

@@ -9,22 +9,20 @@ export type ClaimedRewardsCardProps = {
   claimed: ClaimedReward[];
 };
 
-/**
- * Profile → My Rewards: the user's claimed (redeemed) rewards, reusing the
- * gamification redemption state. Available rewards / badges / leaderboard stay in
- * Community Challenges — this only shows what was claimed. All fictional / demo.
- */
+// Profile → My Rewards: the user's claimed (redeemed) rewards, reusing the
+// gamification redemption state. Available rewards / badges / leaderboard stay in
+// Community Challenges - this only shows what was claimed. All fictional / demo.
 export function ClaimedRewardsCard({ claimed }: ClaimedRewardsCardProps) {
   return (
     <InfoCard ariaLabel="My rewards">
       <div className="feature-card">
         <div className="feature-card-head">
-          <h3 className="feature-card-title">
+          <h2 className="feature-card-title">
             <span className="inline-icon">
               <Ticket size={18} aria-hidden="true" />
               My rewards
             </span>
-          </h3>
+          </h2>
           <DemoTag />
         </div>
 
@@ -35,7 +33,7 @@ export function ClaimedRewardsCard({ claimed }: ClaimedRewardsCardProps) {
             description="Redeem a reward in Community Challenges and it will appear here."
           />
         ) : (
-          <ul className="community-list ui-stack" style={{ gap: "var(--space-2)" }}>
+          <ul className="community-list ui-stack ui-gap-2">
             {claimed.map((reward) => (
               <li key={reward.id} className="claimed-reward">
                 <div className="claimed-reward-body">
@@ -52,8 +50,8 @@ export function ClaimedRewardsCard({ claimed }: ClaimedRewardsCardProps) {
           </ul>
         )}
 
-        <p className="ui-helper" style={{ margin: 0 }}>
-          Fictional demo rewards — no real voucher, code or payment is issued.{" "}
+        <p className="ui-helper ui-flush">
+          Fictional demo rewards - no real voucher, code or payment is issued.{" "}
           <Link to="/community/challenges">See available rewards in Challenges</Link>.
         </p>
       </div>

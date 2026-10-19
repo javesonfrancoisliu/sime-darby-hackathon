@@ -1,8 +1,8 @@
 import { ArrowRight, Megaphone } from "lucide-react";
 
-import { COMMUNITY_ITEMS } from "../../data/community.mock";
+import { useLatestCommunityItems } from "../../data/useCommunityItems";
 import { formatRelative } from "../../lib/format";
-import { AppLinkButton, InfoCard, Pill } from "../ui";
+import { AppLinkButton, DemoTag, InfoCard, Pill } from "../ui";
 
 const CATEGORY_LABEL: Record<string, string> = {
   event: "Event",
@@ -11,32 +11,31 @@ const CATEGORY_LABEL: Record<string, string> = {
   township: "Township",
 };
 
-/**
- * Compact community summary for the shared Home page (the three latest items).
- * Exposed per the integration contract so Home composes it beside SafetyOverview
- * without duplicating the full community layout.
- */
+// Compact community summary for the shared Home page (the three latest items).
+// Exposed per the integration contract so Home composes it beside SafetyOverview
+// without duplicating the full community layout.
 export function CommunityOverview({ townshipId }: { townshipId?: string }) {
-  const items = COMMUNITY_ITEMS.filter(
-    (item) => !townshipId || item.townshipId === townshipId,
-  ).slice(0, 3);
+  const items = useLatestCommunityItems(townshipId);
+  // Label the list whenever any item is simulated; live items carry isDemoData: false.
+  const showsDemoData = items.some((item) => item.isDemoData);
 
   return (
     <InfoCard ariaLabel="Latest community updates">
       <div className="feature-card">
         <div className="feature-card-head">
-          <h3 className="feature-card-title">
+          <h2 className="feature-card-title">
             <span className="inline-icon">
               <Megaphone size={18} aria-hidden="true" />
               Latest community updates
             </span>
-          </h3>
+          </h2>
+          {showsDemoData && <DemoTag />}
         </div>
 
         <ul className="ui-stack" style={{ listStyle: "none", margin: 0, padding: 0 }}>
           {items.map((item) => (
             <li key={item.id} className="overview-item">
-              <div className="inline-icon" style={{ gap: "var(--space-2)" }}>
+              <div className="inline-icon ui-gap-2">
                 <Pill>{CATEGORY_LABEL[item.category]}</Pill>
                 <span className="ui-meta-row">{formatRelative(item.updatedAt)}</span>
               </div>

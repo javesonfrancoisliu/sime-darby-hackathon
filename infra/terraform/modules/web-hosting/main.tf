@@ -6,7 +6,8 @@ locals {
 }
 
 resource "aws_s3_bucket" "web" {
-  bucket = "${var.name_prefix}-web-${data.aws_caller_identity.current.account_id}"
+  bucket        = "${var.name_prefix}-${var.site_name}-${data.aws_caller_identity.current.account_id}"
+  force_destroy = var.force_destroy
 }
 
 resource "aws_s3_bucket_public_access_block" "web" {
@@ -45,14 +46,14 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "web" {
 }
 
 resource "aws_cloudfront_origin_access_control" "web" {
-  name                              = "${var.name_prefix}-web"
+  name                              = "${var.name_prefix}-${var.site_name}"
   origin_access_control_origin_type = "s3"
   signing_behavior                  = "always"
   signing_protocol                  = "sigv4"
 }
 
 resource "aws_cloudfront_function" "spa_rewrite" {
-  name    = "${var.name_prefix}-spa-rewrite"
+  name    = "${var.name_prefix}-${var.site_name}-spa-rewrite"
   runtime = "cloudfront-js-2.0"
   publish = true
   code    = file("${path.module}/spa-rewrite.js")

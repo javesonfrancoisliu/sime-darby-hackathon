@@ -1,0 +1,22 @@
+{
+  "name": "@sdh/auth",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.1150.0"
+  },
+  "devDependencies": {
+    "@sdh/config": "workspace:*",
+    "jsdom": "^25.0.1",
+    "typescript": "6.0.3",
+    "vitest": "^5.0.4"
+  }
+}

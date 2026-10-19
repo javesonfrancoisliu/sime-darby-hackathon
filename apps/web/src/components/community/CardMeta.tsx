@@ -7,10 +7,8 @@ export type CardMetaProps = {
   isDemoData: boolean;
 };
 
-/**
- * Consistent card footer metadata: last-updated + source, plus the Demo data tag
- * for simulated feeds. Used by every community card so labelling is uniform.
- */
+// Consistent card footer metadata: last-updated + source, plus the Demo data tag
+// for simulated feeds. Used by every community card so labelling is uniform.
 export function CardMeta({ updatedAt, sourceLabel, isDemoData }: CardMetaProps) {
   return (
     <div className="ui-meta-row">

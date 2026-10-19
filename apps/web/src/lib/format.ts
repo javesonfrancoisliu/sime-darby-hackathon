@@ -36,7 +36,7 @@ export function formatTimeRange(startIso: string, durationMinutes: number): stri
   return `${time.format(start)} – ${time.format(end)}`;
 }
 
-/** Relative "updated" label, e.g. "Updated 2 days ago". */
+// Relative "updated" label, e.g. "Updated 2 days ago".
 export function formatRelative(iso: string, now: Date = new Date()): string {
   const diffMs = new Date(iso).getTime() - now.getTime();
   const diffMinutes = Math.round(diffMs / 60_000);

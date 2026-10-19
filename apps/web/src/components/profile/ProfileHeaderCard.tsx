@@ -10,13 +10,11 @@ export type ProfileHeaderCardProps = {
   onEdit: () => void;
 };
 
-/**
- * Compact profile header: avatar, display name, neighbourhood, verification
- * status (demo-labelled) and a small claimed-reward count. Does NOT repeat the
- * tasks/points/leaderboard sections — those live on their own pages.
- */
+// Compact profile header: avatar, display name, neighbourhood, verification
+// status (demo-labelled) and a small claimed-reward count. Does NOT repeat the
+// tasks/points/leaderboard sections - those live on their own pages.
 export function ProfileHeaderCard({ claimedCount, onEdit }: ProfileHeaderCardProps) {
-  const { prefs, verification } = useProfile();
+  const { prefs, verification, isDemo } = useProfile();
 
   return (
     <InfoCard ariaLabel="Your profile">
@@ -30,10 +28,10 @@ export function ProfileHeaderCard({ claimedCount, onEdit }: ProfileHeaderCardPro
           </span>
           <div className="profile-header-badges">
             <VerifiedBadge status={verification} />
-            <DemoTag />
+            {isDemo && <DemoTag />}
           </div>
           {claimedCount > 0 && (
-            <p className="ui-meta-row" style={{ margin: 0 }}>
+            <p className="ui-meta-row ui-flush">
               {claimedCount} claimed reward{claimedCount === 1 ? "" : "s"}
             </p>
           )}

@@ -1,9 +1,9 @@
-import type { ConverseCommandOutput } from "@aws-sdk/client-bedrock-runtime";
+import type { Message } from "@anthropic-ai/sdk/resources/messages";
 import type { User } from "@sdh/contracts";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { logger } from "../../lib/logger";
-import { createBedrockReranker, isSafeReason, type SendConverse } from "./bedrockReranker";
-import { buildConverseRequest, buildPromptPayload, RANKING_TOOL_NAME } from "./prompt";
+import { createClaudeReranker, isSafeReason, type SendMessage } from "./claudeReranker";
+import { buildMessageRequest, buildPromptPayload, RANKING_TOOL_NAME } from "./prompt";
 import { rulesReranker, selectReranker, toMatches } from "./reranker";
 import { rankVolunteers, type MatchTarget } from "./scoring";
 import { RESULT_SIZE } from "./weights";
@@ -35,27 +35,23 @@ const make = (n: number): User => ({
 const candidates = rankVolunteers(target, [1, 2, 3, 4].map(make));
 const ruleOrder = candidates.map((c) => c.volunteer.id);
 
-const toolOutput = (input: unknown): ConverseCommandOutput =>
+const toolOutput = (input: unknown): Message =>
   ({
-    output: {
-      message: {
-        role: "assistant",
-        content: [{ toolUse: { toolUseId: "t1", name: RANKING_TOOL_NAME, input } }],
-      },
-    },
-  }) as ConverseCommandOutput;
+    content: [{ type: "tool_use", id: "t1", name: RANKING_TOOL_NAME, input }],
+    stop_reason: "tool_use",
+  }) as unknown as Message;
 
-const rerankerWith = (send: SendConverse, timeoutMs = 1000) =>
-  createBedrockReranker({ send, modelId: "test-model", timeoutMs });
+const rerankerWith = (send: SendMessage, timeoutMs = 1000) =>
+  createClaudeReranker({ send, modelId: "test-model", timeoutMs });
 
 afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllEnvs();
 });
 
-describe("bedrock reranker", () => {
+describe("claude reranker", () => {
   it("reorders with AI reasons and reports ai", async () => {
-    const send = vi.fn<SendConverse>().mockResolvedValue(
+    const send = vi.fn<SendMessage>().mockResolvedValue(
       toolOutput({
         ranking: [
           { candidate: "c3", reason: "Lives close by." },
@@ -74,11 +70,11 @@ describe("bedrock reranker", () => {
       ruleOrder[3],
     ]);
     expect(result.items[0]?.reason).toBe("Lives close by.");
-    expect(send.mock.calls[0]?.[0].modelId).toBe("test-model");
+    expect(send.mock.calls[0]?.[0].model).toBe("test-model");
   });
 
   it("drops unknown and repeated labels", async () => {
-    const send = vi.fn<SendConverse>().mockResolvedValue(
+    const send = vi.fn<SendMessage>().mockResolvedValue(
       toolOutput({
         ranking: [
           { candidate: "c9", reason: "Ghost" },
@@ -101,7 +97,7 @@ describe("bedrock reranker", () => {
 
   it("appends missing candidates in rules order with rule reasons", async () => {
     const send = vi
-      .fn<SendConverse>()
+      .fn<SendMessage>()
       .mockResolvedValue(toolOutput({ ranking: [{ candidate: "c3", reason: "Best" }] }));
     const result = await rerankerWith(send).rerank(target, candidates);
     expect(result.rankedBy).toBe("ai");
@@ -116,7 +112,7 @@ describe("bedrock reranker", () => {
   });
 
   it("replaces reasons carrying contact details or links with the rule reason", async () => {
-    const send = vi.fn<SendConverse>().mockResolvedValue(
+    const send = vi.fn<SendMessage>().mockResolvedValue(
       toolOutput({
         ranking: [
           { candidate: "c1", reason: "Call me on 012-345 6789 first" },
@@ -148,7 +144,7 @@ describe("bedrock reranker", () => {
 
   it("truncates long reasons to 140 characters", async () => {
     const send = vi
-      .fn<SendConverse>()
+      .fn<SendMessage>()
       .mockResolvedValue(toolOutput({ ranking: [{ candidate: "c1", reason: "x".repeat(500) }] }));
     const result = await rerankerWith(send).rerank(target, candidates);
     expect(result.items[0]?.reason).toHaveLength(140);
@@ -156,7 +152,7 @@ describe("bedrock reranker", () => {
 
   it("falls back to rules on malformed tool output", async () => {
     const warn = vi.spyOn(logger, "warn").mockImplementation(() => undefined);
-    const send = vi.fn<SendConverse>().mockResolvedValue(toolOutput({ ranking: "nope" }));
+    const send = vi.fn<SendMessage>().mockResolvedValue(toolOutput({ ranking: "nope" }));
     const result = await rerankerWith(send).rerank(target, candidates);
     expect(result).toEqual(await rulesReranker.rerank(target, candidates));
     expect(warn).toHaveBeenCalledOnce();
@@ -164,14 +160,16 @@ describe("bedrock reranker", () => {
 
   it("falls back to rules when the model returns no tool call", async () => {
     vi.spyOn(logger, "warn").mockImplementation(() => undefined);
-    const send = vi.fn<SendConverse>().mockResolvedValue({ output: undefined } as never);
+    const send = vi
+      .fn<SendMessage>()
+      .mockResolvedValue({ content: [{ type: "text", text: "no tool" }] } as never);
     const result = await rerankerWith(send).rerank(target, candidates);
     expect(result.rankedBy).toBe("rules");
   });
 
   it("falls back to rules when send rejects, without logging candidate data", async () => {
     const warn = vi.spyOn(logger, "warn").mockImplementation(() => undefined);
-    const send = vi.fn<SendConverse>().mockRejectedValue(new Error("Secret Name 1 boom"));
+    const send = vi.fn<SendMessage>().mockRejectedValue(new Error("Secret Name 1 boom"));
     const result = await rerankerWith(send).rerank(target, candidates);
     expect(result.rankedBy).toBe("rules");
     expect(JSON.stringify(warn.mock.calls)).not.toContain("Secret Name");
@@ -180,7 +178,7 @@ describe("bedrock reranker", () => {
   it("falls back to rules within the timeout when send never resolves", async () => {
     vi.spyOn(logger, "warn").mockImplementation(() => undefined);
     let aborted = false;
-    const send: SendConverse = (_input, signal) =>
+    const send: SendMessage = (_input, signal) =>
       new Promise(() => signal.addEventListener("abort", () => (aborted = true)));
     const started = Date.now();
     const result = await rerankerWith(send, 50).rerank(target, candidates);
@@ -192,7 +190,7 @@ describe("bedrock reranker", () => {
 
 describe("prompt privacy", () => {
   it("sends no names, ids or coordinates", () => {
-    const request = JSON.stringify(buildConverseRequest("test-model", target, candidates));
+    const request = JSON.stringify(buildMessageRequest("test-model", target, candidates));
     for (const entry of candidates) {
       expect(request).not.toContain(entry.volunteer.name);
       expect(request).not.toContain(entry.volunteer.id);
@@ -205,9 +203,9 @@ describe("prompt privacy", () => {
   });
 
   it("forces the single ranking tool", () => {
-    const request = buildConverseRequest("test-model", target, candidates);
-    expect(request.toolConfig?.toolChoice).toEqual({ tool: { name: RANKING_TOOL_NAME } });
-    expect(request.toolConfig?.tools).toHaveLength(1);
+    const request = buildMessageRequest("test-model", target, candidates);
+    expect(request.tool_choice).toEqual({ type: "tool", name: RANKING_TOOL_NAME });
+    expect(request.tools).toHaveLength(1);
   });
 });
 

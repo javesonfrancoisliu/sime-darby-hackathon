@@ -8,16 +8,14 @@ export type ConfirmationDialogProps = {
   open: boolean;
   title: string;
   message: ReactNode;
-  /** Label for the single dismiss button. */
+  // Label for the single dismiss button.
   closeLabel?: string;
   onClose: () => void;
 };
 
-/**
- * Success confirmation dialog: a prominent animated check, a short title and
- * message, and one dismiss button. Used after an action succeeds (registering
- * for an event, joining a volunteer activity) so the result is unmistakable.
- */
+// Success confirmation dialog: a prominent animated check, a short title and
+// message, and one dismiss button. Used after an action succeeds (registering
+// for an event, joining a volunteer activity) so the result is unmistakable.
 export function ConfirmationDialog({
   open,
   title,

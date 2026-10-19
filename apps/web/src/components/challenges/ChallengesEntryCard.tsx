@@ -3,11 +3,9 @@ import { useNavigate } from "react-router-dom";
 
 import { AppButton, InfoCard } from "../ui";
 
-/**
- * Compact entry point to Community Challenges, shown near the top of the
- * Community page for the young role. Kept small so it does not push announcements
- * and events down the page.
- */
+// Compact entry point to Community Challenges, shown near the top of the
+// Community page for the young role. Kept small so it does not push announcements
+// and events down the page.
 export function ChallengesEntryCard() {
   const navigate = useNavigate();
   return (

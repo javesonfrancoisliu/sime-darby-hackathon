@@ -15,7 +15,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "db:up": "docker compose up -d dynamodb",
-    "db:setup": "pnpm --filter @sdh/api db:setup"
+    "db:setup": "pnpm --filter @sdh/api db:setup",
+    "db:seed": "pnpm --filter @sdh/api db:seed"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
