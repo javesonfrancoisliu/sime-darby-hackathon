@@ -77,7 +77,9 @@ describe("Me page", () => {
     const user = userEvent.setup();
     await user.click(screen.getByRole("button", { name: "012-345 6789" }));
     let dialog = await screen.findByRole("dialog");
-    expect(within(dialog).getByRole("slider", { name: /Slide to call 012-345 6789/ })).toBeInTheDocument();
+    expect(
+      within(dialog).getByRole("slider", { name: /Slide to call 012-345 6789/ }),
+    ).toBeInTheDocument();
     await user.keyboard("{Escape}");
     expect(screen.getByText(/Zainal \(Son\)/)).toBeInTheDocument();
     await user.click(await screen.findByRole("button", { name: /Township security/ }));
