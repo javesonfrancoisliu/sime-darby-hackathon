@@ -165,6 +165,8 @@ describe("volunteer page", () => {
     renderApp("/volunteer");
     const user = userEvent.setup();
 
+    // Accepting happens from the details popup, mirroring the Community page.
+    await user.click(await screen.findByRole("button", { name: "View details" }));
     await user.click(await screen.findByRole("button", { name: "Accept & help" }));
     // A yes/no confirmation now precedes the accept.
     await user.click(await screen.findByRole("button", { name: "Yes, accept" }));
@@ -186,6 +188,7 @@ describe("volunteer page", () => {
     renderApp("/volunteer");
     const user = userEvent.setup();
 
+    await user.click(await screen.findByRole("button", { name: "View details" }));
     await user.click(await screen.findByRole("button", { name: "Accept & help" }));
     await user.click(await screen.findByRole("button", { name: "Yes, accept" }));
     expect(await screen.findByText("Someone else just took this")).toBeInTheDocument();

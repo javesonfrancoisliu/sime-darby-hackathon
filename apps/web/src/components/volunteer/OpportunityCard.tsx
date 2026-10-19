@@ -10,23 +10,21 @@ export type OpportunityCardProps = {
   // Worked out by the page from the start time and the current clock.
   urgency: Urgency;
   joined: boolean;
-  // True while this card's accept is being saved.
-  accepting?: boolean;
-  onAccept: (opportunity: Opportunity) => void;
+  // Open the details popup for this opportunity. Accepting happens from there,
+  // mirroring the Community page's "View details" -> act flow.
+  onViewDetails: (opportunity: Opportunity) => void;
 };
 
-// One volunteering opportunity: category, urgency, distance, schedule, duration,
-// a rule-based match score and reasons, plus an accept action.
+// One volunteering opportunity: category, urgency, distance, schedule and
+// duration, plus a View details action. The summary, match reasons and accept
+// action live in the details popup, matching the Community event cards.
 export function OpportunityCard({
   opportunity,
   urgency,
   joined,
-  accepting = false,
-  onAccept,
+  onViewDetails,
 }: OpportunityCardProps) {
   const distance = opportunity.distanceKm;
-  // The match reasons repeat the distance already shown in the location line.
-  const reasons = opportunity.reasons.filter((reason) => !/\bkm away\b/.test(reason));
   const urgencyVariant = urgency === "high" ? "danger" : urgency === "medium" ? "warning" : "info";
 
   return (
@@ -61,16 +59,6 @@ export function OpportunityCard({
           </span>
         </div>
 
-        <p className="feature-card-desc">{opportunity.summary}</p>
-
-        {reasons.length > 0 && (
-          <ul className="match-reasons" aria-label="Why this matches you">
-            {reasons.map((reason) => (
-              <li key={reason}>{reason}</li>
-            ))}
-          </ul>
-        )}
-
         <div className="feature-card-foot">
           {joined ? (
             <StatusBadge
@@ -78,8 +66,8 @@ export function OpportunityCard({
               variant="success"
             />
           ) : (
-            <AppButton variant="primary" loading={accepting} onClick={() => onAccept(opportunity)}>
-              {opportunity.kind === "event" ? "Join event" : "Accept & help"}
+            <AppButton variant="primary" onClick={() => onViewDetails(opportunity)}>
+              View details
             </AppButton>
           )}
         </div>

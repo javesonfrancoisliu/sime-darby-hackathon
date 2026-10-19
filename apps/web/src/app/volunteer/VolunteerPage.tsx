@@ -5,6 +5,7 @@ import {
   CompleteTaskModal,
   MyTasksSection,
   OpportunityCard,
+  OpportunityDetailsModal,
   OpportunitySort,
   VerifiedBadge,
   type SortOption,
@@ -56,6 +57,8 @@ export function VolunteerPage() {
   const [completeBusy, setCompleteBusy] = useState(false);
   const [completeError, setCompleteError] = useState<string | null>(null);
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
+  // Opportunity shown in the details popup.
+  const [detailsOf, setDetailsOf] = useState<Opportunity | null>(null);
   const [failure, setFailure] = useState<{ title: string; message: string } | null>(null);
   const [confirmation, setConfirmation] = useState<{ title: string; message: string } | null>(null);
   const confirm = useConfirm();
@@ -97,6 +100,8 @@ export function VolunteerPage() {
   }, [opportunities, sort, now]);
 
   function askAccept(opportunity: Opportunity) {
+    // Close the details dialog so the confirm/success dialog takes over.
+    setDetailsOf(null);
     confirm.ask({
       title: opportunity.kind === "event" ? "Join this event?" : "Accept this request?",
       message: `Do you want to ${opportunity.kind === "event" ? "join" : "help with"} "${opportunity.title}" on ${formatDate(opportunity.scheduledAt)}?`,
@@ -249,8 +254,7 @@ export function VolunteerPage() {
                       opportunity={opportunity}
                       urgency={urgencyFor(opportunity.scheduledAt, now)}
                       joined={isAccepted(opportunity.id)}
-                      accepting={acceptingId === opportunity.id}
-                      onAccept={askAccept}
+                      onViewDetails={setDetailsOf}
                     />
                   ))}
                 </ul>
@@ -259,6 +263,15 @@ export function VolunteerPage() {
           )}
         </>
       )}
+
+      <OpportunityDetailsModal
+        opportunity={detailsOf}
+        urgency={detailsOf ? urgencyFor(detailsOf.scheduledAt, now) : "low"}
+        joined={detailsOf ? isAccepted(detailsOf.id) : false}
+        accepting={detailsOf ? acceptingId === detailsOf.id : false}
+        onClose={() => setDetailsOf(null)}
+        onAccept={askAccept}
+      />
 
       <CompleteTaskModal
         key={completing?.id ?? "none"}
