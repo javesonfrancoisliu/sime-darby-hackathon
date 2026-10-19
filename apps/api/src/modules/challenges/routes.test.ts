@@ -176,6 +176,22 @@ describe("challenges", () => {
     expect(view?.teamProgress).toEqual({ precinct: "Elmina West", current: 2 });
   });
 
+  it("finds the precinct inside a longer area and explains when there is none", async () => {
+    const block = await createElder({ area: "Block C, Elmina West" });
+    const team = await createChallengeVia(coordinator.id, {
+      mode: "team",
+      goal: { target: 100, unit: "contributions", type: "count" },
+    });
+    const ok = await call("POST", `/api/challenges/${team.id}/contribute`, { as: block.id });
+    expect(ok.status).toBe(200);
+    expect((ok.body as ContributeResult).teamProgress.precinct).toBe("Elmina West");
+
+    const city = await createElder({ area: "City of Elmina" });
+    const no = await call("POST", `/api/challenges/${team.id}/contribute`, { as: city.id });
+    expect(no.status).toBe(400);
+    expect(JSON.stringify(no.body)).toContain("precinct");
+  });
+
   it("parallel contributions from one person count once", async () => {
     const elder = await createElder();
     const team = await createChallengeVia(coordinator.id, {

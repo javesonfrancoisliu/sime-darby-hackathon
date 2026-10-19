@@ -37,9 +37,10 @@ import {
 const isEnded = (challenge: Challenge, nowMs: number): boolean =>
   Date.parse(challenge.endsOn) <= nowMs;
 
+// An area like "Block C, Elmina West" belongs to the precinct named inside it.
 const precinctOf = (user: User): Precinct | undefined => {
-  const parsed = Precinct.safeParse(user.area);
-  return parsed.success ? parsed.data : undefined;
+  const area = user.area.toLowerCase();
+  return Precinct.options.find((name) => area.includes(name.toLowerCase()));
 };
 
 // Coordinators see everything; others see "all" plus their own role's challenges.
@@ -241,7 +242,10 @@ export async function contribute(user: User, id: string): Promise<ContributeResu
   requireOpen(challenge);
   const precinct = precinctOf(user);
   if (!precinct) {
-    throw new HttpError("VALIDATION_FAILED", "Set your neighbourhood to join a team");
+    throw new HttpError(
+      "VALIDATION_FAILED",
+      "Put your precinct (Elmina West, Elmina Valley, Elmina East or Central Park) in your area to join a team",
+    );
   }
   const now = nowIso();
   const day = klDate(now);
