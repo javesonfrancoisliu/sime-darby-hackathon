@@ -23,6 +23,8 @@ export default defineConfig(({ mode }) => {
     test: {
       globals: true,
       environment: "jsdom",
+      // Shared CI runners are slower and busier than a laptop, so the default 5 seconds is too tight for full-flow tests.
+      testTimeout: 20_000,
       setupFiles: ["./src/test/setup.ts"],
     },
   };
