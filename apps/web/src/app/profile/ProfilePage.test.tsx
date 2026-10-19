@@ -239,6 +239,22 @@ describe("profile page", () => {
     expect(screen.getByRole("switch", { name: /Show me on the leaderboard/ })).toBeChecked();
   });
 
+  it("turns on larger text and applies the comfort sizing to the app shell", async () => {
+    installFakeApi(signedIn());
+    signInAs(VOLUNTEER.id);
+    const { container } = renderApp("/profile");
+    const user = userEvent.setup();
+
+    const toggle = await screen.findByRole("switch", { name: /Larger text/ });
+    expect(toggle).not.toBeChecked();
+    expect(container.querySelector(".app-shell")).not.toHaveClass("easy-view");
+
+    await user.click(toggle);
+
+    await waitFor(() => expect(toggle).toBeChecked());
+    expect(container.querySelector(".app-shell")).toHaveClass("easy-view");
+  });
+
   it("lists the redeemed rewards with their date", async () => {
     installFakeApi(
       signedIn({

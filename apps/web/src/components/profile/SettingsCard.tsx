@@ -3,6 +3,7 @@ import { HelpCircle } from "lucide-react";
 
 import { tokenModeEnabled } from "../../lib/authMode";
 import { useProfile } from "../../data/ProfileContext";
+import { useLargeText } from "../../data/LargeTextContext";
 import { useSettings, type ProfileSettings } from "../../data/useSettings";
 import { useTownship } from "../../data/useTownship";
 import { errorMessage, useSession } from "@sdh/api-client";
@@ -54,6 +55,7 @@ export function SettingsCard() {
   const { leaderboardOptIn, setLeaderboardOptIn } = useProfile();
   const { township } = useTownship();
   const { signOut } = useSession();
+  const { largeText, setLargeText } = useLargeText();
   const confirm = useConfirm();
   const [optInError, setOptInError] = useState<string | null>(null);
 
@@ -114,7 +116,16 @@ export function SettingsCard() {
           </p>
         )}
 
-        <h3 className="impact-subhead ui-flush-top">Notifications</h3>
+        <h3 className="impact-subhead ui-flush-top">Appearance</h3>
+        <ToggleRow
+          label="Larger text"
+          description="Increase text and control sizes across the app."
+          checked={largeText}
+          disabled={false}
+          onChange={setLargeText}
+        />
+
+        <h3 className="impact-subhead">Notifications</h3>
         {toggles.slice(0, 2).map((t) => (
           <ToggleRow
             key={t.key}

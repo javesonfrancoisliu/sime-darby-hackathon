@@ -537,6 +537,20 @@
 .easy-view .reward-stat-value {
   font-size: 36px;
 }
+/* Larger-text comfort sizing. Applied for the elderly role and for the young
+   "Larger text" preference. A modest root bump scales rem-based text and spacing
+   app-wide; kept small so cards and controls do not overflow on narrow screens. */
+.easy-view {
+  font-size: 1.125rem;
+}
+.easy-view .feature-card-title {
+  font-size: 1.25rem;
+}
+.easy-view .feature-card-desc,
+.easy-view .ui-meta-row,
+.easy-view .inline-icon {
+  font-size: 1.0625rem;
+}
 
 /* ---------- Volunteer: match score & reasons ---------- */
 .live-hint {
