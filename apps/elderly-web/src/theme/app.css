@@ -1240,6 +1240,44 @@ button:active,
   border: 1.5px solid #000000;
   font-weight: 700;
 }
+/* Surfaces that stayed soft or tinted: solid white, hard black edges, solid dark header. */
+.high-contrast .app-hero {
+  background: #7a0000;
+}
+.high-contrast .app-hero__btn-icon,
+.high-contrast .app-hero__aa-btn,
+.high-contrast .apple-profile-topbar .app-hero__btn-icon,
+.high-contrast .apple-profile-topbar .app-hero__aa-btn {
+  background: #000000;
+  border: 2px solid #ffffff;
+}
+.high-contrast .apple-sheet-panel {
+  background: #ffffff;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-top: 3px solid #000000;
+}
+.high-contrast .apple-control-row,
+.high-contrast .apple-inset-group,
+.high-contrast .leaderboard-card,
+.high-contrast .play-reward {
+  background: #ffffff;
+  border: 2px solid #000000;
+}
+.high-contrast .app-tab-bar {
+  background: #ffffff;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-top: 3px solid #000000;
+}
+.high-contrast .app-tab-bar__item,
+.high-contrast .seg-tabs__tab {
+  color: #000000;
+  font-weight: 800;
+}
+.high-contrast .apple-switch::before {
+  border: 2px solid #000000;
+}
 
 /* ── 6. Reduced Motion ─────────────────────────────────── */
 /* App-level toggle: user turns on "Reduce Motion" in the accessibility sheet. */
