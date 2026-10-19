@@ -38,7 +38,10 @@ export function installFakeApi(routes: Record<string, Handler> = {}) {
       });
     }
     const reply = typeof handler === "function" ? await handler(call) : handler;
-    return new Response(JSON.stringify(reply.body ?? {}), { status: reply.status ?? 200 });
+    const status = reply.status ?? 200;
+    // A 204 reply has no body, as on the real API.
+    if (status === 204) return new Response(null, { status });
+    return new Response(JSON.stringify(reply.body ?? {}), { status });
   });
   vi.stubGlobal("fetch", fetchMock);
   return { calls, fetchMock };

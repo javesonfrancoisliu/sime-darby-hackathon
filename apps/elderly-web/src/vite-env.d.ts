@@ -1,8 +1,6 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  // "true" serves labelled demo data instead of calling the API.
-  readonly VITE_USE_MOCK?: string;
   // "false" removes the demo sign-in picker from the build.
   readonly VITE_DEMO_SIGN_IN?: string;
   readonly VITE_COGNITO_REGION?: string;
