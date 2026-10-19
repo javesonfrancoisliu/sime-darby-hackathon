@@ -10,7 +10,6 @@ let clock = 0;
 beforeEach(() => {
   clock = 1_000;
   vi.stubEnv("ANTHROPIC_API_KEY", "");
-  vi.stubEnv("AWS_LAMBDA_FUNCTION_NAME", "");
   vi.stubEnv("ANTHROPIC_API_KEY_PARAM", PARAM);
 });
 
@@ -26,16 +25,8 @@ const useFetcher = (fetcher: (name: string) => Promise<string>) => {
 };
 
 describe("getAnthropicApiKey", () => {
-  it("prefers the env key and never calls SSM", async () => {
+  it("ignores an ANTHROPIC_API_KEY env var and always reads SSM", async () => {
     vi.stubEnv("ANTHROPIC_API_KEY", "env-key");
-    const fetcher = useFetcher(async () => SECRET);
-    expect(await getAnthropicApiKey()).toBe("env-key");
-    expect(fetcher).not.toHaveBeenCalled();
-  });
-
-  it("ignores an env key inside Lambda and reads SSM", async () => {
-    vi.stubEnv("ANTHROPIC_API_KEY", "env-key");
-    vi.stubEnv("AWS_LAMBDA_FUNCTION_NAME", "sdh-matching");
     const fetcher = useFetcher(async () => SECRET);
     expect(await getAnthropicApiKey()).toBe(SECRET);
     expect(fetcher).toHaveBeenCalledTimes(1);
