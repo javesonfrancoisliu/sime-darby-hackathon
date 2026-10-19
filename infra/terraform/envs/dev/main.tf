@@ -68,3 +68,10 @@ module "developer_access" {
   distribution_arn         = module.web.distribution_arn
   bucket_arn               = module.web.bucket_arn
 }
+
+module "bedrock_app" {
+  source = "../../modules/bedrock-app"
+
+  user_name            = "${local.name_prefix}-bedrock-app"
+  inference_profile_id = var.bedrock_app_inference_profile_id
+}

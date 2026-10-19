@@ -61,3 +61,8 @@ output "matching_function_name" {
   description = "Matching Lambda function name."
   value       = module.api.matching_function_name
 }
+
+output "bedrock_app_user_name" {
+  description = "App IAM user that may call only the configured Bedrock model."
+  value       = module.bedrock_app.user_name
+}
