@@ -11,7 +11,8 @@
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json",
     "db:setup": "tsx --env-file-if-exists=.env scripts/setup-local-table.ts",
-    "db:seed": "tsx --env-file-if-exists=.env scripts/seed-demo.ts"
+    "db:seed": "tsx --env-file-if-exists=.env scripts/seed-demo.ts",
+    "load:content": "tsx --env-file-if-exists=.env scripts/load-content.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.135.0",
