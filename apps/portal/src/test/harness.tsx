@@ -36,7 +36,7 @@ export function makeUser(overrides: Partial<User> = {}): User {
 }
 
 export function userFor(role: Role, name = "Test Person"): User {
-  return makeUser({ role, name, verification: role === "volunteer" ? "pending" : "not_required" });
+  return makeUser({ role, name, verification: role === "volunteer" ? "verified" : "not_required" });
 }
 
 type Options = {

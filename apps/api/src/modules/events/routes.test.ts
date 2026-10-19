@@ -7,7 +7,7 @@ import type {
   User,
 } from "@sdh/contracts";
 import { beforeAll, describe, expect, it } from "vitest";
-import { call, createUser, createVerifiedVolunteer } from "../../test/api";
+import { call, createUser, createVerifiedVolunteer, createVolunteerInState } from "../../test/api";
 import { useTestTable } from "../../test/table";
 import { VOLUNTEERING_POINTS } from "../points/service";
 import { getUser } from "../users/repository";
@@ -103,8 +103,10 @@ describe("events", () => {
 
   it("rejects unverified volunteers and coordinators, and unknown events", async () => {
     const event = await createEvent();
-    const pending = await createUser("volunteer");
+    const pending = await createVolunteerInState("pending");
+    const rejected = await createVolunteerInState("rejected");
     expect((await join(event.id, pending.id)).status).toBe(403);
+    expect((await join(event.id, rejected.id)).status).toBe(403);
     expect((await join(event.id, coordinator.id)).status).toBe(403);
     const elder = await createUser("elder");
     expect((await join(randomUUID(), elder.id)).status).toBe(404);

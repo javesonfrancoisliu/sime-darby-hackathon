@@ -1,5 +1,6 @@
-import type { CreateUserBody, Role, User } from "@sdh/contracts";
+import type { CreateUserBody, Role, User, Verification } from "@sdh/contracts";
 import { DEMO_USER_HEADER } from "../lib/identity";
+import { setVerification } from "../modules/users/repository";
 import { createUser as insertUser } from "../modules/users/service";
 import { dispatch } from "../app";
 
@@ -53,4 +54,13 @@ export async function createVerifiedVolunteer(
   });
   if (res.status !== 200) throw new Error(`verify failed: ${JSON.stringify(res.body)}`);
   return res.body as User;
+}
+
+// New volunteers start verified, so gate tests set an explicit state through the repository.
+export async function createVolunteerInState(
+  verification: Exclude<Verification, "verified" | "not_required">,
+  overrides: Partial<CreateUserBody> = {},
+): Promise<User> {
+  const volunteer = await createUser("volunteer", overrides);
+  return setVerification(volunteer, verification, new Date().toISOString());
 }

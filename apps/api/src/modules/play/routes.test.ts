@@ -1,14 +1,8 @@
-import type {
-  CheckInResult,
-  LeaderboardResponse,
-  PointsSummary,
-  Streak,
-  User,
-} from "@sdh/contracts";
+import type { CheckInResult, LeaderboardResponse, PointsSummary, Streak } from "@sdh/contracts";
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { describe, expect, it } from "vitest";
 import { db, table } from "../../lib/db";
-import { call } from "../../test/api";
+import { call, createVolunteerInState } from "../../test/api";
 import { createElder, createVerifiedVolunteerDirect } from "../../test/people";
 import { useTestTable } from "../../test/table";
 import { givePoints, optIn } from "./testSupport";
@@ -127,7 +121,13 @@ describe("leaderboard", () => {
     const top = await optIn(await createVerifiedVolunteerDirect({ name: "Aisha Rahman Lim" }));
     const mid = await optIn(await createVerifiedVolunteerDirect({ name: "Dev" }));
     const hidden = await createVerifiedVolunteerDirect({ name: "Hidden Person" });
-    const pending = await optIn(await createVolunteerPending());
+    const pending = await optIn(
+      await createVolunteerInState("pending", {
+        name: "Pending Person",
+        area: "Elmina West",
+        location: { lat: 3.07, lng: 101.5 },
+      }),
+    );
     await givePoints(top.id, 300);
     await givePoints(mid.id, 100);
     await givePoints(hidden.id, 900);
@@ -157,15 +157,3 @@ describe("leaderboard", () => {
     expect(body.me).toBeUndefined();
   });
 });
-
-async function createVolunteerPending(): Promise<User> {
-  return createUser({
-    role: "volunteer",
-    name: "Pending Person",
-    area: "Elmina West",
-    location: { lat: 3.07, lng: 101.5 },
-    skills: [],
-    experience: "",
-    availability: [],
-  });
-}

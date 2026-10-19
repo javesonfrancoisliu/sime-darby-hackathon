@@ -7,7 +7,7 @@ import type {
   User,
 } from "@sdh/contracts";
 import { beforeAll, describe, expect, it } from "vitest";
-import { call, createUser, createVerifiedVolunteer } from "../../test/api";
+import { call, createUser, createVerifiedVolunteer, createVolunteerInState } from "../../test/api";
 import { useTestTable } from "../../test/table";
 import { VOLUNTEERING_POINTS } from "../points/service";
 import { getUser } from "../users/repository";
@@ -179,7 +179,7 @@ describe("help requests", () => {
 
     it("hides open requests from unverified volunteers", async () => {
       const open = await createOpen();
-      const unverified = await createUser("volunteer");
+      const unverified = await createVolunteerInState("pending");
       expect((await call("GET", `/api/requests/${open.id}`, { as: unverified.id })).status).toBe(
         404,
       );
@@ -308,10 +308,19 @@ describe("help requests", () => {
 
     it("refuses elders, coordinators and unverified volunteers", async () => {
       const open = await createOpen();
-      const unverified = await createUser("volunteer");
+      const unverified = await createVolunteerInState("pending");
       for (const as of [elder.id, coordinator.id, unverified.id]) {
         expect((await call("POST", `/api/requests/${open.id}/accept`, { as })).status).toBe(403);
       }
+    });
+
+    it("lets a brand new volunteer accept straight away", async () => {
+      const open = await createOpen();
+      const fresh = await createUser("volunteer");
+      expect(fresh.verification).toBe("verified");
+      expect((await call("POST", `/api/requests/${open.id}/accept`, { as: fresh.id })).status).toBe(
+        200,
+      );
     });
 
     it("refuses a request that is not open with 409", async () => {

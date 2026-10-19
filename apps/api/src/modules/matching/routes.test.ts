@@ -1,6 +1,6 @@
 import type { HelpRequest, MatchesResponse, User } from "@sdh/contracts";
 import { beforeAll, describe, expect, it } from "vitest";
-import { call, createUser, createVerifiedVolunteer } from "../../test/api";
+import { call, createUser, createVerifiedVolunteer, createVolunteerInState } from "../../test/api";
 import { useTestTable } from "../../test/table";
 
 useTestTable();
@@ -30,7 +30,11 @@ describe("GET /api/requests/{id}/matches", () => {
       name: "Wei",
       location: { lat: 3.074, lng: 101.519 },
     });
-    await createUser("volunteer", { name: "Unverified", location: HOME, skills: ["groceries"] });
+    await createVolunteerInState("pending", {
+      name: "Unverified",
+      location: HOME,
+      skills: ["groceries"],
+    });
     await createVerifiedVolunteer(coordinator.id, {
       name: "Far",
       location: { lat: 3.2, lng: 101.7 },

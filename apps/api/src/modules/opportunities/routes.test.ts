@@ -1,6 +1,6 @@
 import type { HelpRequest, OpportunitiesResponse, User } from "@sdh/contracts";
 import { beforeAll, describe, expect, it } from "vitest";
-import { call, createUser, createVerifiedVolunteer } from "../../test/api";
+import { call, createUser, createVerifiedVolunteer, createVolunteerInState } from "../../test/api";
 import { useTestTable } from "../../test/table";
 
 useTestTable();
@@ -122,8 +122,15 @@ describe("GET /api/opportunities", () => {
     expect(ids(res.body)).toContain(farAway.id);
   });
 
+  it("shows a brand new volunteer opportunities straight away", async () => {
+    const fresh = await createUser("volunteer", { name: "Fresh" });
+    expect(fresh.verification).toBe("verified");
+    const res = await call("GET", "/api/opportunities", { as: fresh.id });
+    expect(res.status).toBe(200);
+  });
+
   it("is only for verified volunteers", async () => {
-    const unverified = await createUser("volunteer");
+    const unverified = await createVolunteerInState("pending");
     const elder = await createUser("elder");
     expect((await call("GET", "/api/opportunities", { as: unverified.id })).status).toBe(403);
     expect((await call("GET", "/api/opportunities", { as: elder.id })).status).toBe(403);
