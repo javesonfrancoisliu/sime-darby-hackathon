@@ -1,5 +1,5 @@
-# Matching runs in its own Lambda: it only reads the table, it is the only function that may call
-# Bedrock, and it gets a longer timeout for the AI re-rank. API Gateway sends its one route here.
+# Matching runs in its own Lambda: it only reads the table, it is the only function that may read
+# the Claude API key, and it gets a longer timeout for the AI re-rank. API Gateway sends its one route here.
 data "archive_file" "matching" {
   type        = "zip"
   source_dir  = var.matching_source_dir
@@ -30,12 +30,13 @@ data "aws_iam_policy_document" "matching" {
   }
 
   dynamic "statement" {
-    for_each = var.bedrock_invoke_enabled ? [1] : []
+    for_each = local.anthropic_api_key_parameter_arn == null ? [] : [1]
 
     content {
-      sid       = "InvokeBedrock"
-      actions   = ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"]
-      resources = local.bedrock_model_resources
+      sid     = "ReadClaudeApiKey"
+      actions = ["ssm:GetParameter"]
+      # No kms statement: the AWS managed aws/ssm key policy already allows decrypt through SSM for principals in the account.
+      resources = [local.anthropic_api_key_parameter_arn]
     }
   }
 }
@@ -68,8 +69,9 @@ resource "aws_lambda_function" "matching" {
       COGNITO_USER_POOL_ID = var.cognito_user_pool_id
       COGNITO_CLIENT_ID    = var.cognito_client_id
 
-      MATCHING_AI_MODEL_ID   = var.matching_ai_model_id
-      MATCHING_AI_TIMEOUT_MS = tostring(var.matching_ai_timeout_ms)
+      MATCHING_AI_MODEL_ID    = var.matching_ai_model_id
+      ANTHROPIC_API_KEY_PARAM = var.anthropic_api_key_parameter_name
+      MATCHING_AI_TIMEOUT_MS  = tostring(var.matching_ai_timeout_ms)
     }
   }
 

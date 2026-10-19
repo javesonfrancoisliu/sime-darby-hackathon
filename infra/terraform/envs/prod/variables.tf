@@ -89,7 +89,7 @@ variable "developer_user_names" {
 }
 
 variable "developer_editor_enabled" {
-  description = "Create the developer editor role, which can change this stack's data, code and settings and call Amazon Bedrock."
+  description = "Create the developer editor role, which can change this stack's data, code and settings."
   type        = bool
   default     = false
 
@@ -97,12 +97,6 @@ variable "developer_editor_enabled" {
     condition     = var.developer_editor_enabled == false
     error_message = "The developer editor role must stay off in prod."
   }
-}
-
-variable "api_bedrock_invoke_enabled" {
-  description = "Let the matching Lambda call Amazon Bedrock models."
-  type        = bool
-  default     = false
 }
 
 variable "developer_require_mfa" {
@@ -117,7 +111,7 @@ variable "developer_require_mfa" {
 }
 
 variable "matching_ai_model_id" {
-  description = "Bedrock inference profile id for the AI re-rank, for example global.anthropic.claude-haiku-4-5-20251001-v1:0. Empty uses rules only."
+  description = "Claude API model id for the AI re-rank, for example claude-haiku-5-5. Empty uses rules only."
   type        = string
   default     = ""
 }

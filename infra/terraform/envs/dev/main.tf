@@ -1,5 +1,6 @@
 locals {
-  name_prefix = "${var.project}-${var.environment}"
+  name_prefix                      = "${var.project}-${var.environment}"
+  anthropic_api_key_parameter_name = "/${var.project}/${var.environment}/anthropic-api-key"
 }
 
 module "data" {
@@ -19,21 +20,21 @@ module "auth" {
 module "api" {
   source = "../../modules/api"
 
-  name_prefix            = local.name_prefix
-  source_dir             = "${path.root}/../../../../apps/api/dist/core"
-  output_path            = "${path.root}/../../build/${var.environment}-api.zip"
-  matching_source_dir    = "${path.root}/../../../../apps/api/dist/matching"
-  matching_output_path   = "${path.root}/../../build/${var.environment}-matching.zip"
-  matching_ai_model_id   = var.matching_ai_model_id
-  table_name             = module.data.table_name
-  table_arn              = module.data.table_arn
-  demo_auth_enabled      = var.demo_auth_enabled
-  cognito_user_pool_id   = module.auth.user_pool_id
-  cognito_client_id      = module.auth.client_id
-  log_retention_days     = var.log_retention_days
-  throttle_burst_limit   = var.api_throttle_burst_limit
-  throttle_rate_limit    = var.api_throttle_rate_limit
-  bedrock_invoke_enabled = var.api_bedrock_invoke_enabled
+  name_prefix                      = local.name_prefix
+  source_dir                       = "${path.root}/../../../../apps/api/dist/core"
+  output_path                      = "${path.root}/../../build/${var.environment}-api.zip"
+  matching_source_dir              = "${path.root}/../../../../apps/api/dist/matching"
+  matching_output_path             = "${path.root}/../../build/${var.environment}-matching.zip"
+  matching_ai_model_id             = var.matching_ai_model_id
+  table_name                       = module.data.table_name
+  table_arn                        = module.data.table_arn
+  demo_auth_enabled                = var.demo_auth_enabled
+  cognito_user_pool_id             = module.auth.user_pool_id
+  cognito_client_id                = module.auth.client_id
+  log_retention_days               = var.log_retention_days
+  throttle_burst_limit             = var.api_throttle_burst_limit
+  throttle_rate_limit              = var.api_throttle_rate_limit
+  anthropic_api_key_parameter_name = local.anthropic_api_key_parameter_name
 }
 
 # One site serves the sign-in app at /, the elderly app at /elder/, the volunteer app at /volunteer/ and /api/*.
@@ -67,11 +68,6 @@ module "developer_access" {
   origin_access_control_id = module.web.origin_access_control_id
   distribution_arn         = module.web.distribution_arn
   bucket_arn               = module.web.bucket_arn
-}
 
-module "bedrock_app" {
-  source = "../../modules/bedrock-app"
-
-  user_name            = "${local.name_prefix}-bedrock-app"
-  inference_profile_id = var.bedrock_app_inference_profile_id
+  anthropic_api_key_parameter_arn = module.api.anthropic_api_key_parameter_arn == null ? "" : module.api.anthropic_api_key_parameter_arn
 }

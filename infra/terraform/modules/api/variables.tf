@@ -24,19 +24,19 @@ variable "matching_output_path" {
 }
 
 variable "matching_timeout_seconds" {
-  description = "Matching Lambda timeout; it must leave room above the Bedrock call timeout."
+  description = "Matching Lambda timeout; it must leave room above the Claude API call timeout."
   type        = number
   default     = 15
 }
 
 variable "matching_ai_model_id" {
-  description = "Bedrock inference profile id for the AI re-rank, for example global.anthropic.claude-haiku-4-5-20251001-v1:0. Empty uses rules only."
+  description = "Claude API model id for the AI re-rank, for example claude-haiku-5-5. Empty uses rules only."
   type        = string
   default     = ""
 }
 
 variable "matching_ai_timeout_ms" {
-  description = "How long matching waits for Bedrock before falling back to rules."
+  description = "How long matching waits for the Claude API before falling back to rules."
   type        = number
   default     = 9000
 
@@ -87,8 +87,13 @@ variable "throttle_rate_limit" {
   type        = number
 }
 
-variable "bedrock_invoke_enabled" {
-  description = "Let the matching Lambda call Amazon Bedrock models through cross-Region inference profiles."
-  type        = bool
-  default     = false
+variable "anthropic_api_key_parameter_name" {
+  description = "SSM SecureString parameter holding the Claude API key; empty leaves the Lambda without key access so matching uses rules."
+  type        = string
+  default     = ""
+
+  validation {
+    condition     = var.anthropic_api_key_parameter_name == "" || startswith(var.anthropic_api_key_parameter_name, "/")
+    error_message = "anthropic_api_key_parameter_name must be empty or start with \"/\"."
+  }
 }

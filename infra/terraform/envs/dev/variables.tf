@@ -84,13 +84,7 @@ variable "developer_user_names" {
 }
 
 variable "developer_editor_enabled" {
-  description = "Create the developer editor role, which can change this stack's data, code and settings and call Amazon Bedrock."
-  type        = bool
-  default     = true
-}
-
-variable "api_bedrock_invoke_enabled" {
-  description = "Let the matching Lambda call Amazon Bedrock models."
+  description = "Create the developer editor role, which can change this stack's data, code and settings."
   type        = bool
   default     = true
 }
@@ -102,13 +96,7 @@ variable "developer_require_mfa" {
 }
 
 variable "matching_ai_model_id" {
-  description = "Bedrock inference profile id for the AI re-rank, for example global.anthropic.claude-haiku-4-5-20251001-v1:0. Empty uses rules only."
+  description = "Claude API model id for the AI re-rank, for example claude-haiku-5-5. Empty uses rules only."
   type        = string
   default     = ""
-}
-
-variable "bedrock_app_inference_profile_id" {
-  description = "The only Bedrock inference profile the app IAM user may call."
-  type        = string
-  default     = "global.anthropic.claude-haiku-4-5-20251001-v1:0"
 }

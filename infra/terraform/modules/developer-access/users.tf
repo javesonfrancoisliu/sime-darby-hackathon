@@ -112,7 +112,7 @@ resource "aws_iam_policy" "group_edit" {
   count = length(var.user_names) > 0 && var.editor_enabled ? 1 : 0
 
   name        = "${var.name_prefix}-developers-edit"
-  description = "Change this stack's data, code and settings and call Amazon Bedrock."
+  description = "Change this stack's data, code and settings."
   policy      = data.aws_iam_policy_document.edit.json
 }
 

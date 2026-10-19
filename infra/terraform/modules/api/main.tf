@@ -19,11 +19,7 @@ data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
 locals {
-  # Global and APAC cross-Region profiles also check the foundation model in other Regions; "*" covers the region-less global ARN.
-  bedrock_model_resources = [
-    "arn:aws:bedrock:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:inference-profile/*",
-    "arn:aws:bedrock:*::foundation-model/*",
-  ]
+  anthropic_api_key_parameter_arn = var.anthropic_api_key_parameter_name == "" ? null : "arn:aws:ssm:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:parameter${var.anthropic_api_key_parameter_name}"
 }
 
 data "aws_iam_policy_document" "assume" {

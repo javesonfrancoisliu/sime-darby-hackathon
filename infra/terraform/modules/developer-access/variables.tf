@@ -27,7 +27,7 @@ variable "user_names" {
 }
 
 variable "editor_enabled" {
-  description = "Also create the editor role, which can change this stack's data, code and settings and call Amazon Bedrock."
+  description = "Also create the editor role, which can change this stack's data, code and settings."
   type        = bool
   default     = false
 }
@@ -105,4 +105,10 @@ variable "require_mfa" {
   description = "Require IAM users to sign in with MFA before they can use any permission or role."
   type        = bool
   default     = true
+}
+
+variable "anthropic_api_key_parameter_arn" {
+  description = "SSM SecureString parameter ARN holding the shared Claude API key, readable by developers for their local .env; empty grants nothing."
+  type        = string
+  default     = ""
 }

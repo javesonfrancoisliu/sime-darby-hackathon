@@ -41,3 +41,8 @@ output "lambda_log_group_name" {
   description = "Lambda CloudWatch log group name."
   value       = aws_cloudwatch_log_group.lambda.name
 }
+
+output "anthropic_api_key_parameter_arn" {
+  description = "ARN of the SSM parameter holding the Claude API key, or null when none is configured."
+  value       = local.anthropic_api_key_parameter_arn
+}

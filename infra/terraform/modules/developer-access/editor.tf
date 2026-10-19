@@ -2,11 +2,7 @@
 # settings. It cannot delete the stack's table, function, user pool, distribution, bucket or API,
 # change IAM beyond passing the function its own role, or add public access to the function.
 locals {
-  editor_enabled = local.enabled && var.editor_enabled
-  bedrock_model_resources = [
-    "arn:aws:bedrock:${local.region}:${local.account_id}:inference-profile/*",
-    "arn:aws:bedrock:*::foundation-model/*",
-  ]
+  editor_enabled              = local.enabled && var.editor_enabled
   lambda_test_events_registry = "arn:aws:schemas:${local.region}:${local.account_id}:registry/lambda-testevent-schemas"
 }
 
@@ -14,7 +10,7 @@ resource "aws_iam_role" "editor" {
   count = local.editor_enabled ? 1 : 0
 
   name                 = "${var.name_prefix}-developer-editor"
-  description          = "Edit access for developers to this stack's data, code and settings, plus Amazon Bedrock."
+  description          = "Edit access for developers to this stack's data, code and settings."
   assume_role_policy   = data.aws_iam_policy_document.assume.json
   max_session_duration = var.max_session_duration_seconds
 }
@@ -141,12 +137,6 @@ data "aws_iam_policy_document" "edit" {
   }
 
   statement {
-    sid       = "TryBedrock"
-    actions   = ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"]
-    resources = local.bedrock_model_resources
-  }
-
-  statement {
     sid     = "EditStackAlarmsAndDashboards"
     actions = ["cloudwatch:PutMetricAlarm", "cloudwatch:DeleteAlarms", "cloudwatch:PutDashboard", "cloudwatch:DeleteDashboards"]
     resources = [
@@ -155,12 +145,10 @@ data "aws_iam_policy_document" "edit" {
     ]
   }
 
-  # Bedrock playground pages, saved Logs Insights queries and the Bedrock model list have no resource-level permissions.
+  # Saved Logs Insights queries have no resource-level permissions.
   statement {
     sid = "EditorConsolePages"
     actions = [
-      "bedrock:Get*",
-      "bedrock:List*",
       "logs:PutQueryDefinition",
       "logs:DeleteQueryDefinition",
     ]

@@ -160,6 +160,16 @@ data "aws_iam_policy_document" "read" {
     resources = [var.bucket_arn, "${var.bucket_arn}/*"]
   }
 
+  dynamic "statement" {
+    for_each = var.anthropic_api_key_parameter_arn == "" ? [] : [1]
+
+    content {
+      sid       = "ReadClaudeApiKey"
+      actions   = ["ssm:GetParameter"]
+      resources = [var.anthropic_api_key_parameter_arn]
+    }
+  }
+
   # These actions have no resource-level permissions, so they need "*". They
   # return names, settings and metrics, not table items, log lines or files.
   statement {
@@ -201,6 +211,7 @@ data "aws_iam_policy_document" "read" {
       "s3:ListAllMyBuckets",
       "s3:GetAccountPublicAccessBlock",
       "tag:GetResources",
+      "ssm:DescribeParameters",
     ]
     resources = ["*"]
   }
