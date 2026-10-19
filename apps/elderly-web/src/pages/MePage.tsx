@@ -180,7 +180,12 @@ export function MePage() {
                 </div>
                 <span className="apple-inset-value">
                   {medical.data.nextOfKinName} ({medical.data.nextOfKinRelation}) ·{" "}
-                  <span className="text-nowrap">{medical.data.nextOfKinPhone}</span>
+                  <a
+                    className="text-nowrap"
+                    href={`tel:${medical.data.nextOfKinPhone.replace(/[^\d+]/g, "")}`}
+                  >
+                    {medical.data.nextOfKinPhone}
+                  </a>
                 </span>
               </div>
 

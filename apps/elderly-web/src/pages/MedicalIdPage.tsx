@@ -169,6 +169,7 @@ export function MedicalIdPage() {
         onChange={(v) => set("phone", v)}
         placeholder="For example, 012-345 6789"
         maxLength={20}
+        inputMode="tel"
         error={errors.phone}
       />
 

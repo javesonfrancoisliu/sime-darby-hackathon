@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderApp } from "../test/renderRoute";
 import { installFakeApi, signInAs } from "../test/fakeApi";
@@ -13,7 +13,7 @@ describe("Scroll and focus on page change", () => {
     installFakeApi();
     await renderApp("/request");
     expect(window.scrollTo).toHaveBeenCalledWith(TOP);
-    expect(screen.getByRole("heading", { level: 1 })).toHaveFocus();
+    await waitFor(() => expect(screen.getByRole("heading", { level: 1 })).toHaveFocus());
   });
 
   it("returns to the top when a category opens the flow", async () => {
@@ -22,7 +22,7 @@ describe("Scroll and focus on page change", () => {
     vi.mocked(window.scrollTo).mockClear();
     await userEvent.click(screen.getAllByRole("button", { name: /Groceries/ })[0]!);
     expect(window.scrollTo).toHaveBeenCalledWith(TOP);
-    expect(screen.getByRole("heading", { level: 1 })).toHaveFocus();
+    await waitFor(() => expect(screen.getByRole("heading", { level: 1 })).toHaveFocus());
   });
 
   it("returns to the top and focuses the heading on each step", async () => {
@@ -32,7 +32,7 @@ describe("Scroll and focus on page change", () => {
     await userEvent.click(screen.getByRole("button", { name: "Next" }));
     const heading = screen.getByRole("heading", { level: 1, name: "When and how long?" });
     expect(window.scrollTo).toHaveBeenCalledWith(TOP);
-    expect(heading).toHaveFocus();
+    await waitFor(() => expect(heading).toHaveFocus());
   });
 
   it("keeps the browser's scroll position when going back, and still focuses the heading", async () => {
@@ -41,7 +41,7 @@ describe("Scroll and focus on page change", () => {
     await userEvent.click(screen.getAllByRole("button", { name: /Groceries/ })[0]!);
     vi.mocked(window.scrollTo).mockClear();
     await userEvent.click(screen.getByRole("button", { name: "Go Back" }));
-    expect(screen.getByRole("heading", { level: 1 })).toHaveFocus();
+    await waitFor(() => expect(screen.getByRole("heading", { level: 1 })).toHaveFocus());
     expect(window.scrollTo).not.toHaveBeenCalled();
   });
 });

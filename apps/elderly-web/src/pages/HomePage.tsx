@@ -33,6 +33,7 @@ import {
 } from "../safety/levels";
 import { useNotices } from "../hooks/useNotices";
 import { pickLocal, useSafetyData } from "../hooks/useSafetyData";
+import { formatTemperature } from "../safety/format";
 
 // Home page: mobile-first dashboard.
 // Displays:
@@ -108,10 +109,11 @@ export function HomePage() {
         </div>
         <div className="apple-condition-card__main">
           <span className="apple-condition-card__value">
-            {localHeat.value}
-            {localHeat.unit}
+            {formatTemperature(localHeat.value, localHeat.unit)}
           </span>
-          <span className="apple-condition-card__unit">Feels {localHeat.feelsLike}°</span>
+          <span className="apple-condition-card__unit">
+            Feels {formatTemperature(localHeat.feelsLike, localHeat.unit)}
+          </span>
         </div>
         <span className="apple-condition-card__label">Temperature Alert</span>
         <span className="apple-condition-card__sub">{localHeat.advice}</span>

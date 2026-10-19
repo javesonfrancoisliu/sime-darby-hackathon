@@ -43,6 +43,8 @@ describe("Home live conditions", () => {
     const section = (await screen.findByText("Township Live Conditions")).closest("section")!;
     expect(await within(section).findByText(AIR.advice)).toBeInTheDocument();
     expect(within(section).getByText(HEAT.advice)).toBeInTheDocument();
+    expect(within(section).getByText("34°C")).toBeInTheDocument();
+    expect(within(section).getByText("Feels 39°C")).toBeInTheDocument();
     expect(within(section).getByText("Water supply cut")).toBeInTheDocument();
     expect(within(section).getByText("Broken streetlight")).toBeInTheDocument();
     expect(screen.queryByText(/Demo data|Example readings/)).not.toBeInTheDocument();
@@ -65,7 +67,10 @@ describe("Me page", () => {
     });
     await renderApp("/me");
     expect(await screen.findByText("O+")).toBeInTheDocument();
-    expect(screen.getByText("012-345 6789")).toHaveClass("text-nowrap");
+    expect(screen.getByRole("link", { name: "012-345 6789" })).toHaveAttribute(
+      "href",
+      "tel:0123456789",
+    );
     expect(screen.getByText(/Zainal \(Son\)/)).toBeInTheDocument();
     expect(await screen.findByRole("link", { name: /Township security/ })).toHaveAttribute(
       "href",

@@ -44,10 +44,16 @@ export function BottomTabBar() {
   return (
     <nav className="app-tab-bar" aria-label="Main navigation">
       {TABS.map((tab) => {
+        // Request screens belong to the Home tab.
+        const isHomeArea =
+          tab.path === "/home" &&
+          (pathname === "/" || pathname === "/request" || pathname === "/requests");
         const active =
+          isHomeArea ||
           pathname === tab.path ||
-          (tab.path === "/home" && pathname === "/") ||
-          pathname.startsWith(tab.path + "/");
+          pathname.startsWith(tab.path + "/") ||
+          (tab.path === "/home" &&
+            (pathname.startsWith("/request/") || pathname.startsWith("/requests/")));
         return (
           <button
             key={tab.path}

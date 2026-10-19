@@ -1,8 +1,7 @@
 import { useId, type ReactNode } from "react";
-import type { MaintenanceStatus } from "@sdh/contracts";
-import { EVENT_CATEGORY_TEXT, spotsLeft } from "../community/events";
+import { EVENT_CATEGORY_TEXT, maintenanceLabel, spotsLeft } from "../community/events";
 import { useEvents, useJoinEvent } from "../hooks/useEvents";
-import { formatDate, formatWhen, formatWindow, minutesLabel } from "../requests/schedule";
+import { formatShortDate, formatWhen, formatWindow, minutesLabel } from "../requests/schedule";
 import { useResident } from "../session/useResident";
 import { Banner } from "../ui/Banner";
 import { Spinner } from "../ui/Spinner";
@@ -22,12 +21,6 @@ import {
 import { SegmentedTabs, TabPanel, type TabItem } from "../ui/SegmentedTabs";
 import { useHashTab } from "../ui/useHashTab";
 import { useAccessibility } from "../context/AccessibilityContext";
-
-const MAINTENANCE_TEXT: Record<MaintenanceStatus, string> = {
-  scheduled: "Planned",
-  in_progress: "Happening now",
-  completed: "Finished",
-};
 
 type CommunityTab = "events" | "maintenance" | "volunteer" | "updates";
 const COMMUNITY_TABS: readonly CommunityTab[] = ["events", "maintenance", "volunteer", "updates"];
@@ -196,6 +189,7 @@ export function CommunityPage() {
                       <button
                         type="button"
                         className={`community-register-btn${e.joined ? " community-register-btn--done" : ""}`}
+                        aria-label={e.joined || spots === 0 ? undefined : `Register for ${e.title}`}
                         aria-pressed={Boolean(e.joined)}
                         disabled={Boolean(e.joined) || spots === 0 || join.status === "loading"}
                         onClick={() => void joinEvent(e.id, e.title)}
@@ -264,7 +258,9 @@ export function CommunityPage() {
                       ) : null}
                     </div>
                     {m.status ? (
-                      <span className="community-category-chip">{MAINTENANCE_TEXT[m.status]}</span>
+                      <span className="community-category-chip">
+                        {maintenanceLabel(m.status, m.windowEnd)}
+                      </span>
                     ) : null}
                   </div>
                   {m.impact ? <p className="safety-card__description">{m.impact}</p> : null}
@@ -345,6 +341,7 @@ export function CommunityPage() {
                     <button
                       type="button"
                       className={`community-register-btn community-register-btn--full${joined ? " community-register-btn--done" : ""}`}
+                      aria-label={joined || spots === 0 ? undefined : `I can help with ${v.title}`}
                       aria-pressed={joined}
                       disabled={joined || spots === 0 || joinDrive.status === "loading"}
                       onClick={() => void signUpForDrive(v.id, v.title)}
@@ -415,7 +412,7 @@ export function CommunityPage() {
                         </div>
                         <p className="safety-card__meta">
                           <IconCalendar className="icon-inline" size={12} strokeWidth={2} />
-                          {u.topic} · {formatDate(u.publishedAt)}
+                          {u.topic} · {formatShortDate(u.publishedAt)}
                         </p>
                       </div>
                     </div>

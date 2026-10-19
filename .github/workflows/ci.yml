@@ -32,10 +32,6 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm typecheck
-      - run: pnpm lint
-      - run: pnpm format:check
-      - run: pnpm build
       - name: Wait for DynamoDB Local
         run: |
           for _ in $(seq 1 30); do
@@ -44,4 +40,14 @@ jobs:
           done
           echo "DynamoDB Local did not start" >&2
           exit 1
-      - run: pnpm test
+      # Lint, format and turbo's typecheck, build and test tasks run at the same time; the run takes as long as the slowest.
+      - name: Checks
+        run: |
+          fail=0
+          pnpm lint & lint=$!
+          pnpm format:check & format=$!
+          pnpm exec turbo run typecheck build test & turbo=$!
+          wait "$lint" || fail=1
+          wait "$format" || fail=1
+          wait "$turbo" || fail=1
+          exit "$fail"

@@ -70,7 +70,7 @@ describe("Community events from the API", () => {
       },
     });
     await renderApp("/community");
-    await userEvent.click(await screen.findByRole("button", { name: "Register" }));
+    await userEvent.click(await screen.findByRole("button", { name: /^Register for / }));
 
     const done = await screen.findByRole("button", { name: /Registered/ });
     expect(done).toHaveAttribute("aria-pressed", "true");
@@ -94,11 +94,11 @@ describe("Community events from the API", () => {
           : { body: { ...yoga, joined: true, signupCount: 8 } },
     });
     await renderApp("/community");
-    await userEvent.click(await screen.findByRole("button", { name: "Register" }));
+    await userEvent.click(await screen.findByRole("button", { name: /^Register for / }));
     expect(await screen.findByText(/already changed/i)).toBeInTheDocument();
     expect(screen.queryByText("Event is full")).not.toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole("button", { name: "Register" }));
+    await userEvent.click(screen.getByRole("button", { name: /^Register for / }));
     expect(await screen.findByRole("button", { name: /Registered/ })).toBeInTheDocument();
   });
 
@@ -144,6 +144,22 @@ describe("Notices, volunteering and updates from the API", () => {
     expect(screen.getByText("Important")).toBeInTheDocument();
     expect(screen.queryByText(/Pinned|Demo data/)).not.toBeInTheDocument();
     expect(calls.some((c) => c.path === "/api/notices?kind=maintenance")).toBe(true);
+  });
+
+  it("shows Finished for an in-progress notice whose window has passed", async () => {
+    const past = {
+      ...MAINTENANCE,
+      status: "in_progress" as const,
+      windowStart: "2026-01-01T09:00:00+08:00",
+      windowEnd: "2026-01-01T12:00:00+08:00",
+    };
+    installFakeApi({
+      "GET /api/events": { body: { events: [] } },
+      "GET /api/notices": { body: { items: [past] } },
+    });
+    await renderApp("/community#maintenance");
+    expect(await screen.findByText("Finished")).toBeInTheDocument();
+    expect(screen.queryByText("Happening now")).not.toBeInTheDocument();
   });
 
   it("signs up to a volunteer drive with the join API and keeps it", async () => {

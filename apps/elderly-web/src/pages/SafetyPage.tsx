@@ -3,6 +3,7 @@ import type { FacilityStatus } from "@sdh/contracts";
 import { useSafetyData } from "../hooks/useSafetyData";
 import { useResident } from "../session/useResident";
 import { formatWhen } from "../requests/schedule";
+import { formatTemperature, withUnit } from "../safety/format";
 import { Banner } from "../ui/Banner";
 import { Spinner } from "../ui/Spinner";
 import {
@@ -63,10 +64,6 @@ function SectionHeading({ id, icon, title }: { id: string; icon: ReactNode; titl
 // c. Temperature Alerts
 // d. Broken or Damaged Facilities within the Township (Reported, In progress, Fixed)
 // Everything shown comes from the township feed; nothing is made up on the phone.
-function withUnit(value: number, unit: string): string {
-  return unit.startsWith("°") || unit === "%" ? `${value}${unit}` : `${value} ${unit}`;
-}
-
 export function SafetyPage() {
   const safety = useSafetyData();
   const resident = useResident();
@@ -101,7 +98,7 @@ export function SafetyPage() {
     const heat = heatReadings[0];
     if (heat) {
       parts.push(
-        `Temperature is ${withUnit(heat.value, heat.unit)}, ${ALERT_LEVEL[heat.level].label}.`,
+        `Temperature is ${formatTemperature(heat.value, heat.unit)}, ${ALERT_LEVEL[heat.level].label}.`,
       );
     }
     parts.push(`${open} facility repairs are not yet fixed.`);
@@ -278,7 +275,9 @@ export function SafetyPage() {
                   >
                     <div className="safety-temp__main">
                       <div className="safety-temp__reading">
-                        <span className="safety-temp__value">{withUnit(t.value, t.unit)}</span>
+                        <span className="safety-temp__value">
+                          {formatTemperature(t.value, t.unit)}
+                        </span>
                         <span className={`safety-chip tone-${style.tone}`}>{style.label}</span>
                       </div>
                       <p className="safety-card__meta">
@@ -290,7 +289,7 @@ export function SafetyPage() {
                       <div className="safety-temp__stat">
                         <span className="safety-temp__stat-label">Feels like</span>
                         <span className="safety-temp__stat-value">
-                          {withUnit(t.feelsLike, t.unit)}
+                          {formatTemperature(t.feelsLike, t.unit)}
                         </span>
                       </div>
                       <div className="safety-temp__stat">

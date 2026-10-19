@@ -3,6 +3,7 @@ import { CreateRequestBody } from "@sdh/contracts";
 import { ELDER } from "../test/fixtures";
 import {
   buildCreateBody,
+  formatShortDate,
   formatWhen,
   isSlotPast,
   minutesLabel,
@@ -58,6 +59,10 @@ describe("labels", () => {
       "90 minutes",
       "2 hours",
     ]);
+  });
+
+  it("formats a short date without the clock", () => {
+    expect(formatShortDate("2026-10-19T09:00:00+08:00")).toBe("Mon 19 Oct");
   });
 
   it("formats a time in Malaysia time", () => {

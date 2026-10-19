@@ -157,7 +157,7 @@ export function ChallengesPage() {
   return (
     <div className="safety-page">
       <div className="safety-page__header">
-        <div className="row-between">
+        <div className="row-between play-header-row">
           <div>
             <h1 className="safety-page__title">Community Play</h1>
             <p className="safety-page__subtitle">

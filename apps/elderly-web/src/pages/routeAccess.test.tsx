@@ -19,6 +19,15 @@ describe("page changes", () => {
   });
 });
 
+describe("tab bar", () => {
+  it("marks Home as current on the request screens", async () => {
+    installFakeApi({ "GET /api/requests/mine": { body: { requests: [] } } });
+    await renderApp("/requests");
+    expect(screen.getByRole("button", { name: "Home" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("button", { name: "Safety" })).not.toHaveAttribute("aria-current");
+  });
+});
+
 describe("live announcements", () => {
   it("announces that a request was sent", async () => {
     installFakeApi();

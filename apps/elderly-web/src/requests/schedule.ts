@@ -87,6 +87,11 @@ export function formatDate(iso: string): string {
   return longDateFormat.format(new Date(iso));
 }
 
+// For example "Tue 20 Oct", in Malaysia time. Same style as formatWhen without the clock.
+export function formatShortDate(iso: string): string {
+  return dateFormat.format(new Date(iso)).replace(",", "");
+}
+
 // For example "Tue 20 Oct, 9:00 am to 5:00 pm", in Malaysia time.
 export function formatWindow(startIso: string, endIso: string): string {
   const end = new Date(endIso);
