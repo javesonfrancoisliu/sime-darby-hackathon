@@ -8,7 +8,7 @@ export const rewards: CreateRewardBody[] = [
     partner: "Kedai Runcit Pak Hamid",
     icon: "cart",
     category: "shop",
-    audience: "elder",
+    audience: "all",
     active: true,
   },
   {
@@ -18,7 +18,7 @@ export const rewards: CreateRewardBody[] = [
     partner: "Elmina Community Clinic",
     icon: "heart",
     category: "clinic",
-    audience: "elder",
+    audience: "all",
     active: true,
   },
   {
@@ -28,7 +28,7 @@ export const rewards: CreateRewardBody[] = [
     partner: "Restoran Sri Elmina",
     icon: "coffee",
     category: "food",
-    audience: "elder",
+    audience: "all",
     active: true,
   },
   {
@@ -39,7 +39,7 @@ export const rewards: CreateRewardBody[] = [
     icon: "medal",
     category: "recognition",
     audience: "volunteer",
-    active: true,
+    active: false,
   },
   {
     title: "Volunteer of the Month shout-out",
@@ -51,7 +51,7 @@ export const rewards: CreateRewardBody[] = [
     icon: "trophy",
     category: "recognition",
     audience: "volunteer",
-    active: true,
+    active: false,
   },
   {
     title: "Reference letter for studies or work",
@@ -61,6 +61,6 @@ export const rewards: CreateRewardBody[] = [
     icon: "shield",
     category: "recognition",
     audience: "volunteer",
-    active: true,
+    active: false,
   },
 ];

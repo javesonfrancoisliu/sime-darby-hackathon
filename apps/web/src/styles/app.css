@@ -889,6 +889,7 @@
   color: var(--text-secondary);
 }
 .impact-tile .reward-stat-value {
+  margin: 0;
   font-size: 24px;
 }
 .easy-view .impact-tile .reward-stat-value {
@@ -920,6 +921,23 @@
   font-size: var(--font-small);
   font-weight: 600;
   color: var(--text-secondary);
+}
+.sort-control select {
+  min-width: 0;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--text-primary);
+  font: inherit;
+}
+.sort-control select:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+.sort-control-label {
+  white-space: nowrap;
 }
 
 /* ---------- Geolocation hint ---------- */
@@ -1006,33 +1024,298 @@
 
 /* ---------- In-page tabs (Challenges) ---------- */
 .ui-tabs {
-  display: flex;
-  gap: var(--space-1);
-  margin: var(--space-6) 0 0;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--seg-count, 4), 1fr);
   padding: 4px;
-  background: var(--surface-muted);
-  border-radius: var(--radius-control);
+  margin: var(--space-6) 0 var(--space-4);
+  background: rgba(118, 118, 128, 0.12);
+  border-radius: 14px;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
+.ui-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+/* Sliding active pill - animates from its current position, no bounce. The track inset is 4px on each side; with no column gap the indicator is exactly 1/count of the inner width and steps by its own width per index. */
+.ui-tabs__indicator {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc((100% - 8px) / var(--seg-count, 4));
+  transform: translateX(calc(var(--seg-active, 0) * 100%));
+  background: var(--surface);
+  border-radius: 10px;
+  box-shadow:
+    0 1px 2px rgba(17, 24, 39, 0.08),
+    0 3px 8px rgba(17, 24, 39, 0.1);
+  transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
 .ui-tab {
-  flex: 1;
-  min-height: 44px;
-  padding: 0 var(--space-3);
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: transparent;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: 48px;
+  padding: 6px 4px;
+  background: none;
+  border: none;
+  border-radius: 10px;
   color: var(--text-secondary);
-  font-size: var(--font-small);
+  font-size: 1rem;
   font-weight: 600;
+  line-height: 1.1;
   cursor: pointer;
+  transition:
+    color 200ms ease,
+    transform 120ms cubic-bezier(0.22, 1, 0.36, 1);
+  -webkit-tap-highlight-color: transparent;
 }
 .ui-tab[aria-selected="true"] {
-  background: var(--surface);
   color: var(--brand-primary);
-  box-shadow: var(--shadow-card);
+}
+/* Instant press feedback. */
+.ui-tab:active {
+  transform: scale(0.94);
+}
+.ui-tabs__icon {
+  display: inline-flex;
+  align-items: center;
+}
+/* The label always stays visible (elderly-first: icons need text, ). */
+.ui-tabs__label {
+  display: block;
+  text-align: center;
 }
 .easy-view .ui-tab {
-  min-height: 48px;
-  font-size: 16px;
+  font-size: 1rem;
+}
+
+/* Very narrow phones: shrink the label a touch rather than hiding it. */
+@media (max-width: 360px) {
+  .ui-tab {
+    font-size: 1rem;
+    padding: 6px 2px;
+  }
+}
+
+/* Reduced motion: no sliding/scale, just an instant state change. */
+@media (prefers-reduced-motion: reduce) {
+  .ui-tabs__indicator {
+    transition: none;
+  }
+  .ui-tab:active {
+    transform: none;
+  }
+}
+.reduced-motion .ui-tabs__indicator {
+  transition: none;
+}
+.reduced-motion .ui-tab:active {
+  transform: none;
+}
+
+/* Tab panel enter - a gentle, non-vestibular cross-fade. */
+.ui-tab-panel {
+  animation: seg-fade-in 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes seg-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-tab-panel {
+    animation: seg-fade-in-rm 180ms ease;
+  }
+}
+.reduced-motion .ui-tab-panel {
+  animation: seg-fade-in-rm 180ms ease;
+}
+@keyframes seg-fade-in-rm {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.ui-tab:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: -2px;
+}
+
+[aria-label="Challenges sections"] .ui-tab {
+  min-width: 0;
+  font-size: 0.875rem;
+  min-height: 60px;
+  gap: 6px;
+  padding: 8px 4px;
+}
+
+.reward-card {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+}
+.reward-card__icon,
+.reward-card__points {
+  color: var(--brand-primary);
+}
+.reward-card__info h3 {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.reward-card__info p {
+  margin: 4px 0 0;
+  color: var(--text-secondary);
+}
+.reward-card__action {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+}
+.reward-card__points {
+  font-weight: 700;
+}
+.reward-card__action .ui-button {
+  min-width: 90px;
+  padding-inline: 12px;
+  border-radius: var(--radius-pill);
+}
+
+.community-event {
+  list-style: none;
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+.community-event .drawer {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.community-event .drawer__header {
+  gap: var(--space-2);
+}
+.community-event .drawer__chevron {
+  width: 20px;
+  margin-top: 0;
+}
+.community-event__summary {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+.community-event__summary > svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.community-event__info {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+  flex: 1;
+}
+.community-event__info .inline-icon {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+.community-event__title {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+.community-event__title h3 {
+  margin: 0;
+  min-width: 0;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.community-event__type {
+  flex-shrink: 0;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--danger-bg);
+  color: var(--brand-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.community-event__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin: 0 var(--space-4);
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+.community-event__footer .ui-button {
+  flex-shrink: 0;
+  min-width: 100px;
+}
+.challenge-card__footer {
+  height: auto;
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  border-top: 1px solid var(--border);
+}
+.challenge-card__footer .feature-card-foot {
+  margin-top: 0;
+}
+.opportunity-card--urgent {
+  border: 2px solid var(--brand-primary);
+  background: var(--danger-bg);
+}
+.opportunity-card--urgent .drawer {
+  background: transparent;
+}
+.opportunity-card__matching {
+  padding: 0 var(--space-4) var(--space-3);
+}
+.opportunity-card__match-toggle {
+  border: 0;
+  min-height: 36px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.opportunity-card__match-toggle:hover {
+  filter: brightness(0.96);
+}
+.opportunity-card__match-toggle:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 3px;
+}
+.opportunity-card__reasons {
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-control);
+  background: var(--surface-muted);
+  font-size: 0.875rem;
+}
+.opportunity-card .community-event__footer {
+  justify-content: flex-end;
 }
 
 /* ---------- Community: Challenges entry card ---------- */
@@ -1267,6 +1550,65 @@
   flex-wrap: wrap;
   gap: var(--space-2);
 }
+.profile-preferences-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+.profile-header--level {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--space-3);
+}
+.profile-header--level > .ui-button {
+  min-width: 32px;
+  min-height: 32px;
+  padding: 6px;
+}
+.volunteer-level {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: var(--radius-pill);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.volunteer-level svg {
+  flex-shrink: 0;
+}
+.volunteer-level--1 {
+  color: #167343;
+  background: #e7f7ee;
+}
+.volunteer-level--2 {
+  color: #175bb0;
+  background: #eaf2ff;
+}
+.volunteer-level--3 {
+  color: #a3480c;
+  background: #fff0df;
+}
+.volunteer-level--4 {
+  color: #7543a7;
+  background: #f3eaff;
+}
+.profile-volunteer-progress {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+.profile-volunteer-progress__heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-size: 0.875rem;
+}
+.profile-volunteer-progress .ui-progress-fill {
+  background: var(--brand-primary);
+}
 
 .pref-row {
   display: flex;
@@ -1293,6 +1635,10 @@
 }
 .claimed-reward:last-child {
   border-bottom: 0;
+}
+.claimed-reward > .ui-button {
+  flex-shrink: 0;
+  min-width: 96px;
 }
 .claimed-reward-body {
   min-width: 0;
@@ -1655,9 +2001,61 @@
 
 /* ── Facility summary strip ──────────────────────────────────── */
 .safety-facility-summary {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-3);
   margin-top: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.safety-sort {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.safety-sort label {
+  flex-shrink: 0;
+  font-weight: 600;
+}
+
+.safety-sort select {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.safety-sort select:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.safety-card--facility .drawer__header {
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.safety-card--facility .safety-card__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 6rem;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.safety-card--facility .safety-chip-tone {
+  text-align: center;
+}
+
+.safety-card--facility .drawer__chevron {
+  width: 20px;
+  margin-top: 0;
 }
 
 .safety-facility-summary__item {
@@ -1732,6 +2130,38 @@
 
 .safety-card__row.m-0 {
   margin-bottom: 0;
+}
+
+.safety-card--air .drawer__header {
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.safety-card--air .safety-card__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 7.5rem;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.safety-card--air .safety-card__badge {
+  width: 100%;
+  min-width: 0;
+  min-height: 64px;
+  padding: 8px;
+}
+
+.safety-card--air .safety-card__badge-label {
+  font-size: 0.875rem;
+}
+
+.safety-card--air .safety-card__meta {
+  font-size: 0.875rem;
+}
+
+.safety-card--air .drawer__chevron {
+  width: 20px;
+  margin-top: 0;
 }
 
 /* ── Drawer (tap-to-expand card) ─────────────────────────────── */

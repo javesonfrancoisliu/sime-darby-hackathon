@@ -7,8 +7,8 @@ const NOW = Date.parse("2026-10-18T22:00:00+08:00");
 const inHours = (h: number) => new Date(NOW + h * HOUR_MS).toISOString();
 
 describe("urgencyFor", () => {
-  it("is not urgent for a request about 11 hours ahead", () => {
-    expect(urgencyFor(inHours(11), NOW)).toBe("medium");
+  it("is urgent for a request later today", () => {
+    expect(urgencyFor(inHours(11), NOW)).toBe("high");
   });
 
   it("is urgent for a request 2 hours ahead", () => {

@@ -7,7 +7,9 @@ import {
   completeEvent,
   getEvent,
   joinEvent,
-  listJoinedEventIds,
+  listJoinedSignups,
+  getSignup,
+  completeAttendance,
   listSignups,
   listUpcomingEvents,
   putEvent,
@@ -43,8 +45,12 @@ export async function listEvents(viewer?: User, purpose?: EventPurpose): Promise
   const all = await listUpcomingEvents(now);
   const events = purpose ? all.filter((event) => event.purpose === purpose) : all;
   if (!viewer) return events;
-  const joined = await listJoinedEventIds(viewer.id, now);
-  return events.map((event) => ({ ...event, joined: joined.has(event.id) }));
+  const joined = await listJoinedSignups(viewer.id, now);
+  return events.map((event) => ({
+    ...event,
+    joined: joined.has(event.id),
+    attendanceCompletedAt: joined.get(event.id)?.completedAt,
+  }));
 }
 
 export async function join(user: User, eventId: string): Promise<CommunityEvent> {
@@ -90,4 +96,26 @@ export async function complete(eventId: string): Promise<CommunityEvent> {
   await completeEvent(event.id, new Date().toISOString(), contributions);
   for (const signup of volunteers) await awardVolunteer(signup.userId, event);
   return requireEvent(eventId);
+}
+
+// Records only this volunteer's completion; it does not close the event or award points.
+export async function completeOwnAttendance(user: User, eventId: string): Promise<CommunityEvent> {
+  const event = await requireEvent(eventId);
+  const signup = await getSignup(eventId, user.id);
+  if (!signup || signup.role !== "volunteer")
+    throw new HttpError("FORBIDDEN", "Join this activity before confirming completion");
+  if (!signup.completedAt) {
+    await completeAttendance(
+      signup,
+      newContribution({
+        volunteerId: user.id,
+        source: "event",
+        sourceId: event.id,
+        title: event.title,
+        minutes: event.durationMinutes,
+      }),
+    );
+  }
+  const saved = await getSignup(eventId, user.id);
+  return { ...event, joined: true, attendanceCompletedAt: saved?.completedAt };
 }

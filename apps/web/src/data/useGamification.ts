@@ -9,6 +9,7 @@ import type {
   QuizResult,
   QuizSubmitBody,
   RedeemResult,
+  Redemption,
   RewardsResponse,
 } from "@sdh/contracts";
 
@@ -95,4 +96,8 @@ const FRIENDLY_CODES = new Set([
 export function actionErrorMessage(err: unknown): string {
   if (err instanceof ApiError && FRIENDLY_CODES.has(err.code)) return FRIENDLY_ERROR_COPY[err.code];
   return errorMessage(err);
+}
+
+export function consumeRewardVoucher(id: string) {
+  return apiFetch<Redemption>(`/api/rewards/${encodeURIComponent(id)}/use`, { method: "POST" });
 }

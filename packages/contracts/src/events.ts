@@ -33,6 +33,7 @@ export const CommunityEvent = z.object({
   updatedAt: IsoDateTime,
   // Present only when the caller is signed in.
   joined: z.boolean().optional(),
+  attendanceCompletedAt: IsoDateTime.optional(),
 });
 export type CommunityEvent = z.infer<typeof CommunityEvent>;
 

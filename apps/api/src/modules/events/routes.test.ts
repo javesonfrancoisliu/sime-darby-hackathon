@@ -47,6 +47,42 @@ describe("events", () => {
   const join = (eventId: string, userId: string) =>
     call("POST", `/api/events/${eventId}/join`, { as: userId });
 
+  it("records only the joined volunteer's completion once without closing the event", async () => {
+    const volunteer = await createVerifiedVolunteer(coordinator.id);
+    const other = await createVerifiedVolunteer(coordinator.id);
+    const event = await createEvent();
+    await join(event.id, volunteer.id);
+    const path = `/api/events/${event.id}/attendance/complete`;
+    expect((await call("POST", path, { as: other.id })).status).toBe(403);
+    expect((await call("POST", path, { as: coordinator.id })).status).toBe(403);
+    const results = await Promise.all([
+      call("POST", path, { as: volunteer.id }),
+      call("POST", path, { as: volunteer.id }),
+    ]);
+    for (const result of results) {
+      expect(result.status).toBe(200);
+      expect(result.body).toMatchObject({
+        status: "upcoming",
+        joined: true,
+        attendanceCompletedAt: expect.any(String),
+      });
+    }
+    const summary = async () =>
+      (await call("GET", "/api/contributions/mine", { as: volunteer.id }))
+        .body as ContributionsResponse;
+    expect(await summary()).toMatchObject({
+      completedCount: 1,
+      totalMinutes: event.durationMinutes,
+    });
+    const mine = (await call("GET", "/api/events", { as: volunteer.id })).body as EventsResponse;
+    expect(mine.events.find((item) => item.id === event.id)?.attendanceCompletedAt).toBeDefined();
+    await call("POST", `/api/events/${event.id}/complete`, { as: coordinator.id });
+    expect(await summary()).toMatchObject({
+      completedCount: 1,
+      totalMinutes: event.durationMinutes,
+    });
+  });
+
   it("lets only a coordinator create an event and rejects a past start", async () => {
     const elder = await createUser("elder");
     const forbidden = await call("POST", "/api/events", { as: elder.id, body: eventBody() });

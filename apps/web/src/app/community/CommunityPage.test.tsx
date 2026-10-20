@@ -21,46 +21,63 @@ const feedRoutes = signedInRoutes(VOLUNTEER, {
   "GET /api/events": { body: { events: [EVENT, DRIVE] } },
 });
 
+async function selectCategory(name: string) {
+  await userEvent.setup().click(await screen.findByRole("tab", { name }));
+}
+
 describe("community page", () => {
-  it("shows notices, volunteer drives and events in one feed", async () => {
+  it("switches between events, notices, volunteering and updates", async () => {
     installFakeApi(feedRoutes);
     signInAs(VOLUNTEER.id);
     renderApp("/community");
 
     expect(await screen.findByLabelText("Event: Live tea morning")).toBeInTheDocument();
+    await selectCategory("Volunteer");
+    expect(screen.queryByLabelText("Event: Live tea morning")).not.toBeInTheDocument();
     expect(screen.getByLabelText("Volunteering: River clean-up drive")).toBeInTheDocument();
+    await selectCategory("Notices");
     expect(screen.getByLabelText("Maintenance: Lift service at Block C")).toBeInTheDocument();
+    await selectCategory("Updates");
     expect(screen.getByLabelText("Township update: New recycling hours")).toBeInTheDocument();
-    expect(screen.getByText("Elmina")).toBeInTheDocument();
-    expect(screen.getByText("5 updates shown")).toBeInTheDocument();
+    expect(screen.queryByText("Elmina")).not.toBeInTheDocument();
+    expect(screen.getByText("2 updates shown")).toBeInTheDocument();
   });
 
-  it("features the high priority update even when it is not the newest", async () => {
+  it("keeps high priority updates in the feed without a featured card", async () => {
     installFakeApi(feedRoutes);
     signInAs(VOLUNTEER.id);
     renderApp("/community");
 
-    const featured = await screen.findByRole("region", { name: "Featured update" });
-    expect(within(featured).getByText("Water cut tonight")).toBeInTheDocument();
+    await selectCategory("Updates");
+    expect(await screen.findByLabelText("Township update: Water cut tonight")).toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Featured update" })).not.toBeInTheDocument();
   });
 
-  it("shows the high priority badge in the update dialog and one featured heading", async () => {
+  it("expands and collapses update details while keeping the priority visible", async () => {
     installFakeApi(feedRoutes);
     signInAs(VOLUNTEER.id);
     renderApp("/community");
     const user = userEvent.setup();
 
+    await selectCategory("Updates");
     const card = await screen.findByLabelText("Township update: Water cut tonight");
-    await user.click(within(card).getByRole("button", { name: "Read more" }));
-    const dialog = await screen.findByRole("dialog");
-    expect(within(dialog).getByText("High priority")).toBeInTheDocument();
-    expect(screen.getAllByText("Featured update")).toHaveLength(1);
+    const toggle = within(card).getByRole("button", { name: "Water cut tonight. Show details" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(within(card).getByText(URGENT.description)).toBeInTheDocument();
+    expect(within(card).getByText("High priority")).toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByText("Featured update")).not.toBeInTheDocument();
   });
 
   it("shows a maintenance window on one line when it starts and ends the same day", async () => {
     installFakeApi(feedRoutes);
     signInAs(VOLUNTEER.id);
     renderApp("/community");
+    await selectCategory("Notices");
     const card = await screen.findByLabelText("Maintenance: Lift service at Block C");
     expect(within(card).getByText("21 Oct 2026, 9:00 am – 1:00 pm")).toBeInTheDocument();
   });
@@ -77,6 +94,7 @@ describe("community page", () => {
     renderApp("/community");
     const user = userEvent.setup();
 
+    await selectCategory("Volunteer");
     const card = await screen.findByLabelText("Volunteering: River clean-up drive");
     await user.click(within(card).getByRole("button", { name: "Join" }));
     // A yes/no confirmation now precedes the join.
@@ -89,6 +107,7 @@ describe("community page", () => {
     signInAs(VOLUNTEER.id);
     renderApp("/community");
 
+    await selectCategory("Volunteer");
     const card = await screen.findByLabelText("Volunteering: River clean-up drive");
     expect(within(card).getByText("6 slots left")).toBeInTheDocument();
     expect(within(card).getByText("Green Elmina")).toBeInTheDocument();
@@ -110,6 +129,7 @@ describe("community page", () => {
     renderApp("/community");
     const user = userEvent.setup();
 
+    await selectCategory("Volunteer");
     const card = await screen.findByLabelText("Volunteering: River clean-up drive");
     await user.click(within(card).getByRole("button", { name: "Join" }));
     await user.click(await screen.findByRole("button", { name: "Yes, join" }));
@@ -139,7 +159,8 @@ describe("community page", () => {
     expect(await screen.findByText("Couldn't load community updates")).toBeInTheDocument();
     expect(screen.getByText("Events are down")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument();
-    // The notices that did load stay visible.
+    // The notices that did load stay available.
+    await selectCategory("Updates");
     expect(screen.getByLabelText("Township update: New recycling hours")).toBeInTheDocument();
   });
 
@@ -153,12 +174,15 @@ describe("community page", () => {
     const user = userEvent.setup();
 
     await user.click(
-      within(await screen.findByLabelText(/Live tea morning/)).getByRole("button", {
+      within(await screen.findByLabelText("Event: Live tea morning")).getByRole("button", {
         name: /details/i,
       }),
     );
-    const dialog = await screen.findByRole("dialog");
-    await user.click(within(dialog).getByRole("button", { name: "Register to attend" }));
+    await user.click(
+      within(screen.getByLabelText("Event: Live tea morning")).getByRole("button", {
+        name: "Register",
+      }),
+    );
     // A yes/no confirmation now precedes registration.
     await user.click(await screen.findByRole("button", { name: "Yes, register" }));
 

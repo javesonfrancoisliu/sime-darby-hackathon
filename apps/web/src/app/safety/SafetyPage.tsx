@@ -35,18 +35,18 @@ import {
 
 type SafetyTab = "air" | "water" | "heat" | "facilities";
 
-const SAFETY_TABS: { id: SafetyTab; label: string }[] = [
-  { id: "air", label: "Air" },
-  { id: "water", label: "Water" },
-  { id: "heat", label: "Heat" },
-  { id: "facilities", label: "Facilities" },
+const SAFETY_TABS: { id: SafetyTab; label: string; icon: ReactNode }[] = [
+  { id: "air", label: "Air", icon: <Wind size={18} strokeWidth={2} /> },
+  { id: "water", label: "Water", icon: <Waves size={18} strokeWidth={2} /> },
+  { id: "heat", label: "Heat", icon: <Thermometer size={18} strokeWidth={2} /> },
+  { id: "facilities", label: "Facilities", icon: <Wrench size={18} strokeWidth={2} /> },
 ];
 
 const SECTION_TITLE: Record<SafetyTab, string> = {
   air: "Air Quality & Haze API",
   water: "River & Lake Water Levels",
   heat: "Temperature Alerts",
-  facilities: "Facility Reports (Reported · In Progress · Fixed)",
+  facilities: "Facility Reports",
 };
 
 const SECTION_ICON: Record<SafetyTab, ReactNode> = {
@@ -82,6 +82,7 @@ export function SafetyPage() {
   const { data, loading, error, reload } = useSafety();
   const [tab, setTab] = useState<SafetyTab>("air");
   const [status, setStatus] = useState<StatusFilter>("all");
+  const [openAir, setOpenAir] = useState<string | null>(null);
   const [openFacility, setOpenFacility] = useState<string | null>(null);
 
   const readings = useMemo(
@@ -152,24 +153,30 @@ export function SafetyPage() {
                       const s = AIR_LEVEL[r.level];
                       const pct = Math.min((r.value / HAZE_API_SCALE_MAX) * 100, 100);
                       return (
-                        <div
+                        <Drawer
                           key={r.area}
-                          className="safety-card"
-                          role="listitem"
-                          aria-label={`Air quality: ${r.area}`}
+                          className="safety-card safety-card--drawer safety-card--air"
+                          ariaLabel={`Air quality: ${r.area}`}
+                          label={r.area}
+                          open={openAir === r.area}
+                          onToggle={() => setOpenAir((cur) => (cur === r.area ? null : r.area))}
+                          header={
+                            <div className="safety-card__row m-0">
+                              <div>
+                                <p className="safety-card__location">{r.area}</p>
+                                <p className="safety-card__meta">
+                                  Updated: {formatWhen(r.measuredAt).split(", ")[0]}
+                                  <br />
+                                  {formatWhen(r.measuredAt).split(", ")[1]}
+                                </p>
+                              </div>
+                              <div className={`safety-card__badge tone-${s.tone}`}>
+                                <span className="safety-card__badge-value">{r.value}</span>
+                                <span className="safety-card__badge-label">API · {s.label}</span>
+                              </div>
+                            </div>
+                          }
                         >
-                          <div className="safety-card__row">
-                            <div>
-                              <p className="safety-card__location">{r.area}</p>
-                              <p className="safety-card__meta">
-                                Updated: {formatWhen(r.measuredAt)}
-                              </p>
-                            </div>
-                            <div className={`safety-card__badge tone-${s.tone}`}>
-                              <span className="safety-card__badge-value">{r.value}</span>
-                              <span className="safety-card__badge-label">API · {s.label}</span>
-                            </div>
-                          </div>
                           <div
                             className="safety-bar"
                             aria-label={`API level ${r.value} out of ${HAZE_API_SCALE_MAX}`}
@@ -188,7 +195,7 @@ export function SafetyPage() {
                             />
                             {r.advice}
                           </p>
-                        </div>
+                        </Drawer>
                       );
                     })}
                   </div>
@@ -219,17 +226,17 @@ export function SafetyPage() {
                           role="listitem"
                           aria-label={`Water levels: ${r.name}`}
                         >
-                          <div className="safety-card__row">
-                            <div>
-                              <p className="safety-card__location">{r.name}</p>
-                              <p className="safety-card__meta">
-                                {r.waterBody === "river" ? "River gauge" : "Lake"} ·{" "}
-                                {withUnit(r.value, r.unit)} / {withUnit(r.normalMax, r.unit)} normal
-                                max · {formatWhen(r.measuredAt)}
-                              </p>
-                            </div>
+                          <div className="safety-card__row m-0">
+                            <p className="safety-card__location flex-fill">{r.name}</p>
                             <span className={`safety-chip-tone tone-${s.tone}`}>{s.label}</span>
                           </div>
+                          <p className="safety-card__meta">
+                            {r.waterBody === "river" ? "River gauge" : "Lake"}
+                          </p>
+                          <p className="safety-card__meta">
+                            {withUnit(r.value, r.unit)} / {withUnit(r.normalMax, r.unit)} normal max
+                          </p>
+                          <p className="safety-card__meta">{formatWhen(r.measuredAt)}</p>
                           <div
                             className="safety-bar"
                             aria-label={`Water level ${withUnit(r.value, r.unit)} of ${withUnit(
@@ -330,25 +337,36 @@ export function SafetyPage() {
                   title={SECTION_TITLE.facilities}
                 />
 
-                <div className="safety-filter" role="group" aria-label="Filter by status">
-                  {FILTER_STATUSES.map((f) => (
-                    <button
-                      key={f}
-                      type="button"
-                      className={`safety-filter__btn${
-                        status === f ? " safety-filter__btn--active" : ""
-                      }`}
-                      aria-pressed={status === f}
-                      onClick={() => setStatus(f)}
-                    >
-                      {f === "all" ? "All" : FACILITY_TONE[f].label}
-                      <span className="safety-filter__count">
+                <div className="safety-facility-summary">
+                  {FACILITY_STATUSES.map((s) => {
+                    const c = FACILITY_TONE[s];
+                    const count = facilityReports.filter((r) => r.status === s).length;
+                    return (
+                      <div key={s} className={`safety-facility-summary__item tone-${c.tone}`}>
+                        <span className="safety-facility-summary__count">{count}</span>
+                        <span className="safety-facility-summary__label">{c.label}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="safety-sort">
+                  <label htmlFor="facility-status">Sort by</label>
+                  <select
+                    id="facility-status"
+                    value={status}
+                    onChange={(event) => setStatus(event.target.value as StatusFilter)}
+                  >
+                    {FILTER_STATUSES.map((f) => (
+                      <option key={f} value={f}>
+                        {f === "all" ? "All" : FACILITY_TONE[f].label} (
                         {f === "all"
                           ? facilityReports.length
                           : facilityReports.filter((r) => r.status === f).length}
-                      </span>
-                    </button>
-                  ))}
+                        )
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 {facilityReports.length === 0 ? (
@@ -361,7 +379,7 @@ export function SafetyPage() {
                         return (
                           <Drawer
                             key={r.id}
-                            className="safety-card safety-card--drawer"
+                            className="safety-card safety-card--drawer safety-card--facility"
                             ariaLabel={`Facility report: ${r.title}`}
                             label={r.title}
                             open={openFacility === r.id}
@@ -389,23 +407,10 @@ export function SafetyPage() {
                               <span className="safety-card__category">{r.category}</span>
                               <span className="safety-card__meta">
                                 Reported {formatWhen(r.reportedAt)}
-                                {r.status !== "reported" && ` · Updated ${formatWhen(r.updatedAt)}`}
+                                {r.status !== "reported" && ` / Updated ${formatWhen(r.updatedAt)}`}
                               </span>
                             </div>
                           </Drawer>
-                        );
-                      })}
-                    </div>
-
-                    <div className="safety-facility-summary">
-                      {FACILITY_STATUSES.map((s) => {
-                        const c = FACILITY_TONE[s];
-                        const count = facilityReports.filter((r) => r.status === s).length;
-                        return (
-                          <div key={s} className={`safety-facility-summary__item tone-${c.tone}`}>
-                            <span className="safety-facility-summary__count">{count}</span>
-                            <span className="safety-facility-summary__label">{c.label}</span>
-                          </div>
                         );
                       })}
                     </div>

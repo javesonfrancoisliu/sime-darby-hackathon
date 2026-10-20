@@ -1,9 +1,12 @@
-import type { RedeemResult, Reward, RewardsResponse, User } from "@sdh/contracts";
+import { UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { db, table } from "../../lib/db";
+import type { RedeemResult, Redemption, Reward, RewardsResponse, User } from "@sdh/contracts";
 import { beforeAll, describe, expect, it } from "vitest";
 import { call } from "../../test/api";
 import { createCoordinator, createElder, createVerifiedVolunteerDirect } from "../../test/people";
 import { useTestTable } from "../../test/table";
 import { giveContributions, givePoints } from "../play/testSupport";
+import { rewards as catalogue } from "../../../scripts/content/rewards";
 import { getUser } from "../users/repository";
 
 useTestTable();
@@ -31,6 +34,27 @@ describe("rewards", () => {
 
   const list = async (userId: string) =>
     ((await call("GET", "/api/rewards", { as: userId })).body as RewardsResponse).rewards;
+
+  it("offers the same active reward options to elders and volunteers", async () => {
+    const elder = await createElder();
+    const volunteer = await createVerifiedVolunteerDirect();
+    const active = catalogue.filter((reward) => reward.active);
+    expect(active.map((reward) => [reward.title, reward.pointsCost])).toEqual([
+      ["RM5 grocery voucher", 100],
+      ["Free blood pressure check", 150],
+      ["Teh tarik and roti canai set", 120],
+    ]);
+    const created = [];
+    for (const reward of active) created.push(await createReward(reward));
+    for (const person of [elder, volunteer]) {
+      const available = await list(person.id);
+      for (const reward of created)
+        expect(available.find((item) => item.id === reward.id)).toMatchObject({
+          title: reward.title,
+          pointsCost: reward.pointsCost,
+        });
+    }
+  });
 
   it("only a coordinator creates rewards", async () => {
     const elder = await createElder();
@@ -72,12 +96,63 @@ describe("rewards", () => {
     const done = await call("POST", `/api/rewards/${reward.id}/redeem`, { as: elder.id });
     expect(done.status).toBe(200);
     expect((done.body as RedeemResult).points).toBe(60);
+    const redemption = (done.body as RedeemResult).redemption;
+    expect(Date.parse(redemption.expiresAt!) - Date.parse(redemption.redeemedAt)).toBe(
+      30 * 86400000,
+    );
     expect(await status()).toMatchObject({ status: "redeemed" });
     expect((await status())?.redeemedAt).toBeDefined();
 
     const again = await call("POST", `/api/rewards/${reward.id}/redeem`, { as: elder.id });
     expect(JSON.stringify(again.body)).toContain("ALREADY_DONE");
     expect((await getUser(elder.id))?.points).toBe(60);
+  });
+
+  it("uses only the caller's redeemed voucher once without spending points again", async () => {
+    const volunteer = await createVerifiedVolunteerDirect();
+    const other = await createVerifiedVolunteerDirect();
+    const reward = await createReward();
+    const path = `/api/rewards/${reward.id}/use`;
+    expect((await call("POST", path, { as: volunteer.id })).status).toBe(404);
+    await givePoints(volunteer.id, 100);
+    await call("POST", `/api/rewards/${reward.id}/redeem`, { as: volunteer.id });
+    expect(
+      (await list(volunteer.id)).find((item) => item.id === reward.id)?.usedAt,
+    ).toBeUndefined();
+    expect((await call("POST", path, { as: other.id })).status).toBe(404);
+    const used = await call("POST", path, { as: volunteer.id });
+    expect(used.status).toBe(200);
+    const timestamp = (used.body as Redemption).usedAt;
+    expect(timestamp).toBeDefined();
+    const repeated = await call("POST", path, { as: volunteer.id });
+    expect(repeated.status).toBe(200);
+    expect((repeated.body as Redemption).usedAt).toBe(timestamp);
+    expect((await list(volunteer.id)).find((item) => item.id === reward.id)).toMatchObject({
+      status: "redeemed",
+      usedAt: timestamp,
+    });
+    expect((await getUser(volunteer.id))?.points).toBe(60);
+  });
+
+  it("rejects using an expired voucher", async () => {
+    const volunteer = await createVerifiedVolunteerDirect();
+    const reward = await createReward();
+    await givePoints(volunteer.id, 100);
+    await call("POST", `/api/rewards/${reward.id}/redeem`, { as: volunteer.id });
+    await db().send(
+      new UpdateCommand({
+        TableName: table(),
+        Key: { PK: `USER#${volunteer.id}`, SK: `REDEEM#${reward.id}` },
+        UpdateExpression: "SET expiresAt = :past",
+        ExpressionAttributeValues: { ":past": "2020-01-01T00:00:00Z" },
+      }),
+    );
+    const result = await call("POST", `/api/rewards/${reward.id}/use`, { as: volunteer.id });
+    expect(result.status).toBe(409);
+    expect(JSON.stringify(result.body)).toContain("This voucher has expired");
+    expect(
+      (await list(volunteer.id)).find((item) => item.id === reward.id)?.usedAt,
+    ).toBeUndefined();
   });
 
   it("locks a reward until enough volunteer tasks are done", async () => {

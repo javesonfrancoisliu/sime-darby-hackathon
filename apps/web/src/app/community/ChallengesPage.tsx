@@ -1,5 +1,6 @@
-import { ArrowLeft, CloudOff, Trophy } from "lucide-react";
-import { useMemo, useState } from "react";
+import { ArrowLeft, CloudOff, Gift, Sparkles, Target, Trophy } from "lucide-react";
+import { useMemo, useState, type ReactNode } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import { ApiError, errorMessage, useSession } from "@sdh/api-client";
 import type {
@@ -11,6 +12,7 @@ import type {
 } from "@sdh/contracts";
 
 import {
+  BadgeGrid,
   ChallengeCard,
   ChallengeStatsStrip,
   Leaderboard,
@@ -51,13 +53,14 @@ import {
 } from "../../data/useGamification";
 import { CHALLENGE_CATEGORY_LABEL } from "../../types/gamification";
 
-type Tab = "challenges" | "leaderboard" | "rewards";
+type Tab = "challenges" | "leaderboard" | "badges" | "rewards";
 type CategoryFilter = "all" | ChallengeCategory;
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: "challenges", label: "Challenges" },
-  { id: "leaderboard", label: "Leaderboard" },
-  { id: "rewards", label: "Rewards" },
+const TABS: { id: Tab; label: string; icon: ReactNode }[] = [
+  { id: "challenges", label: "Challenges", icon: <Target size={18} /> },
+  { id: "leaderboard", label: "Rankings", icon: <Trophy size={18} /> },
+  { id: "badges", label: "Badges", icon: <Sparkles size={18} /> },
+  { id: "rewards", label: "Rewards", icon: <Gift size={18} /> },
 ];
 
 const CATEGORY_FILTERS: CategoryFilter[] = [
@@ -83,7 +86,16 @@ export function ChallengesPage() {
   const leaderboard = useLeaderboard();
   const { leaderboardOptIn, setLeaderboardOptIn } = useProfile();
 
-  const [tab, setTab] = useState<Tab>("challenges");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requestedTab = searchParams.get("tab");
+  const tab: Tab = TABS.find((item) => item.id === requestedTab)?.id ?? "challenges";
+  function setTab(next: Tab) {
+    setSearchParams((current) => {
+      const updated = new URLSearchParams(current);
+      updated.set("tab", next);
+      return updated;
+    });
+  }
   const [category, setCategory] = useState<CategoryFilter>("all");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [logging, setLogging] = useState<ChallengeWithProgress | null>(null);
@@ -237,7 +249,7 @@ export function ChallengesPage() {
           () => redeemReward(reward.id),
           (result) => ({
             title: "Reward redeemed",
-            message: `"${reward.title}" is yours. You have ${result.points} points left.`,
+            message: `"${reward.title}" is yours. You have ${result.points} points left. Find your voucher in Profile under My rewards and select Use now when you want to use it.`,
           }),
           "Couldn't redeem the reward",
         ),
@@ -374,18 +386,44 @@ export function ChallengesPage() {
         </TabPanel>
       )}
 
+      {tab === "badges" && (
+        <TabPanel idBase="challenges" id="badges">
+          <section className="ui-section" aria-labelledby="badges-heading">
+            <h2 className="ui-section-title inline-icon" id="badges-heading">
+              <Sparkles size={22} aria-hidden="true" /> Participation Badges
+            </h2>
+            {badges.loading ? (
+              <LoadingState rows={2} label="Loading badges" />
+            ) : badges.error ? (
+              <InfoCard>
+                <EmptyState
+                  icon={CloudOff}
+                  title="Couldn't load badges"
+                  description={badges.error}
+                  action={
+                    <AppButton variant="secondary" onClick={() => void badges.reload()}>
+                      Try again
+                    </AppButton>
+                  }
+                />
+              </InfoCard>
+            ) : (
+              <BadgeGrid badges={badges.data?.badges ?? []} />
+            )}
+          </section>
+        </TabPanel>
+      )}
+
       {tab === "rewards" && (
         <TabPanel idBase="challenges" id="rewards">
           <section className="ui-section" aria-labelledby="rewards-heading">
-            <h2 className="ui-visually-hidden" id="rewards-heading">
-              Rewards and badges
+            <h2 className="ui-section-title inline-icon" id="rewards-heading">
+              <Gift size={22} aria-hidden="true" /> Rewards &amp; Vouchers
             </h2>
             <RewardsPanel
               rewards={rewards.data?.rewards ?? []}
-              badges={badges.data?.badges ?? []}
               loading={rewards.loading}
               error={rewards.error}
-              points={points.data?.points ?? 0}
               redeemingId={busyId}
               onRedeem={handleRedeem}
             />

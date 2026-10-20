@@ -30,6 +30,26 @@ describe("profile page", () => {
     expect(within(card).getByText(VOLUNTEER.area)).toBeInTheDocument();
   });
 
+  it("shows the volunteer level and progress from completed contributions", async () => {
+    installFakeApi(
+      signedIn({
+        "GET /api/contributions/mine": {
+          body: { totalMinutes: 300, completedCount: 5, items: [] },
+        },
+      }),
+    );
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    expect(await screen.findByText("Lv. 2 Community Helper")).toBeInTheDocument();
+    expect(screen.getByText("5 / 10 tasks")).toBeInTheDocument();
+    expect(screen.getByText("5 more tasks to reach Community Champion")).toBeInTheDocument();
+    expect(screen.getByRole("progressbar", { name: "Volunteer level progress" })).toHaveAttribute(
+      "aria-valuenow",
+      "5",
+    );
+    expect(screen.queryByText("Verified volunteer")).not.toBeInTheDocument();
+  });
+
   it("keeps the previous initials in the avatar while the name is cleared", async () => {
     installFakeApi(signedIn());
     signInAs(VOLUNTEER.id);
@@ -86,7 +106,10 @@ describe("profile page", () => {
     renderApp("/profile");
     const user = userEvent.setup();
 
-    await user.click(await screen.findByRole("button", { name: "Edit volunteer preferences" }));
+    await user.click(
+      await screen.findByRole("button", { name: "Volunteering preferences. Show details" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Edit volunteer preferences" }));
     const dialog = await screen.findByRole("dialog");
     const skills = within(dialog).getByRole("group", { name: "Skills" });
     await user.click(within(skills).getByRole("button", { name: "Groceries" }));
@@ -118,7 +141,10 @@ describe("profile page", () => {
     renderApp("/profile");
     const user = userEvent.setup();
 
-    await user.click(await screen.findByRole("button", { name: "Edit volunteer preferences" }));
+    await user.click(
+      await screen.findByRole("button", { name: "Volunteering preferences. Show details" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Edit volunteer preferences" }));
     const dialog = await screen.findByRole("dialog");
     const skills = within(dialog).getByRole("group", { name: "Skills" });
     await user.click(within(skills).getByRole("button", { name: "Groceries" }));
@@ -135,7 +161,10 @@ describe("profile page", () => {
     renderApp("/profile");
     const user = userEvent.setup();
 
-    await user.click(await screen.findByRole("button", { name: "Edit volunteer preferences" }));
+    await user.click(
+      await screen.findByRole("button", { name: "Volunteering preferences. Show details" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Edit volunteer preferences" }));
     const dialog = await screen.findByRole("dialog");
     const days = within(dialog).getByRole("group", { name: "Preferred days" });
     await user.click(within(days).getByRole("button", { name: "Weekends" }));
@@ -186,7 +215,10 @@ describe("profile page", () => {
     renderApp("/profile");
     const user = userEvent.setup();
 
-    await user.click(await screen.findByRole("button", { name: "Edit volunteer preferences" }));
+    await user.click(
+      await screen.findByRole("button", { name: "Volunteering preferences. Show details" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Edit volunteer preferences" }));
     const dialog = await screen.findByRole("dialog");
     const interests = within(dialog).getByRole("group", { name: "Assistance interests" });
     await user.click(within(interests).getByRole("button", { name: "Transport" }));
@@ -210,6 +242,7 @@ describe("profile page", () => {
     renderApp("/profile");
     const user = userEvent.setup();
 
+    await user.click(await screen.findByRole("button", { name: "Settings. Show details" }));
     const toggle = await screen.findByRole("switch", { name: /Volunteering updates/ });
     await waitFor(() => expect(toggle).toBeEnabled());
     expect(toggle).not.toBeChecked();
@@ -230,6 +263,7 @@ describe("profile page", () => {
     renderApp("/profile");
     const user = userEvent.setup();
 
+    await user.click(await screen.findByRole("button", { name: "Settings. Show details" }));
     await user.click(await screen.findByRole("switch", { name: /Show me on the leaderboard/ }));
 
     await waitFor(() => expect(calls.some((c) => c.method === "PATCH")).toBe(true));
@@ -245,6 +279,7 @@ describe("profile page", () => {
     const { container } = renderApp("/profile");
     const user = userEvent.setup();
 
+    await user.click(await screen.findByRole("button", { name: "Settings. Show details" }));
     const toggle = await screen.findByRole("switch", { name: /Larger text/ });
     expect(toggle).not.toBeChecked();
     expect(container.querySelector(".app-shell")).not.toHaveClass("easy-view");
@@ -276,8 +311,82 @@ describe("profile page", () => {
     renderApp("/profile");
 
     expect(await screen.findByText("Coffee voucher")).toBeInTheDocument();
-    expect(screen.getByText(/Claimed 18 Oct 2026/)).toBeInTheDocument();
+    expect(screen.getByText(/Expires 17 Nov 2026/)).toBeInTheDocument();
     expect(screen.queryByText("Tote bag")).not.toBeInTheDocument();
+  });
+
+  it("keeps a voucher usable after redemption and marks it claimed only after use", async () => {
+    let used = false;
+    const reward = makeReward({ status: "redeemed", redeemedAt: "2026-10-18T02:00:00Z" });
+    const usedAt = "2026-10-20T02:00:00Z";
+    const { calls } = installFakeApi(
+      signedIn({
+        "GET /api/rewards": () => ({
+          body: { rewards: [{ ...reward, usedAt: used ? usedAt : undefined }] },
+        }),
+        [`POST /api/rewards/${reward.id}/use`]: () => {
+          used = true;
+          return {
+            body: {
+              rewardId: reward.id,
+              title: reward.title,
+              pointsSpent: reward.pointsCost,
+              redeemedAt: reward.redeemedAt,
+              usedAt,
+            },
+          };
+        },
+      }),
+    );
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", { name: "Use now" }));
+    await user.click(screen.getByRole("button", { name: "Not yet" }));
+    expect(calls.some((call) => call.method === "POST")).toBe(false);
+    await user.click(screen.getByRole("button", { name: "Use now" }));
+    await user.click(screen.getByRole("button", { name: "Yes, use now" }));
+    expect(await screen.findByText("Claimed")).toBeInTheDocument();
+    expect(screen.getByText("Claimed 20 Oct 2026")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Use now" })).not.toBeInTheDocument();
+    expect(calls.filter((call) => call.method === "POST")).toHaveLength(1);
+  });
+
+  it("opens the Rewards tab directly from My rewards", async () => {
+    installFakeApi(signedIn());
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    const user = userEvent.setup();
+    const link = await screen.findByRole("link", { name: "See available rewards in Challenges" });
+    expect(link).toHaveAttribute("href", "/community/challenges?tab=rewards");
+    await user.click(link);
+    expect(await screen.findByRole("tab", { name: "Rewards" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(screen.getByRole("heading", { name: "Rewards & Vouchers" })).toBeInTheDocument();
+  });
+
+  it("does not offer Use now for an expired voucher", async () => {
+    installFakeApi(
+      signedIn({
+        "GET /api/rewards": {
+          body: {
+            rewards: [
+              makeReward({
+                status: "redeemed",
+                redeemedAt: "2020-01-01T00:00:00Z",
+                expiresAt: "2020-01-31T00:00:00Z",
+              }),
+            ],
+          },
+        },
+      }),
+    );
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    expect(await screen.findByText("Expired 31 Jan 2020")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Use now" })).not.toBeInTheDocument();
   });
 
   it("hides the local sign-in picker in a build that switches it off", async () => {

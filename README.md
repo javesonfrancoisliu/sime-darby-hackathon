@@ -59,31 +59,32 @@ Most feature modules are split into three files:
 
 The API accepts `Authorization: Bearer <Cognito access token>`. `POST /api/me` creates your profile after the first sign-in (Bearer token only).
 
-| Method | Path                        |
-| ------ | --------------------------- |
-| GET    | /api/health                 |
-| GET    | /api/demo/users             |
-| POST   | /api/users                  |
-| GET    | /api/me                     |
-| POST   | /api/me                     |
-| PATCH  | /api/me                     |
-| GET    | /api/volunteers             |
-| POST   | /api/volunteers/{id}/review |
-| POST   | /api/requests               |
-| GET    | /api/requests/mine          |
-| GET    | /api/requests               |
-| GET    | /api/requests/{id}          |
-| POST   | /api/requests/{id}/review   |
-| POST   | /api/requests/{id}/cancel   |
-| GET    | /api/requests/{id}/matches  |
-| POST   | /api/requests/{id}/accept   |
-| POST   | /api/requests/{id}/complete |
-| GET    | /api/opportunities          |
-| GET    | /api/contributions/mine     |
-| GET    | /api/events                 |
-| POST   | /api/events                 |
-| POST   | /api/events/{id}/join       |
-| POST   | /api/events/{id}/complete   |
+| Method | Path                                 |
+| ------ | ------------------------------------ |
+| GET    | /api/health                          |
+| GET    | /api/demo/users                      |
+| POST   | /api/users                           |
+| GET    | /api/me                              |
+| POST   | /api/me                              |
+| PATCH  | /api/me                              |
+| GET    | /api/volunteers                      |
+| POST   | /api/volunteers/{id}/review          |
+| POST   | /api/requests                        |
+| GET    | /api/requests/mine                   |
+| GET    | /api/requests                        |
+| GET    | /api/requests/{id}                   |
+| POST   | /api/requests/{id}/review            |
+| POST   | /api/requests/{id}/cancel            |
+| GET    | /api/requests/{id}/matches           |
+| POST   | /api/requests/{id}/accept            |
+| POST   | /api/requests/{id}/complete          |
+| GET    | /api/opportunities                   |
+| GET    | /api/contributions/mine              |
+| GET    | /api/events                          |
+| POST   | /api/events                          |
+| POST   | /api/events/{id}/join                |
+| POST   | /api/events/{id}/attendance/complete |
+| POST   | /api/events/{id}/complete            |
 
 Request and response shapes are in `packages/contracts`.
 
@@ -118,7 +119,7 @@ Hashed files in `assets/` are cached for a year; `index.html`, `sw.js` and the m
 ## Frontend notes
 
 - Import API types from `@sdh/contracts` instead of redefining them.
-- Demo sign-in only works when the API runs with `DEMO_AUTH_ENABLED=true` (set by `pnpm dev` and `.env.example`) and Cognito is not configured; once `COGNITO_USER_POOL_ID` and `COGNITO_CLIENT_ID` are set, only Cognito sign-in is accepted. Otherwise every signed-in call returns 401 and `/api/demo/users` and `POST /api/users` return 404. `POST /api/users` never creates a coordinator.
+- Demo sign-in only works when the API runs with `DEMO_AUTH_ENABLED=true` (set in `.env.example`; copy it to `apps/api/.env` for local development) and Cognito is not configured; once `COGNITO_USER_POOL_ID` and `COGNITO_CLIENT_ID` are set, only Cognito sign-in is accepted. Otherwise every signed-in call returns 401 and `/api/demo/users` and `POST /api/users` return 404. `POST /api/users` never creates a coordinator.
 - After the demo sign-in, send the chosen profile id on every call as the `X-Demo-User` header.
 - Call the API with relative paths (`/api/...`); in local dev, proxy `/api` to `http://127.0.0.1:3001`.
 - Errors come back as `{ "error": { "code": "...", "message": "..." } }`.

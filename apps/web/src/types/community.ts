@@ -1,4 +1,4 @@
-import type { MaintenanceStatus } from "@sdh/contracts";
+import type { EventCategory, MaintenanceStatus } from "@sdh/contracts";
 
 // View models for the community feed, mapped from notices and events.
 
@@ -17,6 +17,7 @@ export type CommunityCategory = "event" | "maintenance" | "volunteer" | "townshi
 
 export type EventItem = FeedBase & {
   category: "event";
+  eventType: EventCategory;
   startsAt: string;
   durationMinutes: number;
   location: string;

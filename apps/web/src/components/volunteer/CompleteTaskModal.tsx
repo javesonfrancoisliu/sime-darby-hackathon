@@ -39,20 +39,22 @@ export function CompleteTaskModal({
   return (
     <Modal
       open={task !== null}
-      title="Mark task complete"
+      title="Confirm task completion"
       onClose={onClose}
       footer={
         <>
           <AppButton variant="ghost" onClick={onClose} disabled={busy}>
-            Cancel
+            Not yet
           </AppButton>
           <AppButton
             variant="primary"
             loading={busy}
-            disabled={!valid}
-            onClick={() => task && onConfirm(task, value)}
+            disabled={task?.kind === "event" ? false : !valid}
+            onClick={() =>
+              task && onConfirm(task, task.kind === "event" ? task.durationMinutes : value)
+            }
           >
-            Mark as completed
+            Yes, completed
           </AppButton>
         </>
       }
@@ -62,24 +64,29 @@ export function CompleteTaskModal({
           <p className="ui-flush">
             Mark <strong>{task.title}</strong> as completed?
           </p>
-          <FormField
-            label="Minutes spent"
-            type="number"
-            inputMode="numeric"
-            min={1}
-            max={max}
-            value={minutes}
-            onChange={(event) => setMinutes(event.target.value)}
-            helper={`Planned: ${task.durationMinutes} min. Counts toward your volunteer hours.`}
-            error={
-              error ??
-              (minutes !== "" && !valid ? `Enter a whole number from 1 to ${max}.` : undefined)
-            }
-          />
-          <p className="ui-helper">
-            This is your own report. It is not yet verified and does not award points - the resident
-            still needs to confirm.
-          </p>
+          {task.kind === "request" && (
+            <FormField
+              label="Minutes spent"
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={max}
+              value={minutes}
+              onChange={(event) => setMinutes(event.target.value)}
+              helper={`Planned: ${task.durationMinutes} min. Counts toward your volunteer hours.`}
+              error={
+                error ??
+                (minutes !== "" && !valid ? `Enter a whole number from 1 to ${max}.` : undefined)
+              }
+            />
+          )}
+          {task.kind === "request" && (
+            <p className="ui-helper">
+              This is your own report. It is not yet verified and does not award points - the
+              resident still needs to confirm.
+            </p>
+          )}
+          {task.kind === "event" && error && <p role="alert">{error}</p>}
         </>
       )}
     </Modal>

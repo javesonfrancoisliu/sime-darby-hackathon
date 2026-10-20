@@ -1,11 +1,13 @@
 import { CheckCircle2, Clock, ShieldCheck, Sparkles, Users } from "lucide-react";
 
+import { useState } from "react";
+
 import type { ChallengeWithProgress } from "@sdh/contracts";
 
 import { CHALLENGE_CATEGORY_LABEL } from "../../types/gamification";
 import { formatCount, formatDate } from "../../lib/format";
 import { ICON_BY_KEY } from "../../lib/icons";
-import { AppButton, InfoCard, Pill, ProgressBar, StatusBadge } from "../ui";
+import { AppButton, Drawer, Pill, ProgressBar, StatusBadge } from "../ui";
 
 export type ChallengeCardProps = {
   challenge: ChallengeWithProgress;
@@ -30,6 +32,7 @@ export function ChallengeCard({
   onTakeQuiz,
   onContribute,
 }: ChallengeCardProps) {
+  const [open, setOpen] = useState(false);
   const Icon = ICON_BY_KEY[challenge.icon];
   const busy = busyId === challenge.id;
   const team = challenge.mode === "team";
@@ -42,43 +45,53 @@ export function ChallengeCard({
   const goalReached = current >= target;
 
   return (
-    <InfoCard as="li" ariaLabel={`Challenge: ${challenge.title}`}>
-      <div className="feature-card">
-        <div className="feature-card-head">
-          <h3 className="feature-card-title">
-            <span className="inline-icon">
-              <Icon size={18} className="icon-dim" aria-hidden="true" />
-              {challenge.title}
-            </span>
-          </h3>
-          <Pill>{CHALLENGE_CATEGORY_LABEL[challenge.category]}</Pill>
-        </div>
+    <li className="community-event" aria-label={`Challenge: ${challenge.title}`}>
+      <Drawer
+        label={challenge.title}
+        open={open}
+        onToggle={() => setOpen((current) => !current)}
+        header={
+          <div className="feature-card">
+            <div className="feature-card-head">
+              <h3 className="feature-card-title">
+                <span className="inline-icon">
+                  <Icon size={18} className="icon-dim" aria-hidden="true" />
+                  {challenge.title}
+                </span>
+              </h3>
+              <Pill>{CHALLENGE_CATEGORY_LABEL[challenge.category]}</Pill>
+            </div>
 
-        <div className="ui-chip-row ui-gap-2">
-          {team ? (
-            <span className="ui-pill">
-              <Users size={12} aria-hidden="true" /> Team challenge
-              {challenge.teamProgress ? ` · ${challenge.teamProgress.precinct}` : ""}
-            </span>
-          ) : (
-            <span className="match-score" title="Points for completing this challenge">
-              <Sparkles size={14} aria-hidden="true" />
-              {challenge.points} pts
-            </span>
+            <div className="ui-chip-row ui-gap-2">
+              {team ? (
+                <span className="ui-pill">
+                  <Users size={12} aria-hidden="true" /> Team challenge
+                  {challenge.teamProgress ? ` · ${challenge.teamProgress.precinct}` : ""}
+                </span>
+              ) : (
+                <span className="match-score" title="Points for completing this challenge">
+                  <Sparkles size={14} aria-hidden="true" />
+                  {challenge.points} pts
+                </span>
+              )}
+              {challenge.requiresVerification && (
+                <span className="ui-pill">
+                  <ShieldCheck size={12} aria-hidden="true" /> Verified participation
+                </span>
+              )}
+            </div>
+          </div>
+        }
+      >
+        <div className="ui-stack ui-gap-2">
+          <p className="feature-card-desc">{challenge.description}</p>
+
+          {team && challenge.teamReward && (
+            <span className="ui-meta-row">Team reward: {challenge.teamReward}</span>
           )}
-          {challenge.requiresVerification && (
-            <span className="ui-pill">
-              <ShieldCheck size={12} aria-hidden="true" /> Verified participation
-            </span>
-          )}
         </div>
-
-        <p className="feature-card-desc">{challenge.description}</p>
-
-        {team && challenge.teamReward && (
-          <span className="ui-meta-row">Team reward: {challenge.teamReward}</span>
-        )}
-
+      </Drawer>
+      <div className="feature-card challenge-card__footer">
         {(team || status !== undefined) && (
           <ProgressBar
             value={shown}
@@ -141,6 +154,6 @@ export function ChallengeCard({
           )}
         </div>
       </div>
-    </InfoCard>
+    </li>
   );
 }
