@@ -20,10 +20,10 @@ function metaTitle(html: string): string | undefined {
 }
 
 describe("installed app names", () => {
-  it("names the volunteer app Township Connect", () => {
-    expect(manifestField(webConfig, "name")).toBe("Township Connect");
-    expect(manifestField(webConfig, "short_name")).toBe("Township Connect");
-    expect(metaTitle(webHtml)).toBe("Township Connect");
+  it("names the volunteer app Township Connect Volunteer, short name Volunteer", () => {
+    expect(manifestField(webConfig, "name")).toBe("Township Connect Volunteer");
+    expect(manifestField(webConfig, "short_name")).toBe("Volunteer");
+    expect(metaTitle(webHtml)).toBe("Volunteer");
     expect(webHtml).toContain("<title>Township Connect</title>");
   });
 
@@ -34,8 +34,8 @@ describe("installed app names", () => {
     expect(elderlyHtml).toContain("<title>Township Connect</title>");
   });
 
-  it("brands both installed apps as Township Connect and drops the old product name", () => {
-    expect(manifestField(webConfig, "name")).toBe(manifestField(elderlyConfig, "name"));
+  it("keeps the installed apps distinct and drops the old product name", () => {
+    expect(manifestField(webConfig, "name")).not.toBe(manifestField(elderlyConfig, "name"));
     for (const text of [webConfig, webHtml, elderlyConfig, elderlyHtml]) {
       expect(text).not.toMatch(/Help a Neighbour/);
     }

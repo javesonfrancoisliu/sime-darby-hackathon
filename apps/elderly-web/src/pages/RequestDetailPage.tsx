@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
+import { useAccessibility } from "../context/AccessibilityContext";
 import { useCancelRequest, useConfirmRequest, useRequest } from "../hooks/useRequests";
 import { CATEGORY_TEXT } from "../requests/categories";
 import { formatWhen, minutesLabel } from "../requests/schedule";
@@ -38,6 +39,7 @@ export function RequestDetailPage() {
   const confirmMutation = useConfirmRequest();
   const [confirming, setConfirming] = useState(false);
   const announce = useAnnounce();
+  const { speak } = useAccessibility();
   const confirmRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
 
@@ -86,9 +88,12 @@ export function RequestDetailPage() {
 
   const alreadyConfirmed = confirmMutation.error?.code === "ALREADY_DONE";
 
+  const readAloud = () =>
+    speak(`${req.title}. ${CATEGORY_TEXT[req.category]}. ${formatWhen(req.scheduledAt)}.`);
+
   return (
     <div className="apple-subpage">
-      <BackLink />
+      <BackLink onReadAloud={readAloud} />
 
       <div className="apple-detail-hero">
         <h1 ref={titleRef} tabIndex={-1} className="ui-page-title mb-1">

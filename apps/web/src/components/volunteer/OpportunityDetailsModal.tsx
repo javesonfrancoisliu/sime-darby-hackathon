@@ -49,7 +49,11 @@ export function OpportunityDetailsModal({
                 {opportunity.kind === "event" ? "You joined this" : "You accepted this"}
               </AppButton>
             ) : (
-              <AppButton variant="primary" loading={accepting} onClick={() => onAccept(opportunity)}>
+              <AppButton
+                variant="primary"
+                loading={accepting}
+                onClick={() => onAccept(opportunity)}
+              >
                 {opportunity.kind === "event" ? "Join event" : "Accept & help"}
               </AppButton>
             )}
@@ -95,9 +99,7 @@ export function OpportunityDetailsModal({
           {joined && (
             <span className="ui-badge ui-badge--success" role="status">
               <CheckCircle2 size={14} aria-hidden="true" />
-              {opportunity.kind === "event"
-                ? "You joined this event"
-                : "You accepted this request"}
+              {opportunity.kind === "event" ? "You joined this event" : "You accepted this request"}
             </span>
           )}
         </div>

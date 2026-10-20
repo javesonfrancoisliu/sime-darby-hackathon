@@ -64,12 +64,7 @@ export function Drawer({
       {/* Kept in the layout (not display:none) so the grid-row collapse can
           animate to the content's real height. When closed it is inert, so its
           controls can't be tabbed to or read out. */}
-      <div
-        id={bodyId}
-        className="drawer__body"
-        role="region"
-        {...(open ? {} : ({ inert: "" } as object))}
-      >
+      <div id={bodyId} className="drawer__body" role="region" inert={!open}>
         <div className="drawer__body-inner">
           <div className="drawer__content">{children}</div>
         </div>

@@ -5,7 +5,7 @@ import { ChevronLeft } from "lucide-react";
 import { APP_NAME } from "../lib/constants";
 
 type ScreenProps = {
-  // Page name for the browser tab, shown as "<title> - Help a Neighbour".
+  // Page name for the browser tab, shown as "<title> - Township Connect".
   title: string;
   // Visible heading; defaults to the page name.
   heading?: string;

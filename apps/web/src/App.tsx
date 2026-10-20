@@ -30,28 +30,28 @@ export function App({ auth }: { auth?: SessionAuth }) {
               <LargeTextProvider>
                 <AppShell>
                   <SessionGate>
-                  <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/community" element={<CommunityPage />} />
-                    <Route
-                      path="/community/challenges"
-                      element={
-                        <YoungOnly>
-                          <ChallengesPage />
-                        </YoungOnly>
-                      }
-                    />
-                    <Route
-                      path="/volunteer"
-                      element={
-                        <YoungOnly>
-                          <VolunteerPage />
-                        </YoungOnly>
-                      }
-                    />
-                    <Route path="/safety" element={<SafetyPage />} />
-                    <Route path="/profile" element={<ProfilePage />} />
-                    <Route path="*" element={<HomePage />} />
+                    <Routes>
+                      <Route path="/" element={<HomePage />} />
+                      <Route path="/community" element={<CommunityPage />} />
+                      <Route
+                        path="/community/challenges"
+                        element={
+                          <YoungOnly>
+                            <ChallengesPage />
+                          </YoungOnly>
+                        }
+                      />
+                      <Route
+                        path="/volunteer"
+                        element={
+                          <YoungOnly>
+                            <VolunteerPage />
+                          </YoungOnly>
+                        }
+                      />
+                      <Route path="/safety" element={<SafetyPage />} />
+                      <Route path="/profile" element={<ProfilePage />} />
+                      <Route path="*" element={<HomePage />} />
                     </Routes>
                   </SessionGate>
                 </AppShell>

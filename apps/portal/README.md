@@ -1,4 +1,4 @@
-# Help a Neighbour (portal)
+# Township Connect (portal)
 
 The shared sign-in and account app, served at `/`. Residents sign in or create an account here, then land in the Elderly app (`/elder/`) or the Youth app (`/volunteer/`) by role. It also holds the account pages (`/account`): change name, email and password. Vite, React 19, TypeScript and React Router 7. No service worker and no manifest. Sign-in talks to Cognito through `@sdh/auth`; profiles go through `/api/me`.
 

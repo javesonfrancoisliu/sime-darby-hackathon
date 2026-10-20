@@ -77,7 +77,9 @@ describe("Me page", () => {
     const user = userEvent.setup();
     await user.click(screen.getByRole("button", { name: "012-345 6789" }));
     let dialog = await screen.findByRole("dialog");
-    expect(within(dialog).getByRole("slider", { name: /Slide to call 012-345 6789/ })).toBeInTheDocument();
+    expect(
+      within(dialog).getByRole("slider", { name: /Slide to call 012-345 6789/ }),
+    ).toBeInTheDocument();
     await user.keyboard("{Escape}");
     expect(screen.getByText(/Zainal \(Son\)/)).toBeInTheDocument();
     await user.click(await screen.findByRole("button", { name: /Township security/ }));
@@ -154,5 +156,19 @@ describe("Safety page", () => {
     await renderApp("/safety");
     expect(await screen.findByRole("button", { name: "Try again" })).toBeInTheDocument();
     expect(screen.queryByText(/API level/)).not.toBeInTheDocument();
+  });
+});
+
+describe("Facility filter chips", () => {
+  it("expose which status filter is pressed", async () => {
+    const user = userEvent.setup();
+    installFakeApi(safetyRoutes);
+    await renderApp("/safety#facilities");
+    const group = await screen.findByRole("group", { name: /filter by status/i });
+    const buttons = within(group).getAllByRole("button");
+    expect(buttons[0]).toHaveAttribute("aria-pressed", "true");
+    await user.click(buttons[1]!);
+    expect(buttons[1]).toHaveAttribute("aria-pressed", "true");
+    expect(buttons[0]).toHaveAttribute("aria-pressed", "false");
   });
 });

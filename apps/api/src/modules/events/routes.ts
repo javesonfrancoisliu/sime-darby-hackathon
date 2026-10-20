@@ -26,8 +26,10 @@ export const eventRoutes: Route[] = [
     handler: async (req) => {
       // Public route: no, unknown or unverifiable identity just omits the joined flag.
       const viewer = await optionalUser(req);
-      const { purpose } = parse(EventsQuery, req.query);
-      return ok({ events: await listEvents(viewer, purpose) } satisfies EventsResponse);
+      const { purpose, includeJoined } = parse(EventsQuery, req.query);
+      return ok({
+        events: await listEvents(viewer, purpose, includeJoined === "true"),
+      } satisfies EventsResponse);
     },
   },
   {

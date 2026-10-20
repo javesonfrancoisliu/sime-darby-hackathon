@@ -1,4 +1,4 @@
-# Help a Neighbour
+# Township Connect
 
 Team Capybara, Sime Darby Property University Hackathon 2026.
 
@@ -85,8 +85,15 @@ The API accepts `Authorization: Bearer <Cognito access token>`. `POST /api/me` c
 | POST   | /api/events/{id}/join                |
 | POST   | /api/events/{id}/attendance/complete |
 | POST   | /api/events/{id}/complete            |
+| GET    | /api/rewards                         |
+| POST   | /api/rewards/{id}/redeem             |
+| POST   | /api/rewards/{id}/use                |
 
 Request and response shapes are in `packages/contracts`.
+
+Redeeming a reward spends points and adds a voucher to the profile. Vouchers expire 30 days after redemption and become claimed only when used. The young profile's volunteer level counts completed contributions, including self-reported event attendance; event points are still awarded when the coordinator closes the event. My accepted tasks requests `/api/events?includeJoined=true` so joined activities remain available after their start time.
+
+For an existing local demo table, `pnpm --filter @sdh/api db:sync-rewards` updates the reward catalogue without replacing reward IDs or redemptions. This script refuses non-loopback database endpoints; deployed catalogues need a separate authorised data update.
 
 ## Getting started
 

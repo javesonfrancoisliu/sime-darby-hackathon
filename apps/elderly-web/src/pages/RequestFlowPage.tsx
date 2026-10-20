@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useAccessibility } from "../context/AccessibilityContext";
 import { useCreateRequest } from "../hooks/useRequests";
 import { findCategoryOption, PLACEHOLDERS } from "../requests/categories";
 import { buildCreateBody, isSlotPast, type DayChoice, type TimeSlot } from "../requests/schedule";
@@ -30,6 +31,7 @@ export function RequestFlowPage() {
   const { category } = useParams();
   const navigate = useNavigate();
   const resident = useResident();
+  const { speak } = useAccessibility();
   const option = findCategoryOption(category);
   const { run, status, error } = useCreateRequest();
   const [step, setStep] = useState<FlowStep>("describe");
@@ -105,7 +107,14 @@ export function RequestFlowPage() {
 
   return (
     <div className="apple-subpage">
-      <BackLink onBack={previousStep ? () => goTo(previousStep) : undefined} />
+      <BackLink
+        onBack={previousStep ? () => goTo(previousStep) : undefined}
+        onReadAloud={() =>
+          speak(
+            `Step ${index + 1 + CATEGORY_STEPS} of ${FLOW_STEPS.length + CATEGORY_STEPS}. ${step === "describe" ? option.label : STEP_HEADING[step]}.`,
+          )
+        }
+      />
       <p className="step-count">
         Step {index + 1 + CATEGORY_STEPS} of {FLOW_STEPS.length + CATEGORY_STEPS}
       </p>

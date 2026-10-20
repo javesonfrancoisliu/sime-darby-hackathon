@@ -40,17 +40,28 @@ export async function createEvent(coordinator: User, body: CreateEventBody) {
   return event;
 }
 
-export async function listEvents(viewer?: User, purpose?: EventPurpose): Promise<CommunityEvent[]> {
+export async function listEvents(
+  viewer?: User,
+  purpose?: EventPurpose,
+  includeJoined = false,
+): Promise<CommunityEvent[]> {
   const now = new Date().toISOString();
-  const all = await listUpcomingEvents(now);
-  const events = purpose ? all.filter((event) => event.purpose === purpose) : all;
-  if (!viewer) return events;
-  const joined = await listJoinedSignups(viewer.id, now);
-  return events.map((event) => ({
-    ...event,
-    joined: joined.has(event.id),
-    attendanceCompletedAt: joined.get(event.id)?.completedAt,
-  }));
+  const upcoming = await listUpcomingEvents(now);
+  if (!viewer) return purpose ? upcoming.filter((event) => event.purpose === purpose) : upcoming;
+  const joined = await listJoinedSignups(viewer.id, includeJoined ? "0000" : now);
+  const byId = new Map(upcoming.map((event) => [event.id, event]));
+  if (includeJoined) {
+    const older = await Promise.all([...joined.keys()].filter((id) => !byId.has(id)).map(getEvent));
+    for (const event of older) if (event) byId.set(event.id, event);
+  }
+  return [...byId.values()]
+    .filter((event) => !purpose || event.purpose === purpose)
+    .sort((a, b) => a.startsAt.localeCompare(b.startsAt))
+    .map((event) => ({
+      ...event,
+      joined: joined.has(event.id),
+      attendanceCompletedAt: joined.get(event.id)?.completedAt,
+    }));
 }
 
 export async function join(user: User, eventId: string): Promise<CommunityEvent> {

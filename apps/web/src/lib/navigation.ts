@@ -13,7 +13,7 @@ export type NavItem = {
 };
 
 // Prototype navigation per DESIGN_SYSTEM.md section 6: Home, Community, Safety, Profile.
-// "Volunteer" is a young-role destination (Help a Neighbour). Shared by both
+// "Volunteer" is a young-role destination (Township Connect). Shared by both
 // modules - do not fork this list; filter it by role instead.
 const ALL_NAV_ITEMS: NavItem[] = [
   { to: "/", label: "Home", icon: House },

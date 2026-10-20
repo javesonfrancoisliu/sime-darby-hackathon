@@ -1,3 +1,5 @@
+import { UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { db, table } from "../../lib/db";
 import { randomUUID } from "node:crypto";
 import type {
   CommunityEvent,
@@ -81,6 +83,29 @@ describe("events", () => {
       completedCount: 1,
       totalMinutes: event.durationMinutes,
     });
+  });
+
+  it("keeps started joined activities available for personal completion without exposing another person's history", async () => {
+    const volunteer = await createVerifiedVolunteer(coordinator.id);
+    const other = await createVerifiedVolunteer(coordinator.id);
+    const event = await createEvent();
+    await join(event.id, volunteer.id);
+    await db().send(
+      new UpdateCommand({
+        TableName: table(),
+        Key: { PK: `EVENT#${event.id}`, SK: "META" },
+        UpdateExpression: "SET startsAt = :past, GSI1SK = :past",
+        ExpressionAttributeValues: { ":past": inDays(-1) },
+      }),
+    );
+    expect(ids(await call("GET", "/api/events", { as: volunteer.id }))).not.toContain(event.id);
+    const query = { includeJoined: "true" };
+    expect(ids(await call("GET", "/api/events", { as: volunteer.id, query }))).toContain(event.id);
+    expect(ids(await call("GET", "/api/events", { as: other.id, query }))).not.toContain(event.id);
+    expect(
+      (await call("POST", `/api/events/${event.id}/attendance/complete`, { as: volunteer.id }))
+        .status,
+    ).toBe(200);
   });
 
   it("lets only a coordinator create an event and rejects a past start", async () => {

@@ -1,6 +1,6 @@
 import type { Category, Verification } from "@sdh/contracts";
 
-// Young-role volunteering (Help a Neighbour) view models.
+// Young-role volunteering (Township Connect) view models.
 // Derived from the backend contracts (@sdh/contracts) Opportunity / Contribution,
 // flattened into the exact fields the opportunity cards and impact panel need.
 
