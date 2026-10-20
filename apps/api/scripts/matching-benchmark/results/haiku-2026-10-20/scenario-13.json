@@ -1,0 +1,45 @@
+{
+  "record": {
+    "scenarioId": "scenario-13",
+    "inputHash": "38a34be1ba5e4906c3731f764fb90a4b7f66177f7431cdadbffc685c8136159c",
+    "output": "{\"ranking\":[{\"candidate\":\"c2\",\"reason\":\"Has welcomed first-time board-game visitors and introduced them to groups before, is 1 km away, and is free at the requested time.\"},{\"candidate\":\"c1\",\"reason\":\"Is only 0.5 km away and free at the requested time, but their experience is with sound equipment rather than welcoming newcomers.\"},{\"candidate\":\"c3\",\"reason\":\"Has welcomed first-time visitors before, but is 2 km away and not confirmed as available at the requested time.\"}]}",
+    "latencyMs": 1511.6990000000005,
+    "usage": {
+      "inputTokens": 1190,
+      "outputTokens": 197,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    }
+  },
+  "outcome": {
+    "scenarioId": "scenario-13",
+    "rankedBy": "ai",
+    "fallback": false,
+    "matches": [
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000121",
+        "name": "Fictional helper 121",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 1,
+        "score": 94,
+        "reason": "Has welcomed first-time board-game visitors and introduced them to groups before, is 1 km away, and is free at the requested time."
+      },
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000122",
+        "name": "Fictional helper 122",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 0.5,
+        "score": 97,
+        "reason": "Is only 0.5 km away and free at the requested time, but their experience is with sound equipment rather than welcoming newcomers."
+      },
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000123",
+        "name": "Fictional helper 123",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 2,
+        "score": 43,
+        "reason": "Experience mentions community; About 2 km away"
+      }
+    ]
+  }
+}

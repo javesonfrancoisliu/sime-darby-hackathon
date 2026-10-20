@@ -2,5 +2,5 @@ import { createHandler } from "./lib/lambda";
 import { matchingRoutes } from "./modules/matching/routes";
 import { createRouter } from "./router";
 
-// Matching runs alone so only this Lambda reads the Anthropic API key and has the longer timeout.
+// Personalized opportunities and legacy matching share this read-only, secret-owning Lambda.
 export const handler = createHandler(createRouter(matchingRoutes));

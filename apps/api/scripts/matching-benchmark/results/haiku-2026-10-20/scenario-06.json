@@ -1,0 +1,45 @@
+{
+  "record": {
+    "scenarioId": "scenario-06",
+    "inputHash": "875cda630f8088a21ee447b6af7e5098c6c09cd630ec1a36ac8f7d6bdb27a5a3",
+    "output": "{\"ranking\":[{\"candidate\":\"c2\",\"reason\":\"You have digital help skills, and this helper teaches smartphone video calls and repeats each step, which suits your slow practice. They live 1 km away and are free then.\"},{\"candidate\":\"c1\",\"reason\":\"This helper has digital help skills and is very close, 0.5 km away, and free at your time. Their experience is mainly with computers and printers, not video calls.\"},{\"candidate\":\"c3\",\"reason\":\"This helper teaches smartphone video calls patiently, but they are not listed under digital help and are not confirmed free at your time.\"}]}",
+    "latencyMs": 1669.3917999999994,
+    "usage": {
+      "inputTokens": 1189,
+      "outputTokens": 217,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    }
+  },
+  "outcome": {
+    "scenarioId": "scenario-06",
+    "rankedBy": "ai",
+    "fallback": false,
+    "matches": [
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000051",
+        "name": "Fictional helper 51",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 1,
+        "score": 94,
+        "reason": "You have digital help skills, and this helper teaches smartphone video calls and repeats each step, which suits your slow practice. They..."
+      },
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000052",
+        "name": "Fictional helper 52",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 0.5,
+        "score": 97,
+        "reason": "This helper has digital help skills and is very close, 0.5 km away, and free at your time. Their experience is mainly with computers and..."
+      },
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000053",
+        "name": "Fictional helper 53",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 2,
+        "score": 43,
+        "reason": "This helper teaches smartphone video calls patiently, but they are not listed under digital help and are not confirmed free at your time."
+      }
+    ]
+  }
+}

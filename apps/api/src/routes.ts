@@ -5,7 +5,6 @@ import { contributionRoutes } from "./modules/contributions/routes";
 import { eventRoutes } from "./modules/events/routes";
 import { healthRoutes } from "./modules/health/routes";
 import { noticeRoutes } from "./modules/notices/routes";
-import { opportunityRoutes } from "./modules/opportunities/routes";
 import { playRoutes } from "./modules/play/routes";
 import { quizRoutes } from "./modules/quizzes/routes";
 import { requestRoutes } from "./modules/requests/routes";
@@ -22,7 +21,6 @@ export const coreRoutes: Route[] = [
   ...userRoutes,
   ...contributionRoutes,
   ...requestRoutes,
-  ...opportunityRoutes,
   ...eventRoutes,
   ...townshipRoutes,
   ...noticeRoutes,

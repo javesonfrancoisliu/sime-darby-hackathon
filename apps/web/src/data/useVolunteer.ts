@@ -12,8 +12,9 @@ const EMPTY_IMPACT: ImpactSummary = {
 };
 
 function mapOpportunities(res: OpportunitiesResponse): Opportunity[] {
-  return res.items.map((item) => {
-    if (item.kind === "request") {
+  return res.items
+    .filter((item) => item.kind === "request")
+    .map((item) => {
       const r = item.request;
       return {
         id: r.id,
@@ -27,26 +28,13 @@ function mapOpportunities(res: OpportunitiesResponse): Opportunity[] {
         scheduledAt: r.scheduledAt,
         durationMinutes: r.durationMinutes,
         matchScore: item.matchScore,
+        matchSource: item.matchSource ?? "rules",
+        explanationSource: item.explanationSource,
+        matchRank: item.matchRank,
         reasons: item.reasons,
         fitsMySchedule: false,
       };
-    }
-    const e = item.event;
-    return {
-      id: e.id,
-      kind: "event" as const,
-      title: e.title,
-      summary: e.description || "Community event",
-      category: e.category,
-      distanceKm: item.distanceKm,
-      area: e.location.area,
-      scheduledAt: e.startsAt,
-      durationMinutes: e.durationMinutes,
-      matchScore: item.matchScore,
-      reasons: item.reasons,
-      fitsMySchedule: false,
-    };
-  });
+    });
 }
 
 function mapContributions(res: ContributionsResponse): ImpactSummary {

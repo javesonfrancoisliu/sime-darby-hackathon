@@ -1,0 +1,98 @@
+{
+  "datasetVersion": "township-matching-v1",
+  "provider": "local",
+  "model": "existing-rules-50-30-20",
+  "runKind": "rules",
+  "records": [
+    {
+      "scenarioId": "scenario-01",
+      "inputHash": "bb3c776d808f52e3bb3d2141106f4c9da92c92baf37730e3183640c29d425789",
+      "output": "{\"ranking\":[{\"candidate\":\"c1\",\"reason\":\"Lists groceries as a skill; About 0.5 km away; Free on Wednesday 13:00 to 17:00\"},{\"candidate\":\"c2\",\"reason\":\"Lists groceries as a skill; About 1 km away; Free on Wednesday 13:00 to 17:00\"},{\"candidate\":\"c3\",\"reason\":\"Experience mentions grocery; About 2 km away\"}]}",
+      "latencyMs": 0.165000000000191
+    },
+    {
+      "scenarioId": "scenario-02",
+      "inputHash": "270977fd8001ef54c26872dbded5f6ec0386ea810f2e1df740643c141758955b",
+      "output": "{\"ranking\":[{\"candidate\":\"c1\",\"reason\":\"Lists groceries as a skill; About 0.5 km away; Free on Wednesday 13:00 to 17:00\"},{\"candidate\":\"c2\",\"reason\":\"Lists groceries as a skill; About 1 km away; Free on Wednesday 13:00 to 17:00\"},{\"candidate\":\"c3\",\"reason\":\"Experience mentions shopping; About 2 km away\"}]}",
+      "latencyMs": 0.04780000000005202
+    },
+    {
+      "scenarioId": "scenario-03",
+      "inputHash": "499725ffcfa1eaa0b38a512a6a05be184da852c6274f5abaef93b6034172d9da",
+      "output": "{\"ranking\":[{\"candidate\":\"c1\",\"reason\":\"Lists groceries as a skill; About 0.5 km away; Free on Wednesday 13:00 to 17:00\"},{\"candidate\":\"c2\",\"reason\":\"Lists groceries as a skill; About 1 km away; Free on Wednesday 13:00 to 17:00\"},{\"candidate\":\"c3\",\"reason\":\"Experience mentions grocery; About 2 km away\"}]}",
+      "latencyMs": 0.028999999999996362
+    },
+    {
+      "scenarioId": "scenario-04",
+      "inputHash": "d12502fece3f379435680c2fd3466453cff70c5ca2178ba229c7eb01267befb4",
+      "output": "{\"ranking\":[{\"candidate\":\"c1\",\"reason\":\"Lists transport as a skill; About 0.5 km away; Free on Wednesday 13:00 to 17:00\"},{\"candidate\":\"c2\",\"reason\":\"Lists transport as a skill; About 1 km away; Free on Wednesday 13:00 to 17:00\"},{\"candidate\":\"c3\",\"reason\":\"Experience mentions drive; About 2 km away\"}]}",
+      "latencyMs": 0.031000000000176442
+    },
+    {
+      "scenarioId": "scenario-05",
+      "inputHash": "f9bda5356457c61471fe3a9122820445e6eb336ae09f7f4d99b19789af5ddbf6",
+      "output": "{\"ranking\":[{\"candidate\":\"c1\",\"reason\":\"Lists transport as a skill; About 0.5 km away; Free on Wednesday 13:00 to 17:00\"},{\"candidate\":\"c2\",\"reason\":\"Lists transport as a skill; About 1 km away; Free on Wednesday 13:00 to 17:00\"},{\"candidate\":\"c3\",\"reason\":\"Experience mentions car; About 2 km away\"}]}",
+      "latencyMs": 0.027599999999893043
+    },
+    {
+      "scenarioId": "scenario-06",
+      "inputHash": "875cda630f8088a21ee447b6af7e5098c6c09cd630ec1a36ac8f7d6bdb27a5a3",
+      "output": "{\"ranking\":[{\"candidate\":\"c1\",\"reason\":\"Lists digital help as a skill; About 0.5 km away; Free on Wednesday 13:00 to 17:00\"},{\"candidate\":\"c2\",\"reason\":\"Lists digital help as a skill; About 1 km away; Free on Wednesday 13:00 to 17:00\"},{\"candidate\":\"c3\",\"reason\":\"Experience mentions phone; About 2 km away\"}]}",
+      "latencyMs": 0.020500000000083674
+    },
+    {
+      "scenarioId": "scenario-07",
+      "inputHash": "52cd14a81a6f0c8104efa51393f32788c49386fcda6f193819089361e9a8f7ac",
+      "output": "{\"ranking\":[{\"candidate\":\"c1\",\"reason\":\"Lists digital help as a skill; About 0.5 km away; Free on Wednesday 13:00 to 17:00\"},{\"candidate\":\"c2\",\"reason\":\"Lists digital help as a skill; About 1 km away; Free on Wednesday 13:00 to 17:00\"},{\"candidate\":\"c3\",\"reason\":\"Experience mentions whatsapp; About 2 km away\"}]}",
+      "latencyMs": 0.025200000000040745
+    },
+    {
+      "scenarioId": "scenario-08",
+      "inputHash": "998b22ce1390b2a5d8e28fe45b1093e24e498541d148c181ab8a65db996873bf",
+      "output": "{\"ranking\":[{\"candidate\":\"c1\",\"reason\":\"Lists digital help as a skill; About 0.5 km away; Free on Wednesday 13:00 to 17:00\"},{\"candidate\":\"c2\",\"reason\":\"Lists digital help as a skill; About 1 km away; Free on Wednesday 13:00 to 17:00\"},{\"candidate\":\"c3\",\"reason\":\"Experience mentions phone; About 2 km away\"}]}",
+      "latencyMs": 0.0239000000001397
+    },
+    {
+      "scenarioId": "scenario-09",
+      "inputHash": "4687dc6c6673832c4feac1c2d1aeb1723114393f79b9726a1c6442c18403c5bf",
+      "output": "{\"ranking\":[{\"candidate\":\"c1\",\"reason\":\"Lists health advice as a skill; About 0.5 km away; Free on Wednesday 13:00 to 17:00\"},{\"candidate\":\"c2\",\"reason\":\"Lists health advice as a skill; About 1 km away; Free on Wednesday 13:00 to 17:00\"},{\"candidate\":\"c3\",\"reason\":\"Experience mentions clinic; About 2 km away\"}]}",
+      "latencyMs": 0.019099999999980355
+    },
+    {
+      "scenarioId": "scenario-10",
+      "inputHash": "8a70a608091404a331381681134a06e9635972f3328ad0e33e7802fa4105e0d5",
+      "output": "{\"ranking\":[{\"candidate\":\"c1\",\"reason\":\"Lists health advice as a skill; About 0.5 km away; Free on Wednesday 13:00 to 17:00\"},{\"candidate\":\"c2\",\"reason\":\"Lists health advice as a skill; About 1 km away; Free on Wednesday 13:00 to 17:00\"},{\"candidate\":\"c3\",\"reason\":\"Experience mentions clinic; About 2 km away\"}]}",
+      "latencyMs": 0.022200000000111686
+    },
+    {
+      "scenarioId": "scenario-11",
+      "inputHash": "7beddcc797f2acaded1074c5a33346541d77fce59e33e06f83c19066f9619a61",
+      "output": "{\"ranking\":[{\"candidate\":\"c1\",\"reason\":\"Lists home repairs as a skill; About 0.5 km away; Free on Wednesday 13:00 to 17:00\"},{\"candidate\":\"c2\",\"reason\":\"Lists home repairs as a skill; About 1 km away; Free on Wednesday 13:00 to 17:00\"},{\"candidate\":\"c3\",\"reason\":\"Experience mentions fix; About 2 km away\"}]}",
+      "latencyMs": 0.021600000000034925
+    },
+    {
+      "scenarioId": "scenario-12",
+      "inputHash": "2e28671565c88e5d8345c12cba69f961ecbb38143fb668b098de89d6f57f6849",
+      "output": "{\"ranking\":[{\"candidate\":\"c1\",\"reason\":\"Lists home repairs as a skill; About 0.5 km away; Free on Wednesday 13:00 to 17:00\"},{\"candidate\":\"c2\",\"reason\":\"Lists home repairs as a skill; About 1 km away; Free on Wednesday 13:00 to 17:00\"},{\"candidate\":\"c3\",\"reason\":\"About 2 km away\"}]}",
+      "latencyMs": 0.028400000000146974
+    },
+    {
+      "scenarioId": "scenario-13",
+      "inputHash": "38a34be1ba5e4906c3731f764fb90a4b7f66177f7431cdadbffc685c8136159c",
+      "output": "{\"ranking\":[{\"candidate\":\"c1\",\"reason\":\"Lists community activities as a skill; About 0.5 km away; Free on Wednesday 13:00 to 17:00\"},{\"candidate\":\"c2\",\"reason\":\"Lists community activities as a skill; About 1 km away; Free on Wednesday 13:00 to 17:00\"},{\"candidate\":\"c3\",\"reason\":\"Experience mentions community; About 2 km away\"}]}",
+      "latencyMs": 0.0826999999999316
+    },
+    {
+      "scenarioId": "scenario-14",
+      "inputHash": "38ec066130f4298b08fd0910e1ae1dc1d71519a9868443703e78a24bd9178e1d",
+      "output": "{\"ranking\":[{\"candidate\":\"c1\",\"reason\":\"Lists community activities as a skill; About 0.5 km away; Free on Wednesday 13:00 to 17:00\"},{\"candidate\":\"c2\",\"reason\":\"Lists community activities as a skill; About 1 km away; Free on Wednesday 13:00 to 17:00\"},{\"candidate\":\"c3\",\"reason\":\"About 2 km away\"}]}",
+      "latencyMs": 0.016499999999950887
+    },
+    {
+      "scenarioId": "scenario-15",
+      "inputHash": "22ad542357cbcdca8046117b4110e274bfd86f3342da908e9e00d5edab776a55",
+      "output": "{\"ranking\":[{\"candidate\":\"c1\",\"reason\":\"Lists community activities as a skill; About 0.5 km away; Free on Wednesday 13:00 to 17:00\"},{\"candidate\":\"c2\",\"reason\":\"Lists community activities as a skill; About 1 km away; Free on Wednesday 13:00 to 17:00\"},{\"candidate\":\"c3\",\"reason\":\"Experience mentions community; About 2 km away\"}]}",
+      "latencyMs": 0.01499999999987267
+    }
+  ]
+}

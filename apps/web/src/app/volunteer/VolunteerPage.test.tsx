@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import { installFakeApi, signInAs } from "../../test/fakeApi";
 import {
   makeEvent,
+  makeDrive,
   makePoints,
   makeRequest,
   makeRequestOpportunity,
@@ -25,6 +26,108 @@ const baseRoutes = signedInRoutes(VOLUNTEER, {
 });
 
 describe("volunteer page", () => {
+  it("excludes community volunteer drives from the feed and accepted tasks", async () => {
+    const drive = makeDrive({ title: "Neighbour volunteer drive", joined: true });
+    installFakeApi({
+      ...baseRoutes,
+      "GET /api/opportunities": {
+        body: {
+          items: [
+            {
+              ...makeRequestOpportunity(),
+              matchScore: 97,
+              matchSource: "ai",
+              explanationSource: "ai",
+              reasons: ["Your grocery skills suit this nearby request."],
+            },
+            { kind: "event", event: drive, distanceKm: 1, matchScore: 60, reasons: [] },
+          ],
+        },
+      },
+      "GET /api/events": { body: { events: [drive] } },
+    });
+    signInAs(VOLUNTEER.id);
+    renderApp("/volunteer");
+    const card = await screen.findByLabelText("Opportunity: Groceries");
+    await userEvent.click(within(card).getByRole("button", { name: /97% match/ }));
+    expect(within(card).getByText("Claude explanation")).toBeVisible();
+    expect(within(card).getByText("Your grocery skills suit this nearby request.")).toBeVisible();
+    expect(within(card).getByRole("button", { name: "Accept & help" })).toBeVisible();
+    expect(screen.queryByText(drive.title)).not.toBeInTheDocument();
+    expect(screen.getAllByLabelText(/^Opportunity:/)).toHaveLength(1);
+  });
+  it("keeps ordinary community activities out of the opportunity feed", async () => {
+    const event = makeEvent({ title: "Community tea morning", joined: false });
+    installFakeApi({
+      ...baseRoutes,
+      "GET /api/opportunities": {
+        body: {
+          items: [
+            makeRequestOpportunity(),
+            {
+              kind: "event",
+              event,
+              distanceKm: 0.5,
+              matchScore: 97,
+              reasons: ["About 0.5 km away"],
+              matchSource: "rules",
+            },
+          ],
+        },
+      },
+      "GET /api/events": { body: { events: [event] } },
+    });
+    signInAs(VOLUNTEER.id);
+    renderApp("/volunteer");
+    const request = await screen.findByLabelText("Opportunity: Groceries");
+    expect(
+      within(request).getByRole("button", { name: /match. Why this matches you/ }),
+    ).toBeVisible();
+    expect(screen.queryByText("Community tea morning")).not.toBeInTheDocument();
+    expect(screen.getAllByLabelText(/^Opportunity:/)).toHaveLength(1);
+  });
+  it("respects personalized AI order instead of overwriting it with the numeric baseline", async () => {
+    const first = {
+      ...makeRequestOpportunity({ title: "Contextually best", distanceKm: 2 }),
+      matchScore: 70,
+      matchRank: 1,
+      matchSource: "ai",
+      explanationSource: "ai",
+      reasons: ["Relevant grocery experience fits carrying bags."],
+    };
+    const second = {
+      ...makeRequestOpportunity({
+        id: "00000000-0000-4000-8000-000000000088",
+        title: "Closer general task",
+        distanceKm: 0.5,
+      }),
+      matchScore: 97,
+      matchRank: 2,
+      matchSource: "ai",
+    };
+    installFakeApi({
+      ...baseRoutes,
+      "GET /api/opportunities": { body: { items: [first, second] } },
+    });
+    signInAs(VOLUNTEER.id);
+    renderApp("/volunteer");
+    await screen.findByText("Contextually best");
+    const cards = () => screen.getAllByLabelText(/^Opportunity:/);
+    expect(cards()[0]).toHaveAccessibleName(/Contextually best/);
+    expect(screen.getAllByText("AI-assisted")).toHaveLength(2);
+    await userEvent.click(screen.getByRole("button", { name: /70% match/ }));
+    expect(screen.getByText("Relevant grocery experience fits carrying bags.")).toBeInTheDocument();
+    expect(screen.getByText("Claude explanation")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /70% match/ })).toHaveAttribute(
+      "title",
+      expect.stringContaining("skills (50%)"),
+    );
+    expect(screen.queryByText(/Your score combines/)).not.toBeInTheDocument();
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Sort by" }), "nearest");
+    expect(cards()[0]).toHaveAccessibleName(/Closer general task/);
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Sort by" }), "best_match");
+    expect(cards()[0]).toHaveAccessibleName(/Contextually best/);
+  });
   it("shows a pending-verification state instead of a generic error", async () => {
     installFakeApi({
       ...baseRoutes,
@@ -108,9 +211,12 @@ describe("volunteer page", () => {
     await user.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "true");
     const match = within(card).getByRole("button", { name: /Why this matches you/ });
+    expect(within(card).queryByText("Personalized rules")).not.toBeInTheDocument();
     await user.click(match);
     const reasons = within(card).getByRole("region", { name: "Why this matches you" });
-    expect(within(reasons).getByText("Close to you")).toBeInTheDocument();
+    expect(within(reasons).getByText(/Close to you/)).toBeInTheDocument();
+    expect(within(reasons).getByText("Personalized rules")).toBeInTheDocument();
+    expect(within(reasons).queryByText(/50%/)).not.toBeInTheDocument();
     expect(match).toHaveAttribute("aria-expanded", "true");
     expect(toggle).toHaveAttribute("aria-expanded", "true");
     await user.click(match);
@@ -166,7 +272,7 @@ describe("volunteer page", () => {
     expect(cards.every((card) => card.classList.contains("opportunity-card--urgent"))).toBe(true);
   });
 
-  it("confirms event completion and persists it through the attendance endpoint", async () => {
+  it("keeps joined event tracking and completion on Community instead of Volunteer Nearby", async () => {
     let completed = false;
     const event = makeEvent({ joined: true });
     const { calls } = installFakeApi({
@@ -184,7 +290,7 @@ describe("volunteer page", () => {
       },
     });
     signInAs(VOLUNTEER.id);
-    renderApp("/volunteer");
+    renderApp("/community");
     const user = userEvent.setup();
     const card = await screen.findByLabelText(`Accepted task: ${event.title}`);
     expect(within(card).queryByText(/organiser closes/)).not.toBeInTheDocument();

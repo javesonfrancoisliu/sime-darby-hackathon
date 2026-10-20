@@ -26,6 +26,36 @@ async function selectCategory(name: string) {
 }
 
 describe("community page", () => {
+  it("tracks and completes joined volunteer drives in the Community Volunteer tab", async () => {
+    let completed = false;
+    const drive = makeDrive({ joined: true });
+    installFakeApi({
+      ...feedRoutes,
+      "GET /api/events": () => ({
+        body: {
+          events: [
+            { ...drive, attendanceCompletedAt: completed ? new Date().toISOString() : undefined },
+          ],
+        },
+      }),
+      [`POST /api/events/${drive.id}/attendance/complete`]: () => {
+        completed = true;
+        return { body: { ...drive, attendanceCompletedAt: new Date().toISOString() } };
+      },
+    });
+    signInAs(VOLUNTEER.id);
+    renderApp("/community");
+    await screen.findByRole("tab", { name: "Volunteer" });
+    expect(screen.queryByLabelText(`Accepted task: ${drive.title}`)).not.toBeInTheDocument();
+    await selectCategory("Volunteer");
+    const card = await screen.findByLabelText(`Accepted task: ${drive.title}`);
+    await userEvent.click(within(card).getByRole("button", { name: "Confirm completion" }));
+    await userEvent.click(screen.getByRole("button", { name: "Yes, completed" }));
+    expect(await screen.findByRole("dialog", { name: "Marked as completed" })).toBeVisible();
+    expect(
+      within(screen.getByLabelText(`Accepted task: ${drive.title}`)).getByText("Completed"),
+    ).toBeVisible();
+  });
   it("switches between events, notices, volunteering and updates", async () => {
     installFakeApi(feedRoutes);
     signInAs(VOLUNTEER.id);

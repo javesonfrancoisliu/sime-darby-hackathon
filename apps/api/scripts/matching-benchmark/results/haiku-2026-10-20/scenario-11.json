@@ -1,0 +1,45 @@
+{
+  "record": {
+    "scenarioId": "scenario-11",
+    "inputHash": "7beddcc797f2acaded1074c5a33346541d77fce59e33e06f83c19066f9619a61",
+    "output": "{\"ranking\":[{\"candidate\":\"c1\",\"reason\":\"Has home repair skills and has fixed loose furniture handles before. Lives close by and is free at your requested time.\"},{\"candidate\":\"c2\",\"reason\":\"Has home repair skills, though experience is mostly garden and porch help. Close by and free at your requested time.\"},{\"candidate\":\"c3\",\"reason\":\"Has fixed loose handles with hand tools before, but no listed skill and not confirmed free at your requested time.\"}]}",
+    "latencyMs": 1570.130799999999,
+    "usage": {
+      "inputTokens": 1197,
+      "outputTokens": 183,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    }
+  },
+  "outcome": {
+    "scenarioId": "scenario-11",
+    "rankedBy": "ai",
+    "fallback": false,
+    "matches": [
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000101",
+        "name": "Fictional helper 101",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 0.5,
+        "score": 97,
+        "reason": "Has home repair skills and has fixed loose furniture handles before. Lives close by and is free at your requested time."
+      },
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000102",
+        "name": "Fictional helper 102",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 1,
+        "score": 94,
+        "reason": "Has home repair skills, though experience is mostly garden and porch help. Close by and free at your requested time."
+      },
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000103",
+        "name": "Fictional helper 103",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 2,
+        "score": 43,
+        "reason": "Has fixed loose handles with hand tools before, but no listed skill and not confirmed free at your requested time."
+      }
+    ]
+  }
+}

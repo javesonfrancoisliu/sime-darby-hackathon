@@ -1,0 +1,46 @@
+{
+  "model": "claude-haiku-5-5",
+  "content": [
+    {
+      "type": "tool_use",
+      "id": "toolu_01KHxZtsLcme6udGKUbEMgCw",
+      "name": "submit_ranking",
+      "input": {
+        "ranking": [
+          {
+            "candidate": "c2",
+            "reason": "Hosts gentle garden visits and suggests seated seed-sorting, just what you asked for. Nearby and available at your time."
+          },
+          {
+            "candidate": "c1",
+            "reason": "Has community activity skills and is very close and available, but their experience leans toward heavy digging, which you wanted to avoid."
+          },
+          {
+            "candidate": "c3",
+            "reason": "Has gentle garden visit experience, but lists no skills and is not confirmed available at your time."
+          }
+        ]
+      },
+      "caller": {
+        "type": "direct"
+      }
+    }
+  ],
+  "usage": {
+    "input_tokens": 1216,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 189,
+    "output_tokens_details": {
+      "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+  },
+  "stopReason": "tool_use"
+}

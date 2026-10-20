@@ -1,0 +1,46 @@
+{
+  "model": "claude-haiku-5-5",
+  "content": [
+    {
+      "type": "tool_use",
+      "id": "toolu_01FikWHYgZbxgAzW3MpG221R",
+      "name": "submit_ranking",
+      "input": {
+        "ranking": [
+          {
+            "candidate": "c1",
+            "reason": "Has grocery skills and already collects prepaid orders for neighbours at home. Lives 0.5 km away and is free at your time."
+          },
+          {
+            "candidate": "c2",
+            "reason": "Has grocery skills and knows food labels well. Lives 1 km away and is free at your time, though has less delivery experience."
+          },
+          {
+            "candidate": "c3",
+            "reason": "Has delivered prepaid grocery orders before, but is 2 km away and not confirmed free at your requested time."
+          }
+        ]
+      },
+      "caller": {
+        "type": "direct"
+      }
+    }
+  ],
+  "usage": {
+    "input_tokens": 1198,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 197,
+    "output_tokens_details": {
+      "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+  },
+  "stopReason": "tool_use"
+}

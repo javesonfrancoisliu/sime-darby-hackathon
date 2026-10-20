@@ -2,7 +2,7 @@ import { z } from "zod";
 import { Area, Id } from "./common";
 
 const MAX_SCORE = 100;
-export const MAX_REASON_LENGTH = 140;
+export const MAX_REASON_LENGTH = 240;
 
 export const Match = z.object({
   volunteerId: Id,

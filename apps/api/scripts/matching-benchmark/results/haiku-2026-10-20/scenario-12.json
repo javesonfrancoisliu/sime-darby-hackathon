@@ -1,0 +1,45 @@
+{
+  "record": {
+    "scenarioId": "scenario-12",
+    "inputHash": "2e28671565c88e5d8345c12cba69f961ecbb38143fb668b098de89d6f57f6849",
+    "output": "{\"ranking\":[{\"candidate\":\"c2\",\"reason\":\"You need help with light boxes on low shelves and clear walkways, and I have done this for neighbours. I'm nearby and free at your time.\"},{\"candidate\":\"c1\",\"reason\":\"I have home repair skills and I'm very close by, and I'm free at your requested time. I fix outdoor taps, but I haven't done box moving.\"},{\"candidate\":\"c3\",\"reason\":\"I have helped neighbours with boxes on low shelves and clear walkways, but I'm not listed as free at your time.\"}]}",
+    "latencyMs": 1811.427499999998,
+    "usage": {
+      "inputTokens": 1210,
+      "outputTokens": 206,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    }
+  },
+  "outcome": {
+    "scenarioId": "scenario-12",
+    "rankedBy": "ai",
+    "fallback": false,
+    "matches": [
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000111",
+        "name": "Fictional helper 111",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 1,
+        "score": 94,
+        "reason": "You need help with light boxes on low shelves and clear walkways, and I have done this for neighbours. I'm nearby and free at your time."
+      },
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000112",
+        "name": "Fictional helper 112",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 0.5,
+        "score": 97,
+        "reason": "I have home repair skills and I'm very close by, and I'm free at your requested time. I fix outdoor taps, but I haven't done box moving."
+      },
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000113",
+        "name": "Fictional helper 113",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 2,
+        "score": 18,
+        "reason": "I have helped neighbours with boxes on low shelves and clear walkways, but I'm not listed as free at your time."
+      }
+    ]
+  }
+}

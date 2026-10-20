@@ -22,7 +22,8 @@ import {
 import { useConfirm } from "../../lib/useConfirm";
 import { ChallengesEntryCard } from "../../components/challenges";
 import { useRole } from "../../components/layout";
-import { useAcceptedTasks } from "../../data/AcceptedTasksContext";
+import { useAcceptedTasks, type AcceptedTask } from "../../data/AcceptedTasksContext";
+import { CompleteTaskModal, MyTasksSection } from "../../components/volunteer";
 import { errorMessage } from "@sdh/api-client";
 import { useCommunityItems } from "../../data/useCommunityItems";
 import { formatDate } from "../../lib/format";
@@ -41,11 +42,11 @@ const COMMUNITY_HEADINGS: Record<CommunityTab, string> = {
   volunteer: "Volunteering Opportunities",
   township: "Township Updates",
 };
+const NO_TASK_POINTS = new Map<string, number>();
 
 export function CommunityPage() {
   const { items, loading, error, reload } = useCommunityItems();
-  // Joined events also show in Volunteer → My accepted tasks.
-  const { joinEvent } = useAcceptedTasks();
+  const { joinEvent, tasks, complete } = useAcceptedTasks();
   const { role } = useRole();
 
   const [filter, setFilter] = useState<CommunityTab>("event");
@@ -53,6 +54,34 @@ export function CommunityPage() {
   const [confirmation, setConfirmation] = useState<{ title: string; message: string } | null>(null);
   const [failure, setFailure] = useState<{ title: string; message: string } | null>(null);
   const confirm = useConfirm();
+  const [completing, setCompleting] = useState<AcceptedTask | null>(null);
+  const [completeBusy, setCompleteBusy] = useState(false);
+  const [completeError, setCompleteError] = useState<string | null>(null);
+  const joinedActivities = tasks.filter(
+    (task) =>
+      task.kind === "event" &&
+      (filter === "volunteer"
+        ? task.eventPurpose === "volunteer_drive"
+        : filter === "event" && task.eventPurpose !== "volunteer_drive"),
+  );
+
+  async function completeActivity(task: AcceptedTask, minutes: number) {
+    setCompleteBusy(true);
+    setCompleteError(null);
+    try {
+      await complete(task.id, minutes);
+      await reload();
+      setCompleting(null);
+      setConfirmation({
+        title: "Marked as completed",
+        message: `Your attendance for "${task.title}" has been recorded.`,
+      });
+    } catch (err) {
+      setCompleteError(errorMessage(err));
+    } finally {
+      setCompleteBusy(false);
+    }
+  }
 
   const visible = useMemo(() => items.filter((item) => item.category === filter), [items, filter]);
 
@@ -165,6 +194,17 @@ export function CommunityPage() {
             onChange={setFilter}
           />
           <TabPanel key={filter} idBase="community" id={filter}>
+            {role === "young" && (
+              <MyTasksSection
+                title="My joined activities"
+                tasks={joinedActivities}
+                pointsByTask={NO_TASK_POINTS}
+                onComplete={(task) => {
+                  setCompleteError(null);
+                  setCompleting(task);
+                }}
+              />
+            )}
             <section className="ui-section" aria-labelledby="results-heading">
               <h2 className="ui-section-title" id="results-heading">
                 {COMMUNITY_HEADINGS[filter]}
@@ -187,6 +227,14 @@ export function CommunityPage() {
         </>
       )}
 
+      <CompleteTaskModal
+        key={completing?.id ?? "none"}
+        task={completing}
+        busy={completeBusy}
+        error={completeError}
+        onClose={() => setCompleting(null)}
+        onConfirm={(task, minutes) => void completeActivity(task, minutes)}
+      />
       <Modal
         open={failure !== null}
         title={failure?.title ?? ""}

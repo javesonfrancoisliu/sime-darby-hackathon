@@ -1,0 +1,45 @@
+{
+  "record": {
+    "scenarioId": "scenario-01",
+    "inputHash": "bb3c776d808f52e3bb3d2141106f4c9da92c92baf37730e3183640c29d425789",
+    "output": "{\"ranking\":[{\"candidate\":\"c2\",\"reason\":\"You need bags carried, and this helper regularly carries shopping and helps neighbours unload. They are close by and free at your time.\"},{\"candidate\":\"c1\",\"reason\":\"This helper knows groceries and is very close by, and is free at your time. They have not carried bags before, though.\"},{\"candidate\":\"c3\",\"reason\":\"This helper carries shopping regularly, which suits your need, but they are not free at your time and have no listed grocery skill.\"}]}",
+    "latencyMs": 2069.2368,
+    "usage": {
+      "inputTokens": 1202,
+      "outputTokens": 188,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    }
+  },
+  "outcome": {
+    "scenarioId": "scenario-01",
+    "rankedBy": "ai",
+    "fallback": false,
+    "matches": [
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000001",
+        "name": "Fictional helper 1",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 1,
+        "score": 94,
+        "reason": "You need bags carried, and this helper regularly carries shopping and helps neighbours unload. They are close by and free at your time."
+      },
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000002",
+        "name": "Fictional helper 2",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 0.5,
+        "score": 97,
+        "reason": "This helper knows groceries and is very close by, and is free at your time. They have not carried bags before, though."
+      },
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000003",
+        "name": "Fictional helper 3",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 2,
+        "score": 43,
+        "reason": "This helper carries shopping regularly, which suits your need, but they are not free at your time and have no listed grocery skill."
+      }
+    ]
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "record": {
+    "scenarioId": "scenario-15",
+    "inputHash": "22ad542357cbcdca8046117b4110e274bfd86f3342da908e9e00d5edab776a55",
+    "output": "{\"ranking\":[{\"candidate\":\"c2\",\"reason\":\"Helps neighbours read timetables and find quiet activities, lives 1 km away, and is free at the requested time. A good match.\"},{\"candidate\":\"c3\",\"reason\":\"Has the same helpful experience with timetables and quiet activities, but is 2 km away and not confirmed for the requested time.\"},{\"candidate\":\"c1\",\"reason\":\"Lives closest, but mainly leads loud music and stage events, which is the opposite of the quiet activity you asked for.\"}]}",
+    "latencyMs": 1488.5189000000028,
+    "usage": {
+      "inputTokens": 1190,
+      "outputTokens": 197,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    }
+  },
+  "outcome": {
+    "scenarioId": "scenario-15",
+    "rankedBy": "ai",
+    "fallback": false,
+    "matches": [
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000141",
+        "name": "Fictional helper 141",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 1,
+        "score": 94,
+        "reason": "Helps neighbours read timetables and find quiet activities, lives 1 km away, and is free at the requested time. A good match."
+      },
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000143",
+        "name": "Fictional helper 143",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 2,
+        "score": 43,
+        "reason": "Has the same helpful experience with timetables and quiet activities, but is 2 km away and not confirmed for the requested time."
+      },
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000142",
+        "name": "Fictional helper 142",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 0.5,
+        "score": 97,
+        "reason": "Lives closest, but mainly leads loud music and stage events, which is the opposite of the quiet activity you asked for."
+      }
+    ]
+  }
+}

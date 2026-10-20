@@ -1,0 +1,12 @@
+﻿{
+    "acceptHttpStatus":  200,
+    "trackedHttpStatus":  200,
+    "requestId":  "d738bced-14a2-410c-b970-6fad67534cfb",
+    "title":  "Ride to the health clinic",
+    "status":  "matched",
+    "volunteerId":  "de2dd90d-15aa-4150-921c-b7477087b006",
+    "elderId":  "5ece7839-27f4-45f1-8dfa-0d945394f5ea",
+    "absentFromOpenFeed":  true,
+    "restoredFeedAllRules":  true,
+    "persistentModelDisabled":  true
+}

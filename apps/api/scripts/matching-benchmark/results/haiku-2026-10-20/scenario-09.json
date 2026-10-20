@@ -1,0 +1,45 @@
+{
+  "record": {
+    "scenarioId": "scenario-09",
+    "inputHash": "4687dc6c6673832c4feac1c2d1aeb1723114393f79b9726a1c6442c18403c5bf",
+    "output": "{\"ranking\":[{\"candidate\":\"c2\",\"reason\":\"You've got a volunteer who already reads clinic leaflets with neighbours and helps prepare questions. They're only 1 km away and free at your time.\"},{\"candidate\":\"c1\",\"reason\":\"This volunteer has health advice skills and lives 0.5 km away, and is free at your time. Their experience is more about fitness games.\"},{\"candidate\":\"c3\",\"reason\":\"This volunteer has done leaflet reading and question prep before, but isn't listed with health advice skills. They're 2 km away and not confirmed for your time.\"}]}",
+    "latencyMs": 1577.0838000000003,
+    "usage": {
+      "inputTokens": 1217,
+      "outputTokens": 217,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    }
+  },
+  "outcome": {
+    "scenarioId": "scenario-09",
+    "rankedBy": "ai",
+    "fallback": false,
+    "matches": [
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000081",
+        "name": "Fictional helper 81",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 1,
+        "score": 94,
+        "reason": "You've got a volunteer who already reads clinic leaflets with neighbours and helps prepare questions. They're only 1 km away and free at..."
+      },
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000082",
+        "name": "Fictional helper 82",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 0.5,
+        "score": 97,
+        "reason": "This volunteer has health advice skills and lives 0.5 km away, and is free at your time. Their experience is more about fitness games."
+      },
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000083",
+        "name": "Fictional helper 83",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 2,
+        "score": 43,
+        "reason": "This volunteer has done leaflet reading and question prep before, but isn't listed with health advice skills. They're 2 km away and not c..."
+      }
+    ]
+  }
+}

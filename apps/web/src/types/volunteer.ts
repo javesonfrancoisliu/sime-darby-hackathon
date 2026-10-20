@@ -24,6 +24,9 @@ export type Opportunity = {
   durationMinutes: number;
   // 0–100 rule-based fit score from the matching module.
   matchScore: number;
+  matchSource?: "ai" | "rules";
+  explanationSource?: "ai" | "rules";
+  matchRank?: number;
   // Short human reasons for the match, e.g. "Matches your Saturdays".
   reasons: string[];
   // Kept for future scheduling features; no longer surfaced as a filter.

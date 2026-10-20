@@ -72,10 +72,14 @@ export function VolunteerPage() {
 
   const visible = useMemo(() => {
     const dist = (o: Opportunity) => o.distanceKm;
-    const sorted = [...opportunities];
+    const sorted = opportunities.filter((item) => item.kind === "request");
     switch (sort) {
       case "best_match":
-        sorted.sort((a, b) => b.matchScore - a.matchScore || dist(a) - dist(b));
+        sorted.sort((a, b) =>
+          a.matchRank !== undefined && b.matchRank !== undefined
+            ? a.matchRank - b.matchRank
+            : b.matchScore - a.matchScore || dist(a) - dist(b),
+        );
         break;
       case "nearest":
         sorted.sort((a, b) => dist(a) - dist(b));
@@ -196,7 +200,11 @@ export function VolunteerPage() {
               />
             </InfoCard>
           )}
-          <MyTasksSection tasks={tasks} onComplete={openComplete} pointsByTask={pointsByTask} />
+          <MyTasksSection
+            tasks={tasks.filter((task) => task.kind === "request")}
+            onComplete={openComplete}
+            pointsByTask={pointsByTask}
+          />
 
           {notVerified ? (
             <InfoCard>

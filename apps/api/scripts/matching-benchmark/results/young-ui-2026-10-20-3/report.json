@@ -1,0 +1,23 @@
+﻿{
+    "inferenceAttempts":  1,
+    "retries":  0,
+    "httpStatus":  200,
+    "model":  "claude-haiku-5-5",
+    "usage":  {
+                  "input_tokens":  1191,
+                  "output_tokens":  159,
+                  "cache_read_input_tokens":  0,
+                  "cache_creation_input_tokens":  0
+              },
+    "latencyMs":  1811.5313000000024,
+    "estimatedCostUsd":  0.00019860000000000003,
+    "rankingSource":  "ai",
+    "explanationFallbackCount":  2,
+    "rawExplanationCharacters":  [
+                                     154,
+                                     143
+                                 ],
+    "reason":  "Both one-sentence explanations exceed 140 characters. The existing validator replaces them with whole factual rule clauses. User screenshot confirms fallback text under the AI-assisted ranking label.",
+    "visualReview":  "User-provided screenshot; no agent browser automation",
+    "noNewInferenceDuringReview":  true
+}

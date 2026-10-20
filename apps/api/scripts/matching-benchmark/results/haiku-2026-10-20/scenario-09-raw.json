@@ -1,0 +1,46 @@
+{
+  "model": "claude-haiku-5-5",
+  "content": [
+    {
+      "type": "tool_use",
+      "id": "toolu_015WJVghF2s5DrcxG15tjdFm",
+      "name": "submit_ranking",
+      "input": {
+        "ranking": [
+          {
+            "candidate": "c2",
+            "reason": "You've got a volunteer who already reads clinic leaflets with neighbours and helps prepare questions. They're only 1 km away and free at your time."
+          },
+          {
+            "candidate": "c1",
+            "reason": "This volunteer has health advice skills and lives 0.5 km away, and is free at your time. Their experience is more about fitness games."
+          },
+          {
+            "candidate": "c3",
+            "reason": "This volunteer has done leaflet reading and question prep before, but isn't listed with health advice skills. They're 2 km away and not confirmed for your time."
+          }
+        ]
+      },
+      "caller": {
+        "type": "direct"
+      }
+    }
+  ],
+  "usage": {
+    "input_tokens": 1217,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 217,
+    "output_tokens_details": {
+      "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+  },
+  "stopReason": "tool_use"
+}

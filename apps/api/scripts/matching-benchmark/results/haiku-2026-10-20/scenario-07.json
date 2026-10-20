@@ -1,0 +1,45 @@
+{
+  "record": {
+    "scenarioId": "scenario-07",
+    "inputHash": "52cd14a81a6f0c8104efa51393f32788c49386fcda6f193819089361e9a8f7ac",
+    "output": "{\"ranking\":[{\"candidate\":\"c2\",\"reason\":\"Has digital help skills and teaches WhatsApp scam awareness, close by and free at your time. A strong match for your request.\"},{\"candidate\":\"c1\",\"reason\":\"Has digital help skills and lives close by, and is free at your time. Their experience is in photos, not scam spotting.\"},{\"candidate\":\"c3\",\"reason\":\"Has WhatsApp scam-awareness experience, but is not listed as free at your time and has no digital help skill recorded.\"}]}",
+    "latencyMs": 1612.4398999999994,
+    "usage": {
+      "inputTokens": 1216,
+      "outputTokens": 194,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    }
+  },
+  "outcome": {
+    "scenarioId": "scenario-07",
+    "rankedBy": "ai",
+    "fallback": false,
+    "matches": [
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000061",
+        "name": "Fictional helper 61",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 1,
+        "score": 94,
+        "reason": "Has digital help skills and teaches WhatsApp scam awareness, close by and free at your time. A strong match for your request."
+      },
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000062",
+        "name": "Fictional helper 62",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 0.5,
+        "score": 97,
+        "reason": "Has digital help skills and lives close by, and is free at your time. Their experience is in photos, not scam spotting."
+      },
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000063",
+        "name": "Fictional helper 63",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 2,
+        "score": 43,
+        "reason": "Has WhatsApp scam-awareness experience, but is not listed as free at your time and has no digital help skill recorded."
+      }
+    ]
+  }
+}

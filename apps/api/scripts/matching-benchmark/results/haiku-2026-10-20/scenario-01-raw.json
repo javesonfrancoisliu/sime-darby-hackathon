@@ -1,0 +1,46 @@
+{
+  "model": "claude-haiku-5-5",
+  "content": [
+    {
+      "type": "tool_use",
+      "id": "toolu_01T7vzr2fytEk2pyGTGamTv9",
+      "name": "submit_ranking",
+      "input": {
+        "ranking": [
+          {
+            "candidate": "c2",
+            "reason": "You need bags carried, and this helper regularly carries shopping and helps neighbours unload. They are close by and free at your time."
+          },
+          {
+            "candidate": "c1",
+            "reason": "This helper knows groceries and is very close by, and is free at your time. They have not carried bags before, though."
+          },
+          {
+            "candidate": "c3",
+            "reason": "This helper carries shopping regularly, which suits your need, but they are not free at your time and have no listed grocery skill."
+          }
+        ]
+      },
+      "caller": {
+        "type": "direct"
+      }
+    }
+  ],
+  "usage": {
+    "input_tokens": 1202,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 188,
+    "output_tokens_details": {
+      "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+  },
+  "stopReason": "tool_use"
+}

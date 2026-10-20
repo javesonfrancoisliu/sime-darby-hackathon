@@ -6,6 +6,10 @@ import { coreRoutes } from "./routes";
 import { apiEvent } from "./test/event";
 
 describe("matching handler", () => {
+  it("serves personalized opportunities in the secret-owning matching Lambda", async () => {
+    const res = await handler(apiEvent({ path: "/api/opportunities" }));
+    expect(res.statusCode).not.toBe(404);
+  });
   it("serves the matches route", async () => {
     const res = await handler(apiEvent({ path: "/api/requests/x/matches" }));
     expect(res.statusCode).not.toBe(404);

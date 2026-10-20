@@ -46,10 +46,21 @@ const volunteer = (overrides: Partial<User> = {}): User => {
 const slot = { day: "sat", start: "09:00", end: "12:00" } as const;
 
 describe("scoreVolunteer components", () => {
+  it("filters explicit schedule conflicts before reranking but retains unknown schedules", () => {
+    const unknown = volunteer();
+    const unavailable = volunteer({ availability: [{ day: "mon", start: "09:00", end: "12:00" }] });
+    const available = volunteer({ availability: [slot] });
+    expect(
+      rankVolunteers(target, [unknown, unavailable, available]).map((c) => c.volunteer.id),
+    ).toEqual([available.id, unknown.id]);
+    expect(scoreVolunteer(unknown, target)?.components.availability).toBe(0);
+    expect(rankVolunteers(target, [])).toEqual([]);
+    expect(rankVolunteers(target, [volunteer({ role: "elder" })])).toEqual([]);
+  });
   it("gives full skill credit when the category is a skill", () => {
     const result = scoreVolunteer(volunteer({ skills: ["groceries"] }), target);
     expect(result?.components.skill).toBe(1);
-    expect(result?.reasons).toContain("Has helped with groceries");
+    expect(result?.reasons).toContain("Lists groceries as a skill");
   });
 
   it("gives half skill credit for a keyword in the experience, case-insensitive", () => {

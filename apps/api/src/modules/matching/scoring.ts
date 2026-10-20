@@ -1,4 +1,11 @@
-import type { AvailabilitySlot, Category, Day, Location, User } from "@sdh/contracts";
+import {
+  MAX_REASON_LENGTH,
+  type AvailabilitySlot,
+  type Category,
+  type Day,
+  type Location,
+  type User,
+} from "@sdh/contracts";
 import { approxKm, distanceKm } from "../../lib/geo";
 import {
   CATEGORY_KEYWORDS,
@@ -88,7 +95,7 @@ export function scoreVolunteer(
   target: MatchTarget,
   radiusKm = DEFAULT_RADIUS_KM,
 ): ScoredVolunteer | null {
-  if (volunteer.verification !== "verified") return null;
+  if (volunteer.role !== "volunteer" || volunteer.verification !== "verified") return null;
   // Filter and score on the coarse distance so neither the radius cut-off nor the score
   // can be probed to recover someone's exact home.
   const distance = approxKm(distanceKm(volunteer.location, target.location));
@@ -109,7 +116,7 @@ export function scoreVolunteer(
     WEIGHTS.availability * components.availability;
 
   const reasons: string[] = [];
-  if (hasSkill) reasons.push(`Has helped with ${CATEGORY_LABELS[target.category]}`);
+  if (hasSkill) reasons.push(`Lists ${CATEGORY_LABELS[target.category]} as a skill`);
   else if (keyword) reasons.push(`Experience mentions ${keyword}`);
   reasons.push(`About ${distance} km away`);
   if (slot) reasons.push(`Free on ${DAY_NAMES[slot.day]} ${slot.start} to ${slot.end}`);
@@ -134,16 +141,28 @@ export function rankVolunteers(
   options: RankOptions = {},
 ): ScoredVolunteer[] {
   const { radiusKm = DEFAULT_RADIUS_KM, limit = SHORTLIST_SIZE } = options;
-  return volunteers
-    .map((volunteer) => scoreVolunteer(volunteer, target, radiusKm))
-    .filter((entry): entry is ScoredVolunteer => entry !== null)
-    .sort(
-      (a, b) =>
-        b.score - a.score ||
-        a.distanceKm - b.distanceKm ||
-        a.volunteer.name.localeCompare(b.volunteer.name),
-    )
-    .slice(0, limit);
+  return (
+    volunteers
+      .map((volunteer) => scoreVolunteer(volunteer, target, radiusKm))
+      .filter((entry): entry is ScoredVolunteer => entry !== null)
+      // Missing availability is unknown; an explicitly incompatible schedule is ineligible.
+      // The nearby-opportunities feed still uses scoreVolunteer directly for preference scoring.
+      .filter(
+        (entry) => entry.volunteer.availability.length === 0 || entry.components.availability === 1,
+      )
+      .sort(
+        (a, b) =>
+          b.score - a.score ||
+          a.distanceKm - b.distanceKm ||
+          a.volunteer.name.localeCompare(b.volunteer.name),
+      )
+      .slice(0, limit)
+  );
 }
 
-export const ruleReason = (entry: ScoredVolunteer): string => entry.reasons.join("; ");
+export const ruleReason = (entry: ScoredVolunteer): string => {
+  const reason = entry.reasons.join("; ");
+  return reason.length <= MAX_REASON_LENGTH
+    ? reason
+    : `${reason.slice(0, MAX_REASON_LENGTH - 3).trimEnd()}...`;
+};

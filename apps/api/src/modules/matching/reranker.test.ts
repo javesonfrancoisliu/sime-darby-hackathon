@@ -55,6 +55,30 @@ afterEach(() => {
 });
 
 describe("claude reranker", () => {
+  it.each([{ ranking: [] }, { ranking: [{ candidate: "unknown", reason: "Nearby" }] }, "not JSON"])(
+    "uses rules for unusable output %j",
+    async (input) => {
+      vi.spyOn(logger, "warn").mockImplementation(() => undefined);
+      const result = await rerankerWith(
+        vi.fn<SendMessage>().mockResolvedValue(toolOutput(input)),
+      ).rerank(target, candidates);
+      expect(result).toEqual(await rulesReranker.rerank(target, candidates));
+    },
+  );
+
+  it.each(["Certified nurse available then", "Available at the requested time"])(
+    "replaces unsupported claims: %s",
+    async (reason) => {
+      const result = await rerankerWith(
+        vi
+          .fn<SendMessage>()
+          .mockResolvedValue(toolOutput({ ranking: [{ candidate: "c1", reason }] })),
+      ).rerank(target, candidates);
+      expect(result.items[0]?.reason).toBe(
+        (await rulesReranker.rerank(target, candidates)).items[0]?.reason,
+      );
+    },
+  );
   it("reorders with AI reasons and reports ai", async () => {
     const send = vi.fn<SendMessage>().mockResolvedValue(
       toolOutput({
@@ -147,12 +171,15 @@ describe("claude reranker", () => {
     expect(isSafeReason("About 1.5 km away and free on Saturday")).toBe(true);
   });
 
-  it("truncates long reasons to 140 characters", async () => {
+  it("replaces an unshortenable reason with bounded factual evidence", async () => {
     const send = vi
       .fn<SendMessage>()
       .mockResolvedValue(toolOutput({ ranking: [{ candidate: "c1", reason: "x".repeat(500) }] }));
     const result = await rerankerWith(send).rerank(target, candidates);
-    expect(result.items[0]?.reason).toHaveLength(140);
+    expect(result.items[0]?.reason.length).toBeLessThanOrEqual(240);
+    expect(result.items[0]?.reason).toBe(
+      (await rulesReranker.rerank(target, candidates)).items[0]?.reason,
+    );
   });
 
   it("falls back to rules on malformed tool output", async () => {
@@ -194,6 +221,27 @@ describe("claude reranker", () => {
 });
 
 describe("prompt privacy", () => {
+  it("redacts common contact details embedded in free text", () => {
+    const payload = JSON.stringify(
+      buildPromptPayload(
+        {
+          ...target,
+          description:
+            "Call +60 12-345 6789 or a@example.com at https://example.com, 3.12345, 101.54321",
+        },
+        candidates,
+      ),
+    );
+    for (const privateText of [
+      "12-345",
+      "a@example.com",
+      "https://example.com",
+      "3.12345",
+      "101.54321",
+    ])
+      expect(payload).not.toContain(privateText);
+    expect(payload).toContain("[contact removed]");
+  });
   it("sends no names, ids or coordinates", () => {
     const request = JSON.stringify(buildMessageRequest("test-model", target, candidates));
     for (const entry of candidates) {

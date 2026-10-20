@@ -1,0 +1,45 @@
+{
+  "record": {
+    "scenarioId": "scenario-14",
+    "inputHash": "38ec066130f4298b08fd0910e1ae1dc1d71519a9868443703e78a24bd9178e1d",
+    "output": "{\"ranking\":[{\"candidate\":\"c2\",\"reason\":\"Hosts gentle garden visits and suggests seated seed-sorting, just what you asked for. Nearby and available at your time.\"},{\"candidate\":\"c1\",\"reason\":\"Has community activity skills and is very close and available, but their experience leans toward heavy digging, which you wanted to avoid.\"},{\"candidate\":\"c3\",\"reason\":\"Has gentle garden visit experience, but lists no skills and is not confirmed available at your time.\"}]}",
+    "latencyMs": 1972.7237999999998,
+    "usage": {
+      "inputTokens": 1216,
+      "outputTokens": 189,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    }
+  },
+  "outcome": {
+    "scenarioId": "scenario-14",
+    "rankedBy": "ai",
+    "fallback": false,
+    "matches": [
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000131",
+        "name": "Fictional helper 131",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 1,
+        "score": 94,
+        "reason": "Hosts gentle garden visits and suggests seated seed-sorting, just what you asked for. Nearby and available at your time."
+      },
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000132",
+        "name": "Fictional helper 132",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 0.5,
+        "score": 97,
+        "reason": "Has community activity skills and is very close and available, but their experience leans toward heavy digging, which you wanted to avoid."
+      },
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000133",
+        "name": "Fictional helper 133",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 2,
+        "score": 18,
+        "reason": "About 2 km away"
+      }
+    ]
+  }
+}
