@@ -14,6 +14,12 @@ variable "github_branch" {
   default     = "main"
 }
 
+variable "github_immutable_subject_prefix" {
+  description = "Subject prefix GitHub issues when immutable subject claims are on (repo:owner@id/repo@id), from the repository's OIDC customization settings. Empty keeps only the name-based subject."
+  type        = string
+  default     = ""
+}
+
 variable "create_oidc_provider" {
   description = "Create the GitHub OIDC provider. Set false when the account already has one (IAM allows one per URL) and pass its ARN."
   type        = bool

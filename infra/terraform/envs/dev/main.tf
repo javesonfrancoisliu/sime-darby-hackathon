@@ -77,11 +77,12 @@ module "ci_deploy" {
   source = "../../modules/ci-deploy"
   count  = var.github_repository == "" ? 0 : 1
 
-  name_prefix                = local.name_prefix
-  github_repository          = var.github_repository
-  create_oidc_provider       = !var.github_oidc_provider_exists
-  existing_oidc_provider_arn = var.github_oidc_provider_arn
-  function_arns              = module.api.function_arns
-  bucket_arn                 = module.web.bucket_arn
-  distribution_arn           = module.web.distribution_arn
+  name_prefix                     = local.name_prefix
+  github_repository               = var.github_repository
+  github_immutable_subject_prefix = var.github_immutable_subject_prefix
+  create_oidc_provider            = !var.github_oidc_provider_exists
+  existing_oidc_provider_arn      = var.github_oidc_provider_arn
+  function_arns                   = module.api.function_arns
+  bucket_arn                      = module.web.bucket_arn
+  distribution_arn                = module.web.distribution_arn
 }
