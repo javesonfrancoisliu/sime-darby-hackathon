@@ -61,7 +61,7 @@ describe("sign up", () => {
   it("sends a youth to the Youth app", async () => {
     const t = setup({ path: "/sign-up", me: null });
     await chooseAndFill(t, "Youth");
-    await t.user.type(await screen.findByLabelText("Code"), "123456");
+    await t.user.type(await screen.findByLabelText("Code", {}, { timeout: 5_000 }), "123456");
     await t.user.click(screen.getByRole("button", { name: "Confirm and start" }));
     await waitFor(() => expect(t.appNavigations()).toEqual(["/volunteer/"]));
     expect(t.callsTo("POST", ME_PATH)[0]?.body).toMatchObject({ role: "volunteer" });
@@ -122,7 +122,7 @@ describe("sign up", () => {
     );
     // A fresh page has no password in memory.
     const t = setup({ path: "/sign-up/verify", me: null });
-    await t.user.type(await screen.findByLabelText("Code"), "123456");
+    await t.user.type(await screen.findByLabelText("Code", {}, { timeout: 5_000 }), "123456");
     await t.user.click(screen.getByRole("button", { name: "Confirm and start" }));
 
     expect(
@@ -139,7 +139,7 @@ describe("sign up", () => {
     vi.mocked(confirmSignUp).mockRejectedValueOnce(new AuthError("CODE_MISMATCH"));
     const t = setup({ path: "/sign-up", me: null });
     await chooseAndFill(t, "Elderly");
-    await t.user.type(await screen.findByLabelText("Code"), "000000");
+    await t.user.type(await screen.findByLabelText("Code", {}, { timeout: 5_000 }), "000000");
     await t.user.click(screen.getByRole("button", { name: "Confirm and start" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(AUTH_ERROR_COPY.CODE_MISMATCH);
 

@@ -37,6 +37,8 @@ export default defineConfig(({ mode }) => {
     test: {
       globals: true,
       environment: "jsdom",
+      // Avoid CPU contention when multiple app suites run on a shared CI runner.
+      maxWorkers: process.env.CI ? 2 : undefined,
       // Shared CI runners are slower and busier than a laptop, so the default 5 seconds is too tight for full-flow tests.
       testTimeout: 20_000,
       setupFiles: ["./src/test/setup.ts"],

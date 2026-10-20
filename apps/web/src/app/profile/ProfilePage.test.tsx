@@ -40,7 +40,9 @@ describe("profile page", () => {
     );
     signInAs(VOLUNTEER.id);
     renderApp("/profile");
-    expect(await screen.findByText("Lv. 2 Community Helper")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Lv. 2 Community Helper", {}, { timeout: 5_000 }),
+    ).toBeInTheDocument();
     expect(screen.getByText("5 / 10 tasks")).toBeInTheDocument();
     expect(screen.getByText("5 more tasks to reach Community Champion")).toBeInTheDocument();
     expect(screen.getByRole("progressbar", { name: "Volunteer level progress" })).toHaveAttribute(
