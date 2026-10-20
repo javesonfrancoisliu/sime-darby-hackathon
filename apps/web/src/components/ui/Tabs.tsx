@@ -1,6 +1,6 @@
-import { useRef, type KeyboardEvent, type ReactNode } from "react";
+import { useRef, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
 
-export type TabItem<T extends string> = { id: T; label: string };
+export type TabItem<T extends string> = { id: T; label: string; icon?: ReactNode };
 
 export type TabsProps<T extends string> = {
   // Names the tab list for screen readers; also the prefix of the tab and panel ids.
@@ -35,7 +35,22 @@ export function Tabs<T extends string>({ idBase, label, tabs, value, onChange }:
   }
 
   return (
-    <div className="ui-tabs" role="tablist" aria-label={label} onKeyDown={onKeyDown}>
+    <div
+      className="ui-tabs"
+      role="tablist"
+      aria-label={label}
+      onKeyDown={onKeyDown}
+      style={
+        {
+          "--seg-count": tabs.length,
+          "--seg-active": Math.max(
+            0,
+            tabs.findIndex((tab) => tab.id === value),
+          ),
+        } as CSSProperties
+      }
+    >
+      <span className="ui-tabs__indicator" aria-hidden="true" />
       {tabs.map((tab) => {
         const selected = tab.id === value;
         return (
@@ -54,7 +69,12 @@ export function Tabs<T extends string>({ idBase, label, tabs, value, onChange }:
             className="ui-tab"
             onClick={() => onChange(tab.id)}
           >
-            {tab.label}
+            {tab.icon ? (
+              <span className="ui-tabs__icon" aria-hidden="true">
+                {tab.icon}
+              </span>
+            ) : null}
+            <span className="ui-tabs__label">{tab.label}</span>
           </button>
         );
       })}
@@ -72,7 +92,12 @@ export function TabPanel({
   children: ReactNode;
 }) {
   return (
-    <div role="tabpanel" id={panelId(idBase, id)} aria-labelledby={tabId(idBase, id)}>
+    <div
+      className="ui-tab-panel"
+      role="tabpanel"
+      id={panelId(idBase, id)}
+      aria-labelledby={tabId(idBase, id)}
+    >
       {children}
     </div>
   );

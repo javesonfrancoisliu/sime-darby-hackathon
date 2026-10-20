@@ -8,17 +8,28 @@ import {
 import { HttpError, ok, type Route } from "../../lib/http";
 import { optionalUser, requireUser } from "../../lib/identity";
 import { parse } from "../../lib/validate";
-import { complete, createEvent, join, listEvents } from "./service";
+import { complete, completeOwnAttendance, createEvent, join, listEvents } from "./service";
 
 export const eventRoutes: Route[] = [
+  {
+    method: "POST",
+    path: "/api/events/{id}/attendance/complete",
+    handler: async (req) => {
+      const user = await requireUser(req, "volunteer");
+      const id = parse(Id, req.params.id);
+      return ok((await completeOwnAttendance(user, id)) satisfies CommunityEvent);
+    },
+  },
   {
     method: "GET",
     path: "/api/events",
     handler: async (req) => {
       // Public route: no, unknown or unverifiable identity just omits the joined flag.
       const viewer = await optionalUser(req);
-      const { purpose } = parse(EventsQuery, req.query);
-      return ok({ events: await listEvents(viewer, purpose) } satisfies EventsResponse);
+      const { purpose, includeJoined } = parse(EventsQuery, req.query);
+      return ok({
+        events: await listEvents(viewer, purpose, includeJoined === "true"),
+      } satisfies EventsResponse);
     },
   },
   {

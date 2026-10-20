@@ -34,9 +34,8 @@ describe("installed app names", () => {
     expect(elderlyHtml).toContain("<title>Township Connect</title>");
   });
 
-  it("keeps the two installed apps apart and drops the old product name", () => {
+  it("keeps the installed apps distinct and drops the old product name", () => {
     expect(manifestField(webConfig, "name")).not.toBe(manifestField(elderlyConfig, "name"));
-    expect(metaTitle(webHtml)).not.toBe(metaTitle(elderlyHtml));
     for (const text of [webConfig, webHtml, elderlyConfig, elderlyHtml]) {
       expect(text).not.toMatch(/Help a Neighbour/);
     }

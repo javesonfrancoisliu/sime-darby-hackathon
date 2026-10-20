@@ -49,12 +49,17 @@ export function ProfilePage() {
         <ProfileHeaderCard claimedCount={claimed.length} onEdit={() => setEditPersonal(true)} />
       </section>
 
-      <section className="ui-section" aria-label="Volunteering preferences">
-        <PreferencesCard onEdit={() => setEditPrefs(true)} />
+      <section className="ui-section" aria-label="My rewards">
+        <ClaimedRewardsCard
+          claimed={claimed}
+          loading={rewards.loading}
+          error={rewards.error}
+          onUsed={rewards.reload}
+        />
       </section>
 
-      <section className="ui-section" aria-label="My rewards">
-        <ClaimedRewardsCard claimed={claimed} loading={rewards.loading} error={rewards.error} />
+      <section className="ui-section" aria-label="Volunteering preferences">
+        <PreferencesCard onEdit={() => setEditPrefs(true)} />
       </section>
 
       <section className="ui-section" aria-label="Settings">

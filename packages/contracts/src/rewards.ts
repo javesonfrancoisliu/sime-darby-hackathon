@@ -2,6 +2,11 @@ import { z } from "zod";
 import { Id, IsoDateTime } from "./common";
 import { Audience, IconKey } from "./icons";
 
+export const VOUCHER_VALIDITY_DAYS = 30;
+export function voucherExpiry(redeemedAt: string): string {
+  return new Date(Date.parse(redeemedAt) + VOUCHER_VALIDITY_DAYS * 86400000).toISOString();
+}
+
 export const RewardCategory = z.enum(["shop", "clinic", "food", "recognition"]);
 export type RewardCategory = z.infer<typeof RewardCategory>;
 
@@ -28,6 +33,8 @@ export type RewardStatus = z.infer<typeof RewardStatus>;
 export const RewardWithStatus = Reward.extend({
   status: RewardStatus,
   redeemedAt: IsoDateTime.optional(),
+  usedAt: IsoDateTime.optional(),
+  expiresAt: IsoDateTime.optional(),
 });
 export type RewardWithStatus = z.infer<typeof RewardWithStatus>;
 
@@ -55,6 +62,8 @@ export const Redemption = z.object({
   title: z.string(),
   pointsSpent: z.number().int().positive(),
   redeemedAt: IsoDateTime,
+  usedAt: IsoDateTime.optional(),
+  expiresAt: IsoDateTime.optional(),
 });
 export type Redemption = z.infer<typeof Redemption>;
 

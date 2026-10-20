@@ -25,7 +25,7 @@ function setup(durationMinutes: number) {
     <CompleteTaskModal task={task(durationMinutes)} onClose={() => {}} onConfirm={onConfirm} />,
   );
   const input = screen.getByLabelText("Minutes spent");
-  const submit = screen.getByRole("button", { name: "Mark as completed" });
+  const submit = screen.getByRole("button", { name: "Yes, completed" });
   return { onConfirm, input, submit, user: userEvent.setup() };
 }
 

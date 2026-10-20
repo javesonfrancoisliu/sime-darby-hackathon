@@ -88,6 +88,8 @@ describe("challenges page", () => {
     const user = userEvent.setup();
 
     await user.click(await screen.findByRole("button", { name: "Join challenge" }));
+    // A yes/no confirmation now precedes joining.
+    await user.click(await screen.findByRole("button", { name: "Yes, join" }));
     expect(await screen.findByRole("dialog", { name: "Challenge joined" })).toBeInTheDocument();
     expect(calls.some((c) => c.method === "POST" && c.path.endsWith("/join"))).toBe(true);
   });
@@ -169,7 +171,11 @@ describe("challenges page", () => {
 
     const card = await screen.findByLabelText("Challenge: Walk 20,000 steps");
     expect(within(card).getByText("Waiting for verification")).toBeInTheDocument();
-    expect(within(card).queryByRole("button")).not.toBeInTheDocument();
+    expect(within(card).getAllByRole("button")).toHaveLength(1);
+    expect(within(card).getByRole("button", { name: /Show details/ })).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
   });
 
   it("logs progress with PUT /progress", async () => {
@@ -284,6 +290,8 @@ describe("challenges page", () => {
 
     const user = await openTab("Rewards");
     await user.click(await screen.findByRole("button", { name: "Redeem for 40 pts" }));
+    // A yes/no confirmation now precedes redeeming.
+    await user.click(await screen.findByRole("button", { name: "Yes, redeem" }));
 
     expect(
       await screen.findByText("You do not have enough points for that yet."),
@@ -316,8 +324,12 @@ describe("challenges page", () => {
 
     const user = await openTab("Rewards");
     await user.click(await screen.findByRole("button", { name: "Redeem for 40 pts" }));
+    await user.click(await screen.findByRole("button", { name: "Yes, redeem" }));
     expect(await screen.findByText(/You have 60 points left/)).toBeInTheDocument();
-    expect(screen.getByText("First steps")).toBeInTheDocument();
+    expect(screen.queryByText("First steps")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Done" }));
+    await user.click(screen.getByRole("tab", { name: "Badges" }));
+    expect(await screen.findByText("First steps")).toBeInTheDocument();
   });
 
   it("shows an empty leaderboard and saves the opt-in with PATCH /api/me", async () => {
@@ -328,7 +340,7 @@ describe("challenges page", () => {
     signInAs(VOLUNTEER.id);
     renderApp("/community/challenges");
 
-    const user = await openTab("Leaderboard");
+    const user = await openTab("Rankings");
     expect(await screen.findByText("No one is on the leaderboard yet")).toBeInTheDocument();
     const toggle = screen.getByRole("switch", { name: /Show me on the leaderboard/ });
     expect(toggle).not.toBeChecked();
@@ -356,7 +368,7 @@ describe("challenges page", () => {
     signInAs(VOLUNTEER.id);
     renderApp("/community/challenges");
 
-    await openTab("Leaderboard");
+    await openTab("Rankings");
     const list = await screen.findByRole("list", { name: "Rankings" });
     expect(within(list).getByText("Aisha R")).toBeInTheDocument();
     expect(within(list).getByText(/Daniel L/)).toBeInTheDocument();

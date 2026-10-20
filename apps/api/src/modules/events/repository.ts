@@ -14,6 +14,7 @@ export interface Signup {
   role: Role;
   name: string;
   joinedAt: string;
+  completedAt?: string;
 }
 
 export type JoinOutcome = "joined" | "already_joined" | "full_or_closed";
@@ -83,8 +84,8 @@ export async function listSignups(eventId: string): Promise<Signup[]> {
   return signups;
 }
 
-export async function listJoinedEventIds(userId: string, now: string): Promise<Set<string>> {
-  const ids = new Set<string>();
+export async function listJoinedSignups(userId: string, now: string): Promise<Map<string, Signup>> {
+  const ids = new Map<string, Signup>();
   let startKey: Record<string, unknown> | undefined;
   do {
     const result = await db().send(
@@ -96,7 +97,10 @@ export async function listJoinedEventIds(userId: string, now: string): Promise<S
         ExclusiveStartKey: startKey,
       }),
     );
-    for (const item of result.Items ?? []) ids.add(fromItem<Signup>(item).eventId);
+    for (const item of result.Items ?? []) {
+      const signup = fromItem<Signup>(item);
+      ids.set(signup.eventId, signup);
+    }
     startKey = result.LastEvaluatedKey;
   } while (startKey);
   return ids;
@@ -190,4 +194,48 @@ export async function completeEvent(
     );
   }
   return true;
+}
+
+export async function getSignup(eventId: string, userId: string): Promise<Signup | undefined> {
+  const result = await db().send(
+    new GetCommand({
+      TableName: table(),
+      Key: { PK: `EVENT#${eventId}`, SK: `SIGNUP#${userId}` },
+      ConsistentRead: true,
+    }),
+  );
+  return result.Item ? fromItem<Signup>(result.Item) : undefined;
+}
+
+export async function completeAttendance(
+  signup: Signup,
+  contribution: Contribution,
+): Promise<void> {
+  try {
+    await db().send(
+      new TransactWriteCommand({
+        TransactItems: [
+          {
+            Update: {
+              TableName: table(),
+              Key: { PK: `EVENT#${signup.eventId}`, SK: `SIGNUP#${signup.userId}` },
+              UpdateExpression: "SET completedAt = :now",
+              ConditionExpression:
+                "attribute_exists(PK) AND attribute_not_exists(completedAt) AND #role = :volunteer",
+              ExpressionAttributeNames: { "#role": "role" },
+              ExpressionAttributeValues: {
+                ":now": contribution.completedAt,
+                ":volunteer": "volunteer",
+              },
+            },
+          },
+          contributionPut(contribution),
+        ],
+      }),
+    );
+  } catch (error) {
+    if (!isConditionFailure(error)) throw error;
+    const current = await getSignup(signup.eventId, signup.userId);
+    if (!current?.completedAt) throw error;
+  }
 }

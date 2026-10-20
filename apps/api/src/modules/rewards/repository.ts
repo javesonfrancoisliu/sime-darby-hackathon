@@ -1,6 +1,6 @@
-import { GetCommand, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
-import type { Redemption, Reward } from "@sdh/contracts";
-import { db, table } from "../../lib/db";
+import { GetCommand, PutCommand, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { voucherExpiry, type Redemption, type Reward } from "@sdh/contracts";
+import { db, isConditionFailure, table } from "../../lib/db";
 
 const ENTITY = "REWARD";
 
@@ -31,6 +31,8 @@ const toRedemption = (item: Record<string, unknown>): Redemption => {
     title: r.title,
     pointsSpent: r.pointsSpent,
     redeemedAt: r.redeemedAt,
+    expiresAt: r.expiresAt ?? voucherExpiry(r.redeemedAt),
+    ...(r.usedAt ? { usedAt: r.usedAt } : {}),
   };
 };
 
@@ -97,7 +99,35 @@ export async function getRedemption(
   rewardId: string,
 ): Promise<Redemption | undefined> {
   const result = await db().send(
-    new GetCommand({ TableName: table(), Key: { PK: `USER#${userId}`, SK: `REDEEM#${rewardId}` } }),
+    new GetCommand({
+      TableName: table(),
+      Key: { PK: `USER#${userId}`, SK: `REDEEM#${rewardId}` },
+      ConsistentRead: true,
+    }),
   );
   return result.Item ? toRedemption(result.Item) : undefined;
+}
+
+export async function useRedemption(
+  userId: string,
+  rewardId: string,
+  usedAt: string,
+): Promise<Redemption | undefined> {
+  try {
+    const result = await db().send(
+      new UpdateCommand({
+        TableName: table(),
+        Key: { PK: `USER#${userId}`, SK: `REDEEM#${rewardId}` },
+        UpdateExpression: "SET usedAt = :now",
+        ConditionExpression:
+          "attribute_exists(PK) AND attribute_not_exists(usedAt) AND (attribute_not_exists(expiresAt) OR expiresAt > :now)",
+        ExpressionAttributeValues: { ":now": usedAt },
+        ReturnValues: "ALL_NEW",
+      }),
+    );
+    return result.Attributes ? toRedemption(result.Attributes) : undefined;
+  } catch (error) {
+    if (!isConditionFailure(error)) throw error;
+    return getRedemption(userId, rewardId);
+  }
 }

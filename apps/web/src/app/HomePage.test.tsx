@@ -24,9 +24,17 @@ describe("home page", () => {
     expect(within(community).getByText("Live tea morning")).toBeInTheDocument();
 
     const safety = screen.getByLabelText("Safety summary for Elmina");
-    expect(await within(safety).findByText("Air quality: 62 AQI")).toBeInTheDocument();
-    expect(within(safety).getByText("1 open facility report.")).toBeInTheDocument();
-    expect(within(safety).getByText("Heat: 34°C")).toBeInTheDocument();
+    // Readings render as the elderly-style "Township Live Conditions" carousel:
+    // each card shows a big value + unit, a reading title and its area.
+    expect(await within(safety).findByText("Township Live Conditions")).toBeInTheDocument();
+    expect(within(safety).getByText("62")).toBeInTheDocument();
+    expect(within(safety).getByText("AQI")).toBeInTheDocument();
+    expect(within(safety).getByText("Air quality")).toBeInTheDocument();
+    expect(within(safety).getByText("34°C")).toBeInTheDocument();
+    expect(within(safety).getByRole("link", { name: "All hazards" })).toHaveAttribute(
+      "href",
+      "/safety",
+    );
     expect(
       within(community).getAllByRole("link", { name: /New recycling hours/ })[0],
     ).toHaveAttribute("href", "/community");

@@ -1,40 +1,24 @@
-import { CloudOff, Gift, Lock } from "lucide-react";
+import { CloudOff, Gift } from "lucide-react";
 
-import type { BadgeWithEarned, RewardWithStatus } from "@sdh/contracts";
+import type { RewardWithStatus } from "@sdh/contracts";
 
-import { formatDate } from "../../lib/format";
 import { ICON_BY_KEY } from "../../lib/icons";
-import { AppButton, EmptyState, InfoCard, LoadingState, Pill, StatusBadge } from "../ui";
-import { BadgeGrid } from "./BadgeGrid";
+import { AppButton, EmptyState, InfoCard, LoadingState } from "../ui";
 
 export type RewardsPanelProps = {
   rewards: RewardWithStatus[];
-  badges: BadgeWithEarned[];
   loading: boolean;
   error: string | null;
-  // Spendable points, to say how many a locked reward still needs.
-  points: number;
   // The id of the reward being redeemed.
   redeemingId: string | null;
   onRedeem: (reward: RewardWithStatus) => void;
 };
 
-function lockHint(reward: RewardWithStatus, points: number): string {
-  const needs: string[] = [];
-  if (points < reward.pointsCost) needs.push(`${reward.pointsCost - points} more points`);
-  if (reward.minVolunteerTasks) {
-    needs.push(`${reward.minVolunteerTasks} completed volunteering tasks`);
-  }
-  return needs.length > 0 ? `Needs ${needs.join(" and ")}` : "Not available yet";
-}
-
-// Rewards tab: rewards with their status for this person, then the badges grid. Redeeming spends points.
+// Rewards and redemption status. Redeeming spends points.
 export function RewardsPanel({
   rewards,
-  badges,
   loading,
   error,
-  points,
   redeemingId,
   onRedeem,
 }: RewardsPanelProps) {
@@ -60,49 +44,31 @@ export function RewardsPanel({
             const Icon = ICON_BY_KEY[reward.icon];
             return (
               <InfoCard as="li" key={reward.id} ariaLabel={`Reward: ${reward.title}`}>
-                <div className="feature-card">
-                  <div className="feature-card-head">
-                    <h3 className="feature-card-title">
-                      <span className="inline-icon">
-                        {reward.status === "locked" ? (
-                          <Lock size={18} className="icon-dim" aria-hidden="true" />
-                        ) : (
-                          <Icon size={18} aria-hidden="true" />
-                        )}
-                        {reward.title}
-                      </span>
-                    </h3>
-                    <Pill>{reward.pointsCost} pts</Pill>
+                <div className="reward-card">
+                  <Icon className="reward-card__icon" size={26} aria-hidden="true" />
+                  <div className="reward-card__info">
+                    <h3>{reward.title}</h3>
+                    {reward.partner && <p>{reward.partner}</p>}
                   </div>
-
-                  {reward.partner && <span className="ui-meta-row">From {reward.partner}</span>}
-                  <p className="feature-card-desc">{reward.description}</p>
-
-                  <div className="feature-card-foot">
-                    {reward.status === "redeemed" ? (
-                      <StatusBadge
-                        label={
-                          reward.redeemedAt
-                            ? `Redeemed ${formatDate(reward.redeemedAt)}`
-                            : "Redeemed"
-                        }
-                        variant="success"
-                      />
-                    ) : reward.status === "available" ? (
-                      <AppButton
-                        variant="primary"
-                        loading={redeemingId === reward.id}
-                        onClick={() => onRedeem(reward)}
-                      >
-                        Redeem for {reward.pointsCost} pts
-                      </AppButton>
-                    ) : (
-                      // Short badge + separate wrapping text, so the requirement never overflows.
-                      <div className="reward-lock">
-                        <StatusBadge label="Locked" variant="info" icon={Lock} />
-                        <span className="reward-lock-hint">{lockHint(reward, points)}</span>
-                      </div>
-                    )}
+                  <div className="reward-card__action">
+                    <span className="reward-card__points">{reward.pointsCost} pts</span>
+                    <AppButton
+                      variant={reward.status === "available" ? "primary" : "secondary"}
+                      disabled={reward.status !== "available"}
+                      loading={redeemingId === reward.id}
+                      aria-label={
+                        reward.status === "available"
+                          ? `Redeem for ${reward.pointsCost} pts`
+                          : undefined
+                      }
+                      onClick={() => onRedeem(reward)}
+                    >
+                      {reward.status === "redeemed"
+                        ? "Redeemed"
+                        : reward.status === "locked"
+                          ? "Locked"
+                          : "Redeem"}
+                    </AppButton>
                   </div>
                 </div>
               </InfoCard>
@@ -110,14 +76,6 @@ export function RewardsPanel({
           })}
         </ul>
       )}
-
-      <InfoCard ariaLabel="Badges and achievements">
-        {badges.length === 0 && !loading ? (
-          <p className="ui-helper ui-flush">No badges yet.</p>
-        ) : (
-          <BadgeGrid badges={badges} />
-        )}
-      </InfoCard>
     </div>
   );
 }

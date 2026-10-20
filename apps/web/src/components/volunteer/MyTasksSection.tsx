@@ -13,8 +13,8 @@ export type MyTasksSectionProps = {
 };
 
 // Compact tracking list of accepted Township Connect tasks. Status flow:
-//   accepted  -> "Mark complete"; joined events wait for the organiser
-//   completed -> waiting for the resident to confirm; only the resident can do that
+//   accepted  -> volunteer confirms their request or event attendance is complete
+//   completed -> event attendance recorded, or request waiting for resident confirmation
 //   confirmed -> confirmed by the resident, with the points the server awarded
 // Hidden entirely when there are no accepted tasks.
 export function MyTasksSection({ tasks, onComplete, pointsByTask }: MyTasksSectionProps) {
@@ -48,25 +48,23 @@ export function MyTasksSection({ tasks, onComplete, pointsByTask }: MyTasksSecti
                 </div>
 
                 <div className="feature-card-foot task-foot">
-                  {task.status === "accepted" && task.kind === "event" && (
+                  {task.status === "accepted" && (
                     <>
-                      <StatusBadge label="Joined" variant="info" />
-                      <p className="ui-helper">
-                        The organiser closes the event afterwards and records your hours.
-                      </p>
-                    </>
-                  )}
-
-                  {task.status === "accepted" && task.kind === "request" && (
-                    <>
-                      <StatusBadge label="Accepted" variant="info" />
+                      <StatusBadge
+                        label={task.kind === "event" ? "Joined" : "Accepted"}
+                        variant="info"
+                      />
                       <AppButton variant="secondary" onClick={() => onComplete(task)}>
-                        Mark complete
+                        Confirm completion
                       </AppButton>
                     </>
                   )}
 
-                  {task.status === "completed" && (
+                  {task.status === "completed" && task.kind === "event" && (
+                    <StatusBadge label="Completed" variant="success" icon={BadgeCheck} />
+                  )}
+
+                  {task.status === "completed" && task.kind === "request" && (
                     <>
                       <StatusBadge label="Waiting for the resident to confirm" variant="warning" />
                       <p className="ui-helper">

@@ -267,9 +267,14 @@ export function makeChallenge(overrides: Partial<Challenge> = {}) {
 }
 
 export function makeReward(
-  overrides: Partial<Reward> & { status?: string; redeemedAt?: string } = {},
+  overrides: Partial<Reward> & {
+    status?: string;
+    redeemedAt?: string;
+    expiresAt?: string;
+    usedAt?: string;
+  } = {},
 ) {
-  const { status = "available", redeemedAt, ...rest } = overrides;
+  const { status = "available", redeemedAt, expiresAt, usedAt, ...rest } = overrides;
   return {
     ...Reward.parse({
       id: ID_A,
@@ -286,6 +291,8 @@ export function makeReward(
     }),
     status,
     ...(redeemedAt && { redeemedAt }),
+    ...(expiresAt && { expiresAt }),
+    ...(usedAt && { usedAt }),
   };
 }
 

@@ -1,3 +1,5 @@
+import { UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { db, table } from "../../lib/db";
 import { randomUUID } from "node:crypto";
 import type {
   CommunityEvent,
@@ -46,6 +48,65 @@ describe("events", () => {
 
   const join = (eventId: string, userId: string) =>
     call("POST", `/api/events/${eventId}/join`, { as: userId });
+
+  it("records only the joined volunteer's completion once without closing the event", async () => {
+    const volunteer = await createVerifiedVolunteer(coordinator.id);
+    const other = await createVerifiedVolunteer(coordinator.id);
+    const event = await createEvent();
+    await join(event.id, volunteer.id);
+    const path = `/api/events/${event.id}/attendance/complete`;
+    expect((await call("POST", path, { as: other.id })).status).toBe(403);
+    expect((await call("POST", path, { as: coordinator.id })).status).toBe(403);
+    const results = await Promise.all([
+      call("POST", path, { as: volunteer.id }),
+      call("POST", path, { as: volunteer.id }),
+    ]);
+    for (const result of results) {
+      expect(result.status).toBe(200);
+      expect(result.body).toMatchObject({
+        status: "upcoming",
+        joined: true,
+        attendanceCompletedAt: expect.any(String),
+      });
+    }
+    const summary = async () =>
+      (await call("GET", "/api/contributions/mine", { as: volunteer.id }))
+        .body as ContributionsResponse;
+    expect(await summary()).toMatchObject({
+      completedCount: 1,
+      totalMinutes: event.durationMinutes,
+    });
+    const mine = (await call("GET", "/api/events", { as: volunteer.id })).body as EventsResponse;
+    expect(mine.events.find((item) => item.id === event.id)?.attendanceCompletedAt).toBeDefined();
+    await call("POST", `/api/events/${event.id}/complete`, { as: coordinator.id });
+    expect(await summary()).toMatchObject({
+      completedCount: 1,
+      totalMinutes: event.durationMinutes,
+    });
+  });
+
+  it("keeps started joined activities available for personal completion without exposing another person's history", async () => {
+    const volunteer = await createVerifiedVolunteer(coordinator.id);
+    const other = await createVerifiedVolunteer(coordinator.id);
+    const event = await createEvent();
+    await join(event.id, volunteer.id);
+    await db().send(
+      new UpdateCommand({
+        TableName: table(),
+        Key: { PK: `EVENT#${event.id}`, SK: "META" },
+        UpdateExpression: "SET startsAt = :past, GSI1SK = :past",
+        ExpressionAttributeValues: { ":past": inDays(-1) },
+      }),
+    );
+    expect(ids(await call("GET", "/api/events", { as: volunteer.id }))).not.toContain(event.id);
+    const query = { includeJoined: "true" };
+    expect(ids(await call("GET", "/api/events", { as: volunteer.id, query }))).toContain(event.id);
+    expect(ids(await call("GET", "/api/events", { as: other.id, query }))).not.toContain(event.id);
+    expect(
+      (await call("POST", `/api/events/${event.id}/attendance/complete`, { as: volunteer.id }))
+        .status,
+    ).toBe(200);
+  });
 
   it("lets only a coordinator create an event and rejects a past start", async () => {
     const elder = await createUser("elder");

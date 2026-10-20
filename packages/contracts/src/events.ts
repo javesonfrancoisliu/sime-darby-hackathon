@@ -33,6 +33,7 @@ export const CommunityEvent = z.object({
   updatedAt: IsoDateTime,
   // Present only when the caller is signed in.
   joined: z.boolean().optional(),
+  attendanceCompletedAt: IsoDateTime.optional(),
 });
 export type CommunityEvent = z.infer<typeof CommunityEvent>;
 
@@ -51,5 +52,8 @@ export type CreateEventBody = z.infer<typeof CreateEventBody>;
 export const EventsResponse = z.object({ events: z.array(CommunityEvent) });
 export type EventsResponse = z.infer<typeof EventsResponse>;
 
-export const EventsQuery = z.object({ purpose: EventPurpose.optional() });
+export const EventsQuery = z.object({
+  purpose: EventPurpose.optional(),
+  includeJoined: z.enum(["true", "false"]).optional(),
+});
 export type EventsQuery = z.infer<typeof EventsQuery>;

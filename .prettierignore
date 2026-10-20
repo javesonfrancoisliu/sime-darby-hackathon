@@ -5,3 +5,5 @@ coverage/
 dev-dist/
 infra/
 .claude/
+
+**/.agents/

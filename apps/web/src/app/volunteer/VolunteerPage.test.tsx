@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import { installFakeApi, signInAs } from "../../test/fakeApi";
 import {
+  makeEvent,
   makePoints,
   makeRequest,
   makeRequestOpportunity,
@@ -93,6 +94,117 @@ describe("volunteer page", () => {
     expect(screen.queryByRole("button", { name: /Use my location/ })).not.toBeInTheDocument();
   });
 
+  it("expands opportunity details and independently reveals matching reasons", async () => {
+    installFakeApi(baseRoutes);
+    signInAs(VOLUNTEER.id);
+    renderApp("/volunteer");
+    const user = userEvent.setup();
+    const card = await screen.findByLabelText("Opportunity: Groceries");
+    const toggle = within(card).getByRole("button", { name: "Groceries. Show details" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(within(card).queryByRole("button", { name: "View details" })).not.toBeInTheDocument();
+    expect(within(card).queryByText("Flexible")).not.toBeInTheDocument();
+    expect(within(card).queryByText("Soon")).not.toBeInTheDocument();
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    const match = within(card).getByRole("button", { name: /Why this matches you/ });
+    await user.click(match);
+    const reasons = within(card).getByRole("region", { name: "Why this matches you" });
+    expect(within(reasons).getByText("Close to you")).toBeInTheDocument();
+    expect(match).toHaveAttribute("aria-expanded", "true");
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    await user.click(match);
+    expect(
+      within(card).queryByRole("region", { name: "Why this matches you" }),
+    ).not.toBeInTheDocument();
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(within(card).getByRole("button", { name: "Accept & help" })).toBeVisible();
+  });
+
+  it("highlights urgent opportunities without an urgency pill", async () => {
+    const opportunity = makeRequestOpportunity();
+    if (opportunity.kind !== "request") throw new Error("Expected a request fixture");
+    opportunity.request.scheduledAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+    installFakeApi({ ...baseRoutes, "GET /api/opportunities": { body: { items: [opportunity] } } });
+    signInAs(VOLUNTEER.id);
+    renderApp("/volunteer");
+    const card = await screen.findByLabelText("Opportunity: Groceries. Urgent");
+    expect(card).toHaveClass("opportunity-card--urgent");
+    expect(within(card).queryByText("Urgent")).not.toBeInTheDocument();
+  });
+
+  it("distinguishes date ordering from urgency groups and matching", async () => {
+    const atHours = (hours: number) => new Date(Date.now() + hours * 3600000).toISOString();
+    const earlier = {
+      ...makeRequestOpportunity({ title: "Earlier request", scheduledAt: atHours(5) }),
+      matchScore: 50,
+    };
+    const betterFit = {
+      ...makeRequestOpportunity({
+        id: "0a1b2c3d-1111-4111-8111-000000000099",
+        title: "Better fit request",
+        scheduledAt: atHours(15),
+      }),
+      matchScore: 95,
+    };
+    installFakeApi({
+      ...baseRoutes,
+      "GET /api/opportunities": { body: { items: [earlier, betterFit] } },
+    });
+    signInAs(VOLUNTEER.id);
+    renderApp("/volunteer");
+    const user = userEvent.setup();
+    const sort = await screen.findByRole("combobox", { name: "Sort by" });
+    await screen.findByLabelText("Opportunity: Earlier request. Urgent");
+    await user.selectOptions(sort, "soonest");
+    let cards = screen.getAllByLabelText(/^Opportunity:/);
+    expect(cards[0]).toHaveAttribute("aria-label", "Opportunity: Earlier request. Urgent");
+    await user.selectOptions(sort, "urgent");
+    cards = screen.getAllByLabelText(/^Opportunity:/);
+    expect(cards[0]).toHaveAttribute("aria-label", "Opportunity: Better fit request. Urgent");
+    expect(cards.every((card) => card.classList.contains("opportunity-card--urgent"))).toBe(true);
+  });
+
+  it("confirms event completion and persists it through the attendance endpoint", async () => {
+    let completed = false;
+    const event = makeEvent({ joined: true });
+    const { calls } = installFakeApi({
+      ...baseRoutes,
+      "GET /api/events": () => ({
+        body: {
+          events: [
+            { ...event, attendanceCompletedAt: completed ? new Date().toISOString() : undefined },
+          ],
+        },
+      }),
+      [`POST /api/events/${event.id}/attendance/complete`]: () => {
+        completed = true;
+        return { body: { ...event, attendanceCompletedAt: new Date().toISOString() } };
+      },
+    });
+    signInAs(VOLUNTEER.id);
+    renderApp("/volunteer");
+    const user = userEvent.setup();
+    const card = await screen.findByLabelText(`Accepted task: ${event.title}`);
+    expect(within(card).queryByText(/organiser closes/)).not.toBeInTheDocument();
+    await user.click(within(card).getByRole("button", { name: "Confirm completion" }));
+    await user.click(screen.getByRole("button", { name: "Not yet" }));
+    expect(calls.some((call) => call.method === "POST")).toBe(false);
+    await user.click(within(card).getByRole("button", { name: "Confirm completion" }));
+    await user.click(screen.getByRole("button", { name: "Yes, completed" }));
+    expect(await screen.findByRole("dialog", { name: "Marked as completed" })).toBeInTheDocument();
+    expect(
+      within(screen.getByLabelText(`Accepted task: ${event.title}`)).getByText("Completed"),
+    ).toBeInTheDocument();
+    expect(
+      calls.some(
+        (call) =>
+          call.path === `/api/events/${event.id}/attendance/complete` && call.method === "POST",
+      ),
+    ).toBe(true);
+  });
+
   it("asks a signed-out visitor to sign in", async () => {
     installFakeApi();
     renderApp("/volunteer");
@@ -165,7 +277,11 @@ describe("volunteer page", () => {
     renderApp("/volunteer");
     const user = userEvent.setup();
 
+    // Details expand inline; the accept action stays visible.
+    await user.click(await screen.findByRole("button", { name: "Groceries. Show details" }));
     await user.click(await screen.findByRole("button", { name: "Accept & help" }));
+    // A yes/no confirmation now precedes the accept.
+    await user.click(await screen.findByRole("button", { name: "Yes, accept" }));
     const dialog = await screen.findByRole("dialog", { name: "Thanks for stepping up" });
     expect(dialog).toBeInTheDocument();
     expect(screen.getByLabelText("Accepted task: Groceries")).toBeInTheDocument();
@@ -184,7 +300,9 @@ describe("volunteer page", () => {
     renderApp("/volunteer");
     const user = userEvent.setup();
 
+    await user.click(await screen.findByRole("button", { name: "Groceries. Show details" }));
     await user.click(await screen.findByRole("button", { name: "Accept & help" }));
+    await user.click(await screen.findByRole("button", { name: "Yes, accept" }));
     expect(await screen.findByText("Someone else just took this")).toBeInTheDocument();
     await waitFor(() => expect(screen.getByRole("button", { name: "OK" })).toBeEnabled());
   });

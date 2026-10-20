@@ -13,11 +13,16 @@ export function contributionPut(contribution: Contribution) {
       TableName: table(),
       Item: {
         PK: `USER#${contribution.volunteerId}`,
-        SK: `CONTRIB#${contribution.completedAt}#${contribution.id}`,
+        SK:
+          contribution.source === "event"
+            ? `CONTRIB#EVENT#${contribution.sourceId}`
+            : `CONTRIB#${contribution.completedAt}#${contribution.id}`,
         entity: ENTITY,
         ...contribution,
       },
-      ConditionExpression: "attribute_not_exists(PK)",
+      ...(contribution.source === "event"
+        ? {}
+        : { ConditionExpression: "attribute_not_exists(PK)" }),
     },
   };
 }
@@ -38,5 +43,8 @@ export async function listContributions(volunteerId: string): Promise<Contributi
     items.push(...(result.Items ?? []).map(toContribution));
     startKey = result.LastEvaluatedKey;
   } while (startKey);
-  return items;
+  // Historical event contributions used timestamp keys; count each source once.
+  return [...new Map(items.map((item) => [`${item.source}:${item.sourceId}`, item])).values()].sort(
+    (a, b) => b.completedAt.localeCompare(a.completedAt),
+  );
 }

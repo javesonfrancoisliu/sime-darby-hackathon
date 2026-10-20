@@ -7,7 +7,9 @@ import {
   completeEvent,
   getEvent,
   joinEvent,
-  listJoinedEventIds,
+  listJoinedSignups,
+  getSignup,
+  completeAttendance,
   listSignups,
   listUpcomingEvents,
   putEvent,
@@ -38,13 +40,28 @@ export async function createEvent(coordinator: User, body: CreateEventBody) {
   return event;
 }
 
-export async function listEvents(viewer?: User, purpose?: EventPurpose): Promise<CommunityEvent[]> {
+export async function listEvents(
+  viewer?: User,
+  purpose?: EventPurpose,
+  includeJoined = false,
+): Promise<CommunityEvent[]> {
   const now = new Date().toISOString();
-  const all = await listUpcomingEvents(now);
-  const events = purpose ? all.filter((event) => event.purpose === purpose) : all;
-  if (!viewer) return events;
-  const joined = await listJoinedEventIds(viewer.id, now);
-  return events.map((event) => ({ ...event, joined: joined.has(event.id) }));
+  const upcoming = await listUpcomingEvents(now);
+  if (!viewer) return purpose ? upcoming.filter((event) => event.purpose === purpose) : upcoming;
+  const joined = await listJoinedSignups(viewer.id, includeJoined ? "0000" : now);
+  const byId = new Map(upcoming.map((event) => [event.id, event]));
+  if (includeJoined) {
+    const older = await Promise.all([...joined.keys()].filter((id) => !byId.has(id)).map(getEvent));
+    for (const event of older) if (event) byId.set(event.id, event);
+  }
+  return [...byId.values()]
+    .filter((event) => !purpose || event.purpose === purpose)
+    .sort((a, b) => a.startsAt.localeCompare(b.startsAt))
+    .map((event) => ({
+      ...event,
+      joined: joined.has(event.id),
+      attendanceCompletedAt: joined.get(event.id)?.completedAt,
+    }));
 }
 
 export async function join(user: User, eventId: string): Promise<CommunityEvent> {
@@ -90,4 +107,26 @@ export async function complete(eventId: string): Promise<CommunityEvent> {
   await completeEvent(event.id, new Date().toISOString(), contributions);
   for (const signup of volunteers) await awardVolunteer(signup.userId, event);
   return requireEvent(eventId);
+}
+
+// Records only this volunteer's completion; it does not close the event or award points.
+export async function completeOwnAttendance(user: User, eventId: string): Promise<CommunityEvent> {
+  const event = await requireEvent(eventId);
+  const signup = await getSignup(eventId, user.id);
+  if (!signup || signup.role !== "volunteer")
+    throw new HttpError("FORBIDDEN", "Join this activity before confirming completion");
+  if (!signup.completedAt) {
+    await completeAttendance(
+      signup,
+      newContribution({
+        volunteerId: user.id,
+        source: "event",
+        sourceId: event.id,
+        title: event.title,
+        minutes: event.durationMinutes,
+      }),
+    );
+  }
+  const saved = await getSignup(eventId, user.id);
+  return { ...event, joined: true, attendanceCompletedAt: saved?.completedAt };
 }

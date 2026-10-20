@@ -2,15 +2,25 @@ import {
   CreateRewardBody,
   Id,
   type RedeemResult,
+  type Redemption,
   type Reward,
   type RewardsResponse,
 } from "@sdh/contracts";
 import { ok, type Route } from "../../lib/http";
 import { requireUser } from "../../lib/identity";
 import { parse } from "../../lib/validate";
-import { createReward, listFor, redeemReward } from "./service";
+import { createReward, listFor, redeemReward, useReward } from "./service";
 
 export const rewardRoutes: Route[] = [
+  {
+    method: "POST",
+    path: "/api/rewards/{id}/use",
+    handler: async (req) => {
+      const user = await requireUser(req, "elder", "volunteer");
+      const id = parse(Id, req.params.id);
+      return ok((await useReward(user, id)) satisfies Redemption);
+    },
+  },
   {
     method: "GET",
     path: "/api/rewards",

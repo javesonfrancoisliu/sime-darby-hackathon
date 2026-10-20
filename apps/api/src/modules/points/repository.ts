@@ -1,3 +1,4 @@
+import { voucherExpiry } from "@sdh/contracts";
 import { QueryCommand } from "@aws-sdk/lib-dynamodb";
 import type { Paged, PointsLedgerEntry, PointsSourceType, Reward } from "@sdh/contracts";
 import { db, fromItem, table, transact, type TransactItem } from "../../lib/db";
@@ -106,6 +107,7 @@ export function redeemItems(
           title: reward.title,
           pointsSpent: reward.pointsCost,
           redeemedAt,
+          expiresAt: voucherExpiry(redeemedAt),
         },
         ConditionExpression: "attribute_not_exists(PK)",
       },

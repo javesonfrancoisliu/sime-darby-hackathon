@@ -1,4 +1,10 @@
-import type { FacilityStatus, SafetyReading } from "@sdh/contracts";
+import type {
+  AirLevel,
+  FacilityStatus,
+  HeatLevel,
+  SafetyReading,
+  WaterLevel,
+} from "@sdh/contracts";
 
 import type { BadgeVariant } from "./status";
 
@@ -53,3 +59,66 @@ export const FACILITY_STATUS: Record<FacilityStatus, { label: string; variant: B
 };
 
 export const READING_TITLE = { air: "Air quality", water: "Water levels", heat: "Heat" } as const;
+
+// 1 (safest) to 5 (most severe), matching the shared --sev-* ramp in
+// @sdh/design-tokens. Mirrors the elderly home's tone→severity mapping so both
+// roles colour the same reading the same way. Each reading level maps straight
+// to a step; the card exposes it via a data-severity attribute.
+export const LEVEL_SEVERITY_STEP: Record<ReadingLevel, 1 | 2 | 3 | 4 | 5> = {
+  good: 1,
+  normal: 1,
+  moderate: 3,
+  watch: 3,
+  warning: 4,
+  unhealthy: 4,
+  hazardous: 5,
+  danger: 5,
+};
+
+// Elderly-style tone + label maps for the ported Safety page. Tones map to the
+// .tone-* classes in app.css (colours from @sdh/design-tokens). Label strings
+// match apps/elderly-web/src/safety/levels.ts exactly so both roles read the
+// same reading the same way.
+export type Tone = "good" | "caution" | "alert" | "extreme" | "solid-danger";
+interface LevelInfo {
+  tone: Tone;
+  label: string;
+}
+
+export const AIR_LEVEL: Record<AirLevel, LevelInfo> = {
+  good: { tone: "good", label: "Good" },
+  moderate: { tone: "caution", label: "Moderate" },
+  unhealthy: { tone: "alert", label: "Unhealthy" },
+  hazardous: { tone: "extreme", label: "Hazardous" },
+};
+
+export const WATER_STATUS: Record<WaterLevel, LevelInfo> = {
+  normal: { tone: "good", label: "Normal" },
+  watch: { tone: "caution", label: "Watch" },
+  warning: { tone: "alert", label: "Warning" },
+  danger: { tone: "solid-danger", label: "Danger" },
+};
+
+export const HEAT_LEVEL: Record<HeatLevel, LevelInfo> = {
+  normal: { tone: "good", label: "Normal" },
+  warning: { tone: "caution", label: "Heat Advisory" },
+  danger: { tone: "alert", label: "Extreme Heat" },
+};
+
+export const FACILITY_TONE: Record<FacilityStatus, LevelInfo> = {
+  reported: { tone: "alert", label: "Reported" },
+  in_progress: { tone: "caution", label: "In Progress" },
+  resolved: { tone: "good", label: "Fixed" },
+};
+
+// Top of the Air Pollutant Index bar; readings above it fill the bar.
+export const HAZE_API_SCALE_MAX = 300;
+
+const WATER_WARN_PCT = 70;
+const WATER_HIGH_PCT = 85;
+
+// Which fill colour the water-level bar uses for a given percentage of normalMax.
+export function waterBarLevel(pct: number): "ok" | "mid" | "high" {
+  if (pct > WATER_HIGH_PCT) return "high";
+  return pct > WATER_WARN_PCT ? "mid" : "ok";
+}

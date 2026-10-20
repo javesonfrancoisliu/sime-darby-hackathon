@@ -3,7 +3,7 @@ import type { Urgency } from "../types/volunteer";
 const HOUR_MS = 3_600_000;
 
 // A request is urgent only when it starts in the future, within this many hours.
-export const URGENT_WITHIN_HOURS = 3;
+export const URGENT_WITHIN_HOURS = 24;
 // Starts later than urgent but within this many hours: "Soon". Anything further is flexible.
 export const SOON_WITHIN_HOURS = 72;
 

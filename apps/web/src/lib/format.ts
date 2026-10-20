@@ -66,6 +66,38 @@ export function formatReadingValue(value: number, unit: string): string {
   return /^°?C$/.test(unit.trim()) ? `${value}°C` : `${value} ${unit}`;
 }
 
+// A reading value with its unit. Units that start with "°" or equal "%" hug the
+// number ("34°C", "70%"); everything else keeps a space ("62 AQI").
+export function withUnit(value: number, unit: string): string {
+  return unit.startsWith("°") || unit === "%" ? `${value}${unit}` : `${value} ${unit}`;
+}
+
+// Temperatures always read "34°C" however the Celsius unit arrives.
+const CELSIUS_UNITS = new Set(["°c", "c", "℃", "°", "º", "º c", "° c", "deg c", "celsius"]);
+
+export function formatTemperature(value: number, unit: string): string {
+  return CELSIUS_UNITS.has(unit.trim().toLowerCase()) ? `${value}°C` : withUnit(value, unit);
+}
+
+// For example "Mon 19 Oct, 8:30 am", in Malaysia time.
+const whenDateFormat = new Intl.DateTimeFormat("en-GB", {
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+  timeZone: KL_TIME_ZONE,
+});
+const whenTimeFormat = new Intl.DateTimeFormat("en-GB", {
+  hour: "numeric",
+  minute: "2-digit",
+  hour12: true,
+  timeZone: KL_TIME_ZONE,
+});
+
+export function formatWhen(iso: string): string {
+  const date = new Date(iso);
+  return `${whenDateFormat.format(date).replace(",", "")}, ${whenTimeFormat.format(date)}`;
+}
+
 // Relative "updated" label, e.g. "Updated 2 days ago".
 export function formatRelative(iso: string, now: Date = new Date()): string {
   const diffMs = new Date(iso).getTime() - now.getTime();

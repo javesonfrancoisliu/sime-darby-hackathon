@@ -1,6 +1,9 @@
 export { AppButton } from "./AppButton";
 export { AppLinkButton } from "./AppLinkButton";
+export { Carousel, type CarouselProps } from "./Carousel";
+export { ConfirmActionDialog, type ConfirmActionDialogProps } from "./ConfirmActionDialog";
 export { ConfirmationDialog } from "./ConfirmationDialog";
+export { Drawer } from "./Drawer";
 export { EmptyState } from "./EmptyState";
 export { FormField } from "./FormField";
 export { InfoCard } from "./InfoCard";

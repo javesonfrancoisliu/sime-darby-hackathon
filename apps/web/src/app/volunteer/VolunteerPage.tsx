@@ -6,11 +6,11 @@ import {
   MyTasksSection,
   OpportunityCard,
   OpportunitySort,
-  VerifiedBadge,
   type SortOption,
 } from "../../components/volunteer";
 import {
   AppButton,
+  ConfirmActionDialog,
   ConfirmationDialog,
   AppLinkButton,
   EmptyState,
@@ -20,7 +20,9 @@ import {
   PageHeader,
   SignInPrompt,
 } from "../../components/ui";
+import { useConfirm } from "../../lib/useConfirm";
 import { useAcceptedTasks, type AcceptedTask } from "../../data/AcceptedTasksContext";
+import { VolunteerLevelBadge } from "../../components/volunteer/VolunteerLevelBadge";
 import { useProfile } from "../../data/ProfileContext";
 import { usePoints } from "../../data/useGamification";
 import { useVolunteerData } from "../../data/useVolunteer";
@@ -34,7 +36,8 @@ import { URGENCY_RANK, type Opportunity } from "../../types/volunteer";
 const URGENCY_REFRESH_MS = 60_000;
 
 export function VolunteerPage() {
-  const { opportunities, loading, error, notVerified, reload } = useVolunteerData();
+  const { opportunities, impact, impactError, loading, error, notVerified, reload } =
+    useVolunteerData();
   const { user } = useSession();
   const now = useNow(URGENCY_REFRESH_MS);
   const {
@@ -49,13 +52,14 @@ export function VolunteerPage() {
   const points = usePoints();
   const { verification } = useProfile();
 
-  const [sort, setSort] = useState<SortOption>("nearest");
+  const [sort, setSort] = useState<SortOption>("best_match");
   const [completing, setCompleting] = useState<AcceptedTask | null>(null);
   const [completeBusy, setCompleteBusy] = useState(false);
   const [completeError, setCompleteError] = useState<string | null>(null);
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
   const [failure, setFailure] = useState<{ title: string; message: string } | null>(null);
   const [confirmation, setConfirmation] = useState<{ title: string; message: string } | null>(null);
+  const confirm = useConfirm();
 
   // Points the server awarded per volunteering task, to show next to each confirmed task.
   const pointsByTask = useMemo(() => {
@@ -70,6 +74,9 @@ export function VolunteerPage() {
     const dist = (o: Opportunity) => o.distanceKm;
     const sorted = [...opportunities];
     switch (sort) {
+      case "best_match":
+        sorted.sort((a, b) => b.matchScore - a.matchScore || dist(a) - dist(b));
+        break;
       case "nearest":
         sorted.sort((a, b) => dist(a) - dist(b));
         break;
@@ -80,18 +87,29 @@ export function VolunteerPage() {
         break;
       case "urgent":
         sorted.sort((a, b) => {
-          const byUrgency =
-            URGENCY_RANK[urgencyFor(a.scheduledAt, now)] -
-            URGENCY_RANK[urgencyFor(b.scheduledAt, now)];
+          // Urgent requests come before events; prioritize fit within each time window.
+          const rank = (item: Opportunity) =>
+            item.kind === "request" ? URGENCY_RANK[urgencyFor(item.scheduledAt, now)] : 4;
+          const byUrgency = rank(a) - rank(b);
           if (byUrgency !== 0) return byUrgency;
-          // Tie-break urgent items by soonest, then nearest.
-          const byTime = new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime();
-          return byTime !== 0 ? byTime : dist(a) - dist(b);
+          const byMatch = b.matchScore - a.matchScore;
+          if (byMatch !== 0) return byMatch;
+          const byTime = Date.parse(a.scheduledAt) - Date.parse(b.scheduledAt);
+          return byTime || dist(a) - dist(b);
         });
         break;
     }
     return sorted;
   }, [opportunities, sort, now]);
+
+  function askAccept(opportunity: Opportunity) {
+    confirm.ask({
+      title: opportunity.kind === "event" ? "Join this event?" : "Accept this request?",
+      message: `Do you want to ${opportunity.kind === "event" ? "join" : "help with"} "${opportunity.title}" on ${formatDate(opportunity.scheduledAt)}?`,
+      confirmLabel: opportunity.kind === "event" ? "Yes, join" : "Yes, accept",
+      onConfirm: () => handleAccept(opportunity),
+    });
+  }
 
   async function handleAccept(opportunity: Opportunity) {
     setAcceptingId(opportunity.id);
@@ -128,7 +146,10 @@ export function VolunteerPage() {
       setCompleting(null);
       setConfirmation({
         title: "Marked as completed",
-        message: `You marked "${task.title}" as completed (${minutesSpent} min). Your points are added once the resident confirms it.`,
+        message:
+          task.kind === "event"
+            ? `You confirmed "${task.title}" as completed. Your volunteer level progress has been updated.`
+            : `You marked "${task.title}" as completed (${minutesSpent} min). Your points are added once the resident confirms it.`,
       });
     } catch (err) {
       setCompleteError(errorMessage(err));
@@ -150,7 +171,11 @@ export function VolunteerPage() {
     <>
       <PageHeader
         title="Volunteer nearby"
-        actions={verification ? <VerifiedBadge status={verification} /> : undefined}
+        actions={
+          user && !loading && !impactError ? (
+            <VolunteerLevelBadge completed={impact.completedCount} />
+          ) : undefined
+        }
       />
 
       {loading || tasksLoading ? (
@@ -238,7 +263,7 @@ export function VolunteerPage() {
                       urgency={urgencyFor(opportunity.scheduledAt, now)}
                       joined={isAccepted(opportunity.id)}
                       accepting={acceptingId === opportunity.id}
-                      onAccept={(o) => void handleAccept(o)}
+                      onAccept={askAccept}
                     />
                   ))}
                 </ul>
@@ -271,6 +296,18 @@ export function VolunteerPage() {
           {failure?.message}
         </p>
       </Modal>
+
+      <ConfirmActionDialog
+        open={confirm.open}
+        title={confirm.request?.title ?? ""}
+        message={confirm.request?.message ?? ""}
+        confirmLabel={confirm.request?.confirmLabel}
+        cancelLabel={confirm.request?.cancelLabel}
+        confirmVariant={confirm.request?.confirmVariant}
+        busy={confirm.busy}
+        onConfirm={confirm.confirm}
+        onCancel={confirm.cancel}
+      />
 
       <ConfirmationDialog
         open={confirmation !== null}

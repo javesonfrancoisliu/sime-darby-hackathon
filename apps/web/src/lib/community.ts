@@ -45,7 +45,13 @@ export function eventToItem(event: CommunityEvent): CommunityItem {
       slotsAvailable: Math.max(0, event.capacity - event.signupCount),
     };
   }
-  return { ...base, category: "event", capacity: event.capacity, signupCount: event.signupCount };
+  return {
+    ...base,
+    category: "event",
+    eventType: event.category,
+    capacity: event.capacity,
+    signupCount: event.signupCount,
+  };
 }
 
 // Newest first.

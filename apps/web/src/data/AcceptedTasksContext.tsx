@@ -11,14 +11,14 @@ import type { Opportunity, OpportunityKind } from "../types/volunteer";
 //
 // Status model:
 //   accepted  -> the volunteer took the task (request matched, or event joined)
-//   completed -> the volunteer reported it done; waiting for the resident to confirm
+//   completed -> volunteer-reported completion; requests still wait for resident confirmation
 //   confirmed -> the resident confirmed (confirmedAt set); points were awarded by the server
 
 export type AcceptedTaskStatus = "accepted" | "completed" | "confirmed";
 
 export type AcceptedTask = {
   id: string;
-  // Requests can be completed by the volunteer; events are closed by a coordinator.
+  // Volunteers can report completion of their own requests or event attendance.
   kind: OpportunityKind;
   title: string;
   area: string;
@@ -58,7 +58,8 @@ function eventToTask(event: CommunityEvent): AcceptedTask {
     category: event.category,
     scheduledAt: event.startsAt,
     durationMinutes: event.durationMinutes,
-    status: "accepted",
+    status: event.attendanceCompletedAt || event.status === "completed" ? "completed" : "accepted",
+    completedAt: event.attendanceCompletedAt,
     acceptedAt: event.updatedAt,
   };
 }
@@ -69,7 +70,7 @@ type LiveTasks = { requests: HelpRequest[]; events: CommunityEvent[]; error: str
 async function loadTasks(userId: string | null): Promise<LiveTasks> {
   const [requests, events] = await Promise.allSettled([
     apiFetch<RequestsResponse>("/api/requests/mine", { userId }),
-    apiFetch<EventsResponse>("/api/events", { userId }),
+    apiFetch<EventsResponse>("/api/events?includeJoined=true", { userId }),
   ]);
   const failed = [requests, events].find((r) => r.status === "rejected");
   return {
@@ -145,14 +146,19 @@ export function AcceptedTasksProvider({ children }: { children: ReactNode }) {
 
   const complete = useCallback(
     async (id: string, minutesSpent: number) => {
-      await apiFetch(`/api/requests/${encodeURIComponent(id)}/complete`, {
+      const task = tasks.find((item) => item.id === id);
+      const path =
+        task?.kind === "event"
+          ? `/api/events/${encodeURIComponent(id)}/attendance/complete`
+          : `/api/requests/${encodeURIComponent(id)}/complete`;
+      await apiFetch(path, {
         method: "POST",
         body: { minutesSpent },
         userId,
       });
       await reload();
     },
-    [userId, reload],
+    [userId, reload, tasks],
   );
 
   const value = useMemo<AcceptedTasksContextValue>(

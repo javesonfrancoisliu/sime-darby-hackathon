@@ -40,13 +40,13 @@ jobs:
           done
           echo "DynamoDB Local did not start" >&2
           exit 1
-      # Lint, format and turbo's typecheck, build and test tasks run at the same time; the run takes as long as the slowest.
+      # Keep heavy tasks within the shared runner capacity while lint and formatting run alongside.
       - name: Checks
         run: |
           fail=0
           pnpm lint & lint=$!
           pnpm format:check & format=$!
-          pnpm exec turbo run typecheck build test & turbo=$!
+          pnpm exec turbo run typecheck build test --concurrency=2 & turbo=$!
           wait "$lint" || fail=1
           wait "$format" || fail=1
           wait "$turbo" || fail=1

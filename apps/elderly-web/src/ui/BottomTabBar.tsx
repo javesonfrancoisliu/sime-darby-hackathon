@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { IconHome, IconShield, IconUsers, IconUser, IconTrophy } from "./Icons";
+import { UserRound } from "lucide-react";
+import { IconHome, IconShield, IconUsers, IconTrophy } from "./Icons";
 
 interface Tab {
   label: string;
@@ -30,9 +31,9 @@ const TABS: Tab[] = [
     icon: (active) => <IconTrophy size={22} strokeWidth={active ? 2.2 : 1.8} />,
   },
   {
-    label: "Me",
+    label: "Profile",
     path: "/me",
-    icon: (active) => <IconUser size={22} strokeWidth={active ? 2.2 : 1.8} />,
+    icon: (active) => <UserRound size={22} strokeWidth={active ? 2.2 : 1.8} />,
   },
 ];
 
