@@ -30,7 +30,7 @@ data "aws_iam_policy_document" "trust" {
     condition {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:${var.github_repository}:ref:refs/heads/${var.github_branch}"]
+      values   = [for prefix in compact(["repo:${var.github_repository}", var.github_immutable_subject_prefix]) : "${prefix}:ref:refs/heads/${var.github_branch}"]
     }
   }
 }

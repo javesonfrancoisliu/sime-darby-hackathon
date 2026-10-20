@@ -118,3 +118,9 @@ variable "github_oidc_provider_arn" {
   type        = string
   default     = ""
 }
+
+variable "github_immutable_subject_prefix" {
+  description = "Subject prefix GitHub issues for this repository when immutable subject claims are on. Read it with: gh api repos/<owner>/<repo>/actions/oidc/customization/sub (sub_claim_prefix)."
+  type        = string
+  default     = ""
+}
