@@ -1800,6 +1800,10 @@ button:active,
   min-width: 0;
   overflow-wrap: anywhere;
 }
+/* A description that wraps reads from the left, not ragged on the left. */
+.apple-inset-value--wrap {
+  text-align: left;
+}
 
 .apple-volunteer-chip {
   display: inline-flex;

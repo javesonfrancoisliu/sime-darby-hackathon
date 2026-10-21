@@ -128,7 +128,9 @@ export function RequestDetailPage() {
         {req.description ? (
           <div className="apple-inset-row">
             <span className="app-detail-label">Your description</span>
-            <span className="apple-inset-value text-multiline">{req.description}</span>
+            <span className="apple-inset-value apple-inset-value--wrap text-multiline">
+              {req.description}
+            </span>
           </div>
         ) : null}
 
@@ -141,7 +143,7 @@ export function RequestDetailPage() {
 
         <div className="apple-inset-row">
           <span className="app-detail-label">Volunteer</span>
-          {showsVolunteer(req.status) ? (
+          {req.volunteerName || showsVolunteer(req.status) ? (
             <div className="apple-volunteer-chip">
               <span className="apple-volunteer-chip__avatar" aria-hidden="true">
                 <IconUser size={14} strokeWidth={2} />

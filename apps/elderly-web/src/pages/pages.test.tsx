@@ -145,6 +145,41 @@ describe("Notes with line breaks", () => {
   });
 });
 
+describe("Cancelled after a volunteer was matched", () => {
+  const cancelled = makeRequest({
+    id: "4b6d9ab8-cf6a-4c99-9d34-6a7fcf7d8e07",
+    description: "Lift to clinic",
+    status: "cancelled",
+    volunteerName: "Aisha",
+  });
+
+  it("keeps showing the volunteer on the list and the detail", async () => {
+    installFakeApi({
+      ...listOf(cancelled),
+      [`GET /api/requests/${cancelled.id}`]: { body: cancelled },
+    });
+    const { unmount } = await renderApp("/requests");
+    expect(await screen.findByText("Aisha")).toBeInTheDocument();
+    unmount();
+    await renderApp(`/requests/${cancelled.id}`);
+    expect(await screen.findByText("Aisha")).toBeInTheDocument();
+    expect(screen.queryByText("No volunteer")).not.toBeInTheDocument();
+  });
+
+  it("still says No volunteer when none was ever matched", async () => {
+    const never = makeRequest({ ...cancelled, volunteerName: undefined });
+    installFakeApi({ [`GET /api/requests/${never.id}`]: { body: never } });
+    await renderApp(`/requests/${never.id}`);
+    expect(await screen.findByText("No volunteer")).toBeInTheDocument();
+  });
+
+  it("keeps a wrapped description left aligned", async () => {
+    installFakeApi({ [`GET /api/requests/${cancelled.id}`]: { body: cancelled } });
+    await renderApp(`/requests/${cancelled.id}`);
+    expect(await screen.findByText("Lift to clinic")).toHaveClass("apple-inset-value--wrap");
+  });
+});
+
 describe("Request detail", () => {
   it("shows the title, when and where, not the request id", async () => {
     installFakeApi({ [`GET /api/requests/${open.id}`]: { body: open } });
