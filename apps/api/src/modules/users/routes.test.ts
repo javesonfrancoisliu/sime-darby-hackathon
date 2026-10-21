@@ -132,7 +132,7 @@ describe("users", () => {
       const res = await call("GET", "/api/me", { as: elder.id });
       expect(res.status).toBe(401);
       expect(res.body).toMatchObject({
-        error: { code: "UNAUTHENTICATED", message: "Sign-in is not available" },
+        error: { code: "UNAUTHENTICATED", message: "Please sign in to continue" },
       });
       expect((await call("GET", "/api/volunteers", { as: coordinator.id })).status).toBe(401);
     });
