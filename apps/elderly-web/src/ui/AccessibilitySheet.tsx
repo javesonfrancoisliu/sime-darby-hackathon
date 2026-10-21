@@ -2,6 +2,7 @@ import { useSession } from "@sdh/api-client";
 import { meApi } from "../api/me";
 import { useMutation } from "../hooks/useMutation";
 import { FONT_LABEL, useAccessibility, type FontSizeLevel } from "../context/AccessibilityContext";
+import { noticeSlotRef } from "../context/AccessibilitySync";
 import { Banner } from "./Banner";
 import { IconBell, IconSun, IconTrophy, IconVolume2, IconVolumeX } from "./Icons";
 import { Sheet } from "./Sheet";
@@ -74,6 +75,7 @@ function SheetContent() {
   return (
     <>
       <div className="apple-sheet-content">
+        <div ref={noticeSlotRef} />
         <div className="apple-control-group">
           <span className="apple-control-label">Text size</span>
           <div className="apple-segmented-control" role="radiogroup" aria-label="Text size">

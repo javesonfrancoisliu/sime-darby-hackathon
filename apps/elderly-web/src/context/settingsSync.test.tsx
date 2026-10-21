@@ -147,6 +147,8 @@ describe("settings follow the person", () => {
     await userEvent.click(screen.getByRole("radio", { name: /X-Large/i }));
     const alert = await screen.findByText(/settings were not saved/i, {}, { timeout: 3000 });
     expect(alert).toBeVisible();
+    // Inside the open sheet, so it never covers the sheet title or Done button.
+    expect(alert.closest('[role="dialog"]')).not.toBeNull();
     await userEvent.click(screen.getByRole("button", { name: "Save again" }));
     await waitFor(() => expect(screen.queryByText(/settings were not saved/i)).toBeNull());
     expect(calls.filter((c) => c.method === "PUT")).toHaveLength(2);

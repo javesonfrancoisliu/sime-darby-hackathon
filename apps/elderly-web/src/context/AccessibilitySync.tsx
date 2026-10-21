@@ -1,10 +1,28 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import { useSession } from "@sdh/api-client";
 import { DEFAULT_SETTINGS, type PutSettingsBody } from "@sdh/contracts";
 import { settingsApi } from "../api/settings";
 import { logApiError, toFriendlyError } from "../api/errors";
 import { Banner } from "../ui/Banner";
 import { useAccessibility } from "./AccessibilityContext";
+
+// Where the Settings sheet shows the failure, so the notice never covers its title or Done button.
+let noticeSlot: HTMLElement | null = null;
+const slotListeners = new Set<() => void>();
+
+// Ref callback for the element inside the Settings sheet that hosts the notice.
+export function noticeSlotRef(element: HTMLElement | null) {
+  noticeSlot = element;
+  slotListeners.forEach((listener) => listener());
+}
+
+function subscribeToSlot(listener: () => void) {
+  slotListeners.add(listener);
+  return () => {
+    slotListeners.delete(listener);
+  };
+}
 
 // Wait for the person to stop tapping before saving, so one burst is one save.
 export const SETTINGS_SAVE_DELAY_MS = 800;
@@ -13,8 +31,16 @@ export const SETTINGS_SAVE_DELAY_MS = 800;
 // The phone's own copy stays the instant cache, so a failed call never changes the screen.
 export function AccessibilitySync() {
   const { user, status } = useSession();
-  const { fontSize, highContrast, reducedMotion, voiceAssist, reminders, applyRemoteSettings } =
-    useAccessibility();
+  const {
+    fontSize,
+    highContrast,
+    reducedMotion,
+    voiceAssist,
+    reminders,
+    applyRemoteSettings,
+    isSheetOpen,
+  } = useAccessibility();
+  const slot = useSyncExternalStore(subscribeToSlot, () => noticeSlot);
   const [readyFor, setReadyFor] = useState<string | null>(null);
   const remote = useRef<PutSettingsBody>(DEFAULT_SETTINGS);
   const lastSaved = useRef("");
@@ -87,16 +113,17 @@ export function AccessibilitySync() {
   }, [ready, fontSize, highContrast, reducedMotion, voiceAssist, reminders, attempt]);
 
   if (!failure) return null;
-  return (
-    <div className="app-sync-notice">
-      <Banner
-        message={`Your settings were not saved to your account. ${failure}`}
-        retryLabel="Save again"
-        onRetry={() => {
-          retryNow.current = true;
-          setAttempt((n) => n + 1);
-        }}
-      />
-    </div>
+  const banner = (
+    <Banner
+      message={`Your settings were not saved to your account. ${failure}`}
+      retryLabel="Save again"
+      onRetry={() => {
+        retryNow.current = true;
+        setAttempt((n) => n + 1);
+      }}
+    />
   );
+  if (isSheetOpen && slot) return createPortal(banner, slot);
+  if (isSheetOpen) return null;
+  return <div className="app-sync-notice">{banner}</div>;
 }
