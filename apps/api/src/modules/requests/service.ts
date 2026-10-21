@@ -19,9 +19,11 @@ import { getSettings, getUser } from "../users/repository";
 import { VOLUNTEERING_POINTS, awardOnce } from "../points/service";
 import {
   backfillConfirmedAt,
+  acceptWithSlot,
   completeWithContribution,
   confirmItem,
   getRequest,
+  leaveMatched,
   listRequestsByElder,
   listRequestsByStatus,
   listRequestsByVolunteer,
@@ -190,13 +192,12 @@ export async function cancelRequest(elder: User, id: string): Promise<HelpReques
     request.status === "open" ||
     request.status === "matched";
   if (!cancellable) throw new HttpError("CONFLICT", "Request can no longer be cancelled");
+  const changes = { status: "cancelled", updatedAt: new Date().toISOString() } as const;
   return guarded("Request can no longer be cancelled", async () =>
     withCurrentName(
-      await transitionRequest(
-        request,
-        { from: request.status },
-        { status: "cancelled", updatedAt: new Date().toISOString() },
-      ),
+      request.status === "matched" && request.volunteerId
+        ? await leaveMatched(request, request.volunteerId, changes)
+        : await transitionRequest(request, { from: request.status }, changes),
     ),
   );
 }
@@ -212,42 +213,33 @@ export async function withdrawRequest(volunteer: User, id: string): Promise<Help
     throw new HttpError("CONFLICT", "Request can no longer be withdrawn from");
   }
   const reopened = await guarded("Request can no longer be withdrawn from", () =>
-    transitionRequest(
-      request,
-      { from: "matched", volunteerId: volunteer.id },
-      { status: "open", updatedAt: nowIso() },
-      ASSIGNMENT_FIELDS,
-    ),
+    leaveMatched(request, volunteer.id, { status: "open", updatedAt: nowIso() }, ASSIGNMENT_FIELDS),
   );
   return toSummary(reopened, volunteer.location);
 }
 
 export async function acceptRequest(volunteer: User, id: string): Promise<AssignedHelpRequest> {
   const request = await loadOrThrow(id);
-  // Check then write, so two simultaneous accepts of different requests can still both pass.
+  // Rows matched before slot locks existed have no lock, so the list check still guards them.
   const slot = Date.parse(request.scheduledAt);
   const taken = (await listRequestsByVolunteer(volunteer.id)).some(
     (r) => r.status === "matched" && r.id !== id && Date.parse(r.scheduledAt) === slot,
   );
   if (taken) throw new HttpError("CONFLICT", "You already have a request at this time");
   const now = nowIso();
-  return guarded("Request was already taken", async () =>
-    toAssignedOne(
-      await withCurrentName(
-        await transitionRequest(
-          request,
-          { from: "open" },
-          {
-            status: "matched",
-            volunteerId: volunteer.id,
-            volunteerName: volunteer.name,
-            acceptedAt: now,
-            updatedAt: now,
-          },
-        ),
-      ),
-    ),
-  );
+  const outcome = await acceptWithSlot(request, volunteer.id, {
+    status: "matched",
+    volunteerId: volunteer.id,
+    volunteerName: volunteer.name,
+    acceptedAt: now,
+    updatedAt: now,
+  });
+  if (outcome === "conflict") throw new HttpError("CONFLICT_RETRY", "Try again in a moment");
+  if (outcome === "taken") throw new HttpError("CONFLICT", "Request was already taken");
+  if (outcome === "slot_taken") {
+    throw new HttpError("CONFLICT", "You already have a request at this time");
+  }
+  return toAssignedOne(await withCurrentName(await loadOrThrow(id)));
 }
 
 export async function completeRequest(

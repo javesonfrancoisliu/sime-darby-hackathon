@@ -557,6 +557,40 @@ describe("help requests", () => {
       ).toBe(200);
     });
 
+    it("lets only one of two simultaneous accepts for the same slot win", async () => {
+      const worker = await createVerifiedVolunteer(coordinator.id, { name: "Race" });
+      const at = new Date(Date.now() + 8 * DAY_MS);
+      const utc = await createOpen({ scheduledAt: at.toISOString() });
+      // The same instant written with an offset must hit the same slot.
+      const shifted = await createOpen({
+        scheduledAt: new Date(at.getTime() + 8 * 3_600_000).toISOString().replace("Z", "+08:00"),
+      });
+      const results = await Promise.all([
+        call("POST", `/api/requests/${utc.id}/accept`, { as: worker.id }),
+        call("POST", `/api/requests/${shifted.id}/accept`, { as: worker.id }),
+      ]);
+      expect(results.map((r) => r.status).sort()).toEqual([200, 409]);
+      const mine = await call("GET", "/api/requests/mine", { as: worker.id });
+      const matched = (mine.body as { requests: HelpRequest[] }).requests.filter(
+        (r) => r.status === "matched",
+      );
+      expect(matched).toHaveLength(1);
+    });
+
+    it("frees the slot when the elder cancels a matched request", async () => {
+      const worker = await createVerifiedVolunteer(coordinator.id, { name: "Cancelled" });
+      const at = inDays(9);
+      const first = await createOpen({ scheduledAt: at });
+      const same = await createOpen({ scheduledAt: at });
+      await call("POST", `/api/requests/${first.id}/accept`, { as: worker.id });
+      expect(
+        (await call("POST", `/api/requests/${first.id}/cancel`, { as: elder.id })).status,
+      ).toBe(200);
+      expect(
+        (await call("POST", `/api/requests/${same.id}/accept`, { as: worker.id })).status,
+      ).toBe(200);
+    });
+
     it("lets a different volunteer take the same time slot", async () => {
       const at = inDays(7);
       const a = await createOpen({ scheduledAt: at });
