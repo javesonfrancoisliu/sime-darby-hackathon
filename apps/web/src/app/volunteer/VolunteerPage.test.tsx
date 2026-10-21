@@ -228,7 +228,7 @@ describe("volunteer page", () => {
     expect(within(card).getByRole("button", { name: "Accept & help" })).toBeVisible();
   });
 
-  it("highlights urgent opportunities without an urgency pill", async () => {
+  it("highlights urgent opportunities with an Urgent text label", async () => {
     const opportunity = makeRequestOpportunity();
     if (opportunity.kind !== "request") throw new Error("Expected a request fixture");
     opportunity.request.scheduledAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
@@ -237,7 +237,7 @@ describe("volunteer page", () => {
     renderApp("/volunteer");
     const card = await screen.findByLabelText("Opportunity: Groceries. Urgent");
     expect(card).toHaveClass("opportunity-card--urgent");
-    expect(within(card).queryByText("Urgent")).not.toBeInTheDocument();
+    expect(within(card).getByText("Urgent")).toBeVisible();
   });
 
   it("distinguishes date ordering from urgency groups and matching", async () => {

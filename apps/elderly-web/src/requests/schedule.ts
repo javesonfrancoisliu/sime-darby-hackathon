@@ -69,9 +69,18 @@ const timeFormat = new Intl.DateTimeFormat("en-GB", {
   timeZone: TIME_ZONE,
 });
 
+const DATE_UNKNOWN = "Date to be confirmed";
+
+// A Date for the text, or null when it cannot be read (Intl would throw a RangeError on it).
+export function safeDate(iso: string): Date | null {
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
 // For example "Tue 20 Oct, 9:00 am", in Malaysia time.
 export function formatWhen(iso: string): string {
-  const date = new Date(iso);
+  const date = safeDate(iso);
+  if (!date) return DATE_UNKNOWN;
   return `${dateFormat.format(date).replace(",", "")}, ${timeFormat.format(date)}`;
 }
 
@@ -84,17 +93,20 @@ const longDateFormat = new Intl.DateTimeFormat("en-GB", {
 
 // For example "20 Oct 2026", in Malaysia time.
 export function formatDate(iso: string): string {
-  return longDateFormat.format(new Date(iso));
+  const date = safeDate(iso);
+  return date ? longDateFormat.format(date) : DATE_UNKNOWN;
 }
 
 // For example "Tue 20 Oct", in Malaysia time. Same style as formatWhen without the clock.
 export function formatShortDate(iso: string): string {
-  return dateFormat.format(new Date(iso)).replace(",", "");
+  const date = safeDate(iso);
+  return date ? dateFormat.format(date).replace(",", "") : DATE_UNKNOWN;
 }
 
 // For example "Tue 20 Oct, 9:00 am to 5:00 pm", in Malaysia time.
 export function formatWindow(startIso: string, endIso: string): string {
-  const end = new Date(endIso);
+  const end = safeDate(endIso);
+  if (!end || !safeDate(startIso)) return DATE_UNKNOWN;
   const sameDay = malaysiaDate(new Date(startIso), 0) === malaysiaDate(end, 0);
   return `${formatWhen(startIso)} to ${sameDay ? timeFormat.format(end) : formatWhen(endIso)}`;
 }

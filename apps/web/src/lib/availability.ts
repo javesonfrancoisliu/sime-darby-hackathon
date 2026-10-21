@@ -48,3 +48,33 @@ export function slotsToPreference(slots: AvailabilitySlot[]): AvailabilityPrefer
   }
   return { days: [...days], times: [...times] };
 }
+
+const DAY_ORDER: Day[] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+const DAY_LABEL: Record<Day, string> = {
+  mon: "Mon",
+  tue: "Tue",
+  wed: "Wed",
+  thu: "Thu",
+  fri: "Fri",
+  sat: "Sat",
+  sun: "Sun",
+};
+
+const slotKey = (slot: AvailabilitySlot) => `${slot.day} ${slot.start} ${slot.end}`;
+
+// True when the stored slots are exactly what the day-group and time-of-day choices produce.
+export function slotsMatchPreference(slots: AvailabilitySlot[]): boolean {
+  const expected = new Set(preferenceToSlots(slotsToPreference(slots)).map(slotKey));
+  const stored = new Set(slots.map(slotKey));
+  return expected.size === stored.size && [...stored].every((key) => expected.has(key));
+}
+
+// One readable line per stored slot, in week order, e.g. "Mon 09:00 to 11:00".
+export function describeSlots(slots: AvailabilitySlot[]): string[] {
+  return [...slots]
+    .sort(
+      (a, b) =>
+        DAY_ORDER.indexOf(a.day) - DAY_ORDER.indexOf(b.day) || a.start.localeCompare(b.start),
+    )
+    .map((slot) => `${DAY_LABEL[slot.day]} ${slot.start} to ${slot.end}`);
+}

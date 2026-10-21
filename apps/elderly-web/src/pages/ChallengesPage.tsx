@@ -16,7 +16,7 @@ import { IconTrophy, IconFlame, IconGift, IconSparkles, IconUsers, IconCheck } f
 import { SegmentedTabs, TabPanel, type TabItem } from "../ui/SegmentedTabs";
 import { Drawer } from "../ui/Drawer";
 import { PageHeaderActions } from "../ui/PageHeaderActions";
-import { Leaderboard, NEIGHBOUR_LEADERBOARD } from "../ui/Leaderboard";
+import { Leaderboard } from "../ui/Leaderboard";
 import { useAccessibility } from "../context/AccessibilityContext";
 import { Banner } from "../ui/Banner";
 import { Spinner } from "../ui/Spinner";
@@ -94,7 +94,7 @@ export function ChallengesPage() {
   const balance = points.data?.points;
   const today = malaysiaToday();
   const week = lastSevenDays(new Date());
-  const checkedInToday = streak.data?.recent.includes(today) ?? false;
+  const checkedInToday = streak.data?.recent?.includes(today) ?? false;
   const teamChallenges = (challenges.data ?? []).filter((c) => c.mode === "team");
 
   function setBalance(next: number) {
@@ -216,10 +216,10 @@ export function ChallengesPage() {
               <div
                 className="play-week"
                 role="img"
-                aria-label={`Checked in ${week.filter((d) => streak.data?.recent.includes(d)).length} of the last 7 days`}
+                aria-label={`Checked in ${week.filter((d) => streak.data?.recent?.includes(d)).length} of the last 7 days`}
               >
                 {week.map((day) => {
-                  const done = streak.data?.recent.includes(day) ?? false;
+                  const done = streak.data?.recent?.includes(day) ?? false;
                   return (
                     <div key={day} className="play-week__day">
                       <span
@@ -263,11 +263,7 @@ export function ChallengesPage() {
                 )}
               </button>
 
-              <Leaderboard
-                others={NEIGHBOUR_LEADERBOARD}
-                myPoints={balance ?? 0}
-                myName={resident?.name ?? ""}
-              />
+              <Leaderboard myPoints={balance ?? 0} myName={resident?.name ?? ""} />
             </Loadable>
           </section>
         </TabPanel>

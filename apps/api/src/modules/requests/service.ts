@@ -14,6 +14,7 @@ import { approxKm, distanceKm } from "../../lib/geo";
 import { HttpError } from "../../lib/http";
 import { nowIso } from "../../lib/time";
 import { newContribution } from "../contributions/service";
+import { getUser } from "../users/repository";
 import { VOLUNTEERING_POINTS, awardOnce } from "../points/service";
 import {
   backfillConfirmedAt,
@@ -47,6 +48,31 @@ async function loadOrThrow(id: string): Promise<HelpRequest> {
   if (!request) throw notFound();
   return request;
 }
+
+// Names are copied into a request when it is made or accepted, so they go stale after a profile
+// rename. Looking them up when a request is returned keeps every screen current.
+export async function withCurrentNames(requests: HelpRequest[]): Promise<HelpRequest[]> {
+  const ids = new Set<string>();
+  for (const r of requests) {
+    ids.add(r.elderId);
+    if (r.volunteerId) ids.add(r.volunteerId);
+  }
+  const names = new Map<string, string>();
+  await Promise.all(
+    [...ids].map(async (id) => {
+      const user = await getUser(id);
+      if (user) names.set(id, user.name);
+    }),
+  );
+  return requests.map((r) => ({
+    ...r,
+    elderName: names.get(r.elderId) ?? r.elderName,
+    ...(r.volunteerId ? { volunteerName: names.get(r.volunteerId) ?? r.volunteerName } : {}),
+  }));
+}
+
+const withCurrentName = async (request: HelpRequest): Promise<HelpRequest> =>
+  (await withCurrentNames([request]))[0] as HelpRequest;
 
 export function toSummary(request: HelpRequest, viewerLocation: Location): HelpRequestSummary {
   return {
@@ -93,12 +119,13 @@ export async function createRequest(elder: User, body: CreateRequestBody): Promi
 }
 
 export async function listMine(user: User): Promise<HelpRequest[]> {
-  if (user.role === "elder") return listRequestsByElder(user.id);
-  if (user.role === "volunteer") return listRequestsByVolunteer(user.id);
+  if (user.role === "elder") return withCurrentNames(await listRequestsByElder(user.id));
+  if (user.role === "volunteer") return withCurrentNames(await listRequestsByVolunteer(user.id));
   throw new HttpError("FORBIDDEN", "Not allowed for your role");
 }
 
-export const listByStatus = (status: RequestStatus) => listRequestsByStatus(status);
+export const listByStatus = async (status: RequestStatus) =>
+  withCurrentNames(await listRequestsByStatus(status));
 
 // Involved parties get the full request; other verified volunteers see a shaped summary only while open.
 export async function viewRequest(
@@ -106,10 +133,10 @@ export async function viewRequest(
   id: string,
 ): Promise<HelpRequest | HelpRequestSummary> {
   const request = await loadOrThrow(id);
-  if (user.role === "coordinator") return request;
-  if (user.role === "elder" && request.elderId === user.id) return request;
+  if (user.role === "coordinator") return withCurrentName(request);
+  if (user.role === "elder" && request.elderId === user.id) return withCurrentName(request);
   if (user.role === "volunteer") {
-    if (request.volunteerId === user.id) return request;
+    if (request.volunteerId === user.id) return withCurrentName(request);
     if (request.status === "open" && user.verification === "verified") {
       return toSummary(request, user.location);
     }
@@ -119,15 +146,17 @@ export async function viewRequest(
 
 export async function reviewRequest(id: string, body: ReviewRequestBody): Promise<HelpRequest> {
   const request = await loadOrThrow(id);
-  return guarded("Request was already reviewed", () =>
-    transitionRequest(
-      request,
-      { from: "pending_review" },
-      {
-        status: body.decision === "approved" ? "open" : "rejected",
-        reviewNote: body.note,
-        updatedAt: new Date().toISOString(),
-      },
+  return guarded("Request was already reviewed", async () =>
+    withCurrentName(
+      await transitionRequest(
+        request,
+        { from: "pending_review" },
+        {
+          status: body.decision === "approved" ? "open" : "rejected",
+          reviewNote: body.note,
+          updatedAt: new Date().toISOString(),
+        },
+      ),
     ),
   );
 }
@@ -137,11 +166,13 @@ export async function cancelRequest(elder: User, id: string): Promise<HelpReques
   if (request.elderId !== elder.id) throw notFound();
   const cancellable = request.status === "pending_review" || request.status === "open";
   if (!cancellable) throw new HttpError("CONFLICT", "Request can no longer be cancelled");
-  return guarded("Request can no longer be cancelled", () =>
-    transitionRequest(
-      request,
-      { from: request.status },
-      { status: "cancelled", updatedAt: new Date().toISOString() },
+  return guarded("Request can no longer be cancelled", async () =>
+    withCurrentName(
+      await transitionRequest(
+        request,
+        { from: request.status },
+        { status: "cancelled", updatedAt: new Date().toISOString() },
+      ),
     ),
   );
 }
@@ -149,17 +180,19 @@ export async function cancelRequest(elder: User, id: string): Promise<HelpReques
 export async function acceptRequest(volunteer: User, id: string): Promise<HelpRequest> {
   const request = await loadOrThrow(id);
   const now = nowIso();
-  return guarded("Request was already taken", () =>
-    transitionRequest(
-      request,
-      { from: "open" },
-      {
-        status: "matched",
-        volunteerId: volunteer.id,
-        volunteerName: volunteer.name,
-        acceptedAt: now,
-        updatedAt: now,
-      },
+  return guarded("Request was already taken", async () =>
+    withCurrentName(
+      await transitionRequest(
+        request,
+        { from: "open" },
+        {
+          status: "matched",
+          volunteerId: volunteer.id,
+          volunteerName: volunteer.name,
+          acceptedAt: now,
+          updatedAt: now,
+        },
+      ),
     ),
   );
 }
@@ -194,7 +227,7 @@ export async function completeRequest(
   await guarded("Request is not in progress", () =>
     completeWithContribution(request, volunteer.id, changes, contribution),
   );
-  return { ...request, ...changes };
+  return withCurrentName({ ...request, ...changes });
 }
 
 // Elder (owner) or coordinator confirms a completed request; the volunteer's points land in the
@@ -230,5 +263,5 @@ export async function confirmRequest(user: User, id: string): Promise<HelpReques
       throw new HttpError("CONFLICT", "Request is not completed yet");
     throw new Error("Confirm was rejected for an unexpected reason");
   }
-  return loadOrThrow(id);
+  return withCurrentName(await loadOrThrow(id));
 }

@@ -75,6 +75,7 @@ export function OpportunityCard({
               <span className="community-event__type">
                 {TASK_CATEGORY_LABEL[opportunity.category]}
               </span>
+              {urgent && <StatusBadge label="Urgent" variant="danger" />}
             </div>
             <span className="inline-icon">
               <MapPin size={16} aria-hidden="true" />
@@ -89,7 +90,7 @@ export function OpportunityCard({
         }
       >
         <div className="ui-stack ui-gap-2">
-          <p className="feature-card-desc">{opportunity.summary}</p>
+          <p className="feature-card-desc ui-multiline">{opportunity.summary}</p>
           <span className="inline-icon">
             <Clock size={16} aria-hidden="true" />
             {opportunity.durationMinutes} min

@@ -13,7 +13,7 @@ import {
   ProfileHeaderCard,
   SettingsCard,
 } from "../../components/profile";
-import { PageHeader, SignInPrompt } from "../../components/ui";
+import { PageHeader, SignInPrompt, useToast } from "../../components/ui";
 import { useRewards } from "../../data/useGamification";
 
 // Young-resident Profile - account management, not an activity dashboard.
@@ -25,6 +25,8 @@ export function ProfilePage() {
   const rewards = useRewards();
   const [editPersonal, setEditPersonal] = useState(false);
   const [editPrefs, setEditPrefs] = useState(false);
+  const { notify, toast } = useToast();
+  const saved = () => notify("Saved");
 
   const showLocalSignIn = demoSignInEnabled() && !tokenModeEnabled();
 
@@ -63,7 +65,7 @@ export function ProfilePage() {
       </section>
 
       <section className="ui-section" aria-label="Settings">
-        <SettingsCard />
+        <SettingsCard onSaved={saved} />
       </section>
 
       {showLocalSignIn && <DemoSignInCard />}
@@ -72,12 +74,15 @@ export function ProfilePage() {
         key={editPersonal ? "personal-open" : "personal-closed"}
         open={editPersonal}
         onClose={() => setEditPersonal(false)}
+        onSaved={saved}
       />
       <EditPreferencesModal
         key={editPrefs ? "prefs-open" : "prefs-closed"}
         open={editPrefs}
         onClose={() => setEditPrefs(false)}
+        onSaved={saved}
       />
+      {toast}
     </>
   );
 }

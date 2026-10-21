@@ -64,7 +64,7 @@ export function VolunteerPage() {
   // Points the server awarded per volunteering task, to show next to each confirmed task.
   const pointsByTask = useMemo(() => {
     const map = new Map<string, number>();
-    for (const entry of points.data?.ledger.items ?? []) {
+    for (const entry of points.data?.ledger?.items ?? []) {
       if (entry.sourceType === "volunteering") map.set(entry.sourceId, entry.points);
     }
     return map;

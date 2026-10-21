@@ -32,7 +32,6 @@ export function CategoryPage() {
             key={cat.id}
             type="button"
             className="category-choice-card"
-            aria-label={cat.label}
             onClick={() => navigate(`/request/${cat.id}`)}
           >
             <div className="category-choice-card__icon" aria-hidden="true">

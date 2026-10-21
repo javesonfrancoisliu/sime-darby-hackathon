@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAccessibility } from "../context/AccessibilityContext";
 import { useCancelRequest, useConfirmRequest, useRequest } from "../hooks/useRequests";
 import { CATEGORY_TEXT } from "../requests/categories";
@@ -12,7 +12,7 @@ import { Banner } from "../ui/Banner";
 import { EmergencyCallButton } from "../ui/EmergencyCallButton";
 import { Spinner } from "../ui/Spinner";
 import { StatusBadge } from "../ui/StatusBadge";
-import { IconUser } from "../ui/Icons";
+import { IconCheck, IconUser } from "../ui/Icons";
 
 // Plain words for the volunteer row before anyone has taken the request.
 function noVolunteerText(status: string): string {
@@ -23,6 +23,7 @@ function noVolunteerText(status: string): string {
 // Refreshes while open so a volunteer accepting shows up without a reload.
 export function RequestDetailPage() {
   const { id = "" } = useParams();
+  const navigate = useNavigate();
   const { data, status, error, refetch, update } = useRequest(id);
   const cancelMutation = useCancelRequest();
   const confirmMutation = useConfirmRequest();
@@ -42,6 +43,16 @@ export function RequestDetailPage() {
       <div className="apple-subpage">
         <BackLink />
         <Spinner label="Loading request" />
+      </div>
+    );
+  }
+
+  // An unknown id is NOT_FOUND; an id the server cannot read is a 400.
+  if (error?.code === "NOT_FOUND" || error?.code === "VALIDATION_FAILED") {
+    return (
+      <div className="apple-subpage">
+        <BackLink label="Back to my requests" onBack={() => navigate("/requests")} />
+        <Banner message="We could not find this request." />
       </div>
     );
   }
@@ -96,7 +107,10 @@ export function RequestDetailPage() {
       <div className="apple-inset-group">
         <div className="apple-inset-row">
           <span className="app-detail-label">Status</span>
-          <StatusBadge status={req.status} />
+          <StatusBadge
+            status={req.status}
+            confirmedAt={req.confirmedAt ?? (alreadyConfirmed ? "confirmed" : undefined)}
+          />
         </div>
 
         <div className="apple-inset-row">
@@ -114,7 +128,7 @@ export function RequestDetailPage() {
         {req.description ? (
           <div className="apple-inset-row">
             <span className="app-detail-label">Your description</span>
-            <span className="apple-inset-value">{req.description}</span>
+            <span className="apple-inset-value text-multiline">{req.description}</span>
           </div>
         ) : null}
 
@@ -132,7 +146,7 @@ export function RequestDetailPage() {
               <span className="apple-volunteer-chip__avatar" aria-hidden="true">
                 <IconUser size={14} strokeWidth={2} />
               </span>
-              <span>{req.volunteerName ?? "Assigned"}</span>
+              <span className="apple-volunteer-chip__name">{req.volunteerName ?? "Assigned"}</span>
             </div>
           ) : (
             <span className="apple-inset-value text-secondary">{noVolunteerText(req.status)}</span>
@@ -142,8 +156,11 @@ export function RequestDetailPage() {
 
       {req.status === "completed" ? (
         req.confirmedAt || alreadyConfirmed ? (
-          <div className="apple-confirm-card" role="status">
-            <p className="apple-confirm-card__title">Thank you, you confirmed</p>
+          <div className="apple-confirm-card apple-confirm-card--success" role="status">
+            <p className="apple-confirm-card__title">
+              <IconCheck size={20} strokeWidth={2.5} aria-hidden="true" />
+              Thank you, you confirmed
+            </p>
             <p className="apple-confirm-card__sub">We are glad your volunteer could help.</p>
           </div>
         ) : (

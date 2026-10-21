@@ -5,6 +5,8 @@ import { demoSignInEnabled, tokenModeEnabled } from "../config";
 import { AppShell } from "../ui/AppShell";
 import { WhoIsUsingPage } from "../pages/WhoIsUsingPage";
 import { Banner } from "../ui/Banner";
+import { Button } from "../ui/Button";
+import { EmergencyCallButton } from "../ui/EmergencyCallButton";
 import { Spinner } from "../ui/Spinner";
 import { useSessionRedirect } from "./useSessionRedirect";
 
@@ -31,14 +33,7 @@ function TokenSessionGate({ children }: { children: ReactNode }) {
     );
   }
   if (error) logApiError(error);
-  return (
-    <AppShell hideTabs>
-      <Banner
-        message="We could not load your details. Please check the internet and try again."
-        onRetry={() => window.location.reload()}
-      />
-    </AppShell>
-  );
+  return <LoadFailed />;
 }
 
 function DemoSessionGate({ children }: { children: ReactNode }) {
@@ -63,12 +58,26 @@ function DemoSessionGate({ children }: { children: ReactNode }) {
     );
   }
   if (error) logApiError(error);
+  return <LoadFailed />;
+}
+
+// Same page frame as the rest of the app, with a retry that asks the session again.
+function LoadFailed() {
+  const { refresh } = useSession();
   return (
     <AppShell hideTabs>
-      <Banner
-        message="We could not load your details. Please check the internet and try again."
-        onRetry={() => window.location.reload()}
-      />
+      <div className="apple-subpage">
+        <h1 className="ui-page-title">We could not load your details</h1>
+        <p className="ui-page-subtitle app-page-lead" role="alert">
+          We could not reach the service right now. Please try again in a moment.
+        </p>
+        <Button block onClick={refresh}>
+          Try again
+        </Button>
+        <div className="request-detail__call">
+          <EmergencyCallButton compact />
+        </div>
+      </div>
     </AppShell>
   );
 }

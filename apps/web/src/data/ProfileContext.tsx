@@ -4,7 +4,12 @@ import type { VerificationStatus } from "../types/volunteer";
 import type { ProfilePrefs } from "../types/profile";
 import { UpdateMeBody, type User } from "@sdh/contracts";
 import { apiFetch, useSession } from "@sdh/api-client";
-import { preferenceToSlots, slotsToPreference } from "../lib/availability";
+import {
+  describeSlots,
+  preferenceToSlots,
+  slotsMatchPreference,
+  slotsToPreference,
+} from "../lib/availability";
 
 // The signed-in person's profile, read from the session user and saved with PATCH /api/me.
 // Held once at the app root so every component sees the same values.
@@ -42,7 +47,10 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
             skills: user.skills,
             interests: user.interests,
             languages: user.languages,
-            availability: slotsToPreference(user.availability),
+            availability: slotsToPreference(user.availability ?? []),
+            customAvailability: slotsMatchPreference(user.availability ?? [])
+              ? undefined
+              : describeSlots(user.availability ?? []),
           }
         : EMPTY_PREFS,
     [user],

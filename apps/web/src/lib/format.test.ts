@@ -1,6 +1,21 @@
 import { describe, expect, it } from "vitest";
 
-import { formatCount, formatDateTimeRange, formatReadingValue } from "./format";
+import {
+  formatCount,
+  formatDate,
+  formatDateTimeRange,
+  formatReadingValue,
+  formatRelative,
+  formatWhen,
+} from "./format";
+
+describe("unreadable dates", () => {
+  it("renders an empty string instead of throwing", () => {
+    expect(formatDate("not a date")).toBe("");
+    expect(formatWhen("")).toBe("");
+    expect(formatRelative("garbage")).toBe("");
+  });
+});
 
 describe("format helpers", () => {
   it("shows a same-day window with the date once", () => {

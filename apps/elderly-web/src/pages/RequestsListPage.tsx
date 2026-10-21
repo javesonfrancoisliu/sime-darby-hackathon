@@ -80,11 +80,11 @@ export function RequestsListPage() {
               <div className="apple-card-button__body">
                 <div className="apple-card-button__header">
                   <span className="ui-card-title m-0">{req.title}</span>
-                  <StatusBadge status={req.status} />
+                  <StatusBadge status={req.status} confirmedAt={req.confirmedAt} />
                 </div>
                 <p className="apple-card-button__desc">{formatWhen(req.scheduledAt)}</p>
                 {req.description ? (
-                  <p className="apple-card-button__desc">{req.description}</p>
+                  <p className="apple-card-button__desc text-multiline">{req.description}</p>
                 ) : null}
                 {req.volunteerName && (
                   <span className="apple-card-button__volunteer">

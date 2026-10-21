@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { setAccessTokenProvider } from "./fetch";
-import { SessionProvider, useSession, type SessionAuth } from "./session";
+import { SESSION_RETRY_MS, SessionProvider, useSession, type SessionAuth } from "./session";
 import { DEMO_USER_STORAGE_KEY, registerScopedKey, SIGNED_OUT_SCOPE } from "./storage";
 
 const wrapper = ({ children }: { children: ReactNode }) => (
@@ -101,6 +101,46 @@ describe("session refresh in demo mode", () => {
     act(() => result.current.refresh());
     await waitFor(() => expect(result.current.user?.name).toBe("Sam Lee"));
     expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("session recovery after a failed load", () => {
+  // The API is down until `up.value` is set, then answers with the profile.
+  function flakyApi() {
+    const up = { value: false };
+    const fetchMock = vi.fn(async () => {
+      if (!up.value) throw new TypeError("down");
+      return reply(me);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    return { up, fetchMock };
+  }
+
+  it("clears the error by itself when the tab regains focus and the API is back", async () => {
+    window.localStorage.setItem(DEMO_USER_STORAGE_KEY, "u1");
+    const { up } = flakyApi();
+    const { result } = renderHook(() => useSession(), { wrapper });
+    await waitFor(() => expect(result.current.status).toBe("error"));
+    up.value = true;
+    act(() => {
+      window.dispatchEvent(new Event("focus"));
+    });
+    await waitFor(() => expect(result.current.status).toBe("signed_in"));
+  });
+
+  it("asks again on the retry interval only while the session is in error", async () => {
+    window.localStorage.setItem(DEMO_USER_STORAGE_KEY, "u1");
+    const setIntervalSpy = vi.spyOn(globalThis, "setInterval");
+    const { up } = flakyApi();
+    const { result } = renderHook(() => useSession(), { wrapper });
+    await waitFor(() => expect(result.current.status).toBe("error"));
+    const retry = setIntervalSpy.mock.calls.find(([, ms]) => ms === SESSION_RETRY_MS)?.[0];
+    expect(retry).toBeTypeOf("function");
+    up.value = true;
+    act(() => {
+      (retry as () => void)();
+    });
+    await waitFor(() => expect(result.current.status).toBe("signed_in"));
   });
 });
 

@@ -31,6 +31,14 @@ interface CallConfirmContextValue {
 
 const CallConfirmContext = createContext<CallConfirmContextValue | null>(null);
 
+// Opens the phone's dialler through a tel: link, so the page itself is never replaced.
+export function dialNumber(tel: string) {
+  if (typeof document === "undefined") return;
+  const link = document.createElement("a");
+  link.href = `tel:${tel}`;
+  link.click();
+}
+
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
@@ -59,9 +67,7 @@ export function useCallConfirm(): CallConfirmContextValue {
   // Fallback for isolated tests without the provider: dial directly.
   if (!ctx) {
     return {
-      requestCall: (t) => {
-        if (typeof window !== "undefined") window.location.href = `tel:${t.tel}`;
-      },
+      requestCall: (t) => dialNumber(t.tel),
     };
   }
   return ctx;
@@ -78,7 +84,7 @@ function CallConfirmSheet({ target, onClose }: { target: CallTarget; onClose: ()
   // Place the call once the slider is confirmed.
   const placeCall = useCallback(() => {
     triggerHaptic(30);
-    if (typeof window !== "undefined") window.location.href = `tel:${target.tel}`;
+    dialNumber(target.tel);
     // Close shortly after so the dial handoff happens first.
     window.setTimeout(onClose, 150);
   }, [target.tel, triggerHaptic, onClose]);

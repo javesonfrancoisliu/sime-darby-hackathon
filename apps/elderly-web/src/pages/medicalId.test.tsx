@@ -47,6 +47,20 @@ describe("Medical ID edit screen", () => {
     expect(calls.some((c) => c.method === "PUT")).toBe(false);
   });
 
+  it("moves focus to the first invalid field after a failed save", async () => {
+    installFakeApi({ [`GET ${MEDICAL_ROUTE}`]: NOT_FOUND });
+    await renderApp("/me/medical-id");
+    await userEvent.click(await screen.findByRole("button", { name: "Save my Medical ID" }));
+    expect(screen.getByRole("button", { name: "A+" })).toHaveFocus();
+    await userEvent.click(screen.getByRole("button", { name: "O+" }));
+    await userEvent.click(screen.getByRole("button", { name: "Save my Medical ID" }));
+    expect(screen.getByLabelText(/Name of the person/)).toHaveFocus();
+    await userEvent.type(screen.getByLabelText(/Name of the person/), "Zainal");
+    await userEvent.type(screen.getByLabelText(/related to you/), "Son");
+    await userEvent.click(screen.getByRole("button", { name: "Save my Medical ID" }));
+    expect(screen.getByLabelText(/phone number/)).toHaveFocus();
+  });
+
   it("removes the Medical ID only after a confirmation", async () => {
     let removed = false;
     const { calls } = installFakeApi({

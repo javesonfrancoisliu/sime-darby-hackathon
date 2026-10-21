@@ -30,20 +30,16 @@ export function AccessibilitySync() {
       .then((loaded) => {
         if (cancelled) return;
         remote.current = loaded;
-        // A person who never saved keeps this phone's settings and uploads them.
-        const neverSaved = loaded.updatedAt === createdAt;
+        // A person who never saved starts from the defaults; the phone's old values are not theirs.
+        const source = loaded.updatedAt === createdAt ? DEFAULT_SETTINGS : loaded;
         const four = {
-          fontSize: loaded.fontSize,
-          highContrast: loaded.highContrast,
-          reducedMotion: loaded.reducedMotion,
-          voiceAssist: loaded.voiceAssist,
+          fontSize: source.fontSize,
+          highContrast: source.highContrast,
+          reducedMotion: source.reducedMotion,
+          voiceAssist: source.voiceAssist,
         };
-        if (neverSaved) {
-          lastSaved.current = "";
-        } else {
-          lastSaved.current = JSON.stringify(four);
-          applyRemoteSettings(four);
-        }
+        lastSaved.current = JSON.stringify(four);
+        applyRemoteSettings(four);
         setReadyFor(userId);
       })
       .catch(logApiError);

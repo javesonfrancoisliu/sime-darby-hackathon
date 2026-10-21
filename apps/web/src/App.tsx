@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 
 import { SessionProvider, type SessionAuth } from "@sdh/api-client";
 
@@ -51,7 +51,7 @@ export function App({ auth }: { auth?: SessionAuth }) {
                       />
                       <Route path="/safety" element={<SafetyPage />} />
                       <Route path="/profile" element={<ProfilePage />} />
-                      <Route path="*" element={<HomePage />} />
+                      <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
                   </SessionGate>
                 </AppShell>

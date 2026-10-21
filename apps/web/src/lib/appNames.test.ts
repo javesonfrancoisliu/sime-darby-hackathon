@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -39,5 +39,35 @@ describe("installed app names", () => {
     for (const text of [webConfig, webHtml, elderlyConfig, elderlyHtml]) {
       expect(text).not.toMatch(/Help a Neighbour/);
     }
+  });
+});
+
+describe("tab icons", () => {
+  // The files each page points at must exist, or the browser tab shows a blank or broken icon.
+  const apps = [
+    { app: "volunteer app", dir: "." },
+    { app: "elderly app", dir: "../elderly-web" },
+    { app: "sign-in portal", dir: "../portal" },
+  ];
+
+  for (const { app, dir } of apps) {
+    it(`gives the ${app} small tab icons, a large icon and an iOS icon that all exist`, () => {
+      const html = read(`${dir}/index.html`);
+      const icons = [
+        ...html.matchAll(/<link rel="(?:icon|apple-touch-icon)"[^>]*href="([^"]+)"/g),
+      ].map((match) => match[1] ?? "");
+      expect(icons.some((href) => href.endsWith("favicon-32.png"))).toBe(true);
+      expect(icons.some((href) => href.endsWith("favicon-16.png"))).toBe(true);
+      expect(icons.some((href) => href.endsWith("pwa-192.png"))).toBe(true);
+      expect(icons.some((href) => href.endsWith("apple-touch-icon.png"))).toBe(true);
+      for (const href of icons) {
+        expect(existsSync(resolve(process.cwd(), dir, "public", href.slice(1)))).toBe(true);
+      }
+    });
+  }
+
+  it("also serves /favicon.ico from the sign-in portal for browsers that ask for it", () => {
+    expect(existsSync(resolve(process.cwd(), "../portal/public/favicon.ico"))).toBe(true);
+    expect(read("../portal/index.html")).toContain('href="/favicon.ico"');
   });
 });

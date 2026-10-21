@@ -4,11 +4,14 @@ import { PutSettingsBody, UpdateMeBody, User } from "@sdh/contracts";
 import { describe, expect, it, vi } from "vitest";
 
 import { installFakeApi, signInAs } from "../../test/fakeApi";
-import { makeReward, VOLUNTEER } from "../../test/fixtures";
+import { makeReward, SETTINGS, VOLUNTEER } from "../../test/fixtures";
 import { renderApp } from "../../test/renderApp";
 import { signedInRoutes } from "../../test/routes";
 
 const signedIn = (overrides: Record<string, unknown> = {}) => signedInRoutes(VOLUNTEER, overrides);
+
+// The toast region that announces a finished save.
+const savedNotice = () => screen.queryByText("Saved")?.closest("[role=status][aria-live=polite]");
 
 describe("profile page", () => {
   it("offers the local sign-in and no profile when signed out", async () => {
@@ -99,6 +102,56 @@ describe("profile page", () => {
     expect(within(screen.getByLabelText("Your profile")).getByText("Aisha R")).toBeInTheDocument();
   });
 
+  it("offers the four precincts and keeps the current one selected", async () => {
+    installFakeApi(signedIn());
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Edit personal information" }));
+    const dialog = await screen.findByRole("dialog");
+    const group = within(dialog).getByRole("group", { name: "Township / neighbourhood" });
+    expect(
+      within(group)
+        .getAllByRole("button")
+        .map((b) => b.textContent),
+    ).toEqual(["Elmina West", "Elmina Valley", "Elmina East", "Central Park"]);
+    expect(within(group).getByRole("button", { name: VOLUNTEER.area })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(within(dialog).queryByText(/Choose your precinct/)).not.toBeInTheDocument();
+  });
+
+  it("asks a person with an older free-text area to choose a precinct", async () => {
+    const legacy = User.parse({ ...VOLUNTEER, area: "Precinct 1" });
+    const { calls } = installFakeApi({
+      ...signedIn({ "GET /api/me": { body: legacy } }),
+      "PATCH /api/me": ({ body }) => ({ body: User.parse({ ...legacy, ...(body as object) }) }),
+    });
+    signInAs(legacy.id);
+    renderApp("/profile");
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Edit personal information" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(
+      within(dialog).getByText("Choose your precinct to join team challenges"),
+    ).toBeInTheDocument();
+    const group = within(dialog).getByRole("group", { name: "Township / neighbourhood" });
+    for (const pill of within(group).getAllByRole("button")) {
+      expect(pill).toHaveAttribute("aria-pressed", "false");
+    }
+    await user.click(within(group).getByRole("button", { name: "Central Park" }));
+    await user.click(within(dialog).getByRole("button", { name: "Save" }));
+
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(UpdateMeBody.parse(calls.find((c) => c.method === "PATCH")?.body)).toEqual({
+      name: legacy.name,
+      area: "Central Park",
+    });
+  });
+
   it("sends skills and availability slots when preferences are saved", async () => {
     const { calls } = installFakeApi({
       ...signedIn(),
@@ -155,6 +208,24 @@ describe("profile page", () => {
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     const body = UpdateMeBody.parse(calls.find((c) => c.method === "PATCH")?.body);
     expect(body).toEqual({ skills: ["groceries"] });
+  });
+
+  it("shows a custom saved slot exactly instead of a lossy summary", async () => {
+    const scheduled = User.parse({
+      ...VOLUNTEER,
+      availability: [{ day: "mon", start: "09:00", end: "11:00" }],
+    });
+    installFakeApi(signedIn({ "GET /api/me": { body: scheduled } }));
+    signInAs(scheduled.id);
+    renderApp("/profile");
+    const user = userEvent.setup();
+
+    await user.click(
+      await screen.findByRole("button", { name: "Volunteering preferences. Show details" }),
+    );
+    expect(await screen.findByText("Mon 09:00 to 11:00")).toBeInTheDocument();
+    expect(screen.queryByText("Weekdays")).not.toBeInTheDocument();
+    expect(screen.queryByText("Morning")).not.toBeInTheDocument();
   });
 
   it("asks for a day and a time together instead of wiping availability", async () => {
@@ -256,6 +327,84 @@ describe("profile page", () => {
     expect(PutSettingsBody.parse(put?.body)).toMatchObject({ notifyVolunteering: true });
   });
 
+  it("says Saved after a settings toggle is saved", async () => {
+    installFakeApi({
+      ...signedIn(),
+      "PUT /api/me/settings": ({ body }) => ({
+        body: { ...(body as object), updatedAt: "2026-10-19T00:00:00Z" },
+      }),
+    });
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Settings. Show details" }));
+    const toggle = await screen.findByRole("switch", { name: /Volunteering updates/ });
+    await waitFor(() => expect(toggle).toBeEnabled());
+    await user.click(toggle);
+
+    await waitFor(() => expect(savedNotice()).toBeInTheDocument());
+  });
+
+  it("shows an error with Try again when a settings toggle fails, then saves on retry", async () => {
+    let attempts = 0;
+    installFakeApi({
+      ...signedIn(),
+      "PUT /api/me/settings": ({ body }) => {
+        attempts += 1;
+        return attempts === 1
+          ? { status: 500, body: { error: { code: "INTERNAL", message: "Please try later" } } }
+          : { body: { ...(body as object), updatedAt: "2026-10-19T00:00:00Z" } };
+      },
+    });
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Settings. Show details" }));
+    const toggle = await screen.findByRole("switch", { name: /Volunteering updates/ });
+    await waitFor(() => expect(toggle).toBeEnabled());
+    await user.click(toggle);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Please try later");
+    expect(screen.queryByText("Saved")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Try again" }));
+
+    await waitFor(() => expect(savedNotice()).toBeInTheDocument());
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(attempts).toBe(2);
+  });
+
+  it("says Saved after personal details and preferences are saved", async () => {
+    installFakeApi({
+      ...signedIn(),
+      "PATCH /api/me": ({ body }) => ({ body: User.parse({ ...VOLUNTEER, ...(body as object) }) }),
+    });
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Edit personal information" }));
+    let dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(savedNotice()).toBeInTheDocument();
+
+    await user.click(
+      await screen.findByRole("button", { name: "Volunteering preferences. Show details" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Edit volunteer preferences" }));
+    dialog = await screen.findByRole("dialog");
+    await user.click(
+      within(within(dialog).getByRole("group", { name: "Skills" })).getByRole("button", {
+        name: "Groceries",
+      }),
+    );
+    await user.click(within(dialog).getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(savedNotice()).toBeInTheDocument();
+  });
+
   it("saves the leaderboard choice with PATCH /api/me", async () => {
     const { calls } = installFakeApi({
       ...signedIn(),
@@ -276,7 +425,12 @@ describe("profile page", () => {
   });
 
   it("turns on larger text and applies the comfort sizing to the app shell", async () => {
-    installFakeApi(signedIn());
+    const { calls } = installFakeApi({
+      ...signedIn(),
+      "PUT /api/me/settings": ({ body }) => ({
+        body: { ...(body as object), updatedAt: "2026-10-19T00:00:00Z" },
+      }),
+    });
     signInAs(VOLUNTEER.id);
     const { container } = renderApp("/profile");
     const user = userEvent.setup();
@@ -290,6 +444,58 @@ describe("profile page", () => {
 
     await waitFor(() => expect(toggle).toBeChecked());
     expect(container.querySelector(".app-shell")).toHaveClass("easy-view");
+    await waitFor(() => expect(calls.some((c) => c.method === "PUT")).toBe(true));
+    expect(PutSettingsBody.parse(calls.find((c) => c.method === "PUT")?.body)).toMatchObject({
+      fontSize: "large",
+      notifyEvents: true,
+    });
+  });
+
+  it("loads larger text from the account and saves normal when it is turned off", async () => {
+    const { calls } = installFakeApi({
+      ...signedIn(),
+      "GET /api/me/settings": { body: { ...SETTINGS, fontSize: "large" } },
+      "PUT /api/me/settings": ({ body }) => ({
+        body: { ...(body as object), updatedAt: "2026-10-19T00:00:00Z" },
+      }),
+    });
+    signInAs(VOLUNTEER.id);
+    const { container } = renderApp("/profile");
+    const user = userEvent.setup();
+
+    await waitFor(() => expect(container.querySelector(".app-shell")).toHaveClass("easy-view"));
+    await user.click(await screen.findByRole("button", { name: "Settings. Show details" }));
+    const toggle = await screen.findByRole("switch", { name: /Larger text/ });
+    expect(toggle).toBeChecked();
+
+    await user.click(toggle);
+
+    await waitFor(() => expect(toggle).not.toBeChecked());
+    await waitFor(() => expect(calls.some((c) => c.method === "PUT")).toBe(true));
+    expect(PutSettingsBody.parse(calls.find((c) => c.method === "PUT")?.body).fontSize).toBe(
+      "normal",
+    );
+  });
+
+  it("puts larger text back and shows the error when saving fails", async () => {
+    installFakeApi(
+      signedIn({
+        "PUT /api/me/settings": {
+          status: 500,
+          body: { error: { code: "INTERNAL", message: "Could not save" } },
+        },
+      }),
+    );
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Settings. Show details" }));
+    const toggle = await screen.findByRole("switch", { name: /Larger text/ });
+    await user.click(toggle);
+
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
+    await waitFor(() => expect(toggle).not.toBeChecked());
   });
 
   it("lists the redeemed rewards with their date", async () => {

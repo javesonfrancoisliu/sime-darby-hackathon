@@ -1,7 +1,7 @@
 import { Thermometer, Waves, Wind, type LucideIcon } from "lucide-react";
 
 import type { SafetyReading } from "@sdh/contracts";
-import { formatReadingValue } from "../../lib/format";
+import { formatReadingValue, formatWhen } from "../../lib/format";
 import { LEVEL_LABEL, LEVEL_SEVERITY_STEP, READING_TITLE } from "../../lib/safety";
 
 const TYPE_ICON: Record<SafetyReading["type"], LucideIcon> = {
@@ -36,6 +36,9 @@ export function SafetyConditionCard({ reading }: SafetyConditionCardProps) {
       </div>
       <span className="apple-condition-card__label">{READING_TITLE[reading.type]}</span>
       <span className="apple-condition-card__location">{reading.area}</span>
+      <span className="apple-condition-card__location">
+        Updated {formatWhen(reading.measuredAt)}
+      </span>
     </div>
   );
 }

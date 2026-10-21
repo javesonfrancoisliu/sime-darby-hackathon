@@ -3,13 +3,21 @@
 // regardless of the viewer's machine timezone.
 const KL_TIME_ZONE = "Asia/Kuala_Lumpur";
 
+// A Date for the text, or null when it cannot be read (Intl would throw a RangeError on it).
+export function safeDate(iso: string): Date | null {
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
 export function formatDate(iso: string): string {
+  const date = safeDate(iso);
+  if (!date) return "";
   return new Intl.DateTimeFormat("en-MY", {
     timeZone: KL_TIME_ZONE,
     day: "numeric",
     month: "short",
     year: "numeric",
-  }).format(new Date(iso));
+  }).format(date);
 }
 
 export function formatDateTime(iso: string): string {
@@ -94,13 +102,16 @@ const whenTimeFormat = new Intl.DateTimeFormat("en-GB", {
 });
 
 export function formatWhen(iso: string): string {
-  const date = new Date(iso);
+  const date = safeDate(iso);
+  if (!date) return "";
   return `${whenDateFormat.format(date).replace(",", "")}, ${whenTimeFormat.format(date)}`;
 }
 
 // Relative "updated" label, e.g. "Updated 2 days ago".
 export function formatRelative(iso: string, now: Date = new Date()): string {
-  const diffMs = new Date(iso).getTime() - now.getTime();
+  const then = safeDate(iso);
+  if (!then) return "";
+  const diffMs = then.getTime() - now.getTime();
   const diffMinutes = Math.round(diffMs / 60_000);
   const rtf = new Intl.RelativeTimeFormat("en-MY", { numeric: "auto" });
 

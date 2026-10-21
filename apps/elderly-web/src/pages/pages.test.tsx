@@ -3,7 +3,7 @@ import { act, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderApp } from "../test/renderRoute";
 import { installFakeApi, signInAs } from "../test/fakeApi";
-import { ELDER, makeRequest } from "../test/fixtures";
+import { AIR, ELDER, HEAT, makeRequest } from "../test/fixtures";
 
 const open = makeRequest({ id: "9d2f5c74-8b2c-4e55-9f90-2c3b8e3f4a03" });
 const matched = makeRequest({
@@ -33,6 +33,16 @@ describe("Home + navigation", () => {
     expect(screen.getByRole("button", { name: "View my requests" })).toBeInTheDocument();
   });
 
+  it("names the area and reading time on the air quality card", async () => {
+    installFakeApi({
+      ...listOf(),
+      "GET /api/safety": { body: { readings: [AIR, HEAT], facilityReports: [] } },
+    });
+    await renderApp("/");
+    expect(await screen.findByText("Air Quality (Haze)")).toBeInTheDocument();
+    expect(screen.getAllByText(/^Updated /).length).toBeGreaterThan(0);
+  });
+
   it("shows the title and plain status of recent requests", async () => {
     installFakeApi(listOf(open, matched));
     await renderApp("/");
@@ -52,15 +62,15 @@ describe("Category selection", () => {
     installFakeApi();
     await renderApp("/request");
     for (const name of [
-      "Groceries",
-      "Transport",
-      "Phone and computer help",
-      "Help at home",
-      "Health help",
+      /^Grocery Trip Together/,
+      /^Transport to Amenities/,
+      /^Digital Literacy Guidance/,
+      /^Youth Support & Repairs/,
+      /^Health Literacy & Events/,
     ]) {
       expect(screen.getByRole("button", { name })).toBeInTheDocument();
     }
-    await userEvent.click(screen.getByRole("button", { name: "Groceries" }));
+    await userEvent.click(screen.getByRole("button", { name: /^Grocery Trip Together/ }));
     expect(screen.getByLabelText(/Tell us more/)).toBeInTheDocument();
   });
 });
@@ -114,6 +124,27 @@ describe("Requests list", () => {
   });
 });
 
+describe("Notes with line breaks", () => {
+  const multi = makeRequest({
+    id: "3a5c8fa7-be5f-4b88-8c23-5f6ebe6c7d06",
+    description: "Milk\nBread\nEggs",
+    status: "matched",
+    volunteerName: "Aisha",
+  });
+
+  it("keeps the line breaks in the list", async () => {
+    installFakeApi(listOf(multi));
+    await renderApp("/requests");
+    expect(await screen.findByText(/Milk/)).toHaveClass("text-multiline");
+  });
+
+  it("keeps the line breaks in the detail", async () => {
+    installFakeApi({ [`GET /api/requests/${multi.id}`]: { body: multi } });
+    await renderApp(`/requests/${multi.id}`);
+    expect(await screen.findByText(/Milk/)).toHaveClass("text-multiline");
+  });
+});
+
 describe("Request detail", () => {
   it("shows the title, when and where, not the request id", async () => {
     installFakeApi({ [`GET /api/requests/${open.id}`]: { body: open } });
@@ -148,7 +179,7 @@ describe("Request detail", () => {
       },
     });
     await renderApp(`/requests/${open.id}`);
-    expect(await screen.findByText(/could not find that/i)).toBeInTheDocument();
+    expect(await screen.findByText("We could not find this request.")).toBeInTheDocument();
   });
 });
 
@@ -219,6 +250,35 @@ describe("Confirm a volunteer came", () => {
     expect(await screen.findByText("Thank you, you confirmed")).toBeInTheDocument();
     expect(screen.queryByText("Did your volunteer come?")).not.toBeInTheDocument();
     expect(calls.filter((c) => c.method === "POST")).toHaveLength(1);
+  });
+
+  it("says waiting for confirmation until the resident confirms", async () => {
+    installFakeApi({ [`GET /api/requests/${done.id}`]: { body: done } });
+    await renderApp(`/requests/${done.id}`);
+    await screen.findByText("Did your volunteer come?");
+    expect(screen.getByText("Waiting for your confirmation")).toBeInTheDocument();
+    expect(screen.queryByText("Completed")).not.toBeInTheDocument();
+  });
+
+  it("shows the success box with a check once confirmed", async () => {
+    const confirmed = makeRequest({ ...done, confirmedAt: "2026-10-19T10:00:00Z" });
+    installFakeApi({ [`GET /api/requests/${confirmed.id}`]: { body: confirmed } });
+    await renderApp(`/requests/${confirmed.id}`);
+    const box = (await screen.findByText("Thank you, you confirmed")).closest(
+      ".apple-confirm-card",
+    );
+    expect(box).toHaveClass("apple-confirm-card--success");
+    expect(box?.querySelector("svg")).not.toBeNull();
+    expect(screen.getByText("Completed")).toBeInTheDocument();
+    expect(screen.queryByText("Waiting for your confirmation")).not.toBeInTheDocument();
+  });
+
+  it("wraps a very long volunteer name inside its chip", async () => {
+    const long = makeRequest({ ...done, volunteerName: "A".repeat(80) });
+    installFakeApi({ [`GET /api/requests/${long.id}`]: { body: long } });
+    await renderApp(`/requests/${long.id}`);
+    const name = await screen.findByText("A".repeat(80));
+    expect(name).toHaveClass("apple-volunteer-chip__name");
   });
 
   it("shows the thank you straight away when already confirmed", async () => {
