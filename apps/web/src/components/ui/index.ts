@@ -8,6 +8,7 @@ export { EmptyState } from "./EmptyState";
 export { FormField } from "./FormField";
 export { InfoCard } from "./InfoCard";
 export { LoadingState } from "./LoadingState";
+export { HubRow, type HubRowProps } from "./HubRow";
 export { Modal } from "./Modal";
 export { Sheet, dropStaleSheetEntry, type SheetProps } from "./Sheet";
 export { PageHeader } from "./PageHeader";

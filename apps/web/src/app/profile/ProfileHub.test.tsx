@@ -1,0 +1,272 @@
+import { screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { User } from "@sdh/contracts";
+import { describe, expect, it } from "vitest";
+
+import { installFakeApi, signInAs } from "../../test/fakeApi";
+import { makePoints, makeReward, TOWNSHIP, VOLUNTEER } from "../../test/fixtures";
+import { renderApp } from "../../test/renderApp";
+import { signedInRoutes } from "../../test/routes";
+
+const signedIn = (overrides: Record<string, unknown> = {}) => signedInRoutes(VOLUNTEER, overrides);
+
+const row = (name: RegExp) => screen.findByRole("button", { name });
+const gone = () => waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+
+const REWARD_ROUTES = {
+  "GET /api/me/points": { body: makePoints(120) },
+  "GET /api/rewards": {
+    body: {
+      rewards: [
+        makeReward({
+          title: "Coffee voucher",
+          status: "redeemed",
+          redeemedAt: "2026-10-18T02:00:00Z",
+        }),
+        makeReward({
+          id: "0a1b2c3d-9999-4a99-8a99-000000000009",
+          title: "Tote bag",
+          status: "redeemed",
+          redeemedAt: "2026-10-17T02:00:00Z",
+          usedAt: "2026-10-19T02:00:00Z",
+        }),
+      ],
+    },
+  },
+};
+
+describe("profile hub header", () => {
+  it("shows the name, area, level bar and a visibly labelled Edit button", async () => {
+    installFakeApi(signedIn());
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+
+    const header = await screen.findByLabelText("Your profile");
+    expect(within(header).getByText(VOLUNTEER.name)).toBeInTheDocument();
+    expect(within(header).getByText(VOLUNTEER.area)).toBeInTheDocument();
+    expect(
+      await within(header).findByRole("progressbar", { name: "Volunteer level progress" }),
+    ).toBeInTheDocument();
+    const edit = within(header).getByRole("button", { name: "Edit personal information" });
+    expect(edit).toHaveTextContent("Edit");
+  });
+
+  it("edits the name through the existing dialog and shows it in the header", async () => {
+    installFakeApi({
+      ...signedIn(),
+      "PATCH /api/me": ({ body }) => ({ body: User.parse({ ...VOLUNTEER, ...(body as object) }) }),
+    });
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Edit personal information" }));
+    const dialog = await screen.findByRole("dialog", { name: /Edit/ });
+    const name = within(dialog).getByLabelText("Display name");
+    await user.clear(name);
+    await user.type(name, "Aisha R");
+    await user.click(within(dialog).getByRole("button", { name: "Save" }));
+    await gone();
+    expect(within(screen.getByLabelText("Your profile")).getByText("Aisha R")).toBeInTheDocument();
+    expect(screen.getByText("Saved")).toBeInTheDocument();
+  });
+});
+
+describe("profile hub rows", () => {
+  it("lists the five rows in order with live one-line summaries and no old drawers", async () => {
+    const volunteer = User.parse({
+      ...VOLUNTEER,
+      skills: ["groceries", "transport"],
+      languages: ["en"],
+    });
+    installFakeApi(signedIn({ ...REWARD_ROUTES, "GET /api/me": { body: volunteer } }));
+    signInAs(volunteer.id);
+    renderApp("/profile");
+
+    const menu = await screen.findByLabelText("Profile menu");
+    await waitFor(() =>
+      expect(within(menu).getByRole("button", { name: /^My rewards/ })).toHaveTextContent(
+        "120 points · 1 voucher to use",
+      ),
+    );
+    const rows = within(menu).getAllByRole("button");
+    expect(rows.map((r) => r.querySelector(".ui-hub-row__title")?.textContent)).toEqual([
+      "My rewards",
+      "My details",
+      "Settings",
+      "Help and safety",
+      "Account",
+    ]);
+    expect(rows[1]).toHaveTextContent("2 skills · 1 language");
+    expect(rows[2]).toHaveTextContent("Larger text off · Rankings off");
+    expect(rows[3]).toHaveTextContent("Township security and 999");
+    expect(rows[4]).toHaveTextContent(`Signed in as ${volunteer.name}`);
+    for (const r of rows) expect(r.querySelector(".ui-hub-row__chevron")).not.toBeNull();
+    expect(screen.queryByRole("button", { name: /Show details/ })).not.toBeInTheDocument();
+  });
+
+  it("asks for volunteering preferences in the My details summary when none are set", async () => {
+    installFakeApi(signedIn());
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    expect(await row(/^My details/)).toHaveTextContent("Set your volunteering preferences");
+  });
+});
+
+describe("my rewards sheet", () => {
+  it("shows points, vouchers and the link to available rewards, then returns focus to the row", async () => {
+    installFakeApi(signedIn(REWARD_ROUTES));
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    const user = userEvent.setup();
+
+    const myRewards = await row(/^My rewards/);
+    await user.click(myRewards);
+    const dialog = await screen.findByRole("dialog", { name: "My rewards" });
+    expect(await within(dialog).findByText("Coffee voucher")).toBeInTheDocument();
+    expect(within(dialog).getByText("Tote bag")).toBeInTheDocument();
+    expect(within(dialog).getByText(/You have/)).toHaveTextContent("You have 120 points.");
+    expect(within(dialog).getByRole("button", { name: "Use now" })).toBeInTheDocument();
+    expect(within(dialog).getByRole("link", { name: "See available rewards" })).toHaveAttribute(
+      "href",
+      "/community/challenges?tab=rewards",
+    );
+
+    await user.click(within(dialog).getByRole("button", { name: "Done" }));
+    await gone();
+    expect(myRewards).toHaveFocus();
+  });
+
+  it("closes the voucher confirmation before the sheet beneath it", async () => {
+    installFakeApi(signedIn(REWARD_ROUTES));
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    const user = userEvent.setup();
+
+    await user.click(await row(/^My rewards/));
+    await user.click(await screen.findByRole("button", { name: "Use now" }));
+    expect(
+      await screen.findByRole("dialog", { name: "Use this voucher now?" }),
+    ).toBeInTheDocument();
+
+    await user.keyboard("{Escape}");
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("dialog", { name: "Use this voucher now?" }),
+      ).not.toBeInTheDocument(),
+    );
+    expect(screen.getByRole("dialog", { name: "My rewards" })).toBeInTheDocument();
+  });
+
+  it("says there are no vouchers yet", async () => {
+    installFakeApi(signedIn());
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    await userEvent.setup().click(await row(/^My rewards/));
+    expect(await screen.findByText("No vouchers yet")).toBeInTheDocument();
+  });
+});
+
+describe("my details page", () => {
+  it("opens as a full page from the row and goes back to Profile", async () => {
+    const volunteer = User.parse({ ...VOLUNTEER, skills: ["groceries"] });
+    installFakeApi(signedIn({ "GET /api/me": { body: volunteer } }));
+    signInAs(volunteer.id);
+    renderApp("/profile");
+    const user = userEvent.setup();
+
+    await user.click(await row(/^My details/));
+    expect(await screen.findByRole("heading", { name: "My details" })).toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    const prefs = screen.getByLabelText("Volunteering preferences");
+    expect(within(prefs).getByText("Groceries")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("link", { name: "Back to Profile" }));
+    expect(await screen.findByRole("heading", { name: "Profile" })).toBeInTheDocument();
+  });
+
+  it("opens the existing preferences editor from Edit preferences", async () => {
+    installFakeApi(signedIn());
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile/details");
+    await userEvent.setup().click(await screen.findByRole("button", { name: "Edit preferences" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByRole("group", { name: "Skills" })).toBeInTheDocument();
+  });
+});
+
+describe("settings sheet", () => {
+  it("offers the five choices in order", async () => {
+    installFakeApi(signedIn());
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    await userEvent.setup().click(await row(/^Settings/));
+    const dialog = await screen.findByRole("dialog", { name: "Settings" });
+    const switches = await within(dialog).findAllByRole("switch");
+    expect(
+      switches.map(
+        (s) => s.closest(".settings-row")?.querySelector(".settings-row-label")?.textContent,
+      ),
+    ).toEqual([
+      "Larger text",
+      "Event reminders",
+      "Volunteering updates",
+      "Show me in Rankings",
+      "Share approximate area",
+    ]);
+  });
+
+  it("updates the Settings row summary after Rankings is switched on", async () => {
+    installFakeApi({
+      ...signedIn(),
+      "PATCH /api/me": ({ body }) => ({ body: User.parse({ ...VOLUNTEER, ...(body as object) }) }),
+    });
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    const user = userEvent.setup();
+
+    const settings = await row(/^Settings/);
+    expect(settings).toHaveTextContent("Rankings off");
+    await user.click(settings);
+    await user.click(await screen.findByRole("switch", { name: /Show me in Rankings/ }));
+    await waitFor(() =>
+      expect(screen.getByRole("switch", { name: /Show me in Rankings/ })).toBeChecked(),
+    );
+    await user.keyboard("{Escape}");
+    await gone();
+    expect(await row(/^Settings/)).toHaveTextContent("Rankings on");
+  });
+});
+
+describe("help and safety sheet", () => {
+  it("links the township security line and 999 and says who to call", async () => {
+    installFakeApi(signedIn());
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    await userEvent.setup().click(await row(/^Help and safety/));
+    const dialog = await screen.findByRole("dialog", { name: "Help and safety" });
+    expect(await within(dialog).findByRole("link", { name: /Township security/ })).toHaveAttribute(
+      "href",
+      `tel:${TOWNSHIP.securityLine.tel}`,
+    );
+    expect(within(dialog).getByRole("link", { name: /Emergency 999/ })).toHaveAttribute(
+      "href",
+      "tel:999",
+    );
+    expect(within(dialog).getByText(/Need help\?/)).toBeInTheDocument();
+  });
+});
+
+describe("account sheet", () => {
+  it("keeps the local sign-in card in a demo build", async () => {
+    installFakeApi({ ...signedIn(), "GET /api/demo/users": { body: { users: [] } } });
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    await userEvent.setup().click(await row(/^Account/));
+    const dialog = await screen.findByRole("dialog", { name: "Account" });
+    expect(within(dialog).getByLabelText("Local sign-in")).toBeInTheDocument();
+    expect(
+      within(dialog).queryByRole("link", { name: "Account settings" }),
+    ).not.toBeInTheDocument();
+  });
+});

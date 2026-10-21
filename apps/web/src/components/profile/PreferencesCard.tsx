@@ -1,10 +1,9 @@
-import { useState } from "react";
 import { HandHeart, Pencil } from "lucide-react";
 
 import { useProfile } from "../../data/ProfileContext";
 import { LANGUAGE_LABEL, PREFERRED_DAY_LABEL, TIME_OF_DAY_LABEL } from "../../types/profile";
 import { TASK_CATEGORY_LABEL } from "../../types/volunteer";
-import { AppButton, Drawer, Pill } from "../ui";
+import { AppButton, InfoCard, Pill } from "../ui";
 
 export type PreferencesCardProps = {
   onEdit: () => void;
@@ -25,10 +24,9 @@ function PillRow({ label, values }: { label: string; values: string[] }) {
   );
 }
 
-// Read view of volunteering preferences (skills, interests, availability,
-// languages). Edited via a separate modal. Notes these feed future matching.
+// Read view of volunteering preferences (skills, interests, availability, languages). Edited
+// through the preferences modal, opened by the Edit preferences button.
 export function PreferencesCard({ onEdit }: PreferencesCardProps) {
-  const [open, setOpen] = useState(false);
   const { prefs } = useProfile();
   // Slots saved outside the day and time choices are shown exactly, not as a lossy summary.
   const availability = prefs.customAvailability ?? [
@@ -37,22 +35,12 @@ export function PreferencesCard({ onEdit }: PreferencesCardProps) {
   ];
 
   return (
-    <Drawer
-      ariaLabel="Volunteering preferences"
-      label="Volunteering preferences"
-      open={open}
-      onToggle={() => setOpen((current) => !current)}
-      header={
-        <h2 className="feature-card-title inline-icon">
-          <HandHeart size={20} aria-hidden="true" /> Volunteering preferences
-        </h2>
-      }
-    >
-      <div className="ui-stack ui-gap-2">
-        <div className="profile-preferences-actions">
-          <AppButton variant="ghost" onClick={onEdit} aria-label="Edit volunteer preferences">
-            <Pencil size={16} aria-hidden="true" /> Edit
-          </AppButton>
+    <InfoCard ariaLabel="Volunteering preferences">
+      <div className="feature-card">
+        <div className="feature-card-head">
+          <h2 className="feature-card-title inline-icon">
+            <HandHeart size={20} aria-hidden="true" /> Volunteering preferences
+          </h2>
         </div>
         <PillRow label="Skills" values={prefs.skills.map((s) => TASK_CATEGORY_LABEL[s])} />
         <PillRow label="Interests" values={prefs.interests.map((s) => TASK_CATEGORY_LABEL[s])} />
@@ -62,7 +50,12 @@ export function PreferencesCard({ onEdit }: PreferencesCardProps) {
         <p className="ui-helper ui-flush">
           Your skills and availability are saved to your account and used for volunteer matching.
         </p>
+        <div className="feature-card-foot">
+          <AppButton variant="secondary" onClick={onEdit}>
+            <Pencil size={16} aria-hidden="true" /> Edit preferences
+          </AppButton>
+        </div>
       </div>
-    </Drawer>
+    </InfoCard>
   );
 }

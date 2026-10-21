@@ -36,8 +36,8 @@ export function ProfileHeaderCard({ onEdit }: ProfileHeaderCardProps) {
             {completed !== undefined && <VolunteerLevelBadge completed={completed} />}
           </div>
         </div>
-        <AppButton variant="ghost" onClick={onEdit} aria-label="Edit personal information">
-          <Pencil size={16} aria-hidden="true" />
+        <AppButton variant="secondary" onClick={onEdit} aria-label="Edit personal information">
+          <Pencil size={16} aria-hidden="true" /> Edit
         </AppButton>
       </div>
       <div className="profile-volunteer-progress">

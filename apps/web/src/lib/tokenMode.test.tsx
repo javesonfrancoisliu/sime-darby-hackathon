@@ -72,6 +72,7 @@ describe("token mode guard", () => {
   it("shows the app to a volunteer without redirecting", async () => {
     installFakeApi({ ...liveRoutes, "GET /api/me": { body: VOLUNTEER } });
     renderToken("/profile");
+    await userEvent.click(await screen.findByRole("button", { name: /^Account/ }));
     expect(await screen.findByRole("link", { name: "Account settings" })).toBeInTheDocument();
     expect(assign).not.toHaveBeenCalled();
     expect(screen.queryByLabelText("Local sign-in")).not.toBeInTheDocument();
@@ -91,6 +92,7 @@ describe("token mode account actions", () => {
   it("links to account settings and signs out to the sign-in page", async () => {
     installFakeApi({ ...liveRoutes, "GET /api/me": { body: VOLUNTEER } });
     const { signOut } = renderToken("/profile");
+    await userEvent.click(await screen.findByRole("button", { name: /^Account/ }));
     const link = await screen.findByRole("link", { name: "Account settings" });
     expect(link).toHaveAttribute("href", "/account");
 

@@ -70,7 +70,7 @@ describe("profile page", () => {
   it("describes saved preferences without implying a fresh save", async () => {
     installFakeApi(signedIn());
     signInAs(VOLUNTEER.id);
-    renderApp("/profile");
+    renderApp("/profile/details");
     expect(
       await screen.findByText(
         "Your skills and availability are saved to your account and used for volunteer matching.",
@@ -158,13 +158,10 @@ describe("profile page", () => {
       "PATCH /api/me": ({ body }) => ({ body: User.parse({ ...VOLUNTEER, ...(body as object) }) }),
     });
     signInAs(VOLUNTEER.id);
-    renderApp("/profile");
+    renderApp("/profile/details");
     const user = userEvent.setup();
 
-    await user.click(
-      await screen.findByRole("button", { name: "Volunteering preferences. Show details" }),
-    );
-    await user.click(screen.getByRole("button", { name: "Edit volunteer preferences" }));
+    await user.click(await screen.findByRole("button", { name: "Edit preferences" }));
     const dialog = await screen.findByRole("dialog");
     const skills = within(dialog).getByRole("group", { name: "Skills" });
     await user.click(within(skills).getByRole("button", { name: "Groceries" }));
@@ -193,13 +190,10 @@ describe("profile page", () => {
       "PATCH /api/me": ({ body }) => ({ body: User.parse({ ...scheduled, ...(body as object) }) }),
     });
     signInAs(scheduled.id);
-    renderApp("/profile");
+    renderApp("/profile/details");
     const user = userEvent.setup();
 
-    await user.click(
-      await screen.findByRole("button", { name: "Volunteering preferences. Show details" }),
-    );
-    await user.click(screen.getByRole("button", { name: "Edit volunteer preferences" }));
+    await user.click(await screen.findByRole("button", { name: "Edit preferences" }));
     const dialog = await screen.findByRole("dialog");
     const skills = within(dialog).getByRole("group", { name: "Skills" });
     await user.click(within(skills).getByRole("button", { name: "Groceries" }));
@@ -217,12 +211,8 @@ describe("profile page", () => {
     });
     installFakeApi(signedIn({ "GET /api/me": { body: scheduled } }));
     signInAs(scheduled.id);
-    renderApp("/profile");
-    const user = userEvent.setup();
+    renderApp("/profile/details");
 
-    await user.click(
-      await screen.findByRole("button", { name: "Volunteering preferences. Show details" }),
-    );
     expect(await screen.findByText("Mon 09:00 to 11:00")).toBeInTheDocument();
     expect(screen.queryByText("Weekdays")).not.toBeInTheDocument();
     expect(screen.queryByText("Morning")).not.toBeInTheDocument();
@@ -231,13 +221,10 @@ describe("profile page", () => {
   it("asks for a day and a time together instead of wiping availability", async () => {
     const { calls } = installFakeApi(signedIn());
     signInAs(VOLUNTEER.id);
-    renderApp("/profile");
+    renderApp("/profile/details");
     const user = userEvent.setup();
 
-    await user.click(
-      await screen.findByRole("button", { name: "Volunteering preferences. Show details" }),
-    );
-    await user.click(screen.getByRole("button", { name: "Edit volunteer preferences" }));
+    await user.click(await screen.findByRole("button", { name: "Edit preferences" }));
     const dialog = await screen.findByRole("dialog");
     const days = within(dialog).getByRole("group", { name: "Preferred days" });
     await user.click(within(days).getByRole("button", { name: "Weekends" }));
@@ -289,13 +276,10 @@ describe("profile page", () => {
       "PATCH /api/me": ({ body }) => ({ body: User.parse({ ...VOLUNTEER, ...(body as object) }) }),
     });
     signInAs(VOLUNTEER.id);
-    renderApp("/profile");
+    renderApp("/profile/details");
     const user = userEvent.setup();
 
-    await user.click(
-      await screen.findByRole("button", { name: "Volunteering preferences. Show details" }),
-    );
-    await user.click(screen.getByRole("button", { name: "Edit volunteer preferences" }));
+    await user.click(await screen.findByRole("button", { name: "Edit preferences" }));
     const dialog = await screen.findByRole("dialog");
     const interests = within(dialog).getByRole("group", { name: "Assistance interests" });
     await user.click(within(interests).getByRole("button", { name: "Transport" }));
@@ -319,7 +303,7 @@ describe("profile page", () => {
     renderApp("/profile");
     const user = userEvent.setup();
 
-    await user.click(await screen.findByRole("button", { name: "Settings. Show details" }));
+    await user.click(await screen.findByRole("button", { name: /^Settings/ }));
     const toggle = await screen.findByRole("switch", { name: /Volunteering updates/ });
     await waitFor(() => expect(toggle).toBeEnabled());
     expect(toggle).not.toBeChecked();
@@ -342,7 +326,7 @@ describe("profile page", () => {
     renderApp("/profile");
     const user = userEvent.setup();
 
-    await user.click(await screen.findByRole("button", { name: "Settings. Show details" }));
+    await user.click(await screen.findByRole("button", { name: /^Settings/ }));
     const toggle = await screen.findByRole("switch", { name: /Volunteering updates/ });
     await waitFor(() => expect(toggle).toBeEnabled());
     await user.click(toggle);
@@ -365,7 +349,7 @@ describe("profile page", () => {
     renderApp("/profile");
     const user = userEvent.setup();
 
-    await user.click(await screen.findByRole("button", { name: "Settings. Show details" }));
+    await user.click(await screen.findByRole("button", { name: /^Settings/ }));
     const toggle = await screen.findByRole("switch", { name: /Volunteering updates/ });
     await waitFor(() => expect(toggle).toBeEnabled());
     await user.click(toggle);
@@ -394,10 +378,8 @@ describe("profile page", () => {
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     expect(savedNotice()).toBeInTheDocument();
 
-    await user.click(
-      await screen.findByRole("button", { name: "Volunteering preferences. Show details" }),
-    );
-    await user.click(screen.getByRole("button", { name: "Edit volunteer preferences" }));
+    await user.click(await screen.findByRole("button", { name: /^My details/ }));
+    await user.click(await screen.findByRole("button", { name: "Edit preferences" }));
     dialog = await screen.findByRole("dialog");
     await user.click(
       within(within(dialog).getByRole("group", { name: "Skills" })).getByRole("button", {
@@ -418,7 +400,7 @@ describe("profile page", () => {
     renderApp("/profile");
     const user = userEvent.setup();
 
-    await user.click(await screen.findByRole("button", { name: "Settings. Show details" }));
+    await user.click(await screen.findByRole("button", { name: /^Settings/ }));
     await user.click(await screen.findByRole("switch", { name: /Show me in Rankings/ }));
 
     await waitFor(() => expect(calls.some((c) => c.method === "PATCH")).toBe(true));
@@ -439,7 +421,7 @@ describe("profile page", () => {
     const { container } = renderApp("/profile");
     const user = userEvent.setup();
 
-    await user.click(await screen.findByRole("button", { name: "Settings. Show details" }));
+    await user.click(await screen.findByRole("button", { name: /^Settings/ }));
     const toggle = await screen.findByRole("switch", { name: /Larger text/ });
     expect(toggle).not.toBeChecked();
     expect(container.querySelector(".app-shell")).not.toHaveClass("easy-view");
@@ -468,7 +450,7 @@ describe("profile page", () => {
     const user = userEvent.setup();
 
     await waitFor(() => expect(container.querySelector(".app-shell")).toHaveClass("easy-view"));
-    await user.click(await screen.findByRole("button", { name: "Settings. Show details" }));
+    await user.click(await screen.findByRole("button", { name: /^Settings/ }));
     const toggle = await screen.findByRole("switch", { name: /Larger text/ });
     expect(toggle).toBeChecked();
 
@@ -494,7 +476,7 @@ describe("profile page", () => {
     renderApp("/profile");
     const user = userEvent.setup();
 
-    await user.click(await screen.findByRole("button", { name: "Settings. Show details" }));
+    await user.click(await screen.findByRole("button", { name: /^Settings/ }));
     const toggle = await screen.findByRole("switch", { name: /Larger text/ });
     await user.click(toggle);
 
@@ -521,6 +503,8 @@ describe("profile page", () => {
     );
     signInAs(VOLUNTEER.id);
     renderApp("/profile");
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", { name: /^My rewards/ }));
 
     expect(await screen.findByText("Coffee voucher")).toBeInTheDocument();
     expect(screen.getByText(/Expires 17 Nov 2026/)).toBeInTheDocument();
@@ -553,6 +537,7 @@ describe("profile page", () => {
     signInAs(VOLUNTEER.id);
     renderApp("/profile");
     const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", { name: /^My rewards/ }));
     await user.click(await screen.findByRole("button", { name: "Use now" }));
     await user.click(screen.getByRole("button", { name: "Not yet" }));
     expect(calls.some((call) => call.method === "POST")).toBe(false);
@@ -569,7 +554,8 @@ describe("profile page", () => {
     signInAs(VOLUNTEER.id);
     renderApp("/profile");
     const user = userEvent.setup();
-    const link = await screen.findByRole("link", { name: "See available rewards in Challenges" });
+    await user.click(await screen.findByRole("button", { name: /^My rewards/ }));
+    const link = await screen.findByRole("link", { name: "See available rewards" });
     expect(link).toHaveAttribute("href", "/community/challenges?tab=rewards");
     await user.click(link);
     expect(await screen.findByRole("tab", { name: "Rewards" })).toHaveAttribute(
@@ -597,6 +583,8 @@ describe("profile page", () => {
     );
     signInAs(VOLUNTEER.id);
     renderApp("/profile");
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", { name: /^My rewards/ }));
     expect(await screen.findByText("Expired 31 Jan 2020")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Use now" })).not.toBeInTheDocument();
   });
