@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAccessibility } from "../context/AccessibilityContext";
 import { useCancelRequest, useConfirmRequest, useRequest } from "../hooks/useRequests";
 import { CATEGORY_TEXT } from "../requests/categories";
@@ -23,6 +23,7 @@ function noVolunteerText(status: string): string {
 // Refreshes while open so a volunteer accepting shows up without a reload.
 export function RequestDetailPage() {
   const { id = "" } = useParams();
+  const navigate = useNavigate();
   const { data, status, error, refetch, update } = useRequest(id);
   const cancelMutation = useCancelRequest();
   const confirmMutation = useConfirmRequest();
@@ -42,6 +43,16 @@ export function RequestDetailPage() {
       <div className="apple-subpage">
         <BackLink />
         <Spinner label="Loading request" />
+      </div>
+    );
+  }
+
+  // An unknown id is NOT_FOUND; an id the server cannot read is a 400.
+  if (error?.code === "NOT_FOUND" || error?.code === "VALIDATION_FAILED") {
+    return (
+      <div className="apple-subpage">
+        <BackLink label="Back to my requests" onBack={() => navigate("/requests")} />
+        <Banner message="We could not find this request." />
       </div>
     );
   }

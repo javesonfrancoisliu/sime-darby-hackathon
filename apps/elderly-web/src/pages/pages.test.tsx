@@ -148,7 +148,7 @@ describe("Request detail", () => {
       },
     });
     await renderApp(`/requests/${open.id}`);
-    expect(await screen.findByText(/could not find that/i)).toBeInTheDocument();
+    expect(await screen.findByText("We could not find this request.")).toBeInTheDocument();
   });
 });
 

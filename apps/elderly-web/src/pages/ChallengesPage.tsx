@@ -94,7 +94,7 @@ export function ChallengesPage() {
   const balance = points.data?.points;
   const today = malaysiaToday();
   const week = lastSevenDays(new Date());
-  const checkedInToday = streak.data?.recent.includes(today) ?? false;
+  const checkedInToday = streak.data?.recent?.includes(today) ?? false;
   const teamChallenges = (challenges.data ?? []).filter((c) => c.mode === "team");
 
   function setBalance(next: number) {
@@ -216,10 +216,10 @@ export function ChallengesPage() {
               <div
                 className="play-week"
                 role="img"
-                aria-label={`Checked in ${week.filter((d) => streak.data?.recent.includes(d)).length} of the last 7 days`}
+                aria-label={`Checked in ${week.filter((d) => streak.data?.recent?.includes(d)).length} of the last 7 days`}
               >
                 {week.map((day) => {
-                  const done = streak.data?.recent.includes(day) ?? false;
+                  const done = streak.data?.recent?.includes(day) ?? false;
                   return (
                     <div key={day} className="play-week__day">
                       <span

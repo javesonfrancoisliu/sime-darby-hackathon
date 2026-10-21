@@ -3,8 +3,10 @@ import { CreateRequestBody } from "@sdh/contracts";
 import { ELDER } from "../test/fixtures";
 import {
   buildCreateBody,
+  formatDate,
   formatShortDate,
   formatWhen,
+  formatWindow,
   isSlotPast,
   minutesLabel,
   slotIso,
@@ -92,5 +94,14 @@ describe("buildCreateBody", () => {
       durationMinutes: 90,
       location: { lat: ELDER.location.lat, lng: ELDER.location.lng, area: "Elmina Valley" },
     });
+  });
+});
+
+describe("unreadable dates", () => {
+  it("shows a plain fallback instead of throwing", () => {
+    expect(formatWhen("not a date")).toBe("Date to be confirmed");
+    expect(formatShortDate("")).toBe("Date to be confirmed");
+    expect(formatDate("garbage")).toBe("Date to be confirmed");
+    expect(formatWindow("2026-10-20T09:00:00+08:00", "garbage")).toBe("Date to be confirmed");
   });
 });
