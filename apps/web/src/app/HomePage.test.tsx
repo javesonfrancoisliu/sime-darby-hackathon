@@ -153,4 +153,25 @@ describe("home page", () => {
     expect(await screen.findByText("Nothing new yet")).toBeInTheDocument();
     expect(await screen.findByText("Couldn't load safety readings")).toBeInTheDocument();
   });
+
+  it("keeps Safety reachable from a header button, the live conditions card and Profile", async () => {
+    installFakeApi(signedInRoutes(VOLUNTEER, { "GET /api/safety": { body: SAFETY } }));
+    signInAs(VOLUNTEER.id);
+    renderApp("/");
+
+    const header = (await screen.findByRole("heading", { name: "Welcome to Elmina" })).closest(
+      "header",
+    ) as HTMLElement;
+    expect(within(header).getByRole("link", { name: "Safety" })).toHaveAttribute("href", "/safety");
+    const safety = screen.getByLabelText("Safety summary for Elmina");
+    expect(within(safety).getByRole("link", { name: "All hazards" })).toHaveAttribute(
+      "href",
+      "/safety",
+    );
+    const nav = within(screen.getAllByRole("navigation", { name: "Primary" }).at(-1)!);
+    expect(nav.queryByRole("link", { name: "Safety" })).not.toBeInTheDocument();
+    // The Home header button opens the existing Safety page.
+    await userEvent.setup().click(within(header).getByRole("link", { name: "Safety" }));
+    expect(await screen.findByRole("heading", { name: "Health & Safety" })).toBeInTheDocument();
+  });
 });
