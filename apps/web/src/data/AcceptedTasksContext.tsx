@@ -82,6 +82,9 @@ async function loadTasks(userId: string | null): Promise<LiveTasks> {
   };
 }
 
+// A failed background refresh must not replace the tasks the volunteer is reading.
+const tasksFailed = (result: LiveTasks): boolean => result.error !== null;
+
 export type AcceptedTasksContextValue = {
   tasks: AcceptedTask[];
   loading: boolean;
@@ -101,7 +104,13 @@ const AcceptedTasksContext = createContext<AcceptedTasksContextValue | null>(nul
 
 export function AcceptedTasksProvider({ children }: { children: ReactNode }) {
   const { userId } = useSession();
-  const { loaded, reload } = useLoader(userId, loadTasks, userId !== null, LIVE_REFRESH_MS);
+  const { loaded, reload } = useLoader(
+    userId,
+    loadTasks,
+    userId !== null,
+    LIVE_REFRESH_MS,
+    tasksFailed,
+  );
   const data = loaded !== null && loaded.scope === userId ? loaded.value : null;
 
   const tasks = useMemo<AcceptedTask[]>(() => {

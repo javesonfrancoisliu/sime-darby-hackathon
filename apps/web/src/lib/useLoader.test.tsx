@@ -68,4 +68,32 @@ describe("useLoader live refresh", () => {
     await act(() => vi.advanceTimersByTimeAsync(LIVE_REFRESH_MS * 2));
     expect(live).toHaveBeenCalledTimes(1);
   });
+
+  it("keeps the last good list when a background refresh fails, but a manual reload shows it", async () => {
+    const load = vi
+      .fn<(scope: string | null) => Promise<{ ok: boolean; n: number }>>()
+      .mockResolvedValueOnce({ ok: true, n: 1 })
+      .mockResolvedValueOnce({ ok: false, n: 0 })
+      .mockResolvedValueOnce({ ok: false, n: 0 });
+    const failed = (v: { ok: boolean }) => !v.ok;
+    const { result } = renderHook(() => useLoader("u", load, true, LIVE_REFRESH_MS, failed));
+    await act(() => vi.advanceTimersByTimeAsync(0));
+    expect(result.current.loaded?.value).toEqual({ ok: true, n: 1 });
+    await act(() => vi.advanceTimersByTimeAsync(LIVE_REFRESH_MS));
+    expect(load).toHaveBeenCalledTimes(2);
+    expect(result.current.loaded?.value).toEqual({ ok: true, n: 1 });
+    await act(async () => {
+      await result.current.reload();
+    });
+    expect(result.current.loaded?.value).toEqual({ ok: false, n: 0 });
+  });
+
+  it("still shows a failure on the very first load", async () => {
+    const load = vi.fn().mockResolvedValue({ ok: false });
+    const { result } = renderHook(() =>
+      useLoader("u", load, true, LIVE_REFRESH_MS, (v: { ok: boolean }) => !v.ok),
+    );
+    await act(() => vi.advanceTimersByTimeAsync(0));
+    expect(result.current.loaded?.value).toEqual({ ok: false });
+  });
 });
