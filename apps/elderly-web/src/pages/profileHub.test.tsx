@@ -489,6 +489,26 @@ describe("Help and safety sheet", () => {
     expect(await screen.findByRole("slider", { name: /Slide to call 999/ })).toBeInTheDocument();
   });
 
+  it("opens the Safety page from Profile and Back returns to Profile", async () => {
+    installFakeApi(hubRoutes);
+    window.history.pushState({}, "", "/me");
+    render(
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>,
+    );
+    await userEvent.click(await screen.findByRole("button", { name: /^Help and safety/ }));
+    const sheet = await sheetNamed("Help and safety");
+    await userEvent.click(
+      within(sheet).getByRole("button", { name: /^Health and safety conditions/ }),
+    );
+    expect(await screen.findByRole("heading", { level: 1, name: "Health & Safety" })).toBeVisible();
+    expect(window.location.pathname).toBe("/safety");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    window.history.back();
+    await waitFor(() => expect(window.location.pathname).toBe("/me"));
+  });
+
   it("leaves out the security line when the township has none set", async () => {
     installFakeApi({
       ...hubRoutes,
