@@ -3,8 +3,8 @@ import { NavLink } from "react-router-dom";
 import { bottomNavItemsForRole } from "../../lib/navigation";
 import { useRole } from "./RoleContext";
 
-// Lucide glyphs are drawn at stroke 2; the active tab uses this heavier stroke. Both weights match
-// the Elder app; icon sizes follow this bar's own layout.
+// Lucide glyphs are drawn at stroke 2; the active tab uses this heavier stroke. Both weights and the
+// regular tab icon size (22) match the Elder app; the centre orb glyph is sized to this bar's orb.
 const ACTIVE_STROKE = 2.5;
 const BASE_STROKE = 2;
 
