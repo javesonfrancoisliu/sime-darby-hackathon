@@ -38,6 +38,26 @@ describe("Call 999 on Home", () => {
   });
 });
 
+describe("Safety from Home", () => {
+  it("opens the Safety page from the Home header with no tab marked current", async () => {
+    installFakeApi({ "GET /api/requests/mine": { body: { requests: [] } }, ...safetyRoutes });
+    await renderApp("/");
+    const nav = screen.getByRole("navigation", { name: "Main navigation" });
+    expect(within(nav).queryByRole("button", { name: "Safety" })).not.toBeInTheDocument();
+    await userEvent.click(await screen.findByRole("button", { name: "Safety" }));
+    expect(document.title).toBe("Health and safety - Township Connect");
+    expect(await screen.findByRole("heading", { level: 1 })).toBeInTheDocument();
+    expect(nav.querySelector("[aria-current]")).toBeNull();
+  });
+
+  it("still opens from a conditions card", async () => {
+    installFakeApi({ "GET /api/requests/mine": { body: { requests: [] } }, ...safetyRoutes });
+    await renderApp("/");
+    await userEvent.click(await screen.findByRole("button", { name: /Air Quality/ }));
+    expect(document.title).toBe("Health and safety - Township Connect");
+  });
+});
+
 describe("Home live conditions", () => {
   it("shows the air, heat, maintenance and in-progress facility cards with the API advice", async () => {
     installFakeApi({
