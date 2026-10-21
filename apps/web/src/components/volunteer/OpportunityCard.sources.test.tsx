@@ -115,3 +115,37 @@ it("keeps a long validated explanation accessible with Show more and Show less",
   await userEvent.click(screen.getByRole("button", { name: "Show less" }));
   expect(text.parentElement).toHaveClass("opportunity-card__reason-lines--preview");
 });
+
+it("shows an Urgent text label on urgent requests only", () => {
+  const opportunity: Opportunity = {
+    id: "fictional-urgent",
+    kind: "request",
+    title: "Nearby help",
+    summary: "Details",
+    category: "groceries",
+    distanceKm: 0.5,
+    area: "Elmina West",
+    scheduledAt: "2027-01-01T02:00:00Z",
+    durationMinutes: 60,
+    matchScore: 77,
+    reasons: [],
+    fitsMySchedule: false,
+  };
+  const { rerender } = render(
+    <ul>
+      <OpportunityCard opportunity={opportunity} urgency="high" joined={false} onAccept={vi.fn()} />
+    </ul>,
+  );
+  expect(screen.getByText("Urgent")).toBeVisible();
+  rerender(
+    <ul>
+      <OpportunityCard
+        opportunity={opportunity}
+        urgency="medium"
+        joined={false}
+        onAccept={vi.fn()}
+      />
+    </ul>,
+  );
+  expect(screen.queryByText("Urgent")).not.toBeInTheDocument();
+});

@@ -75,6 +75,7 @@ export function OpportunityCard({
               <span className="community-event__type">
                 {TASK_CATEGORY_LABEL[opportunity.category]}
               </span>
+              {urgent && <StatusBadge label="Urgent" variant="danger" />}
             </div>
             <span className="inline-icon">
               <MapPin size={16} aria-hidden="true" />
