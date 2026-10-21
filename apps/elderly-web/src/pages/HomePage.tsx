@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
+import { AroundTownshipCard, CommunityPlayCard } from "./home/CommunityCards";
 import { HeroHeader } from "../ui/HeroHeader";
 import { Carousel } from "../ui/Carousel";
 import { RequestCard } from "../ui/RequestCard";
@@ -252,6 +253,10 @@ export function HomePage() {
           </div>
         </div>
       </section>
+
+      <CommunityPlayCard />
+
+      <AroundTownshipCard />
 
       <section className="app-home__section" aria-labelledby="daily-support-heading">
         <div className="app-home__section-header">
