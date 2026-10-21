@@ -38,7 +38,10 @@ export function App({ auth }: { auth?: SessionAuth }) {
               <Route path="community" element={<CommunityPage />} />
               <Route path="challenges" element={<ChallengesPage />} />
               <Route path="me" element={<MePage />} />
-              <Route path="me/details" element={<Navigate to="/me" replace />} />
+              <Route
+                path="me/details"
+                element={<Navigate to="/me" replace state={{ openSheet: "details" }} />}
+              />
               <Route path="me/medical-id" element={<MedicalIdPage />} />
               <Route path="request" element={<CategoryPage />} />
               <Route path="request/confirmation" element={<ConfirmationPage />} />

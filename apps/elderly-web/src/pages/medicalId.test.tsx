@@ -118,7 +118,7 @@ describe("Medical ID edit screen", () => {
     expect(calls.filter((c) => c.method === "DELETE")).toHaveLength(1);
   });
 
-  it("keeps the old My details address working by landing on Profile", async () => {
+  it("keeps the old My details address working by opening My details on Profile", async () => {
     installFakeApi({ [`GET ${MEDICAL_ROUTE}`]: { body: MEDICAL } });
     render(
       <MemoryRouter initialEntries={["/me/details"]}>
@@ -126,7 +126,7 @@ describe("Medical ID edit screen", () => {
         <Where />
       </MemoryRouter>,
     );
-    expect(await screen.findByRole("button", { name: /^My details/ })).toBeInTheDocument();
+    expect(await screen.findByRole("dialog", { name: "My details" })).toBeInTheDocument();
     expect(screen.getByTestId("where")).toHaveTextContent(/^\/me$/);
     expect(screen.getByTestId("where")).not.toHaveTextContent("/me/details");
   });

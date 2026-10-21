@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "react-router-dom";
 import { FONT_LABEL, useAccessibility } from "../context/AccessibilityContext";
 import { tokenModeEnabled } from "../config";
 import { usePoints, useRewards } from "../hooks/useChallengesData";
@@ -31,6 +32,12 @@ function rewardsSummary(points: number | undefined, vouchers: number | undefined
   return `${points} points${voucherText}`;
 }
 
+// The old /me/details address redirects here asking for the My details drawer.
+function initialSheet(state: unknown): MeSheet {
+  const wanted = (state as { openSheet?: unknown } | null)?.openSheet;
+  return wanted === "details" ? "details" : null;
+}
+
 // Profile hub: who is signed in, then one large row each for rewards, details, settings and help.
 export function MePage() {
   const { openSheet, fontSize, highContrast, speak } = useAccessibility();
@@ -38,7 +45,8 @@ export function MePage() {
   const points = usePoints();
   const rewards = useRewards();
   const medical = useMedicalId();
-  const [sheet, setSheet] = useState<MeSheet>(null);
+  const location = useLocation();
+  const [sheet, setSheet] = useState<MeSheet>(() => initialSheet(location.state));
   const name = resident?.name ?? "";
   const area = resident?.area ?? "";
   const vouchers = rewards.data?.filter((r) => r.status === "redeemed").length;
