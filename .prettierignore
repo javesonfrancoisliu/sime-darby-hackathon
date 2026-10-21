@@ -7,3 +7,6 @@ infra/
 .claude/
 
 **/.agents/
+
+# Immutable captured benchmark responses and historical reports
+apps/api/scripts/matching-benchmark/results/

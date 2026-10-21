@@ -15,7 +15,8 @@ import { townshipRoutes } from "./modules/township/routes";
 import { userRoutes } from "./modules/users/routes";
 
 // Routes served by the core API Lambda. Matching runs in its own Lambda, so it is not imported here
-// and the core bundle stays free of the Anthropic and SSM clients.
+// and the core bundle stays free of the Anthropic and SSM clients. The opportunities feed here is
+// rules only; API Gateway sends it to the matching Lambda for AI ranking.
 // Literal paths (for example /api/requests/mine) must come before {param} paths they overlap.
 export const coreRoutes: Route[] = [
   ...healthRoutes,

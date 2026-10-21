@@ -1,0 +1,45 @@
+{
+  "record": {
+    "scenarioId": "scenario-05",
+    "inputHash": "f9bda5356457c61471fe3a9122820445e6eb336ae09f7f4d99b19789af5ddbf6",
+    "output": "{\"ranking\":[{\"candidate\":\"c2\",\"reason\":\"Has transport skills, already helps neighbours with library lifts and book carrying, lives 1 km away, and is free at the time.\"},{\"candidate\":\"c1\",\"reason\":\"Has transport skills and drives neighbours often, lives very close at 0.5 km, and is free at the time. Book carrying is not mentioned.\"},{\"candidate\":\"c3\",\"reason\":\"Has library lift and book carrying experience, but no transport skills listed and not free at the requested time.\"}]}",
+    "latencyMs": 1586.5321999999996,
+    "usage": {
+      "inputTokens": 1181,
+      "outputTokens": 196,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    }
+  },
+  "outcome": {
+    "scenarioId": "scenario-05",
+    "rankedBy": "ai",
+    "fallback": false,
+    "matches": [
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000041",
+        "name": "Fictional helper 41",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 1,
+        "score": 94,
+        "reason": "Has transport skills, already helps neighbours with library lifts and book carrying, lives 1 km away, and is free at the time."
+      },
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000042",
+        "name": "Fictional helper 42",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 0.5,
+        "score": 97,
+        "reason": "Has transport skills and drives neighbours often, lives very close at 0.5 km, and is free at the time. Book carrying is not mentioned."
+      },
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000043",
+        "name": "Fictional helper 43",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 2,
+        "score": 43,
+        "reason": "Has library lift and book carrying experience, but no transport skills listed and not free at the requested time."
+      }
+    ]
+  }
+}

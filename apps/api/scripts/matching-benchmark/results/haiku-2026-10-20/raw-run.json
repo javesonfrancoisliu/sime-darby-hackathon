@@ -1,0 +1,196 @@
+{
+  "datasetVersion": "township-matching-v1",
+  "provider": "anthropic",
+  "model": "claude-haiku-5-5",
+  "runKind": "live",
+  "pricing": {
+    "asOf": "2026-10-20",
+    "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+    "inputUsdPerMillion": 0.1,
+    "outputUsdPerMillion": 0.5,
+    "cacheReadUsdPerMillion": 0.01,
+    "cacheWriteUsdPerMillion": 0.125
+  },
+  "records": [
+    {
+      "scenarioId": "scenario-01",
+      "inputHash": "bb3c776d808f52e3bb3d2141106f4c9da92c92baf37730e3183640c29d425789",
+      "output": "{\"ranking\":[{\"candidate\":\"c2\",\"reason\":\"You need bags carried, and this helper regularly carries shopping and helps neighbours unload. They are close by and free at your time.\"},{\"candidate\":\"c1\",\"reason\":\"This helper knows groceries and is very close by, and is free at your time. They have not carried bags before, though.\"},{\"candidate\":\"c3\",\"reason\":\"This helper carries shopping regularly, which suits your need, but they are not free at your time and have no listed grocery skill.\"}]}",
+      "latencyMs": 2069.2368,
+      "usage": {
+        "inputTokens": 1202,
+        "outputTokens": 188,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 0
+      }
+    },
+    {
+      "scenarioId": "scenario-02",
+      "inputHash": "270977fd8001ef54c26872dbded5f6ec0386ea810f2e1df740643c141758955b",
+      "output": "{\"ranking\":[{\"candidate\":\"c2\",\"reason\":\"Has grocery skills and has done pasar trips, locating ingredients from lists. Close by and free at your time.\"},{\"candidate\":\"c1\",\"reason\":\"Experienced with grocery orders and very close by, and free at your time. Pasar shopping help is not listed for them.\"},{\"candidate\":\"c3\",\"reason\":\"Has done pasar trips and finding ingredients, but no grocery skill is listed and they are not free at your time.\"}]}",
+      "latencyMs": 1767.8902000000003,
+      "usage": {
+        "inputTokens": 1200,
+        "outputTokens": 186,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 0
+      }
+    },
+    {
+      "scenarioId": "scenario-03",
+      "inputHash": "499725ffcfa1eaa0b38a512a6a05be184da852c6274f5abaef93b6034172d9da",
+      "output": "{\"ranking\":[{\"candidate\":\"c1\",\"reason\":\"Has grocery skills and already collects prepaid orders for neighbours at home. Lives 0.5 km away and is free at your time.\"},{\"candidate\":\"c2\",\"reason\":\"Has grocery skills and knows food labels well. Lives 1 km away and is free at your time, though has less delivery experience.\"},{\"candidate\":\"c3\",\"reason\":\"Has delivered prepaid grocery orders before, but is 2 km away and not confirmed free at your requested time.\"}]}",
+      "latencyMs": 1893.1394999999993,
+      "usage": {
+        "inputTokens": 1198,
+        "outputTokens": 197,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 0
+      }
+    },
+    {
+      "scenarioId": "scenario-04",
+      "inputHash": "d12502fece3f379435680c2fd3466453cff70c5ca2178ba229c7eb01267befb4",
+      "output": "{\"ranking\":[{\"candidate\":\"c2\",\"reason\":\"Drives neighbours to appointments and has helped fold walkers into cars. Lives just 1 km away and is free at your time.\"},{\"candidate\":\"c1\",\"reason\":\"Has transport experience and knows local parking well. Lives very close, just 0.5 km away, and is free at your time.\"},{\"candidate\":\"c3\",\"reason\":\"Has helped fold walkers into cars and drives neighbours to appointments. Not confirmed free at your time, so please check first.\"}]}",
+      "latencyMs": 2612.2789000000002,
+      "usage": {
+        "inputTokens": 1198,
+        "outputTokens": 196,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 0
+      }
+    },
+    {
+      "scenarioId": "scenario-05",
+      "inputHash": "f9bda5356457c61471fe3a9122820445e6eb336ae09f7f4d99b19789af5ddbf6",
+      "output": "{\"ranking\":[{\"candidate\":\"c2\",\"reason\":\"Has transport skills, already helps neighbours with library lifts and book carrying, lives 1 km away, and is free at the time.\"},{\"candidate\":\"c1\",\"reason\":\"Has transport skills and drives neighbours often, lives very close at 0.5 km, and is free at the time. Book carrying is not mentioned.\"},{\"candidate\":\"c3\",\"reason\":\"Has library lift and book carrying experience, but no transport skills listed and not free at the requested time.\"}]}",
+      "latencyMs": 1586.5321999999996,
+      "usage": {
+        "inputTokens": 1181,
+        "outputTokens": 196,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 0
+      }
+    },
+    {
+      "scenarioId": "scenario-06",
+      "inputHash": "875cda630f8088a21ee447b6af7e5098c6c09cd630ec1a36ac8f7d6bdb27a5a3",
+      "output": "{\"ranking\":[{\"candidate\":\"c2\",\"reason\":\"You have digital help skills, and this helper teaches smartphone video calls and repeats each step, which suits your slow practice. They live 1 km away and are free then.\"},{\"candidate\":\"c1\",\"reason\":\"This helper has digital help skills and is very close, 0.5 km away, and free at your time. Their experience is mainly with computers and printers, not video calls.\"},{\"candidate\":\"c3\",\"reason\":\"This helper teaches smartphone video calls patiently, but they are not listed under digital help and are not confirmed free at your time.\"}]}",
+      "latencyMs": 1669.3917999999994,
+      "usage": {
+        "inputTokens": 1189,
+        "outputTokens": 217,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 0
+      }
+    },
+    {
+      "scenarioId": "scenario-07",
+      "inputHash": "52cd14a81a6f0c8104efa51393f32788c49386fcda6f193819089361e9a8f7ac",
+      "output": "{\"ranking\":[{\"candidate\":\"c2\",\"reason\":\"Has digital help skills and teaches WhatsApp scam awareness, close by and free at your time. A strong match for your request.\"},{\"candidate\":\"c1\",\"reason\":\"Has digital help skills and lives close by, and is free at your time. Their experience is in photos, not scam spotting.\"},{\"candidate\":\"c3\",\"reason\":\"Has WhatsApp scam-awareness experience, but is not listed as free at your time and has no digital help skill recorded.\"}]}",
+      "latencyMs": 1612.4398999999994,
+      "usage": {
+        "inputTokens": 1216,
+        "outputTokens": 194,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 0
+      }
+    },
+    {
+      "scenarioId": "scenario-08",
+      "inputHash": "998b22ce1390b2a5d8e28fe45b1093e24e498541d148c181ab8a65db996873bf",
+      "output": "{\"ranking\":[{\"candidate\":\"c1\",\"reason\":\"You need phone text made larger and contacts practised, and I have someone who helps with exactly that, very close by and free at your time.\"},{\"candidate\":\"c2\",\"reason\":\"This helper knows digital tools and lives nearby, and is free at your time, though their experience is with laptops rather than phones.\"},{\"candidate\":\"c3\",\"reason\":\"This helper has done phone text and contact help before, but is not free at your time and has no listed digital skills.\"}]}",
+      "latencyMs": 1750.5303000000022,
+      "usage": {
+        "inputTokens": 1187,
+        "outputTokens": 187,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 0
+      }
+    },
+    {
+      "scenarioId": "scenario-09",
+      "inputHash": "4687dc6c6673832c4feac1c2d1aeb1723114393f79b9726a1c6442c18403c5bf",
+      "output": "{\"ranking\":[{\"candidate\":\"c2\",\"reason\":\"You've got a volunteer who already reads clinic leaflets with neighbours and helps prepare questions. They're only 1 km away and free at your time.\"},{\"candidate\":\"c1\",\"reason\":\"This volunteer has health advice skills and lives 0.5 km away, and is free at your time. Their experience is more about fitness games.\"},{\"candidate\":\"c3\",\"reason\":\"This volunteer has done leaflet reading and question prep before, but isn't listed with health advice skills. They're 2 km away and not confirmed for your time.\"}]}",
+      "latencyMs": 1577.0838000000003,
+      "usage": {
+        "inputTokens": 1217,
+        "outputTokens": 217,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 0
+      }
+    },
+    {
+      "scenarioId": "scenario-10",
+      "inputHash": "8a70a608091404a331381681134a06e9635972f3328ad0e33e7802fa4105e0d5",
+      "output": "{\"ranking\":[{\"candidate\":\"c2\",\"reason\":\"You need help with clinic signs and counters, and this helper has done exactly that for neighbours. They are 1 km away and free at your time.\"},{\"candidate\":\"c1\",\"reason\":\"This helper knows healthy-living leaflets and is only 0.5 km away and free at your time, but has not helped with clinic signs or counters.\"},{\"candidate\":\"c3\",\"reason\":\"This helper has guided neighbours to clinic counters, but is not free at your requested time. Please check that they can still come.\"}]}",
+      "latencyMs": 1644.6379000000015,
+      "usage": {
+        "inputTokens": 1203,
+        "outputTokens": 203,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 0
+      }
+    },
+    {
+      "scenarioId": "scenario-11",
+      "inputHash": "7beddcc797f2acaded1074c5a33346541d77fce59e33e06f83c19066f9619a61",
+      "output": "{\"ranking\":[{\"candidate\":\"c1\",\"reason\":\"Has home repair skills and has fixed loose furniture handles before. Lives close by and is free at your requested time.\"},{\"candidate\":\"c2\",\"reason\":\"Has home repair skills, though experience is mostly garden and porch help. Close by and free at your requested time.\"},{\"candidate\":\"c3\",\"reason\":\"Has fixed loose handles with hand tools before, but no listed skill and not confirmed free at your requested time.\"}]}",
+      "latencyMs": 1570.130799999999,
+      "usage": {
+        "inputTokens": 1197,
+        "outputTokens": 183,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 0
+      }
+    },
+    {
+      "scenarioId": "scenario-12",
+      "inputHash": "2e28671565c88e5d8345c12cba69f961ecbb38143fb668b098de89d6f57f6849",
+      "output": "{\"ranking\":[{\"candidate\":\"c2\",\"reason\":\"You need help with light boxes on low shelves and clear walkways, and I have done this for neighbours. I'm nearby and free at your time.\"},{\"candidate\":\"c1\",\"reason\":\"I have home repair skills and I'm very close by, and I'm free at your requested time. I fix outdoor taps, but I haven't done box moving.\"},{\"candidate\":\"c3\",\"reason\":\"I have helped neighbours with boxes on low shelves and clear walkways, but I'm not listed as free at your time.\"}]}",
+      "latencyMs": 1811.427499999998,
+      "usage": {
+        "inputTokens": 1210,
+        "outputTokens": 206,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 0
+      }
+    },
+    {
+      "scenarioId": "scenario-13",
+      "inputHash": "38a34be1ba5e4906c3731f764fb90a4b7f66177f7431cdadbffc685c8136159c",
+      "output": "{\"ranking\":[{\"candidate\":\"c2\",\"reason\":\"Has welcomed first-time board-game visitors and introduced them to groups before, is 1 km away, and is free at the requested time.\"},{\"candidate\":\"c1\",\"reason\":\"Is only 0.5 km away and free at the requested time, but their experience is with sound equipment rather than welcoming newcomers.\"},{\"candidate\":\"c3\",\"reason\":\"Has welcomed first-time visitors before, but is 2 km away and not confirmed as available at the requested time.\"}]}",
+      "latencyMs": 1511.6990000000005,
+      "usage": {
+        "inputTokens": 1190,
+        "outputTokens": 197,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 0
+      }
+    },
+    {
+      "scenarioId": "scenario-14",
+      "inputHash": "38ec066130f4298b08fd0910e1ae1dc1d71519a9868443703e78a24bd9178e1d",
+      "output": "{\"ranking\":[{\"candidate\":\"c2\",\"reason\":\"Hosts gentle garden visits and suggests seated seed-sorting, just what you asked for. Nearby and available at your time.\"},{\"candidate\":\"c1\",\"reason\":\"Has community activity skills and is very close and available, but their experience leans toward heavy digging, which you wanted to avoid.\"},{\"candidate\":\"c3\",\"reason\":\"Has gentle garden visit experience, but lists no skills and is not confirmed available at your time.\"}]}",
+      "latencyMs": 1972.7237999999998,
+      "usage": {
+        "inputTokens": 1216,
+        "outputTokens": 189,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 0
+      }
+    },
+    {
+      "scenarioId": "scenario-15",
+      "inputHash": "22ad542357cbcdca8046117b4110e274bfd86f3342da908e9e00d5edab776a55",
+      "output": "{\"ranking\":[{\"candidate\":\"c2\",\"reason\":\"Helps neighbours read timetables and find quiet activities, lives 1 km away, and is free at the requested time. A good match.\"},{\"candidate\":\"c3\",\"reason\":\"Has the same helpful experience with timetables and quiet activities, but is 2 km away and not confirmed for the requested time.\"},{\"candidate\":\"c1\",\"reason\":\"Lives closest, but mainly leads loud music and stage events, which is the opposite of the quiet activity you asked for.\"}]}",
+      "latencyMs": 1488.5189000000028,
+      "usage": {
+        "inputTokens": 1190,
+        "outputTokens": 197,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 0
+      }
+    }
+  ]
+}

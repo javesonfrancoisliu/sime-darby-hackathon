@@ -1,0 +1,46 @@
+{
+  "model": "claude-haiku-5-5",
+  "content": [
+    {
+      "type": "tool_use",
+      "id": "toolu_01Etw4BSvQ84DhDW7H8XCQoN",
+      "name": "submit_ranking",
+      "input": {
+        "ranking": [
+          {
+            "candidate": "c1",
+            "reason": "Has home repair skills and has fixed loose furniture handles before. Lives close by and is free at your requested time."
+          },
+          {
+            "candidate": "c2",
+            "reason": "Has home repair skills, though experience is mostly garden and porch help. Close by and free at your requested time."
+          },
+          {
+            "candidate": "c3",
+            "reason": "Has fixed loose handles with hand tools before, but no listed skill and not confirmed free at your requested time."
+          }
+        ]
+      },
+      "caller": {
+        "type": "direct"
+      }
+    }
+  ],
+  "usage": {
+    "input_tokens": 1197,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 183,
+    "output_tokens_details": {
+      "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+  },
+  "stopReason": "tool_use"
+}

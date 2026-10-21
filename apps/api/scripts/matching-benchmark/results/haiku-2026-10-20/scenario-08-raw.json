@@ -1,0 +1,46 @@
+{
+  "model": "claude-haiku-5-5",
+  "content": [
+    {
+      "type": "tool_use",
+      "id": "toolu_01AzdUvCowhnsuVJQwQtzLMh",
+      "name": "submit_ranking",
+      "input": {
+        "ranking": [
+          {
+            "candidate": "c1",
+            "reason": "You need phone text made larger and contacts practised, and I have someone who helps with exactly that, very close by and free at your time."
+          },
+          {
+            "candidate": "c2",
+            "reason": "This helper knows digital tools and lives nearby, and is free at your time, though their experience is with laptops rather than phones."
+          },
+          {
+            "candidate": "c3",
+            "reason": "This helper has done phone text and contact help before, but is not free at your time and has no listed digital skills."
+          }
+        ]
+      },
+      "caller": {
+        "type": "direct"
+      }
+    }
+  ],
+  "usage": {
+    "input_tokens": 1187,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 187,
+    "output_tokens_details": {
+      "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+  },
+  "stopReason": "tool_use"
+}

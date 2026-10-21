@@ -1,0 +1,33 @@
+{
+  "status": 200,
+  "latencyMs": 1833.9355000000032,
+  "model": "claude-haiku-5-5",
+  "usage": {
+    "input_tokens": 1388,
+    "output_tokens": 154,
+    "cache_read_input_tokens": 0,
+    "cache_creation_input_tokens": 0
+  },
+  "content": [
+    {
+      "type": "tool_use",
+      "id": "toolu_01DtGTMpHDVr9PPjMQzKsynh",
+      "name": "submit_ranking",
+      "input": {
+        "ranking": [
+          {
+            "candidate": "c1",
+            "reason": "Her digital help and community activities skills and her weekly help with grandparents' phones suit a leaflet explanation; 0.5 km and confirmed availability."
+          },
+          {
+            "candidate": "c2",
+            "reason": "Ladder work is not among her listed skills, so this is a weaker fit despite 1 km distance and confirmed availability."
+          }
+        ]
+      },
+      "caller": {
+        "type": "direct"
+      }
+    }
+  ]
+}

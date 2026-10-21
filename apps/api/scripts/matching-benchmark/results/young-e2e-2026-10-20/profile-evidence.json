@@ -1,0 +1,51 @@
+﻿{
+    "id":  "de2dd90d-15aa-4150-921c-b7477087b006",
+    "name":  "Justina Tan",
+    "role":  "volunteer",
+    "verification":  "verified",
+    "skills":  [
+                   "groceries",
+                   "digital_literacy",
+                   "transport",
+                   "community_activity"
+               ],
+    "experience":  "Helps her grandparents with phones and errands every week.",
+    "availability":  [
+                         {
+                             "start":  "08:00",
+                             "day":  "mon",
+                             "end":  "21:00"
+                         },
+                         {
+                             "start":  "08:00",
+                             "day":  "tue",
+                             "end":  "21:00"
+                         },
+                         {
+                             "start":  "08:00",
+                             "day":  "wed",
+                             "end":  "21:00"
+                         },
+                         {
+                             "start":  "08:00",
+                             "day":  "thu",
+                             "end":  "21:00"
+                         },
+                         {
+                             "start":  "08:00",
+                             "day":  "fri",
+                             "end":  "21:00"
+                         },
+                         {
+                             "start":  "08:00",
+                             "day":  "sat",
+                             "end":  "21:00"
+                         },
+                         {
+                             "start":  "08:00",
+                             "day":  "sun",
+                             "end":  "21:00"
+                         }
+                     ],
+    "area":  "Block C, Elmina West"
+}

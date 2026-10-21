@@ -3,13 +3,14 @@ import type {
   Message,
   MessageCreateParamsNonStreaming,
 } from "@anthropic-ai/sdk/resources/messages";
-import { MAX_REASON_LENGTH } from "@sdh/contracts";
 import { getAnthropicApiKey } from "../../lib/anthropicKey";
 import { config } from "../../lib/config";
 import { logger } from "../../lib/logger";
 import { buildMessageRequest, candidateLabel, RANKING_TOOL_NAME, RankingInput } from "./prompt";
 import type { Reranker, RerankResult } from "./reranker";
 import { ruleReason, type MatchTarget, type ScoredVolunteer } from "./scoring";
+import { prepareExplanation } from "./explanations";
+export { isSafeReason } from "./explanations";
 
 export type SendMessage = (
   request: MessageCreateParamsNonStreaming,
@@ -27,12 +28,15 @@ let client: { apiKey: string; instance: Anthropic } | undefined;
 // The key is loaded inside the call so a slow SSM read counts against the re-rank timeout.
 // The client is rebuilt only when the key rotates; retries are off because the timeout is tight.
 const defaultSend: SendMessage = async (request, signal) => {
+  signal.throwIfAborted();
   const apiKey = await getAnthropicApiKey();
+  signal.throwIfAborted();
   if (client?.apiKey !== apiKey) {
     client = { apiKey, instance: new Anthropic({ apiKey, maxRetries: 0 }) };
   }
   return client.instance.messages.create(request, { signal });
 };
+export { defaultSend as sendClaudeMessage };
 
 const defaultDeps = (): ClaudeDeps => ({
   send: defaultSend,
@@ -48,10 +52,10 @@ const rulesResult = (candidates: ScoredVolunteer[]): RerankResult => ({
   })),
 });
 
-const truncate = (text: string): string =>
-  text.length > MAX_REASON_LENGTH ? `${text.slice(0, MAX_REASON_LENGTH - 3).trimEnd()}...` : text;
-
-function withTimeout<T>(run: (signal: AbortSignal) => Promise<T>, timeoutMs: number): Promise<T> {
+export function withTimeout<T>(
+  run: (signal: AbortSignal) => Promise<T>,
+  timeoutMs: number,
+): Promise<T> {
   const controller = new AbortController();
   let timer: NodeJS.Timeout | undefined;
   const timeout = new Promise<never>((_, reject) => {
@@ -82,24 +86,19 @@ function mergeRanking(ranking: RankingInput, candidates: ScoredVolunteer[]): Rer
     seen.add(candidate);
     items.push({
       volunteerId: entry.volunteer.id,
-      reason: truncate(isSafeReason(reason) ? reason.trim() : ruleReason(entry)),
+      reason: prepareExplanation(reason, entry).reason,
     });
   }
+  if (items.length === 0) throw new Error("No eligible candidates in model ranking");
   candidates.forEach((entry, index) => {
     if (seen.has(candidateLabel(index))) return;
-    items.push({ volunteerId: entry.volunteer.id, reason: truncate(ruleReason(entry)) });
+    items.push({
+      volunteerId: entry.volunteer.id,
+      reason: prepareExplanation(ruleReason(entry), entry).reason,
+    });
   });
   return { rankedBy: "ai", items };
 }
-
-// Model reasons are shown to elders; anything that looks like a link, email or phone number
-// could be injected via user-written text, so it is replaced with the rule-based reason.
-const LINK_OR_EMAIL = /(https?:|www\.|@|[a-z0-9-]+\.[a-z]{2,})/i;
-const MAX_DIGITS = 6;
-export const isSafeReason = (reason: string): boolean =>
-  reason.trim().length > 0 &&
-  !LINK_OR_EMAIL.test(reason) &&
-  reason.replace(/\D/g, "").length <= MAX_DIGITS;
 
 export function createClaudeReranker(deps: Partial<ClaudeDeps> = {}): Reranker {
   return {

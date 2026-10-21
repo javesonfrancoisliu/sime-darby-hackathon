@@ -1,0 +1,90 @@
+{
+  "model": "claude-haiku-5-5",
+  "inferenceAttempts": 1,
+  "automaticRetries": 0,
+  "usage": {
+    "input_tokens": 1318,
+    "output_tokens": 208,
+    "cache_read_input_tokens": 0,
+    "cache_creation_input_tokens": 0
+  },
+  "estimatedCostUsd": 0.0002358,
+  "pricingSource": "https://platform.claude.com/docs/en/models/haiku-5-5/overview",
+  "modelTransportLatencyMs": 2119.082499999997,
+  "feedHttp": {
+    "status": 200,
+    "elapsedMs": 2788.3692
+  },
+  "rawStructuredRankingValid": true,
+  "rawAllExplanationsWithin140": false,
+  "finalAllExplanationsWithin140": true,
+  "rankingFallback": false,
+  "explanationFallbackCount": 1,
+  "scoresUnchanged": true,
+  "rankingChangedFromBaseline": false,
+  "communityEventsRemainRules": true,
+  "frontendVerification": "Saved genuine response rendered through Young-role React page; source, reasons, scores and all sorts passed. No connected visual browser.",
+  "acceptance": {
+    "acceptHttpStatus": 200,
+    "trackedHttpStatus": 200,
+    "requestId": "d738bced-14a2-410c-b970-6fad67534cfb",
+    "title": "Ride to the health clinic",
+    "status": "matched",
+    "volunteerId": "de2dd90d-15aa-4150-921c-b7477087b006",
+    "elderId": "5ece7839-27f4-45f1-8dfa-0d945394f5ea",
+    "absentFromOpenFeed": true,
+    "restoredFeedAllRules": true,
+    "persistentModelDisabled": true
+  },
+  "rows": [
+    {
+      "title": "Ride to the health clinic",
+      "id": "d738bced-14a2-410c-b970-6fad67534cfb",
+      "label": "c1",
+      "baselineScore": 88,
+      "finalScore": 88,
+      "baselineRank": 6,
+      "finalRank": 6,
+      "rawReason": "She has transport and community-activities skills and helps her grandparents with errands weekly, so this 2 km clinic ride suits her well.",
+      "rawCharacters": 138,
+      "finalReason": "She has transport and community-activities skills and helps her grandparents with errands weekly, so this 2 km clinic ride suits her well.",
+      "finalCharacters": 138,
+      "treatment": "unchanged"
+    },
+    {
+      "title": "Explain a health leaflet",
+      "id": "408bc4aa-9a25-4537-89ba-65d988d68f8a",
+      "label": "c2",
+      "baselineScore": 47,
+      "finalScore": 47,
+      "baselineRank": 7,
+      "finalRank": 7,
+      "rawReason": "Her digital help and weekly support for grandparents fit a short, low-distance leaflet explanation, though health advice is not a listed skill.",
+      "rawCharacters": 143,
+      "finalReason": "About 0.5 km away; Free on Thursday 08:00 to 21:00",
+      "finalCharacters": 50,
+      "treatment": "length-fallback-to-rule-evidence"
+    },
+    {
+      "title": "Change a ceiling light bulb",
+      "id": "7e705364-3b13-453f-8d8a-989321c610ff",
+      "label": "c3",
+      "baselineScore": 44,
+      "finalScore": 44,
+      "baselineRank": 8,
+      "finalRank": 8,
+      "rawReason": "Her listed skills do not include home repairs and no ladder experience is stated, so this ceiling bulb task is a weaker fit.",
+      "rawCharacters": 124,
+      "finalReason": "Her listed skills do not include home repairs and no ladder experience is stated, so this ceiling bulb task is a weaker fit.",
+      "finalCharacters": 124,
+      "treatment": "unchanged"
+    }
+  ],
+  "limitations": [
+    "One production request, not a ranking-quality benchmark.",
+    "Claude retained baseline order; this sample does not demonstrate an order improvement.",
+    "AI-assisted describes ranking; the leaflet explanation uses validated factual fallback.",
+    "Actual browser screenshot and 360 px visual inspection of the genuine result remain unverified.",
+    "Guarded API stopped; normal rules-only API and Vite frontends restored."
+  ]
+}

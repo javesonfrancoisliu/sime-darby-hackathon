@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "benchmark:matching": "tsx scripts/matching-benchmark/cli.ts",
     "dev": "tsx watch --env-file-if-exists=.env src/local.ts",
     "build": "node --input-type=module -e \"import{rmSync}from'node:fs';rmSync('dist',{recursive:true,force:true})\" && pnpm run build:core && pnpm run build:matching",
     "build:core": "esbuild src/handler.ts --bundle --platform=node --target=node24 --format=esm --sourcemap --banner:js=\"import{createRequire}from'node:module';const require=createRequire(import.meta.url);\" --outfile=dist/core/handler.mjs",

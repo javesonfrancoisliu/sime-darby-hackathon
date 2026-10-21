@@ -100,10 +100,25 @@ resource "aws_apigatewayv2_route" "matching" {
   target    = "integrations/${aws_apigatewayv2_integration.matching.id}"
 }
 
+# Personalized young-volunteer recommendations reuse the existing matching Lambda.
+resource "aws_apigatewayv2_route" "opportunities_matching" {
+  api_id    = aws_apigatewayv2_api.http.id
+  route_key = "GET /api/opportunities"
+  target    = "integrations/${aws_apigatewayv2_integration.matching.id}"
+}
+
 resource "aws_lambda_permission" "matching" {
   statement_id  = "AllowHttpApiInvokeMatches"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.matching.function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.http.execution_arn}/*/GET/api/requests/*/matches"
+}
+
+resource "aws_lambda_permission" "opportunities_matching" {
+  statement_id  = "AllowHttpApiInvokeOpportunities"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.matching.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.http.execution_arn}/*/GET/api/opportunities"
 }

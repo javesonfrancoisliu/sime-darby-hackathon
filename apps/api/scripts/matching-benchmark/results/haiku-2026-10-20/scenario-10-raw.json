@@ -1,0 +1,46 @@
+{
+  "model": "claude-haiku-5-5",
+  "content": [
+    {
+      "type": "tool_use",
+      "id": "toolu_01CiDfeLAuvmjoGZwULb4DJg",
+      "name": "submit_ranking",
+      "input": {
+        "ranking": [
+          {
+            "candidate": "c2",
+            "reason": "You need help with clinic signs and counters, and this helper has done exactly that for neighbours. They are 1 km away and free at your time."
+          },
+          {
+            "candidate": "c1",
+            "reason": "This helper knows healthy-living leaflets and is only 0.5 km away and free at your time, but has not helped with clinic signs or counters."
+          },
+          {
+            "candidate": "c3",
+            "reason": "This helper has guided neighbours to clinic counters, but is not free at your requested time. Please check that they can still come."
+          }
+        ]
+      },
+      "caller": {
+        "type": "direct"
+      }
+    }
+  ],
+  "usage": {
+    "input_tokens": 1203,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 203,
+    "output_tokens_details": {
+      "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+  },
+  "stopReason": "tool_use"
+}

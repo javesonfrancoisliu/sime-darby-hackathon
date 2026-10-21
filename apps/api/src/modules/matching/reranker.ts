@@ -34,9 +34,11 @@ export function selectReranker(): Reranker {
 export function toMatches(result: RerankResult, candidates: Candidate[]): Match[] {
   const byId = new Map(candidates.map((entry) => [entry.volunteer.id, entry]));
   const matches: Match[] = [];
+  const seen = new Set<string>();
   for (const item of result.items) {
     const entry = byId.get(item.volunteerId);
-    if (!entry) continue;
+    if (!entry || seen.has(item.volunteerId)) continue;
+    seen.add(item.volunteerId);
     matches.push({
       volunteerId: entry.volunteer.id,
       name: entry.volunteer.name,

@@ -1,0 +1,5 @@
+{
+  "model": "claude-haiku-5-5",
+  "maximumAttempts": 15,
+  "automaticRetries": 0
+}

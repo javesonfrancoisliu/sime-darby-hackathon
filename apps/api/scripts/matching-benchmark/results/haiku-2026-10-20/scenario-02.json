@@ -1,0 +1,45 @@
+{
+  "record": {
+    "scenarioId": "scenario-02",
+    "inputHash": "270977fd8001ef54c26872dbded5f6ec0386ea810f2e1df740643c141758955b",
+    "output": "{\"ranking\":[{\"candidate\":\"c2\",\"reason\":\"Has grocery skills and has done pasar trips, locating ingredients from lists. Close by and free at your time.\"},{\"candidate\":\"c1\",\"reason\":\"Experienced with grocery orders and very close by, and free at your time. Pasar shopping help is not listed for them.\"},{\"candidate\":\"c3\",\"reason\":\"Has done pasar trips and finding ingredients, but no grocery skill is listed and they are not free at your time.\"}]}",
+    "latencyMs": 1767.8902000000003,
+    "usage": {
+      "inputTokens": 1200,
+      "outputTokens": 186,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    }
+  },
+  "outcome": {
+    "scenarioId": "scenario-02",
+    "rankedBy": "ai",
+    "fallback": false,
+    "matches": [
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000011",
+        "name": "Fictional helper 11",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 1,
+        "score": 94,
+        "reason": "Has grocery skills and has done pasar trips, locating ingredients from lists. Close by and free at your time."
+      },
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000012",
+        "name": "Fictional helper 12",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 0.5,
+        "score": 97,
+        "reason": "Experienced with grocery orders and very close by, and free at your time. Pasar shopping help is not listed for them."
+      },
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000013",
+        "name": "Fictional helper 13",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 2,
+        "score": 43,
+        "reason": "Has done pasar trips and finding ingredients, but no grocery skill is listed and they are not free at your time."
+      }
+    ]
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "record": {
+    "scenarioId": "scenario-04",
+    "inputHash": "d12502fece3f379435680c2fd3466453cff70c5ca2178ba229c7eb01267befb4",
+    "output": "{\"ranking\":[{\"candidate\":\"c2\",\"reason\":\"Drives neighbours to appointments and has helped fold walkers into cars. Lives just 1 km away and is free at your time.\"},{\"candidate\":\"c1\",\"reason\":\"Has transport experience and knows local parking well. Lives very close, just 0.5 km away, and is free at your time.\"},{\"candidate\":\"c3\",\"reason\":\"Has helped fold walkers into cars and drives neighbours to appointments. Not confirmed free at your time, so please check first.\"}]}",
+    "latencyMs": 2612.2789000000002,
+    "usage": {
+      "inputTokens": 1198,
+      "outputTokens": 196,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    }
+  },
+  "outcome": {
+    "scenarioId": "scenario-04",
+    "rankedBy": "ai",
+    "fallback": false,
+    "matches": [
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000031",
+        "name": "Fictional helper 31",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 1,
+        "score": 94,
+        "reason": "Drives neighbours to appointments and has helped fold walkers into cars. Lives just 1 km away and is free at your time."
+      },
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000032",
+        "name": "Fictional helper 32",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 0.5,
+        "score": 97,
+        "reason": "Has transport experience and knows local parking well. Lives very close, just 0.5 km away, and is free at your time."
+      },
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000033",
+        "name": "Fictional helper 33",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 2,
+        "score": 43,
+        "reason": "Has helped fold walkers into cars and drives neighbours to appointments. Not confirmed free at your time, so please check first."
+      }
+    ]
+  }
+}

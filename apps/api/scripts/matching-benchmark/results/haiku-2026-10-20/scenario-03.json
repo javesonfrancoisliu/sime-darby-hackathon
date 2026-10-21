@@ -1,0 +1,45 @@
+{
+  "record": {
+    "scenarioId": "scenario-03",
+    "inputHash": "499725ffcfa1eaa0b38a512a6a05be184da852c6274f5abaef93b6034172d9da",
+    "output": "{\"ranking\":[{\"candidate\":\"c1\",\"reason\":\"Has grocery skills and already collects prepaid orders for neighbours at home. Lives 0.5 km away and is free at your time.\"},{\"candidate\":\"c2\",\"reason\":\"Has grocery skills and knows food labels well. Lives 1 km away and is free at your time, though has less delivery experience.\"},{\"candidate\":\"c3\",\"reason\":\"Has delivered prepaid grocery orders before, but is 2 km away and not confirmed free at your requested time.\"}]}",
+    "latencyMs": 1893.1394999999993,
+    "usage": {
+      "inputTokens": 1198,
+      "outputTokens": 197,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0
+    }
+  },
+  "outcome": {
+    "scenarioId": "scenario-03",
+    "rankedBy": "ai",
+    "fallback": false,
+    "matches": [
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000021",
+        "name": "Fictional helper 21",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 0.5,
+        "score": 97,
+        "reason": "Has grocery skills and already collects prepaid orders for neighbours at home. Lives 0.5 km away and is free at your time."
+      },
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000022",
+        "name": "Fictional helper 22",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 1,
+        "score": 94,
+        "reason": "Has grocery skills and knows food labels well. Lives 1 km away and is free at your time, though has less delivery experience."
+      },
+      {
+        "volunteerId": "00000000-0000-4000-8000-000000000023",
+        "name": "Fictional helper 23",
+        "area": "Fictional Elmina precinct",
+        "distanceKm": 2,
+        "score": 43,
+        "reason": "Has delivered prepaid grocery orders before, but is 2 km away and not confirmed free at your requested time."
+      }
+    ]
+  }
+}

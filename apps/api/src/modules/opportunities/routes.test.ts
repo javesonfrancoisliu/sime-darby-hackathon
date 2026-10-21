@@ -82,18 +82,20 @@ describe("GET /api/opportunities", () => {
       item.kind === "request" ? item.request.id : item.event.title,
     );
 
-  it("lists nearby open requests and events, best match first, without exact locations", async () => {
+  it("lists nearby requests without private locations and excludes ordinary community activities", async () => {
     const res = await call("GET", "/api/opportunities", { as: volunteer.id });
     expect(res.status).toBe(200);
     const body = res.body as OpportunitiesResponse;
     const found = ids(body);
     expect(found[0]).toBe(groceries.id);
     expect(found).toContain(transport.id);
-    expect(found).toContain("Phone basics class");
+    expect(found).not.toContain("Phone basics class");
+    expect(body.items.every((item) => item.kind === "request")).toBe(true);
     expect(found).not.toContain(farAway.id);
     expect(found).not.toContain(pending.id);
     const first = body.items[0];
     expect(first?.kind === "request" && first.request).not.toHaveProperty("location");
+    expect(first?.reasons.some((reason) => reason.startsWith("Free on Saturday"))).toBe(true);
   });
 
   it("filters by category, time window and schedule fit", async () => {

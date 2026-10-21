@@ -4,10 +4,12 @@ import { requireUser } from "../../lib/identity";
 import { parse } from "../../lib/validate";
 import { getRequest } from "../requests/repository";
 import { listUsersByRole } from "../users/repository";
-import { selectReranker, toMatches } from "./reranker";
-import { rankVolunteers } from "./scoring";
+import { matchVolunteers } from "./service";
+import { createOpportunityRoutes } from "../opportunities/routes";
+import { matchOpportunitiesForVolunteer } from "./requestMatching";
 
 export const matchingRoutes: Route[] = [
+  ...createOpportunityRoutes(matchOpportunitiesForVolunteer),
   {
     method: "GET",
     path: "/api/requests/{id}/matches",
@@ -24,14 +26,15 @@ export const matchingRoutes: Route[] = [
       if (!matchable) {
         throw new HttpError("CONFLICT", "Suggestions are available once the request is approved");
       }
+      if (Date.parse(request.scheduledAt) <= Date.now()) {
+        throw new HttpError(
+          "CONFLICT",
+          "Suggestions are unavailable after the requested start time",
+        );
+      }
 
       const volunteers = await listUsersByRole("volunteer", "verified");
-      const candidates = rankVolunteers(request, volunteers);
-      const result = await selectReranker().rerank(request, candidates);
-      return ok({
-        rankedBy: result.rankedBy,
-        matches: toMatches(result, candidates),
-      } satisfies MatchesResponse);
+      return ok((await matchVolunteers(request, volunteers)) satisfies MatchesResponse);
     },
   },
 ];

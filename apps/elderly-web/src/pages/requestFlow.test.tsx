@@ -37,6 +37,17 @@ beforeEach(() => {
 afterEach(() => vi.useRealTimers());
 
 describe("Request flow", () => {
+  it("keeps the resident confirmation focused on tracking, without requesting volunteer recommendations", async () => {
+    const { calls } = installFakeApi({
+      "POST /api/requests": { status: 201, body: makeRequest() },
+    });
+    await walkToConfirm();
+    await pick("Send request");
+    expect(await screen.findByText("Request sent")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /View my requests/ })).toBeInTheDocument();
+    expect(screen.queryByText("Suggested volunteers")).not.toBeInTheDocument();
+    expect(calls.some((c) => c.path.endsWith("/matches"))).toBe(false);
+  });
   it("walks note, day and time and length, confirm, then sends the contract body", async () => {
     const { calls } = installFakeApi(createRoute());
     await walkToConfirm();

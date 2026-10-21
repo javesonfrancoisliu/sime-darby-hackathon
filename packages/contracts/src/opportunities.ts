@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { Category, IsoDateTime } from "./common";
 import { CommunityEvent } from "./events";
+import { MAX_REASON_LENGTH } from "./matching";
 import { HelpRequestSummary } from "./requests";
 
 const MIN_RADIUS_KM = 0.5;
@@ -27,7 +28,11 @@ export type OpportunitiesQuery = z.infer<typeof OpportunitiesQuery>;
 
 const Scored = z.object({
   matchScore: z.number().int().min(0).max(100),
-  reasons: z.array(z.string()),
+  reasons: z.array(z.string().max(MAX_REASON_LENGTH)),
+  matchSource: z.enum(["ai", "rules"]).optional(),
+  // Explanation provenance is independent of the ranking source; no DB field.
+  explanationSource: z.enum(["ai", "rules"]).optional(),
+  matchRank: z.number().int().positive().optional(),
 });
 
 export const Opportunity = z.discriminatedUnion("kind", [

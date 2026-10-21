@@ -76,7 +76,7 @@ describe("GET /api/requests/{id}/matches", () => {
     const body = res.body as MatchesResponse;
     expect(body.rankedBy).toBe("rules");
     expect(body.matches.map((m) => m.volunteerId)).toEqual([best.id, near.id]);
-    expect(body.matches[0]?.reason).toContain("Has helped with groceries");
+    expect(body.matches[0]?.reason).toContain("Lists groceries as a skill");
     expect(body.matches[0]?.distanceKm).toBe(0.5);
   });
 

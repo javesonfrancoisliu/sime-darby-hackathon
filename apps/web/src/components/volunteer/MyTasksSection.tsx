@@ -10,6 +10,7 @@ export type MyTasksSectionProps = {
   onComplete: (task: AcceptedTask) => void;
   // Points the server awarded per task id, from the points ledger.
   pointsByTask: ReadonlyMap<string, number>;
+  title?: string;
 };
 
 // Compact tracking list of accepted Township Connect tasks. Status flow:
@@ -17,13 +18,18 @@ export type MyTasksSectionProps = {
 //   completed -> event attendance recorded, or request waiting for resident confirmation
 //   confirmed -> confirmed by the resident, with the points the server awarded
 // Hidden entirely when there are no accepted tasks.
-export function MyTasksSection({ tasks, onComplete, pointsByTask }: MyTasksSectionProps) {
+export function MyTasksSection({
+  tasks,
+  onComplete,
+  pointsByTask,
+  title = "My accepted tasks",
+}: MyTasksSectionProps) {
   if (tasks.length === 0) return null;
 
   return (
     <section className="ui-section" aria-labelledby="my-tasks-heading">
       <h2 className="ui-section-title" id="my-tasks-heading">
-        My accepted tasks
+        {title}
       </h2>
       <ul className="community-list ui-stack">
         {tasks.map((task) => {

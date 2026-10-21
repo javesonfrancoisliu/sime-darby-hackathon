@@ -20,6 +20,7 @@ export type AcceptedTask = {
   id: string;
   // Volunteers can report completion of their own requests or event attendance.
   kind: OpportunityKind;
+  eventPurpose?: CommunityEvent["purpose"];
   title: string;
   area: string;
   category: Opportunity["category"];
@@ -53,6 +54,7 @@ function eventToTask(event: CommunityEvent): AcceptedTask {
   return {
     id: event.id,
     kind: "event",
+    eventPurpose: event.purpose,
     title: event.title,
     area: event.location.area,
     category: event.category,

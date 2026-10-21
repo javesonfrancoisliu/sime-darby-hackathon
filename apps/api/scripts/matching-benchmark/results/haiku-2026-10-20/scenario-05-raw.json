@@ -1,0 +1,46 @@
+{
+  "model": "claude-haiku-5-5",
+  "content": [
+    {
+      "type": "tool_use",
+      "id": "toolu_01FgKYkSRkKyttuZk7qfB4JK",
+      "name": "submit_ranking",
+      "input": {
+        "ranking": [
+          {
+            "candidate": "c2",
+            "reason": "Has transport skills, already helps neighbours with library lifts and book carrying, lives 1 km away, and is free at the time."
+          },
+          {
+            "candidate": "c1",
+            "reason": "Has transport skills and drives neighbours often, lives very close at 0.5 km, and is free at the time. Book carrying is not mentioned."
+          },
+          {
+            "candidate": "c3",
+            "reason": "Has library lift and book carrying experience, but no transport skills listed and not free at the requested time."
+          }
+        ]
+      },
+      "caller": {
+        "type": "direct"
+      }
+    }
+  ],
+  "usage": {
+    "input_tokens": 1181,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 196,
+    "output_tokens_details": {
+      "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+  },
+  "stopReason": "tool_use"
+}

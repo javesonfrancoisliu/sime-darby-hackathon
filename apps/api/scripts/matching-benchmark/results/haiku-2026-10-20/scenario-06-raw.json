@@ -1,0 +1,46 @@
+{
+  "model": "claude-haiku-5-5",
+  "content": [
+    {
+      "type": "tool_use",
+      "id": "toolu_017iEbYbyo5krohxTPq46zxQ",
+      "name": "submit_ranking",
+      "input": {
+        "ranking": [
+          {
+            "candidate": "c2",
+            "reason": "You have digital help skills, and this helper teaches smartphone video calls and repeats each step, which suits your slow practice. They live 1 km away and are free then."
+          },
+          {
+            "candidate": "c1",
+            "reason": "This helper has digital help skills and is very close, 0.5 km away, and free at your time. Their experience is mainly with computers and printers, not video calls."
+          },
+          {
+            "candidate": "c3",
+            "reason": "This helper teaches smartphone video calls patiently, but they are not listed under digital help and are not confirmed free at your time."
+          }
+        ]
+      },
+      "caller": {
+        "type": "direct"
+      }
+    }
+  ],
+  "usage": {
+    "input_tokens": 1189,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 0,
+      "ephemeral_1h_input_tokens": 0
+    },
+    "output_tokens": 217,
+    "output_tokens_details": {
+      "thinking_tokens": 0
+    },
+    "service_tier": "standard",
+    "inference_geo": "global",
+    "speed": "standard"
+  },
+  "stopReason": "tool_use"
+}

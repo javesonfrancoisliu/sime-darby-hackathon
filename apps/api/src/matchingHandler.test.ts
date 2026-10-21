@@ -6,6 +6,10 @@ import { coreRoutes } from "./routes";
 import { apiEvent } from "./test/event";
 
 describe("matching handler", () => {
+  it("serves personalized opportunities in the secret-owning matching Lambda", async () => {
+    const res = await handler(apiEvent({ path: "/api/opportunities" }));
+    expect(res.statusCode).not.toBe(404);
+  });
   it("serves the matches route", async () => {
     const res = await handler(apiEvent({ path: "/api/requests/x/matches" }));
     expect(res.statusCode).not.toBe(404);
@@ -18,11 +22,15 @@ describe("matching handler", () => {
 });
 
 describe("route split", () => {
-  it("serves every local route from exactly one Lambda", () => {
+  it("shares only the opportunities feed: core keeps a rules-only copy so a deploy cannot 404", () => {
     const key = (route: { method: string; path: string }) => `${route.method} ${route.path}`;
     const core = new Set(coreRoutes.map(key));
     const matching = new Set(matchingRoutes.map(key));
-    expect([...core].filter((entry) => matching.has(entry))).toEqual([]);
-    expect(routes.map(key).sort()).toEqual([...core, ...matching].sort());
+    expect([...core].filter((entry) => matching.has(entry))).toEqual(["GET /api/opportunities"]);
+  });
+
+  it("lets the AI feed win over the rules-only copy in the local server", () => {
+    const first = routes.find((route) => route.path === "/api/opportunities");
+    expect(first).toBe(matchingRoutes.find((route) => route.path === "/api/opportunities"));
   });
 });
