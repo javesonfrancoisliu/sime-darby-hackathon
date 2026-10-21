@@ -62,6 +62,21 @@ describe("Who is using this phone", () => {
   });
 });
 
+describe("A stored person who is not a resident", () => {
+  it("is asked to choose a resident and never sees the app", async () => {
+    const volunteer = { ...ELDER, role: "volunteer", verification: "verified" };
+    installFakeApi({
+      "GET /api/me": { body: volunteer },
+      "GET /api/demo/users": { body: demoUsers },
+    });
+    signInAs(volunteer.id);
+    renderRoute(<App />, "/home");
+    expect(await screen.findByText(/This app is for residents/)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Who is using this phone?" })).toBeInTheDocument();
+    expect(screen.queryByRole("navigation", { name: "Main navigation" })).not.toBeInTheDocument();
+  });
+});
+
 describe("Me page", () => {
   it("shows the signed-in name and area, and switches person", async () => {
     installFakeApi({ "GET /api/demo/users": { body: demoUsers } });

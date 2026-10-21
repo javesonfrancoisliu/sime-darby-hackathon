@@ -36,15 +36,18 @@ function TokenSessionGate({ children }: { children: ReactNode }) {
   return <LoadFailed />;
 }
 
-function DemoSessionGate({ children }: { children: ReactNode }) {
-  const { status, error } = useSession();
+// A stored person who is not a resident (a volunteer or coordinator) is asked to choose again.
+const NOT_A_RESIDENT_TEXT = "This app is for residents. Please choose a resident below.";
 
-  if (status === "signed_in") return <>{children}</>;
-  if (status === "signed_out")
+function DemoSessionGate({ children }: { children: ReactNode }) {
+  const { status, error, user } = useSession();
+
+  if (status === "signed_in" && user?.role === "elder") return <>{children}</>;
+  if (status === "signed_out" || status === "signed_in")
     return (
       <AppShell hideTabs>
         {demoSignInEnabled() ? (
-          <WhoIsUsingPage />
+          <WhoIsUsingPage notice={status === "signed_in" ? NOT_A_RESIDENT_TEXT : undefined} />
         ) : (
           <Banner message="Sign-in is not available in this version of the app." />
         )}
