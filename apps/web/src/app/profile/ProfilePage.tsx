@@ -64,6 +64,8 @@ export function ProfilePage() {
     if (!signedIn || !initialSheet(location.state)) return;
     // No click opened it, so focus goes back to the My details row when it closes.
     opener.current ??= detailsRow.current;
+    // Already mounted at /profile when the redirect arrives: the initial state above never ran.
+    setSheet((current) => current ?? "details");
     navigate({ pathname: location.pathname, search: location.search }, { replace: true });
   }, [signedIn, location.state, location.pathname, location.search, navigate]);
 

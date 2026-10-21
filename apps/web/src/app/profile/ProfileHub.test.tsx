@@ -1,6 +1,6 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { BrowserRouter, MemoryRouter, useLocation } from "react-router-dom";
+import { BrowserRouter, MemoryRouter, useLocation, useNavigate } from "react-router-dom";
 import { User } from "@sdh/contracts";
 import { describe, expect, it } from "vitest";
 
@@ -270,6 +270,29 @@ describe("my details drawer", () => {
     await userEvent.click(within(sheet).getByRole("button", { name: "Done" }));
     await gone();
     expect(await row(/^My details/)).toHaveFocus();
+  });
+
+  it("opens My details when the redirect arrives while Profile is already mounted", async () => {
+    installFakeApi(signedIn());
+    signInAs(VOLUNTEER.id);
+    function Jump() {
+      const navigate = useNavigate();
+      return (
+        <button type="button" onClick={() => navigate("/profile/details")}>
+          jump
+        </button>
+      );
+    }
+    render(
+      <MemoryRouter initialEntries={["/profile"]}>
+        <Jump />
+        <App />
+      </MemoryRouter>,
+    );
+    await row(/^My details/);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "jump" }));
+    expect(await screen.findByRole("dialog", { name: "My details" })).toBeInTheDocument();
   });
 
   it("keeps the redirect request while signed out", async () => {
