@@ -122,13 +122,13 @@ export function MedicalIdPage() {
     const saved = await save.run(body);
     if (!saved) return;
     announce("Your Medical ID was saved.");
-    navigate("/me");
+    navigate("/me/details");
   }
 
   async function onRemove() {
     if (!(await remove.run())) return;
     announce("Your Medical ID was removed.");
-    navigate("/me");
+    navigate("/me/details");
   }
 
   return (

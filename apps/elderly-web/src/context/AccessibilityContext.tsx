@@ -73,8 +73,11 @@ interface AccessibilityContextValue {
   openSheet: () => void;
   closeSheet: () => void;
   triggerHaptic: (ms?: number) => void;
+  // Event and volunteering reminders, kept on the server and not in the phone's own copy.
+  reminders: boolean;
+  setReminders: (val: boolean) => void;
   // Applies settings loaded from the server without a buzz or a spoken reply.
-  applyRemoteSettings: (settings: StoredSettings) => void;
+  applyRemoteSettings: (settings: StoredSettings & { reminders?: boolean }) => void;
 }
 
 const AccessibilityContext = createContext<AccessibilityContextValue | null>(null);
@@ -87,6 +90,7 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
   const [voiceAssist, setVoiceAssist] = useState<boolean>(initial.voiceAssist);
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
   const [isSheetOpen, setIsSheetOpen] = useState<boolean>(false);
+  const [reminders, setReminders] = useState<boolean>(true);
 
   const triggerHaptic = useCallback((ms = 15) => {
     if (typeof navigator !== "undefined" && "vibrate" in navigator) {
@@ -169,7 +173,8 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     setIsSheetOpen(false);
   }, [triggerHaptic]);
 
-  const applyRemoteSettings = useCallback((settings: StoredSettings) => {
+  const applyRemoteSettings = useCallback((settings: StoredSettings & { reminders?: boolean }) => {
+    if (settings.reminders !== undefined) setReminders(settings.reminders);
     setFontSizeState(settings.fontSize);
     setHighContrast(settings.highContrast);
     setReducedMotion(settings.reducedMotion);
@@ -192,6 +197,8 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     openSheet,
     closeSheet,
     triggerHaptic,
+    reminders,
+    setReminders,
     applyRemoteSettings,
   };
 
@@ -218,6 +225,8 @@ export function useAccessibility() {
       openSheet: () => {},
       closeSheet: () => {},
       triggerHaptic: () => {},
+      reminders: true,
+      setReminders: () => {},
       applyRemoteSettings: () => {},
     };
   }

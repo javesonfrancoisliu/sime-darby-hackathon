@@ -8,7 +8,7 @@ import { MEDICAL, MEDICAL_ROUTE, NOT_FOUND } from "../test/fixtures";
 beforeEach(() => signInAs());
 
 describe("Medical ID edit screen", () => {
-  it("saves a new Medical ID with PUT and returns to Me", async () => {
+  it("saves a new Medical ID with PUT and returns to My details", async () => {
     let saved: unknown = null;
     const { calls } = installFakeApi({
       [`GET ${MEDICAL_ROUTE}`]: () => (saved ? { body: saved } : NOT_FOUND),
@@ -17,7 +17,7 @@ describe("Medical ID edit screen", () => {
         return { body: saved };
       },
     });
-    await renderApp("/me");
+    await renderApp("/me/details");
     await userEvent.click(await screen.findByRole("button", { name: /Add your Medical ID/ }));
     expect(await screen.findByRole("heading", { name: "Add your Medical ID" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Remove" })).not.toBeInTheDocument();

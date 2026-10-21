@@ -1,18 +1,19 @@
-import { EMERGENCY_NUMBER } from "../config";
-import { useTownship } from "../hooks/useTownship";
+import { useSession } from "@sdh/api-client";
+import { meApi } from "../api/me";
+import { useMutation } from "../hooks/useMutation";
 import { FONT_LABEL, useAccessibility, type FontSizeLevel } from "../context/AccessibilityContext";
-import { IconSun, IconVolume2, IconVolumeX, IconPhone } from "./Icons";
+import { Banner } from "./Banner";
+import { IconBell, IconSun, IconTrophy, IconVolume2, IconVolumeX } from "./Icons";
 import { Sheet } from "./Sheet";
-import { useCallConfirm } from "./CallConfirm";
 
-// Settings sheet: the shared Sheet holding text size, contrast, read aloud, less movement and quick dial.
+// Settings sheet: the shared Sheet holding text size, contrast, read aloud, less movement, reminders and rankings.
 export function AccessibilitySheet() {
   const { isSheetOpen, closeSheet } = useAccessibility();
   return (
     <Sheet
       open={isSheetOpen}
       onClose={closeSheet}
-      title="Reading and sound"
+      title="Settings"
       subtitle="Make the app easier to see and hear"
     >
       <SheetContent />
@@ -34,10 +35,18 @@ function SheetContent() {
     speak,
     stopSpeaking,
     triggerHaptic,
+    reminders,
+    setReminders,
   } = useAccessibility();
+  const { user, updateUser } = useSession();
+  const saveRanking = useMutation(meApi.update);
 
-  const securityLine = useTownship().data?.securityLine;
-  const { requestCall } = useCallConfirm();
+  async function handleRankingToggle() {
+    if (!user) return;
+    triggerHaptic(15);
+    const saved = await saveRanking.run({ leaderboardOptIn: !user.leaderboardOptIn });
+    if (saved) updateUser(saved);
+  }
 
   function handleVoiceToggle() {
     triggerHaptic(20);
@@ -165,49 +174,60 @@ function SheetContent() {
           </button>
         </div>
 
-        <div className="apple-emergency-box">
-          <div className="apple-emergency-header">
-            <IconPhone size={18} strokeWidth={2} />
-            <span>Quick dial</span>
+        <div className="apple-control-row">
+          <div className="apple-control-row__left">
+            <span className="apple-control-row__icon" aria-hidden="true">
+              <IconBell size={22} strokeWidth={1.8} />
+            </span>
+            <div>
+              <span className="apple-control-row__title">Reminders</span>
+              <span className="apple-control-row__desc">Events and volunteering nearby</span>
+            </div>
           </div>
-          <div className="apple-emergency-grid">
-            {securityLine ? (
-              <button
-                type="button"
-                className="apple-emergency-btn"
-                onClick={() =>
-                  requestCall({
-                    tel: securityLine.tel,
-                    display: securityLine.display,
-                    label: "Township security",
-                    note: "24/7 township hotline",
-                  })
-                }
-              >
-                <span className="apple-emergency-btn__label">Township security</span>
-                <span className="apple-emergency-btn__number">{securityLine.display}</span>
-              </button>
-            ) : null}
+          <button
+            type="button"
+            role="switch"
+            aria-checked={reminders}
+            aria-label="Reminders"
+            className={`apple-switch${reminders ? " apple-switch--on" : ""}`}
+            onClick={() => {
+              triggerHaptic(15);
+              setReminders(!reminders);
+            }}
+          >
+            <span className="apple-switch__thumb" />
+          </button>
+        </div>
+
+        {user ? (
+          <div className="apple-control-row">
+            <div className="apple-control-row__left">
+              <span className="apple-control-row__icon" aria-hidden="true">
+                <IconTrophy size={22} strokeWidth={1.8} />
+              </span>
+              <div>
+                <span className="apple-control-row__title">Show me in Rankings</span>
+                <span className="apple-control-row__desc">
+                  Neighbours can see your name and points
+                </span>
+              </div>
+            </div>
             <button
               type="button"
-              className="apple-emergency-btn apple-emergency-btn--danger"
-              onClick={() =>
-                requestCall({
-                  tel: EMERGENCY_NUMBER,
-                  display: EMERGENCY_NUMBER,
-                  label: "Emergency services",
-                  note: "Police, ambulance or fire",
-                  danger: true,
-                })
-              }
+              role="switch"
+              aria-checked={user.leaderboardOptIn}
+              aria-label="Show me in Rankings"
+              className={`apple-switch${user.leaderboardOptIn ? " apple-switch--on" : ""}`}
+              disabled={saveRanking.status === "loading"}
+              onClick={() => void handleRankingToggle()}
             >
-              <span className="apple-emergency-btn__label">
-                Emergency (police, ambulance, fire)
-              </span>
-              <span className="apple-emergency-btn__number">{EMERGENCY_NUMBER}</span>
+              <span className="apple-switch__thumb" />
             </button>
           </div>
-        </div>
+        ) : null}
+        {saveRanking.status === "error" ? (
+          <Banner message={saveRanking.error?.message ?? "We could not save that."} />
+        ) : null}
       </div>
     </>
   );

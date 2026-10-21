@@ -36,11 +36,12 @@ describe("settings follow the person", () => {
       "GET /api/me/settings": { body: { ...saved, reducedMotion: true, voiceAssist: true } },
     });
     await renderApp("/me");
-    const row = await screen.findByRole("button", { name: "Open text and sound settings" });
-    await waitFor(() => expect(row).toHaveTextContent("Less movement: On"));
-    expect(row).toHaveTextContent("Text size: X-Large");
+    const row = await screen.findByRole("button", { name: /^Settings/ });
+    await waitFor(() => expect(row).toHaveTextContent("Text size: X-Large"));
     expect(row).toHaveTextContent("Strong contrast: On");
-    expect(row).toHaveTextContent("Read aloud: On");
+    await userEvent.click(row);
+    expect(await screen.findByRole("switch", { name: "Less movement" })).toBeChecked();
+    expect(screen.getByRole("switch", { name: "Read aloud" })).toBeChecked();
   });
 
   it("starts a new person from the defaults and uploads nothing", async () => {
@@ -70,7 +71,7 @@ describe("settings follow the person", () => {
     await renderApp("/me");
     await waitFor(() => expect(calls.some((c) => c.path === "/api/me/settings")).toBe(true));
     vi.useFakeTimers({ shouldAdvanceTime: true });
-    await userEvent.click(screen.getByRole("button", { name: "Open text and sound settings" }));
+    await userEvent.click(screen.getByRole("button", { name: /^Settings/ }));
     await userEvent.click(screen.getByRole("radio", { name: /X-Large/i }));
     await userEvent.click(screen.getByRole("switch", { name: "Strong contrast" }));
     expect(calls.filter((c) => c.method === "PUT")).toHaveLength(0);

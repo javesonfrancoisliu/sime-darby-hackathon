@@ -92,26 +92,28 @@ describe("Home live conditions", () => {
 });
 
 describe("Me page", () => {
-  it("shows the saved Medical ID and the township security line", async () => {
+  it("shows the saved Medical ID on My details and the township security line in Help and safety", async () => {
     installFakeApi({
       [`GET ${MEDICAL_ROUTE}`]: { body: MEDICAL },
       "GET /api/township": { body: TOWNSHIP },
     });
-    await renderApp("/me");
+    await renderApp("/me/details");
     expect(await screen.findByText("O+")).toBeInTheDocument();
     // The next-of-kin phone and township security now confirm before dialing.
     const user = userEvent.setup();
     await user.click(screen.getByRole("button", { name: "012-345 6789" }));
-    let dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole("dialog");
     expect(
       within(dialog).getByRole("slider", { name: /Slide to call 012-345 6789/ }),
     ).toBeInTheDocument();
     await user.keyboard("{Escape}");
     expect(screen.getByText(/Zainal \(Son\)/)).toBeInTheDocument();
-    await user.click(await screen.findByRole("button", { name: /Township security/ }));
-    dialog = await screen.findByRole("dialog");
+    await user.click(screen.getByRole("button", { name: /Go Back/ }));
+    await user.click(await screen.findByRole("button", { name: /Help and safety/ }));
+    const help = await screen.findByRole("dialog", { name: "Help and safety" });
+    await user.click(within(help).getByRole("button", { name: /Township security/ }));
     expect(
-      within(dialog).getByRole("slider", { name: /Slide to call 03-5000 1234/ }),
+      await screen.findByRole("slider", { name: /Slide to call 03-5000 1234/ }),
     ).toBeInTheDocument();
   });
 
@@ -122,7 +124,7 @@ describe("Me page", () => {
         body: { error: { code: "NOT_FOUND", message: "x" } },
       },
     });
-    await renderApp("/me");
+    await renderApp("/me/details");
     expect(await screen.findByRole("button", { name: /Add your Medical ID/ })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Township security/ })).not.toBeInTheDocument();
   });

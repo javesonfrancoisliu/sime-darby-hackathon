@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, cleanup, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
+import { SessionProvider } from "@sdh/api-client";
+import { installFakeApi, signInAs } from "../test/fakeApi";
 import { AppShell } from "../ui/AppShell";
 import {
   ACCESSIBILITY_STORAGE_KEY,
@@ -22,11 +24,13 @@ function OpenSheet() {
 function renderShell() {
   return render(
     <MemoryRouter>
-      <AccessibilityProvider>
-        <AppShell>
-          <OpenSheet />
-        </AppShell>
-      </AccessibilityProvider>
+      <SessionProvider>
+        <AccessibilityProvider>
+          <AppShell>
+            <OpenSheet />
+          </AppShell>
+        </AccessibilityProvider>
+      </SessionProvider>
     </MemoryRouter>,
   );
 }
@@ -35,7 +39,11 @@ function root(container: HTMLElement) {
   return container.querySelector(".app-root") as HTMLElement;
 }
 
-beforeEach(() => window.localStorage.clear());
+beforeEach(() => {
+  window.localStorage.clear();
+  installFakeApi();
+  signInAs();
+});
 
 afterEach(() => {
   cleanup();
@@ -139,7 +147,7 @@ describe("settings sheet focus", () => {
     const trigger = screen.getByRole("button", { name: "open-settings" });
     await userEvent.click(trigger);
 
-    const dialog = screen.getByRole("dialog", { name: "Reading and sound" });
+    const dialog = screen.getByRole("dialog", { name: "Settings" });
     const done = screen.getByRole("button", { name: "Done" });
     expect(done).toHaveFocus();
     expect(trigger.closest("[inert]")).not.toBeNull();

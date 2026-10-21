@@ -11,3 +11,4 @@ export const useBadges = () => useLiveQuery("badges", playApi.badges);
 export const useContribute = () => useMutation(playApi.contribute);
 export const useCheckIn = () => useMutation(playApi.checkIn);
 export const useRedeem = () => useMutation(playApi.redeem);
+export const useUseReward = () => useMutation(playApi.use);
