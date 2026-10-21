@@ -18,7 +18,6 @@ export function AccountSheet({ open, onClose }: AccountSheetProps) {
   const navigate = useNavigate();
   const [confirming, setConfirming] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
-  const [signOutFailed, setSignOutFailed] = useState(false);
   const token = tokenModeEnabled();
 
   function switchPerson() {
@@ -29,18 +28,18 @@ export function AccountSheet({ open, onClose }: AccountSheetProps) {
   async function signOutOfAccount() {
     if (signingOut) return;
     setSigningOut(true);
-    setSignOutFailed(false);
     // Mark the page as leaving first, so the session guard and the dialogs closing do not start
     // a second navigation or a history move that would cancel this one.
     beginPageLeave();
+    // The session ends locally even when the server call fails, so signOut does not reject.
+    await signOut();
     try {
-      await signOut();
       window.location.assign("/");
     } catch {
-      // Still on this page: let the guard and the dialogs behave normally again.
+      // Signed out but the navigation failed: reload so the page lands on the sign-in page.
       endPageLeave();
       setSigningOut(false);
-      setSignOutFailed(true);
+      window.location.reload();
     }
   }
 
@@ -82,11 +81,9 @@ export function AccountSheet({ open, onClose }: AccountSheetProps) {
           confirmLabel="Yes, sign out"
           cancelLabel="Not yet"
           busy={signingOut}
-          error={signOutFailed ? "We could not sign you out. Please try again." : undefined}
           onConfirm={() => void signOutOfAccount()}
           onCancel={() => {
             setConfirming(false);
-            setSignOutFailed(false);
           }}
         >
           You will need to sign in again to use Township Connect.

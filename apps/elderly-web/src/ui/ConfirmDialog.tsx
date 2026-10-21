@@ -12,8 +12,6 @@ interface ConfirmDialogProps {
   onCancel: () => void;
   // A confirmed action is running: the confirm button stays off so a second tap cannot repeat it.
   busy?: boolean;
-  // Shown under the text when the confirmed action failed.
-  error?: string;
   children?: ReactNode;
 }
 
@@ -26,7 +24,6 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
   busy = false,
-  error,
   children,
 }: ConfirmDialogProps) {
   const titleId = useId();
@@ -78,11 +75,6 @@ export function ConfirmDialog({
             {title}
           </h2>
           {children ? <p className="call-confirm__sub">{children}</p> : null}
-          {error ? (
-            <p className="call-confirm__error" role="alert">
-              {error}
-            </p>
-          ) : null}
           <div className="call-confirm__actions">
             <Button block onClick={onConfirm} disabled={busy} aria-busy={busy || undefined}>
               {confirmLabel}
