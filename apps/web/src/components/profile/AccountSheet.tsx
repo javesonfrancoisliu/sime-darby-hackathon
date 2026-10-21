@@ -5,7 +5,7 @@ import { useSession } from "@sdh/api-client";
 
 import { demoSignInEnabled } from "../../lib/demoFlag";
 import { tokenModeEnabled } from "../../lib/authMode";
-import { beginPageLeave } from "../../lib/pageLeave";
+import { beginPageLeave, endPageLeave } from "../../lib/pageLeave";
 import { useConfirm } from "../../lib/useConfirm";
 import { AppButton, ConfirmActionDialog, Sheet } from "../ui";
 import { DemoSignInCard } from "./DemoSignInCard";
@@ -26,8 +26,13 @@ export function AccountSheet({
     // Mark the page as leaving first, so the session guard and the dialogs closing do not start
     // a second navigation or a history move that would cancel this one.
     beginPageLeave();
-    await signOut();
-    window.location.assign("/");
+    try {
+      await signOut();
+      window.location.assign("/");
+    } catch {
+      // Still on this page: let the session guard and the dialogs behave normally again.
+      endPageLeave();
+    }
   }
 
   function askSignOut() {

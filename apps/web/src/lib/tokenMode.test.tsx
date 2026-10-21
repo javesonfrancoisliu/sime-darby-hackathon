@@ -7,6 +7,7 @@ import { signInWithToken } from "@sdh/api-client/testing";
 
 import { App } from "../App";
 import { installFakeApi } from "../test/fakeApi";
+import { endPageLeave, pageIsLeaving } from "../lib/pageLeave";
 import { ELDER, VOLUNTEER } from "../test/fixtures";
 import { signedInRoutes } from "../test/routes";
 
@@ -28,6 +29,8 @@ function renderToken(path: string, signOut = vi.fn(async () => {})) {
 beforeEach(() => {
   assign.mockClear();
   reload.mockClear();
+  // The flag is module state: start every test with the page not leaving.
+  endPageLeave();
   vi.stubEnv("VITE_COGNITO_REGION", "ap-southeast-5");
   vi.stubEnv("VITE_COGNITO_USER_POOL_ID", "ap-southeast-5_test");
   vi.stubEnv("VITE_COGNITO_CLIENT_ID", "client");
@@ -111,8 +114,11 @@ describe("token mode account actions", () => {
     const { signOut } = renderToken("/profile");
     await userEvent.click(await screen.findByRole("button", { name: /^Account/ }));
     await userEvent.click(await screen.findByRole("button", { name: "Sign out" }));
-    await userEvent.click(await screen.findByRole("button", { name: "Yes, sign out" }));
+    const yes = await screen.findByRole("button", { name: "Yes, sign out" });
+    expect(pageIsLeaving()).toBe(false);
+    await userEvent.click(yes);
     await waitFor(() => expect(assign).toHaveBeenCalledWith("/"));
+    expect(pageIsLeaving()).toBe(true);
     // Let React finish unmounting the signed-in page and settle any follow-up navigation.
     await new Promise((resolve) => setTimeout(resolve, 50));
     return { signOut };
@@ -134,6 +140,19 @@ describe("token mode account actions", () => {
     await signOutFromProfile();
     expect(document.body.style.overflow).not.toBe("hidden");
     expect(document.querySelector("[inert]")).toBeNull();
+  });
+
+  it("clears the leaving mark when the navigation cannot start", async () => {
+    assign.mockImplementationOnce(() => {
+      throw new Error("blocked");
+    });
+    installFakeApi({ ...liveRoutes, "GET /api/me": { body: VOLUNTEER } });
+    renderToken("/profile");
+    await userEvent.click(await screen.findByRole("button", { name: /^Account/ }));
+    await userEvent.click(await screen.findByRole("button", { name: "Sign out" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Yes, sign out" }));
+    await waitFor(() => expect(assign).toHaveBeenCalled());
+    await waitFor(() => expect(pageIsLeaving()).toBe(false));
   });
 
   it("reloads when the signed-out page comes back from the back-forward cache", async () => {
