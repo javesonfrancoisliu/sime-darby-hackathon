@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSession } from "@sdh/api-client";
 import { tokenModeEnabled } from "../../config";
 import { ConfirmDialog } from "../../ui/ConfirmDialog";
-import { beginPageLeave, endPageLeave } from "../../ui/pageLeave";
+import { topEntryIsOpenDialog } from "../../ui/dialogLayer";
+import { beginPageLeave } from "../../ui/pageLeave";
 import { IconUserRound, IconUsers } from "../../ui/Icons";
 import { Sheet } from "../../ui/Sheet";
 
@@ -20,18 +21,30 @@ export function AccountSheet({ open, onClose }: AccountSheetProps) {
   const [signingOut, setSigningOut] = useState(false);
   const token = tokenModeEnabled();
 
+  // Removes the armed popstate listener, if any, so it cannot fire on an unrelated Back later.
+  const disarm = useRef<(() => void) | null>(null);
+  useEffect(() => () => disarm.current?.(), []);
+
   function switchPerson() {
+    const finish = () => {
+      navigate("/", { replace: true });
+      void signOut();
+    };
+    // Without the sheet's own entry on top there is nothing to step off: Profile is the current
+    // entry, so replacing it with the picker is already right.
+    if (!topEntryIsOpenDialog()) {
+      finish();
+      return;
+    }
     // Step off the Account entry first, then swap the Profile entry beneath it for the picker, so
     // Back from the picker leaves the app instead of returning to Profile. The sheet's own
     // popstate listener runs first and closes it without a second step back.
-    window.addEventListener(
-      "popstate",
-      () => {
-        navigate("/", { replace: true });
-        void signOut();
-      },
-      { once: true },
-    );
+    const onPop = () => {
+      disarm.current = null;
+      finish();
+    };
+    window.addEventListener("popstate", onPop, { once: true });
+    disarm.current = () => window.removeEventListener("popstate", onPop);
     window.history.back();
   }
 
@@ -43,14 +56,7 @@ export function AccountSheet({ open, onClose }: AccountSheetProps) {
     beginPageLeave();
     // The session ends locally even when the server call fails, so signOut does not reject.
     await signOut();
-    try {
-      window.location.assign("/");
-    } catch {
-      // Signed out but the navigation failed: reload so the page lands on the sign-in page.
-      endPageLeave();
-      setSigningOut(false);
-      window.location.reload();
-    }
+    window.location.assign("/");
   }
 
   return (
@@ -91,6 +97,7 @@ export function AccountSheet({ open, onClose }: AccountSheetProps) {
           confirmLabel="Yes, sign out"
           cancelLabel="Not yet"
           busy={signingOut}
+          busyLabel="Signing out"
           onConfirm={() => void signOutOfAccount()}
           onCancel={() => {
             setConfirming(false);

@@ -51,13 +51,47 @@ describe("Account sheet sign out", () => {
     await waitFor(() => expect(assign).toHaveBeenCalledWith("/"));
     expect(pageIsLeaving()).toBe(true);
   });
+});
 
-  it("reloads and clears the leaving mark when the navigation cannot start", async () => {
-    assign.mockImplementationOnce(() => {
-      throw new Error("blocked");
-    });
-    await confirmSignOut();
-    await waitFor(() => expect(reload).toHaveBeenCalledTimes(1));
-    expect(pageIsLeaving()).toBe(false);
+describe("Account sheet switch person", () => {
+  beforeEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  function renderSwitch() {
+    return render(
+      <MemoryRouter>
+        <AccountSheet open onClose={() => {}} />
+      </MemoryRouter>,
+    );
+  }
+
+  it("steps off the sheet entry first, then signs out and goes to the picker", async () => {
+    renderSwitch();
+    const back = vi.spyOn(window.history, "back");
+    await userEvent.click(screen.getByRole("button", { name: "Switch person" }));
+    expect(back).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(signOut).toHaveBeenCalledTimes(1));
+    back.mockRestore();
+  });
+
+  it("does not step back when the sheet's history entry is already gone", async () => {
+    renderSwitch();
+    window.history.replaceState(null, "");
+    const back = vi.spyOn(window.history, "back");
+    await userEvent.click(screen.getByRole("button", { name: "Switch person" }));
+    expect(back).not.toHaveBeenCalled();
+    expect(signOut).toHaveBeenCalledTimes(1);
+    back.mockRestore();
+  });
+
+  it("leaves no armed listener behind when the sheet goes away before Back fires", async () => {
+    const view = renderSwitch();
+    const back = vi.spyOn(window.history, "back").mockImplementation(() => {});
+    await userEvent.click(screen.getByRole("button", { name: "Switch person" }));
+    view.unmount();
+    window.dispatchEvent(new PopStateEvent("popstate"));
+    expect(signOut).not.toHaveBeenCalled();
+    back.mockRestore();
   });
 });

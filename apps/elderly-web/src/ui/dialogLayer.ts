@@ -50,6 +50,12 @@ function backOffOwnEntry() {
   window.history.back();
 }
 
+// True when the entry on top of the history belongs to a dialog that is open right now.
+export function topEntryIsOpenDialog(): boolean {
+  const current = marker();
+  return current !== undefined && stack.includes(current);
+}
+
 // A reload keeps the entry a dialog pushed but not the dialog. Step back off it once so the
 // first Back press leaves the page instead of doing nothing.
 export function dropStaleEntry() {

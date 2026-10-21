@@ -87,6 +87,10 @@ describe("token mode guard", () => {
   });
 });
 
+// Dialog history cleanup is deferred with setTimeout(0). A zero-delay timer queued after it runs
+// after it, so awaiting one is an ordered flush rather than a guess at how long a run takes.
+const flushDeferredCleanup = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
+
 describe("token mode account actions", () => {
   async function openAccount() {
     installFakeApi();
@@ -166,14 +170,15 @@ describe("token mode account actions", () => {
 
   it("leaves with one navigation and no history move that could cancel it", async () => {
     // Let the previous test's dialogs finish their own deferred history cleanup first.
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await flushDeferredCleanup();
     const back = vi.spyOn(window.history, "back");
     const { confirm } = await confirmSignOut();
     await userEvent.click(within(confirm).getByRole("button", { name: "Yes, sign out" }));
     await waitFor(() => expect(assign).toHaveBeenCalledWith("/"));
     expect(pageIsLeaving()).toBe(true);
     // Let the dialogs unmount and run their deferred history cleanup.
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    await flushDeferredCleanup();
     expect(assign.mock.calls).toEqual([["/"]]);
     expect(back).not.toHaveBeenCalled();
     back.mockRestore();
@@ -190,16 +195,6 @@ describe("token mode account actions", () => {
     expect(signOut).toHaveBeenCalledTimes(1);
     finish();
     await waitFor(() => expect(assign).toHaveBeenCalledTimes(1));
-  });
-
-  it("clears the leaving mark when the navigation cannot start", async () => {
-    assign.mockImplementationOnce(() => {
-      throw new Error("blocked");
-    });
-    const { confirm } = await confirmSignOut();
-    await userEvent.click(within(confirm).getByRole("button", { name: "Yes, sign out" }));
-    await waitFor(() => expect(assign).toHaveBeenCalledTimes(1));
-    await waitFor(() => expect(pageIsLeaving()).toBe(false));
   });
 
   it("reloads when the signed-out page comes back from the back-forward cache", async () => {
