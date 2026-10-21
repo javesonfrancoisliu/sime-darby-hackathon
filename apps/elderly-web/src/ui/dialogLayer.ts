@@ -30,6 +30,25 @@ function dropMarker() {
   window.history.replaceState(base, "");
 }
 
+// True while a popstate caused by a dialog removing its own entry is being delivered, so the
+// dialog underneath does not mistake it for the phone's Back button.
+let selfPop = false;
+const SELF_POP_LISTEN_MS = 1000;
+
+// Steps back off the entry this dialog pushed, marking the resulting popstate as its own.
+function backOffOwnEntry() {
+  const mark = () => {
+    selfPop = true;
+    window.setTimeout(() => {
+      selfPop = false;
+    }, 0);
+    window.removeEventListener("popstate", mark, true);
+  };
+  window.addEventListener("popstate", mark, true);
+  window.setTimeout(() => window.removeEventListener("popstate", mark, true), SELF_POP_LISTEN_MS);
+  window.history.back();
+}
+
 // A reload keeps the entry a dialog pushed but not the dialog. Step back off it once so the
 // first Back press leaves the page instead of doing nothing.
 export function dropStaleEntry() {
@@ -106,7 +125,7 @@ export function useDialogLayer({ panelRef, onBack, onEscape }: DialogLayerOption
     const isTop = () => stack[stack.length - 1] === id;
 
     const onPop = () => {
-      if (!isTop()) return;
+      if (selfPop || !isTop()) return;
       popped.current = true;
       handlers.current.onBack();
     };
@@ -144,7 +163,7 @@ export function useDialogLayer({ panelRef, onBack, onEscape }: DialogLayerOption
       if (at >= 0) stack.splice(at, 1);
       // Deferred so a development remount does not undo its own entry.
       window.setTimeout(() => {
-        if (!popped.current && !stack.includes(id) && marker() === id) window.history.back();
+        if (!popped.current && !stack.includes(id) && marker() === id) backOffOwnEntry();
       }, 0);
     };
   }, [id, panelRef]);

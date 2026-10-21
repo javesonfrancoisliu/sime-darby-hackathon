@@ -492,6 +492,26 @@ describe("Sheets with the browser's own history", () => {
     expect(row).toHaveFocus();
   });
 
+  it("keeps the Help sheet open when Call 999 is cancelled", async () => {
+    installFakeApi(hubRoutes);
+    window.history.pushState({}, "", "/me");
+    render(
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>,
+    );
+    await userEvent.click(await screen.findByRole("button", { name: /^Help and safety/ }));
+    await sheetNamed("Help and safety");
+    await userEvent.click(screen.getByRole("button", { name: /Call 999/ }));
+    const confirm = await screen.findByRole("dialog", { name: "Call 999?" });
+    await userEvent.click(within(confirm).getByRole("button", { name: "Cancel" }));
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog", { name: "Call 999?" })).not.toBeInTheDocument(),
+    );
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(screen.getByRole("dialog", { name: "Help and safety" })).toBeInTheDocument();
+  });
+
   it("closes with Done and leaves no extra history entry behind", async () => {
     installFakeApi(hubRoutes);
     window.history.pushState({}, "", "/me");
