@@ -19,7 +19,7 @@ import { useRewards } from "../../data/useGamification";
 // Young-resident Profile - account management, not an activity dashboard.
 // Sections: Personal information, Volunteering preferences, My rewards (claimed),
 // Settings. Volunteering tasks live in Volunteer Nearby; points/badges/
-// leaderboard live in Community Challenges - not repeated here.
+// Rankings live in Community Challenges - not repeated here.
 export function ProfilePage() {
   const { user } = useSession();
   const rewards = useRewards();

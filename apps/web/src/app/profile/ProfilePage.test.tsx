@@ -409,7 +409,7 @@ describe("profile page", () => {
     expect(savedNotice()).toBeInTheDocument();
   });
 
-  it("saves the leaderboard choice with PATCH /api/me", async () => {
+  it("saves the Rankings choice with PATCH /api/me", async () => {
     const { calls } = installFakeApi({
       ...signedIn(),
       "PATCH /api/me": ({ body }) => ({ body: User.parse({ ...VOLUNTEER, ...(body as object) }) }),
@@ -419,13 +419,13 @@ describe("profile page", () => {
     const user = userEvent.setup();
 
     await user.click(await screen.findByRole("button", { name: "Settings. Show details" }));
-    await user.click(await screen.findByRole("switch", { name: /Show me on the leaderboard/ }));
+    await user.click(await screen.findByRole("switch", { name: /Show me in Rankings/ }));
 
     await waitFor(() => expect(calls.some((c) => c.method === "PATCH")).toBe(true));
     expect(UpdateMeBody.parse(calls.find((c) => c.method === "PATCH")?.body)).toEqual({
       leaderboardOptIn: true,
     });
-    expect(screen.getByRole("switch", { name: /Show me on the leaderboard/ })).toBeChecked();
+    expect(screen.getByRole("switch", { name: /Show me in Rankings/ })).toBeChecked();
   });
 
   it("turns on larger text and applies the comfort sizing to the app shell", async () => {

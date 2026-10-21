@@ -401,7 +401,7 @@ describe("challenges page", () => {
     expect(await screen.findByText("First steps")).toBeInTheDocument();
   });
 
-  it("shows an empty leaderboard and saves the opt-in with PATCH /api/me", async () => {
+  it("shows empty Rankings and saves the opt-in with PATCH /api/me", async () => {
     const { calls } = installFakeApi({
       ...signedInRoutes(VOLUNTEER),
       "PATCH /api/me": ({ body }) => ({ body: User.parse({ ...VOLUNTEER, ...(body as object) }) }),
@@ -410,8 +410,11 @@ describe("challenges page", () => {
     renderApp("/community/challenges");
 
     const user = await openTab("Rankings");
-    expect(await screen.findByText("No one is on the leaderboard yet")).toBeInTheDocument();
-    const toggle = screen.getByRole("switch", { name: /Show me on the leaderboard/ });
+    expect(await screen.findByText("No one is in Rankings yet")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Rankings" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Neighbourhood rankings")).toBeInTheDocument();
+    expect(screen.queryByText(/leaderboard/i)).not.toBeInTheDocument();
+    const toggle = screen.getByRole("switch", { name: /Show me in Rankings/ });
     expect(toggle).not.toBeChecked();
     await user.click(toggle);
 
@@ -421,7 +424,7 @@ describe("challenges page", () => {
     });
   });
 
-  it("lists the leaderboard entries with the caller's row", async () => {
+  it("lists the Rankings entries with the caller's row", async () => {
     installFakeApi(
       signedInRoutes(VOLUNTEER, {
         "GET /api/leaderboard": {

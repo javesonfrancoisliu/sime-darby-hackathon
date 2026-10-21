@@ -27,7 +27,7 @@ export type ClaimedRewardsCardProps = {
 };
 
 // Profile -> My Rewards: what the signed-in person has redeemed. Available rewards, badges and the
-// leaderboard stay in Community Challenges.
+// Rankings stay in Community Challenges.
 export function ClaimedRewardsCard({
   claimed,
   loading = false,

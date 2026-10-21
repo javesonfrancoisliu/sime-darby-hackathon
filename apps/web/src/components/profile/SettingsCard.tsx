@@ -168,7 +168,7 @@ export function SettingsCard({ onSaved }: { onSaved: () => void }) {
             />
           ))}
           <ToggleRow
-            label="Show me on the leaderboard"
+            label="Show me in Rankings"
             description="Show my first name and last initial in rankings."
             checked={leaderboardOptIn}
             disabled={false}

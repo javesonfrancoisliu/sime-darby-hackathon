@@ -372,7 +372,7 @@ export function ChallengesPage() {
         <TabPanel idBase="challenges" id="leaderboard">
           <section className="ui-section" aria-labelledby="leaderboard-heading">
             <h2 className="ui-visually-hidden" id="leaderboard-heading">
-              Leaderboard
+              Rankings
             </h2>
             <Leaderboard
               entries={leaderboard.data?.entries ?? []}
