@@ -924,6 +924,10 @@
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-width: 0;
+}
+.category-choice-card__heading {
+  flex-wrap: wrap;
 }
 
 .category-choice-card__title {
@@ -2574,9 +2578,16 @@ button:active,
   flex-shrink: 0;
   color: var(--brand-primary);
 }
+.play-reward {
+  flex-wrap: wrap;
+}
 .play-reward__body {
-  flex: 1;
+  flex: 1 1 10rem;
   min-width: 0;
+  overflow-wrap: anywhere;
+}
+.play-reward .community-register-btn {
+  flex-shrink: 0;
 }
 .play-reward__title {
   margin: 0 0 2px;
