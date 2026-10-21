@@ -251,6 +251,9 @@ export async function completeRequest(
 ): Promise<AssignedHelpRequest> {
   const request = await loadOrThrow(id);
   if (request.volunteerId !== volunteer.id) throw notFound();
+  if (Date.parse(request.scheduledAt) > Date.now()) {
+    throw new HttpError("CONFLICT", "Request has not started yet");
+  }
   if (body.minutesSpent > request.durationMinutes * MAX_OVERRUN_FACTOR) {
     throw new HttpError(
       "VALIDATION_FAILED",

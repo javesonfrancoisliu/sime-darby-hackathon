@@ -551,6 +551,7 @@ describe("help requests", () => {
       const worker = await createVerifiedVolunteer(coordinator.id, { name: "Hana" });
       const open = await createOpen({ title: "Fix the phone" });
       await call("POST", `/api/requests/${open.id}/accept`, { as: worker.id });
+      await backdate(open.id);
       const res = await call("POST", `/api/requests/${open.id}/complete`, {
         as: worker.id,
         body: { minutesSpent: 45 },
@@ -597,10 +598,32 @@ describe("help requests", () => {
       const open = await createOpen();
       const path = `/api/requests/${open.id}/complete`;
       await call("POST", `/api/requests/${open.id}/accept`, { as: volunteer.id });
+      await backdate(open.id);
       const tooMuch = await call("POST", path, { as: volunteer.id, body: { minutesSpent: 121 } });
       expect(tooMuch.status).toBe(400);
       const atCap = await call("POST", path, { as: volunteer.id, body: { minutesSpent: 120 } });
       expect(atCap.status).toBe(200);
+    });
+
+    it("refuses to complete before the scheduled start with 409 and allows it after", async () => {
+      const open = await createOpen();
+      const path = `/api/requests/${open.id}/complete`;
+      await call("POST", `/api/requests/${open.id}/accept`, { as: volunteer.id });
+      const early = await call("POST", path, { as: volunteer.id, body: { minutesSpent: 30 } });
+      expect(early.status).toBe(409);
+      expect(early.body).toMatchObject({ error: { code: "CONFLICT" } });
+      expect(JSON.stringify(early.body)).toContain("not started");
+      const stored = await call("GET", `/api/requests/${open.id}`, { as: elder.id });
+      expect(stored.body).toMatchObject({ status: "matched" });
+      const contributions = await call("GET", "/api/contributions/mine", { as: volunteer.id });
+      expect(
+        (contributions.body as ContributionsResponse).items.map((i) => i.sourceId),
+      ).not.toContain(open.id);
+
+      await backdate(open.id, 0.01);
+      expect(
+        (await call("POST", path, { as: volunteer.id, body: { minutesSpent: 30 } })).status,
+      ).toBe(200);
     });
 
     it("cannot complete a request that was never accepted", async () => {
@@ -618,6 +641,7 @@ describe("help requests", () => {
       const open = await createOpen();
       expect(open.elderId).toBe(ownerId);
       await call("POST", `/api/requests/${open.id}/accept`, { as: volunteer.id });
+      await backdate(open.id);
       const done = await call("POST", `/api/requests/${open.id}/complete`, {
         as: volunteer.id,
         body: { minutesSpent: 30 },
