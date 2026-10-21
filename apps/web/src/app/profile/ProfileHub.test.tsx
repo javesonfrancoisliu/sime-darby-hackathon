@@ -392,6 +392,18 @@ describe("help and safety sheet", () => {
     );
     expect(within(dialog).getByText(/Need help\?/)).toBeInTheDocument();
   });
+
+  it("links to the live safety conditions page", async () => {
+    installFakeApi(signedIn());
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    await userEvent.setup().click(await row(/^Help and safety/));
+    const dialog = await screen.findByRole("dialog", { name: "Help and safety" });
+    expect(within(dialog).getByRole("link", { name: "Live safety conditions" })).toHaveAttribute(
+      "href",
+      "/safety",
+    );
+  });
 });
 
 describe("account sheet", () => {

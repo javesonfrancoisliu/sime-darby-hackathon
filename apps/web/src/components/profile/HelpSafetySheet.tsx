@@ -1,8 +1,8 @@
 import type { RefObject } from "react";
-import { HelpCircle, Phone, Siren } from "lucide-react";
+import { HelpCircle, Phone, Shield, Siren } from "lucide-react";
 
 import { useTownship } from "../../data/useTownship";
-import { Sheet } from "../ui";
+import { AppLinkButton, Sheet } from "../ui";
 
 // Township security and the emergency number, each one tap away.
 export function HelpSafetySheet({
@@ -25,6 +25,10 @@ export function HelpSafetySheet({
               : "Need help? Contact your township office, or call 999 in an emergency."}
           </span>
         </p>
+        <AppLinkButton to="/safety" variant="secondary">
+          <Shield size={16} aria-hidden="true" />
+          Live safety conditions
+        </AppLinkButton>
         {township && (
           <a className="ui-button ui-button--secondary" href={`tel:${township.securityLine.tel}`}>
             <Phone size={16} aria-hidden="true" />
