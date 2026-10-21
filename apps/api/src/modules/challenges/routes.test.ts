@@ -10,7 +10,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { call } from "../../test/api";
 import { createCoordinator, createElder, createVerifiedVolunteerDirect } from "../../test/people";
 import { useTestTable } from "../../test/table";
-import { createChallengeVia, putEndedChallenge } from "../play/testSupport";
+import { challengeBody, createChallengeVia, putEndedChallenge } from "../play/testSupport";
 import { getUser } from "../users/repository";
 
 useTestTable();
@@ -87,6 +87,17 @@ describe("challenges", () => {
       body: { current: 1 },
     });
     expect(progress.status).toBe(409);
+  });
+
+  it("caps challenge points at 1000 on create", async () => {
+    const post = (points: number) =>
+      call("POST", "/api/challenges", { as: coordinator.id, body: challengeBody({ points }) });
+    expect((await post(1000)).status).toBe(201);
+    for (const points of [1001, 999_999_999]) {
+      const res = await post(points);
+      expect(res.status).toBe(400);
+      expect(res.body).toMatchObject({ error: { code: "VALIDATION_FAILED" } });
+    }
   });
 
   it("joins idempotently, clamps progress and completes once with points", async () => {
