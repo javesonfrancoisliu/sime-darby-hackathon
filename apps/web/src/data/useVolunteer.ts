@@ -2,7 +2,7 @@ import type { ContributionsResponse, OpportunitiesResponse } from "@sdh/contract
 
 import type { Contribution, ImpactSummary, Opportunity } from "../types/volunteer";
 import { ApiError, apiFetch, errorMessage, useSession } from "@sdh/api-client";
-import { useLoader } from "../lib/useLoader";
+import { LIVE_REFRESH_MS, useLoader } from "../lib/useLoader";
 
 const EMPTY_IMPACT: ImpactSummary = {
   totalMinutes: 0,
@@ -98,7 +98,7 @@ async function loadLive(userId: string | null): Promise<LiveResult> {
 // rather than hidden.
 export function useVolunteerData(): VolunteerData {
   const { userId } = useSession();
-  const { loaded, reload } = useLoader(userId, loadLive, userId !== null);
+  const { loaded, reload } = useLoader(userId, loadLive, userId !== null, LIVE_REFRESH_MS);
   // A reload after accept or complete keeps the current list on screen; only a
   // different user shows loading.
   const ready = loaded !== null && loaded.scope === userId ? loaded.value : null;

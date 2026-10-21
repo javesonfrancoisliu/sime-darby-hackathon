@@ -3,7 +3,7 @@ import { createContext, useCallback, useContext, useMemo, type ReactNode } from 
 import type { CommunityEvent, EventsResponse, HelpRequest, RequestsResponse } from "@sdh/contracts";
 
 import { apiFetch, errorMessage, useSession } from "@sdh/api-client";
-import { useLoader } from "../lib/useLoader";
+import { LIVE_REFRESH_MS, useLoader } from "../lib/useLoader";
 import type { Opportunity, OpportunityKind } from "../types/volunteer";
 
 // Tracks the volunteer's accepted Township Connect tasks, read from GET /api/requests/mine and the
@@ -101,7 +101,7 @@ const AcceptedTasksContext = createContext<AcceptedTasksContextValue | null>(nul
 
 export function AcceptedTasksProvider({ children }: { children: ReactNode }) {
   const { userId } = useSession();
-  const { loaded, reload } = useLoader(userId, loadTasks, userId !== null);
+  const { loaded, reload } = useLoader(userId, loadTasks, userId !== null, LIVE_REFRESH_MS);
   const data = loaded !== null && loaded.scope === userId ? loaded.value : null;
 
   const tasks = useMemo<AcceptedTask[]>(() => {
