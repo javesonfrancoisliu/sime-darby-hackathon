@@ -21,8 +21,18 @@ export function AccountSheet({ open, onClose }: AccountSheetProps) {
   const token = tokenModeEnabled();
 
   function switchPerson() {
-    navigate("/", { replace: true });
-    signOut();
+    // Step off the Account entry first, then swap the Profile entry beneath it for the picker, so
+    // Back from the picker leaves the app instead of returning to Profile. The sheet's own
+    // popstate listener runs first and closes it without a second step back.
+    window.addEventListener(
+      "popstate",
+      () => {
+        navigate("/", { replace: true });
+        void signOut();
+      },
+      { once: true },
+    );
+    window.history.back();
   }
 
   async function signOutOfAccount() {

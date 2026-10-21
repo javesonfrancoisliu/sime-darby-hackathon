@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
-import { MemoryRouter, useLocation, useNavigationType } from "react-router-dom";
+import { BrowserRouter } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
 import { DemoUsersResponse } from "@sdh/contracts";
 import { DEMO_USER_STORAGE_KEY } from "@sdh/api-client";
@@ -100,20 +100,15 @@ describe("Me page", () => {
     expect(window.localStorage.getItem(DEMO_USER_STORAGE_KEY)).toBeNull();
   });
 
-  it("replaces Profile with the picker when switching person", async () => {
+  it("removes Profile from history when switching person", async () => {
     installFakeApi({ "GET /api/demo/users": { body: demoUsers } });
     signInAs();
-    const types: string[] = [];
-    function Probe() {
-      const type = useNavigationType();
-      types.push(`${useLocation().pathname}|${type}`);
-      return null;
-    }
+    window.history.pushState(null, "", "/before");
+    window.history.pushState(null, "", "/me");
     render(
-      <MemoryRouter initialEntries={["/me"]}>
+      <BrowserRouter>
         <App />
-        <Probe />
-      </MemoryRouter>,
+      </BrowserRouter>,
     );
     await userEvent.click(await screen.findByRole("button", { name: /^Account/ }));
     await userEvent.click(
@@ -122,8 +117,10 @@ describe("Me page", () => {
       }),
     );
     await screen.findByRole("heading", { name: "Who is using this phone?" });
-    expect(types).toContain("/|REPLACE");
-    expect(types).not.toContain("/|PUSH");
+    expect(window.location.pathname).toBe("/");
+    // One Back from the picker must skip Profile and reach the page before it.
+    window.history.back();
+    await waitFor(() => expect(window.location.pathname).toBe("/before"));
   });
 
   it("goes back to the picker when the stored person no longer exists", async () => {
