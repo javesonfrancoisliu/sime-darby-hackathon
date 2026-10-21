@@ -10,12 +10,12 @@ import { HubRow } from "../ui/HubRow";
 import { PageHeaderActions } from "../ui/PageHeaderActions";
 import {
   IconGift,
-  IconHeartPulse,
+  IconIdCard,
+  IconLifeBuoy,
   IconMapPin,
   IconPencil,
-  IconPhone,
-  IconSliders,
-  IconUser,
+  IconSettings,
+  IconUserRound,
 } from "../ui/Icons";
 import { EditProfileSheet } from "./me/EditProfileSheet";
 import { AccountSheet } from "./me/AccountSheet";
@@ -78,7 +78,7 @@ export function MePage() {
       <div className="apple-profile-hero">
         <div className="apple-profile-avatar-wrap">
           <div className="apple-profile-avatar" aria-hidden="true">
-            <IconUser size={38} strokeWidth={1.8} />
+            <IconUserRound size={38} />
           </div>
         </div>
 
@@ -103,31 +103,31 @@ export function MePage() {
       <div className="apple-profile-section mb-8">
         <div className="apple-inset-group">
           <HubRow
-            icon={<IconGift size={20} strokeWidth={1.8} />}
+            icon={<IconGift size={24} />}
             title="My rewards"
             summary={rewardsSummary(points.data?.points, vouchers)}
             onClick={() => setSheet("rewards")}
           />
           <HubRow
-            icon={<IconHeartPulse size={20} strokeWidth={1.8} />}
+            icon={<IconIdCard size={24} />}
             title="My details"
             summary={medicalSummary}
             onClick={() => setSheet("details")}
           />
           <HubRow
-            icon={<IconSliders size={20} strokeWidth={1.8} />}
+            icon={<IconSettings size={24} />}
             title="Settings"
             summary={`Text size: ${FONT_LABEL[fontSize]} · Strong contrast: ${highContrast ? "On" : "Off"}`}
             onClick={openSheet}
           />
           <HubRow
-            icon={<IconPhone size={20} strokeWidth={1.8} />}
+            icon={<IconLifeBuoy size={24} />}
             title="Help and safety"
             summary="Township security and 999"
             onClick={() => setSheet("help")}
           />
           <HubRow
-            icon={<IconUser size={20} strokeWidth={1.8} />}
+            icon={<IconUserRound size={24} />}
             title="Account"
             summary={
               tokenModeEnabled() ? "Account settings and sign out" : "Switch to another person"

@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { usePoints, useStreak } from "../../hooks/useChallengesData";
 import { Banner } from "../../ui/Banner";
-import { IconCheck, IconFlame, IconHeartHandshake, IconSparkles } from "../../ui/Icons";
+import { IconCheck, IconFlame, IconHandHeart, IconSparkles } from "../../ui/Icons";
 import { Spinner } from "../../ui/Spinner";
 
 // Points and streak for Home. A slow or failed call only affects this card, never the rest of Home.
@@ -94,7 +94,7 @@ export function AroundTownshipCard() {
             className="ui-button ui-button--secondary app-cta-card__btn--secondary"
             onClick={() => navigate("/community#volunteer")}
           >
-            <IconHeartHandshake size={18} strokeWidth={2} aria-hidden="true" />
+            <IconHandHeart size={18} strokeWidth={2} aria-hidden="true" />
             <span>Volunteering</span>
           </button>
           <button

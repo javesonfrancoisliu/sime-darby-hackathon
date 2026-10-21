@@ -1,8 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { UserRound } from "lucide-react";
-import { IconHome, IconPlus, IconUsers, IconTrophy } from "./Icons";
+import { IconGamepad, IconHome, IconPlus, IconUserRound, IconUsers } from "./Icons";
 
 interface Tab {
   label: string;
@@ -12,32 +11,36 @@ interface Tab {
   raised?: boolean;
 }
 
+// Same glyph size and stroke rule as the volunteer app tab bar: stroke 2, heavier when current.
+const TAB_ICON_SIZE = 24;
+const tabStroke = (active: boolean) => (active ? 2.5 : 2);
+
 const TABS: Tab[] = [
   {
     label: "Home",
     path: "/home",
-    icon: (active) => <IconHome size={22} strokeWidth={active ? 2.2 : 1.8} />,
+    icon: (active) => <IconHome size={TAB_ICON_SIZE} strokeWidth={tabStroke(active)} />,
   },
   {
     label: "Community",
     path: "/community",
-    icon: (active) => <IconUsers size={22} strokeWidth={active ? 2.2 : 1.8} />,
+    icon: (active) => <IconUsers size={TAB_ICON_SIZE} strokeWidth={tabStroke(active)} />,
   },
   {
     label: "Help request",
     path: "/request",
     raised: true,
-    icon: () => <IconPlus size={30} strokeWidth={2.6} />,
+    icon: () => <IconPlus size={30} strokeWidth={2.5} />,
   },
   {
     label: "Play",
     path: "/challenges",
-    icon: (active) => <IconTrophy size={22} strokeWidth={active ? 2.2 : 1.8} />,
+    icon: (active) => <IconGamepad size={TAB_ICON_SIZE} strokeWidth={tabStroke(active)} />,
   },
   {
     label: "Profile",
     path: "/me",
-    icon: (active) => <UserRound size={22} strokeWidth={active ? 2.2 : 1.8} />,
+    icon: (active) => <IconUserRound size={TAB_ICON_SIZE} strokeWidth={tabStroke(active)} />,
   },
 ];
 

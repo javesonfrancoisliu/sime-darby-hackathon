@@ -23,20 +23,24 @@ import {
   ChevronRight,
   Clock,
   Flame,
+  Gamepad2,
   Gift,
+  HandHeart,
   HeartHandshake,
   HeartPulse,
   House,
+  IdCard,
   Info,
+  LifeBuoy,
   List,
   MapPin,
   Phone,
   Pin,
   Plus,
+  Settings,
   Shield,
   ShieldCheck,
   ShoppingBag,
-  SlidersHorizontal,
   Smartphone,
   Sparkles,
   Sprout,
@@ -45,6 +49,7 @@ import {
   Thermometer,
   Trophy,
   User,
+  UserRound,
   Users,
   Volume2,
   VolumeX,
@@ -59,7 +64,7 @@ import {
 export type IconProps = LucideProps;
 
 const DEFAULT_SIZE = 22;
-const DEFAULT_STROKE_WIDTH = 1.8;
+const DEFAULT_STROKE_WIDTH = 2;
 
 // Every icon comes from lucide-react, the same set the volunteer app uses, with this app's size and stroke defaults.
 function withDefaults(Icon: LucideIcon) {
@@ -103,10 +108,15 @@ export const IconVolumeX = withDefaults(VolumeX);
 export const IconSun = withDefaults(Sun);
 export const IconPhone = withDefaults(Phone);
 export const IconX = withDefaults(X);
-export const IconSliders = withDefaults(SlidersHorizontal);
 export const IconTrophy = withDefaults(Trophy);
 export const IconFlame = withDefaults(Flame);
 export const IconGift = withDefaults(Gift);
+export const IconGamepad = withDefaults(Gamepad2);
+export const IconHandHeart = withDefaults(HandHeart);
+export const IconIdCard = withDefaults(IdCard);
+export const IconLifeBuoy = withDefaults(LifeBuoy);
+export const IconSettings = withDefaults(Settings);
+export const IconUserRound = withDefaults(UserRound);
 export const IconSparkles = withDefaults(Sparkles);
 export const IconSprout = withDefaults(Sprout);
 export const IconAward = withDefaults(Award);

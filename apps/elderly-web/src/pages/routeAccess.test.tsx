@@ -50,6 +50,23 @@ describe("tab bar", () => {
     expect(within(bar).queryByRole("button", { name: "Rewards" })).not.toBeInTheDocument();
   });
 
+  it("draws the shared glyphs and a heavier stroke on the current tab", async () => {
+    installFakeApi({ "GET /api/requests/mine": { body: { requests: [] } } });
+    await renderApp("/community");
+    const glyphs = Array.from(document.querySelectorAll(".app-tab-bar__item svg")).map((svg) =>
+      Array.from(svg.classList).find((c) => c.startsWith("lucide-")),
+    );
+    expect(glyphs).toEqual([
+      "lucide-house",
+      "lucide-users",
+      "lucide-plus",
+      "lucide-gamepad2",
+      "lucide-user-round",
+    ]);
+    const current = document.querySelector(".app-tab-bar__item--active svg");
+    expect(current).toHaveAttribute("stroke-width", "2.5");
+  });
+
   it("opens the request flow from the raised centre button with a keyboard", async () => {
     installFakeApi({ "GET /api/requests/mine": { body: { requests: [] } } });
     await renderApp("/community");

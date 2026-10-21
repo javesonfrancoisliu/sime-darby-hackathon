@@ -4,7 +4,7 @@ import { useSession } from "@sdh/api-client";
 import { tokenModeEnabled } from "../../config";
 import { ConfirmDialog } from "../../ui/ConfirmDialog";
 import { beginPageLeave, endPageLeave } from "../../ui/pageLeave";
-import { IconUser, IconUsers } from "../../ui/Icons";
+import { IconUserRound, IconUsers } from "../../ui/Icons";
 import { Sheet } from "../../ui/Sheet";
 
 interface AccountSheetProps {
@@ -49,7 +49,7 @@ export function AccountSheet({ open, onClose }: AccountSheetProps) {
             {token ? (
               <>
                 <a href="/account" className="ui-button ui-button--secondary">
-                  <IconUser className="icon-gap" size={18} strokeWidth={2} />
+                  <IconUserRound className="icon-gap" size={18} strokeWidth={2} />
                   <span>Account settings</span>
                 </a>
                 <button
