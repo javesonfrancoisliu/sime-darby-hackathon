@@ -47,9 +47,7 @@ describe("settings follow the person", () => {
   it("draws the read aloud icon from the setting, not from speech in progress", async () => {
     installFakeApi({ "GET /api/me/settings": { body: { ...saved, voiceAssist: true } } });
     await renderApp("/me");
-    await userEvent.click(
-      await screen.findByRole("button", { name: "Open text and sound settings" }),
-    );
+    await userEvent.click(await screen.findByRole("button", { name: /^Settings/ }));
     const row = (await screen.findByRole("switch", { name: "Read aloud" })).closest(
       ".apple-control-row",
     ) as HTMLElement;
