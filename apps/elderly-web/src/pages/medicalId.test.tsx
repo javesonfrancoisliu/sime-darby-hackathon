@@ -6,6 +6,7 @@ import userEvent from "@testing-library/user-event";
 import { renderApp } from "../test/renderRoute";
 import { installFakeApi, signInAs } from "../test/fakeApi";
 import { MEDICAL, MEDICAL_ROUTE, NOT_FOUND } from "../test/fixtures";
+import { takeDetailsRequest } from "./me/detailsRequest";
 
 beforeEach(() => signInAs());
 
@@ -43,6 +44,8 @@ describe("Medical ID edit screen", () => {
     const drawer = await screen.findByRole("dialog", { name: "My details" });
     expect(screen.queryByRole("heading", { name: "Add your Medical ID" })).not.toBeInTheDocument();
     expect(await within(drawer).findByText("Zainal (Son)", { exact: false })).toBeInTheDocument();
+    // The one-shot request was consumed by Profile, not left armed for a later visit.
+    expect(takeDetailsRequest()).toBe(false);
     const put = calls.find((c) => c.method === "PUT" && c.path === MEDICAL_ROUTE);
     expect(put?.body).toEqual({
       bloodGroup: "O+",
@@ -148,6 +151,25 @@ describe("Medical ID edit screen", () => {
     // Leave Profile and come back: the drawer stays shut.
     const bar = screen.getByRole("navigation", { name: "Main navigation" });
     await userEvent.click(within(bar).getByRole("button", { name: "Home" }));
+    await userEvent.click(within(bar).getByRole("button", { name: "Profile" }));
+    expect(await screen.findByRole("button", { name: /^My details/ })).toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("does not open My details later when Back after saving lands on another page", async () => {
+    installFakeApi({
+      [`GET ${MEDICAL_ROUTE}`]: { body: MEDICAL },
+      [`PUT ${MEDICAL_ROUTE}`]: { body: MEDICAL },
+    });
+    render(
+      <MemoryRouter initialEntries={["/home", "/me/medical-id"]} initialIndex={1}>
+        <App />
+        <Where />
+      </MemoryRouter>,
+    );
+    await userEvent.click(await screen.findByRole("button", { name: "Save my Medical ID" }));
+    await waitFor(() => expect(screen.getByTestId("where")).toHaveTextContent("/home"));
+    const bar = screen.getByRole("navigation", { name: "Main navigation" });
     await userEvent.click(within(bar).getByRole("button", { name: "Profile" }));
     expect(await screen.findByRole("button", { name: /^My details/ })).toBeInTheDocument();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();

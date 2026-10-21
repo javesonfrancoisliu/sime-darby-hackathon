@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useLocation, useNavigationType } from "react-router-dom";
+import { clearDetailsRequest } from "../pages/me/detailsRequest";
 import { scrollToTop } from "./scrollToTop";
 
 const APP_NAME = "Township Connect";
@@ -27,6 +28,12 @@ export function RouteFocus() {
   const navigationType = useNavigationType();
   const firstRun = useRef(true);
   const lastPath = useRef<string | null>(null);
+
+  // A request to open My details is meant for the Profile page right after it: if Back landed on
+  // any other page, drop it so a later visit to Profile does not open the drawer unasked.
+  useEffect(() => {
+    if (pathname !== "/me") clearDetailsRequest();
+  }, [pathname]);
 
   useEffect(() => {
     const isFirstRun = firstRun.current;

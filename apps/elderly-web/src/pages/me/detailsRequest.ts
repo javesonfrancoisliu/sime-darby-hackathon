@@ -12,3 +12,8 @@ export function takeDetailsRequest(): boolean {
   requested = false;
   return wanted;
 }
+
+// Drops a request that no Profile mounted for, so it cannot open the drawer on a later visit.
+export function clearDetailsRequest(): void {
+  requested = false;
+}
