@@ -856,13 +856,15 @@
 .easy-view {
   font-size: 1.125rem;
 }
-.easy-view .feature-card-title {
-  font-size: 1.25rem;
-}
 .easy-view .feature-card-desc,
 .easy-view .ui-meta-row,
 .easy-view .inline-icon {
   font-size: 1.0625rem;
+}
+/* After the group above so a title that is also an inline-icon row keeps the title size. */
+.easy-view .feature-card-title,
+.easy-view .feature-card-title .inline-icon {
+  font-size: 1.25rem;
 }
 
 /* ---------- Volunteer: match score & reasons ---------- */
