@@ -76,7 +76,7 @@ it("renders the updated 154/143-character saved explanations with accurate sourc
     expect(within(region).getByText("Claude explanation")).toBeVisible();
     expect(within(region).getByText(item.reasons[0]!)).toBeVisible();
     expect(within(region).queryByText("Rule-based explanation (fallback)")).not.toBeInTheDocument();
-    expect(within(card).getByRole("button", { name: "Accept & help" })).toBeVisible();
+    expect(within(card).getByRole("button", { name: /^Accept & help: / })).toBeVisible();
   }
 });
 
@@ -107,7 +107,7 @@ it("renders genuine saved Claude justifications and server order with independen
     expect(within(explanation).getByText(item.reasons[0]!)).toBeVisible();
     expect(item.reasons[0]!.length).toBeLessThanOrEqual(240);
   }
-  expect(within(clinic).getByRole("button", { name: "Accept & help" })).toBeVisible();
+  expect(within(clinic).getByRole("button", { name: /^Accept & help: / })).toBeVisible();
   const sort = screen.getByRole("combobox", { name: "Sort by" });
   await userEvent.selectOptions(sort, "nearest");
   expect(displayedRequests()[0]).toContain("Explain a health leaflet");

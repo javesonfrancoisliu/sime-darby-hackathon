@@ -52,7 +52,7 @@ describe("volunteer page", () => {
     await userEvent.click(within(card).getByRole("button", { name: /97% match/ }));
     expect(within(card).getByText("Claude explanation")).toBeVisible();
     expect(within(card).getByText("Your grocery skills suit this nearby request.")).toBeVisible();
-    expect(within(card).getByRole("button", { name: "Accept & help" })).toBeVisible();
+    expect(within(card).getByRole("button", { name: "Accept & help: Groceries" })).toBeVisible();
     expect(screen.queryByText(drive.title)).not.toBeInTheDocument();
     expect(screen.getAllByLabelText(/^Opportunity:/)).toHaveLength(1);
   });
@@ -225,7 +225,7 @@ describe("volunteer page", () => {
     ).not.toBeInTheDocument();
     await user.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "false");
-    expect(within(card).getByRole("button", { name: "Accept & help" })).toBeVisible();
+    expect(within(card).getByRole("button", { name: /^Accept & help: / })).toBeVisible();
   });
 
   it("highlights urgent opportunities with an Urgent text label", async () => {
@@ -386,7 +386,7 @@ describe("volunteer page", () => {
 
     // Details expand inline; the accept action stays visible.
     await user.click(await screen.findByRole("button", { name: "Groceries. Show details" }));
-    await user.click(await screen.findByRole("button", { name: "Accept & help" }));
+    await user.click(await screen.findByRole("button", { name: /^Accept & help: / }));
     // A yes/no confirmation now precedes the accept.
     await user.click(await screen.findByRole("button", { name: "Yes, accept" }));
     const dialog = await screen.findByRole("dialog", { name: "Thanks for stepping up" });
@@ -472,7 +472,7 @@ describe("volunteer page", () => {
     const user = userEvent.setup();
 
     await user.click(await screen.findByRole("button", { name: "Groceries. Show details" }));
-    await user.click(await screen.findByRole("button", { name: "Accept & help" }));
+    await user.click(await screen.findByRole("button", { name: /^Accept & help: / }));
     await user.click(await screen.findByRole("button", { name: "Yes, accept" }));
     expect(await screen.findByText("Someone else just took this")).toBeInTheDocument();
     await waitFor(() => expect(screen.getByRole("button", { name: "OK" })).toBeEnabled());
