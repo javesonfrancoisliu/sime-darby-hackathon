@@ -12,6 +12,8 @@ interface ConfirmDialogProps {
   onCancel: () => void;
   // A confirmed action is running: the confirm button stays off so a second tap cannot repeat it.
   busy?: boolean;
+  // Shown under the text when the confirmed action failed.
+  error?: string;
   children?: ReactNode;
 }
 
@@ -24,6 +26,7 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
   busy = false,
+  error,
   children,
 }: ConfirmDialogProps) {
   const titleId = useId();
@@ -47,10 +50,20 @@ export function ConfirmDialog({
     };
   }, [host]);
 
-  useDialogLayer({ panelRef, onBack: onCancel, onEscape: onCancel });
+  // Back to the safe choice once a running action finishes, since its button was disabled meanwhile.
+  useEffect(() => {
+    if (!busy) cancelRef.current?.focus();
+  }, [busy]);
+
+  // While the confirmed action runs, leaving the dialog by any route is off.
+  function cancel() {
+    if (!busy) onCancel();
+  }
+
+  useDialogLayer({ panelRef, onBack: cancel, onEscape: cancel });
 
   return createPortal(
-    <div ref={rootRef} className="apple-sheet-backdrop" onClick={onCancel}>
+    <div ref={rootRef} className="apple-sheet-backdrop" onClick={cancel}>
       <div
         ref={panelRef}
         className="apple-sheet-panel call-confirm-panel"
@@ -65,6 +78,11 @@ export function ConfirmDialog({
             {title}
           </h2>
           {children ? <p className="call-confirm__sub">{children}</p> : null}
+          {error ? (
+            <p className="call-confirm__error" role="alert">
+              {error}
+            </p>
+          ) : null}
           <div className="call-confirm__actions">
             <Button block onClick={onConfirm} disabled={busy} aria-busy={busy || undefined}>
               {confirmLabel}
@@ -73,7 +91,8 @@ export function ConfirmDialog({
               type="button"
               ref={cancelRef}
               className="ui-button ui-button--secondary call-confirm__cancel"
-              onClick={onCancel}
+              onClick={cancel}
+              disabled={busy}
             >
               {cancelLabel}
             </button>
