@@ -31,6 +31,18 @@ describe("settings follow the person", () => {
     });
   });
 
+  it("previews every saved setting on the Me page", async () => {
+    installFakeApi({
+      "GET /api/me/settings": { body: { ...saved, reducedMotion: true, voiceAssist: true } },
+    });
+    await renderApp("/me");
+    const row = await screen.findByRole("button", { name: "Open text and sound settings" });
+    await waitFor(() => expect(row).toHaveTextContent("Less movement: On"));
+    expect(row).toHaveTextContent("Text size: X-Large");
+    expect(row).toHaveTextContent("Strong contrast: On");
+    expect(row).toHaveTextContent("Read aloud: On");
+  });
+
   it("starts a new person from the defaults and uploads nothing", async () => {
     window.localStorage.setItem(
       ACCESSIBILITY_STORAGE_KEY,
