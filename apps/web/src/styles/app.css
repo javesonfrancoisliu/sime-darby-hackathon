@@ -116,8 +116,8 @@
   }
   .app-main {
     padding: var(--space-4);
-    /* Clears the bar plus the half of the raised centre button that rises above it. */
-    padding-bottom: calc(72px + 32px + env(safe-area-inset-bottom));
+    /* Clears the bar plus the part of the raised centre button that rises above it. */
+    padding-bottom: calc(72px + 40px + env(safe-area-inset-bottom));
   }
   .app-mobilenav {
     display: flex;
@@ -160,7 +160,6 @@
   /* Raised centre button: a round filled orb half above the bar inside a ring bump. */
   .app-mobilenav-link--centre {
     position: relative;
-    justify-content: flex-end;
     color: var(--text-secondary);
   }
   .app-mobilenav-orb {
@@ -169,7 +168,8 @@
     place-items: center;
     width: var(--orb-size);
     height: var(--orb-size);
-    margin-top: calc(var(--orb-size) / -2);
+    /* The orb's bottom meets the icon row of the other tabs, so every label shares one line. */
+    margin-top: calc(22px - var(--orb-size));
     border-radius: 50%;
     background: var(--brand-primary);
     color: #fff;
@@ -206,6 +206,14 @@
     box-shadow:
       0 0 0 3px var(--surface),
       0 0 0 6px var(--brand-primary);
+  }
+  /* Current page and keyboard focus together keep both rings visible. */
+  .app-mobilenav-link--centre[aria-current="page"]:focus-visible .app-mobilenav-orb {
+    box-shadow:
+      0 0 0 3px var(--surface),
+      0 0 0 6px var(--text-primary),
+      0 0 0 9px var(--surface),
+      0 0 0 12px var(--brand-primary);
   }
   .easy-view .app-mobilenav-orb {
     --orb-size: 64px;
