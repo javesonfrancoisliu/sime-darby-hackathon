@@ -53,6 +53,21 @@ describe("quizzes", () => {
     expect((await call("GET", `/api/quizzes/${quiz.id}`)).status).toBe(401);
   });
 
+  it("caps submits per quiz and person at five a day without counting invalid ones", async () => {
+    const prober = await createElder();
+    const other = await createElder();
+    const submit = (as: string, picks: number[]) =>
+      call("POST", `/api/quizzes/${quiz.id}/submit`, { as, body: answers(picks) });
+    expect((await submit(prober.id, [0])).status).toBe(400);
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      expect((await submit(prober.id, [0, 0, 1])).status).toBe(200);
+    }
+    const sixth = await submit(prober.id, [1, 2, 0]);
+    expect(sixth.status).toBe(409);
+    expect(sixth.body).toMatchObject({ error: { code: "CONFLICT" } });
+    expect((await submit(other.id, [1, 2, 0])).status).toBe(200);
+  });
+
   it("grades on the server and returns only the result", async () => {
     const elder = await createElder();
     const fail = await call("POST", `/api/quizzes/${quiz.id}/submit`, {

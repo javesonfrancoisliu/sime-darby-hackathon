@@ -1,6 +1,6 @@
-import { GetCommand, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { GetCommand, PutCommand, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import type { Quiz } from "@sdh/contracts";
-import { db, table } from "../../lib/db";
+import { db, isConditionFailure, table } from "../../lib/db";
 
 const ENTITY = "QUIZ";
 
@@ -55,4 +55,28 @@ export async function listQuizzes(): Promise<Quiz[]> {
     startKey = result.LastEvaluatedKey;
   } while (startKey);
   return quizzes;
+}
+
+// One counter per user, quiz and UTC day; false once the day's attempts are used up.
+export async function takeAttempt(
+  quizId: string,
+  userId: string,
+  day: string,
+  maxAttempts: number,
+): Promise<boolean> {
+  try {
+    await db().send(
+      new UpdateCommand({
+        TableName: table(),
+        Key: { PK: `QUIZATTEMPT#${quizId}#${userId}`, SK: day },
+        UpdateExpression: "ADD attempts :one SET entity = :entity",
+        ConditionExpression: "attribute_not_exists(attempts) OR attempts < :max",
+        ExpressionAttributeValues: { ":one": 1, ":max": maxAttempts, ":entity": "QUIZ_ATTEMPT" },
+      }),
+    );
+    return true;
+  } catch (error) {
+    if (isConditionFailure(error)) return false;
+    throw error;
+  }
 }
