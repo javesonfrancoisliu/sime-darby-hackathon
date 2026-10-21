@@ -36,3 +36,11 @@ describe("progress bar contrast", () => {
     expect(rule(".safety-bar__fill--tone")).toContain("background: var(--tone-bar)");
   });
 });
+
+describe("voucher list", () => {
+  it("drops the default list indent so cards line up with the sheet content", () => {
+    const body = rule(".voucher-list");
+    expect(body).toContain("list-style: none");
+    expect(body).toContain("padding: 0");
+  });
+});

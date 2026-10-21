@@ -2574,6 +2574,11 @@ button:active,
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
 }
+.voucher-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
 .play-reward__icon {
   flex-shrink: 0;
   color: var(--brand-primary);
