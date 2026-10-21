@@ -425,13 +425,12 @@ describe("profile page", () => {
   });
 
   it("turns on larger text and applies the comfort sizing to the app shell", async () => {
-    const { calls } = installFakeApi(
-      signedIn({
-        "PUT /api/me/settings": ({ body }) => ({
-          body: { ...(body as object), updatedAt: "2026-10-19T00:00:00Z" },
-        }),
+    const { calls } = installFakeApi({
+      ...signedIn(),
+      "PUT /api/me/settings": ({ body }) => ({
+        body: { ...(body as object), updatedAt: "2026-10-19T00:00:00Z" },
       }),
-    );
+    });
     signInAs(VOLUNTEER.id);
     const { container } = renderApp("/profile");
     const user = userEvent.setup();
@@ -453,14 +452,13 @@ describe("profile page", () => {
   });
 
   it("loads larger text from the account and saves normal when it is turned off", async () => {
-    const { calls } = installFakeApi(
-      signedIn({
-        "GET /api/me/settings": { body: { ...SETTINGS, fontSize: "large" } },
-        "PUT /api/me/settings": ({ body }) => ({
-          body: { ...(body as object), updatedAt: "2026-10-19T00:00:00Z" },
-        }),
+    const { calls } = installFakeApi({
+      ...signedIn(),
+      "GET /api/me/settings": { body: { ...SETTINGS, fontSize: "large" } },
+      "PUT /api/me/settings": ({ body }) => ({
+        body: { ...(body as object), updatedAt: "2026-10-19T00:00:00Z" },
       }),
-    );
+    });
     signInAs(VOLUNTEER.id);
     const { container } = renderApp("/profile");
     const user = userEvent.setup();
