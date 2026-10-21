@@ -52,7 +52,7 @@ export function showsVolunteer(status: RequestStatus): boolean {
   return status === "matched" || status === "completed";
 }
 
-// The server accepts a cancel while the request is being checked or still open.
+// The server accepts a cancel until the request is completed, including after a volunteer accepted.
 export function canCancel(status: RequestStatus): boolean {
-  return status === "pending_review" || status === "open";
+  return status === "pending_review" || status === "open" || status === "matched";
 }

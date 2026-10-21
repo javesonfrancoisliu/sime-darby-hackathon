@@ -155,11 +155,12 @@ describe("Request detail", () => {
     expect(screen.getByText("Not matched yet")).toBeInTheDocument();
   });
 
-  it("shows the volunteer name when matched and hides Cancel", async () => {
+  it("shows the volunteer name when matched and offers Cancel with a warning for the volunteer", async () => {
     installFakeApi({ [`GET /api/requests/${matched.id}`]: { body: matched } });
     await renderApp(`/requests/${matched.id}`);
     expect(await screen.findByText("Aisha")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Cancel request" })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Cancel request" }));
+    expect(screen.getByText(/Your volunteer will be told/)).toBeInTheDocument();
   });
 
   it("shows the team's note on a rejected request and hides Cancel", async () => {
@@ -184,7 +185,7 @@ describe("Request detail", () => {
 });
 
 describe("Cancel flow", () => {
-  for (const status of ["pending_review", "open"] as const) {
+  for (const status of ["pending_review", "open", "matched"] as const) {
     it(`cancels a ${status} request after a confirmation`, async () => {
       const req = makeRequest({ status });
       const { calls } = installFakeApi({

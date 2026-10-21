@@ -94,8 +94,8 @@ describe("status helpers", () => {
     expect(statuses.filter(showsVolunteer)).toEqual(["matched", "completed"]);
   });
 
-  it("allows cancel only while being checked or open", () => {
-    expect(statuses.filter(canCancel)).toEqual(["pending_review", "open"]);
+  it("allows cancel until the request is completed", () => {
+    expect(statuses.filter(canCancel)).toEqual(["pending_review", "open", "matched"]);
   });
 });
 

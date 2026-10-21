@@ -203,7 +203,11 @@ export function RequestDetailPage() {
             <p className="apple-confirm-card__title">
               Are you sure you want to cancel this request?
             </p>
-            <p className="apple-confirm-card__sub">This request will be closed.</p>
+            <p className="apple-confirm-card__sub">
+              {req.status === "matched"
+                ? "Your volunteer will be told and this request will be closed."
+                : "This request will be closed."}
+            </p>
             <div className="ui-stack stack-gap-3 mt-4">
               <Button
                 block
