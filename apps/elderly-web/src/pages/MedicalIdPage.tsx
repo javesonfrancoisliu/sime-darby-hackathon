@@ -113,9 +113,9 @@ export function MedicalIdPage() {
     inputs?.[index]?.focus();
   }
 
-  // Pop back to My details so this form is not left in the history; a direct visit replaces it.
+  // Pop back to Profile so this form is not left in the history; a direct visit replaces it.
   function returnToDetails() {
-    if (location.key === "default") navigate("/me/details", { replace: true });
+    if (location.key === "default") navigate("/me", { replace: true });
     else navigate(-1);
   }
 

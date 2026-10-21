@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { signInWithToken } from "@sdh/api-client/testing";
@@ -83,15 +83,68 @@ describe("token mode guard", () => {
 });
 
 describe("token mode account actions", () => {
-  it("links to account settings and signs out to the sign-in page", async () => {
+  async function openAccount() {
     installFakeApi();
-    const { signOut } = renderToken("/me");
-    const link = await screen.findByRole("link", { name: "Account settings" });
-    expect(link).toHaveAttribute("href", "/account");
-    expect(screen.queryByRole("button", { name: "Switch person" })).not.toBeInTheDocument();
+    const view = renderToken("/me");
+    await userEvent.click(await screen.findByRole("button", { name: /^Account/ }));
+    return { ...view, sheet: await screen.findByRole("dialog", { name: "Account" }) };
+  }
 
-    await userEvent.click(screen.getByRole("button", { name: "Sign out" }));
+  it("keeps Account settings and Sign out inside the Account sheet only", async () => {
+    installFakeApi();
+    renderToken("/me");
+    await screen.findByRole("button", { name: /^Account/ });
+    expect(screen.queryByRole("link", { name: "Account settings" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Sign out" })).not.toBeInTheDocument();
+  });
+
+  it("links to account settings and asks before signing out", async () => {
+    const { signOut, sheet } = await openAccount();
+    const link = within(sheet).getByRole("link", { name: "Account settings" });
+    expect(link).toHaveAttribute("href", "/account");
+    expect(within(sheet).queryByRole("button", { name: "Switch person" })).not.toBeInTheDocument();
+
+    await userEvent.click(within(sheet).getByRole("button", { name: "Sign out" }));
+    const confirm = await screen.findByRole("dialog", { name: "Sign out?" });
+    expect(signOut).not.toHaveBeenCalled();
+    await userEvent.click(within(confirm).getByRole("button", { name: "Yes, sign out" }));
     await waitFor(() => expect(assign).toHaveBeenCalledWith("/"));
     expect(signOut).toHaveBeenCalled();
+  });
+
+  it("keeps the person signed in on Not yet and leaves the Account sheet open", async () => {
+    const { signOut, sheet } = await openAccount();
+    await userEvent.click(within(sheet).getByRole("button", { name: "Sign out" }));
+    const confirm = await screen.findByRole("dialog", { name: "Sign out?" });
+    expect(within(confirm).getByRole("button", { name: "Not yet" })).toHaveFocus();
+    await userEvent.click(within(confirm).getByRole("button", { name: "Not yet" }));
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog", { name: "Sign out?" })).not.toBeInTheDocument(),
+    );
+    expect(screen.getByRole("dialog", { name: "Account" })).toBeInTheDocument();
+    expect(signOut).not.toHaveBeenCalled();
+  });
+
+  it("closes the confirm first on Escape and on the phone Back button", async () => {
+    const { sheet } = await openAccount();
+    await userEvent.click(within(sheet).getByRole("button", { name: "Sign out" }));
+    await screen.findByRole("dialog", { name: "Sign out?" });
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog", { name: "Sign out?" })).not.toBeInTheDocument(),
+    );
+    expect(screen.getByRole("dialog", { name: "Account" })).toBeInTheDocument();
+
+    await userEvent.click(
+      within(screen.getByRole("dialog", { name: "Account" })).getByRole("button", {
+        name: "Sign out",
+      }),
+    );
+    await screen.findByRole("dialog", { name: "Sign out?" });
+    window.history.back();
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog", { name: "Sign out?" })).not.toBeInTheDocument(),
+    );
+    expect(screen.getByRole("dialog", { name: "Account" })).toBeInTheDocument();
   });
 });

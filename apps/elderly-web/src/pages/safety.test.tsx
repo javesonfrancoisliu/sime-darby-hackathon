@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderApp } from "../test/renderRoute";
 import { installFakeApi, signInAs } from "../test/fakeApi";
@@ -117,18 +117,20 @@ describe("Me page", () => {
       [`GET ${MEDICAL_ROUTE}`]: { body: MEDICAL },
       "GET /api/township": { body: TOWNSHIP },
     });
-    await renderApp("/me/details");
-    expect(await screen.findByText("O+")).toBeInTheDocument();
-    // The next-of-kin phone and township security now confirm before dialing.
+    await renderApp("/me");
     const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", { name: /^My details/ }));
+    expect(await screen.findByText("O+", { selector: ".apple-inset-value" })).toBeInTheDocument();
+    // The next-of-kin phone and township security now confirm before dialing.
     await user.click(screen.getByRole("button", { name: "012-345 6789" }));
-    const dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole("dialog", { name: /^Call 012-345 6789/ });
     expect(
       within(dialog).getByRole("slider", { name: /Slide to call 012-345 6789/ }),
     ).toBeInTheDocument();
     await user.keyboard("{Escape}");
     expect(screen.getByText(/Zainal \(Son\)/)).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: /Go Back/ }));
+    await user.click(screen.getByRole("button", { name: "Done" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     await user.click(await screen.findByRole("button", { name: /Help and safety/ }));
     const help = await screen.findByRole("dialog", { name: "Help and safety" });
     await user.click(within(help).getByRole("button", { name: /Township security/ }));
@@ -144,9 +146,13 @@ describe("Me page", () => {
         body: { error: { code: "NOT_FOUND", message: "x" } },
       },
     });
-    await renderApp("/me/details");
-    expect(await screen.findByRole("button", { name: /Add your Medical ID/ })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Township security/ })).not.toBeInTheDocument();
+    await renderApp("/me");
+    await userEvent.click(await screen.findByRole("button", { name: /^My details/ }));
+    const sheet = await screen.findByRole("dialog", { name: "My details" });
+    expect(
+      await within(sheet).findByRole("button", { name: /Add your Medical ID/ }),
+    ).toBeInTheDocument();
+    expect(within(sheet).queryByRole("button", { name: /Township security/ })).toBeNull();
   });
 });
 

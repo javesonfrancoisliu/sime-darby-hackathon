@@ -1,4 +1,4 @@
-import { Outlet, Route, Routes } from "react-router-dom";
+import { Navigate, Outlet, Route, Routes } from "react-router-dom";
 import { SessionProvider, type SessionAuth } from "@sdh/api-client";
 import { SessionGate } from "./session/SessionGate";
 import { AppShell } from "./ui/AppShell";
@@ -14,7 +14,6 @@ import { ChallengesPage } from "./pages/ChallengesPage";
 import { MePage } from "./pages/MePage";
 import { MedicalIdPage } from "./pages/MedicalIdPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
-import { MyDetailsPage } from "./pages/MyDetailsPage";
 import { AccessibilityProvider } from "./context/AccessibilityContext";
 import { AccessibilitySync } from "./context/AccessibilitySync";
 
@@ -39,7 +38,7 @@ export function App({ auth }: { auth?: SessionAuth }) {
               <Route path="community" element={<CommunityPage />} />
               <Route path="challenges" element={<ChallengesPage />} />
               <Route path="me" element={<MePage />} />
-              <Route path="me/details" element={<MyDetailsPage />} />
+              <Route path="me/details" element={<Navigate to="/me" replace />} />
               <Route path="me/medical-id" element={<MedicalIdPage />} />
               <Route path="request" element={<CategoryPage />} />
               <Route path="request/confirmation" element={<ConfirmationPage />} />

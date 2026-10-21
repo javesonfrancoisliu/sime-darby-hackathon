@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { DemoUsersResponse } from "@sdh/contracts";
 import { DEMO_USER_STORAGE_KEY } from "@sdh/api-client";
@@ -87,7 +87,12 @@ describe("Me page", () => {
     expect(screen.getAllByText("Elmina Valley").length).toBeGreaterThan(0);
     expect(screen.queryByText(/Aminah/)).not.toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole("button", { name: /Switch person/ }));
+    await userEvent.click(screen.getByRole("button", { name: /^Account/ }));
+    await userEvent.click(
+      within(await screen.findByRole("dialog", { name: "Account" })).getByRole("button", {
+        name: /Switch person/,
+      }),
+    );
     expect(
       await screen.findByRole("heading", { name: "Who is using this phone?" }),
     ).toBeInTheDocument();

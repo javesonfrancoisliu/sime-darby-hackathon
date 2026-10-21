@@ -43,7 +43,7 @@ const hubRoutes = {
 const sheetNamed = (name: string) => screen.findByRole("dialog", { name });
 
 describe("Profile hub", () => {
-  it("lists the header and the four rows in order with live summaries", async () => {
+  it("lists the header and the five rows in order with live summaries", async () => {
     installFakeApi(hubRoutes);
     await renderApp("/me");
     expect(await screen.findByRole("heading", { name: "Puan Salmah" })).toBeInTheDocument();
@@ -55,11 +55,13 @@ describe("Profile hub", () => {
       "My details",
       "Settings",
       "Help and safety",
+      "Account",
     ]);
     await waitFor(() => expect(rows[0]).toHaveTextContent("260 points · 1 voucher"));
     await waitFor(() => expect(rows[1]).toHaveTextContent("Blood group O+"));
     expect(rows[2]).toHaveTextContent("Text size: Normal · Strong contrast: Off");
     expect(rows[3]).toHaveTextContent("Township security and 999");
+    expect(rows[4]).toHaveTextContent("Switch to another person");
   });
 
   it("says plainly when there is no Medical ID yet", async () => {
@@ -77,7 +79,55 @@ describe("Profile hub", () => {
     expect(screen.queryByText("Reading and sound")).not.toBeInTheDocument();
     expect(screen.queryByText("Emergency & Medical ID")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Read profile aloud" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Switch person/ })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Switch person/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Sign out" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Account", { selector: ".apple-profile-section-title" })).toBeNull();
+  });
+});
+
+describe("My details drawer", () => {
+  it("shows the Medical ID summary and the township sector in a sheet", async () => {
+    installFakeApi(hubRoutes);
+    await renderApp("/me");
+    await userEvent.click(await screen.findByRole("button", { name: /^My details/ }));
+    const sheet = await sheetNamed("My details");
+    expect(await within(sheet).findByText("O+")).toBeInTheDocument();
+    expect(within(sheet).getByText(/Zainal/)).toBeInTheDocument();
+    expect(within(sheet).getByText("Township Sector")).toBeInTheDocument();
+    expect(window.location.pathname).not.toBe("/me/details");
+  });
+
+  it("closes and opens the Medical ID page from Change your Medical ID", async () => {
+    installFakeApi(hubRoutes);
+    await renderApp("/me");
+    await userEvent.click(await screen.findByRole("button", { name: /^My details/ }));
+    const sheet = await sheetNamed("My details");
+    await userEvent.click(
+      await within(sheet).findByRole("button", { name: "Change your Medical ID" }),
+    );
+    expect(await screen.findByRole("button", { name: "Save my Medical ID" })).toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("offers Add your Medical ID when there is none", async () => {
+    installFakeApi({ ...hubRoutes, [`GET ${MEDICAL_ROUTE}`]: NOT_FOUND });
+    await renderApp("/me");
+    await userEvent.click(await screen.findByRole("button", { name: /^My details/ }));
+    const sheet = await sheetNamed("My details");
+    expect(
+      await within(sheet).findByRole("button", { name: /Add your Medical ID/ }),
+    ).toBeInTheDocument();
+  });
+});
+
+describe("Account drawer", () => {
+  it("opens an Account sheet with Switch person in demo mode", async () => {
+    installFakeApi(hubRoutes);
+    await renderApp("/me");
+    await userEvent.click(await screen.findByRole("button", { name: /^Account/ }));
+    const sheet = await sheetNamed("Account");
+    expect(within(sheet).getByRole("button", { name: /Switch person/ })).toBeInTheDocument();
+    expect(within(sheet).queryByRole("button", { name: "Sign out" })).not.toBeInTheDocument();
   });
 });
 
@@ -290,7 +340,9 @@ describe("My rewards sheet", () => {
     await userEvent.click(await screen.findByRole("button", { name: /^My rewards/ }));
     const sheet = await sheetNamed("My rewards");
     await userEvent.click(within(sheet).getByRole("button", { name: "See available rewards" }));
-    expect(await screen.findByRole("heading", { level: 1, name: "Community Play" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Community Play" }),
+    ).toBeInTheDocument();
     expect(await screen.findByRole("tab", { name: /Rewards/ })).toHaveAttribute(
       "aria-selected",
       "true",
@@ -304,29 +356,6 @@ describe("My rewards sheet", () => {
     await userEvent.click(await screen.findByRole("button", { name: /^My rewards/ }));
     const sheet = await sheetNamed("My rewards");
     expect(await within(sheet).findByRole("button", { name: "Try again" })).toBeInTheDocument();
-  });
-});
-
-describe("My details page", () => {
-  it("shows the Medical ID, the change button and the township sector", async () => {
-    installFakeApi(hubRoutes);
-    await renderApp("/me");
-    await userEvent.click(await screen.findByRole("button", { name: /^My details/ }));
-    expect(await screen.findByRole("heading", { name: "My details" })).toBeInTheDocument();
-    expect(await screen.findByText("O+")).toBeInTheDocument();
-    expect(screen.getByText("Township Sector")).toBeInTheDocument();
-    expect(screen.getByText("Elmina Valley")).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: /Change your Medical ID/ }));
-    expect(
-      await screen.findByRole("heading", { name: "Change your Medical ID" }),
-    ).toBeInTheDocument();
-  });
-
-  it("goes back to the Profile", async () => {
-    installFakeApi(hubRoutes);
-    await renderApp("/me/details");
-    await userEvent.click(await screen.findByRole("button", { name: /Go Back/ }));
-    expect(await screen.findByRole("button", { name: /^Settings/ })).toBeInTheDocument();
   });
 });
 
