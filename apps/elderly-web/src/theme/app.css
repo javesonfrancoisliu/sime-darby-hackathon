@@ -340,8 +340,11 @@
   width: 100%;
   max-width: 480px;
   display: flex;
-  background: var(--surface);
-  border-top: 1px solid var(--border);
+  --tab-bar-bg: var(--surface);
+  --tab-bar-border-width: 1px;
+  --tab-bar-border-color: var(--border);
+  background: var(--tab-bar-bg);
+  border-top: var(--tab-bar-border-width) solid var(--tab-bar-border-color);
   z-index: 100;
   /* Safe area for iPhone notch */
   padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -390,10 +393,10 @@
   left: 50%;
   top: calc(-1 * var(--tab-bump-height));
   width: calc(var(--fab-size) + 16px);
-  height: calc(var(--tab-bump-height) + 1px);
+  height: calc(var(--tab-bump-height) + var(--tab-bar-border-width));
   transform: translateX(-50%);
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--tab-bar-bg);
+  border: var(--tab-bar-border-width) solid var(--tab-bar-border-color);
   border-bottom: none;
   border-radius: calc(var(--fab-size) / 2 + 8px) calc(var(--fab-size) / 2 + 8px) 0 0;
   pointer-events: none;
@@ -1233,10 +1236,11 @@ button:active,
 
 /* ── 2. Translucent bar ─────────────────── */
 .app-tab-bar {
-  background: rgba(255, 255, 255, 0.82);
+  --tab-bar-bg: rgba(255, 255, 255, 0.82);
+  --tab-bar-border-color: rgba(229, 231, 235, 0.7);
+  background: var(--tab-bar-bg);
   backdrop-filter: blur(24px) saturate(190%);
   -webkit-backdrop-filter: blur(24px) saturate(190%);
-  border-top: 1px solid rgba(229, 231, 235, 0.7);
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.04);
 }
 
@@ -1388,10 +1392,12 @@ button:active,
   border: 2px solid #000000;
 }
 .high-contrast .app-tab-bar {
-  background: #ffffff;
+  --tab-bar-bg: #ffffff;
+  --tab-bar-border-width: 3px;
+  --tab-bar-border-color: #000000;
+  background: var(--tab-bar-bg);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  border-top: 3px solid #000000;
 }
 .high-contrast .app-tab-bar__item,
 .high-contrast .seg-tabs__tab {
@@ -2894,15 +2900,16 @@ button:active,
   font-size: min(16px, 3.4vw);
 }
 
-/* The raised label may wrap, but only between words. */
+/* The raised label stays on one line so the bar height does not change by device width. */
 .app-tab-bar__item--raised .app-tab-bar__label {
-  white-space: normal;
-  overflow-wrap: normal;
-  word-break: normal;
+  white-space: nowrap;
 }
 
 /* People who ask for less transparency get solid surfaces. */
 @media (prefers-reduced-transparency: reduce) {
+  .app-tab-bar {
+    --tab-bar-bg: var(--surface);
+  }
   .app-tab-bar,
   .apple-sheet-backdrop,
   .apple-sheet-scrim,

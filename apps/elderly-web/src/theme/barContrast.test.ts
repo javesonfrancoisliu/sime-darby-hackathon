@@ -44,3 +44,16 @@ describe("voucher list", () => {
     expect(body).toContain("padding: 0");
   });
 });
+
+describe("tab bar", () => {
+  it("sizes the centre bump from the bar's own border and background", () => {
+    const bump = rule(".app-tab-bar__bump");
+    expect(bump).toContain("var(--tab-bar-border-width)");
+    expect(bump).toContain("background: var(--tab-bar-bg)");
+    expect(appCss).toMatch(/\.high-contrast \.app-tab-bar \{[^}]*--tab-bar-border-width: 3px/s);
+  });
+
+  it("keeps the raised label on one line so the bar height does not change", () => {
+    expect(rule(".app-tab-bar__item--raised .app-tab-bar__label")).toContain("white-space: nowrap");
+  });
+});
