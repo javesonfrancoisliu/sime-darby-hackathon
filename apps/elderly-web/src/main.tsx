@@ -2,7 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 
-import { setAccessTokenProvider } from "@sdh/api-client";
+import { AppErrorBoundary, setAccessTokenProvider } from "@sdh/api-client";
 import { startAuthFromEnv } from "@sdh/auth";
 
 import { App } from "./App";
@@ -23,8 +23,10 @@ const basename = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 createRoot(rootElement).render(
   <StrictMode>
-    <BrowserRouter basename={basename}>
-      <App auth={auth} />
-    </BrowserRouter>
+    <AppErrorBoundary homeHref="/elder/">
+      <BrowserRouter basename={basename}>
+        <App auth={auth} />
+      </BrowserRouter>
+    </AppErrorBoundary>
   </StrictMode>,
 );
