@@ -131,6 +131,9 @@ describe("community page", () => {
     renderApp("/community");
     await screen.findByRole("heading", { name: "Neighbourhood Hub" });
     expect(screen.queryByRole("region", { name: "Community Challenges" })).not.toBeInTheDocument();
+    // Whatever the card is called, nothing in the page body links to the challenges page.
+    const main = screen.getByRole("main");
+    expect(main.querySelector('a[href$="/community/challenges"]')).toBeNull();
   });
 
   it("keeps high priority updates in the feed without a featured card", async () => {
