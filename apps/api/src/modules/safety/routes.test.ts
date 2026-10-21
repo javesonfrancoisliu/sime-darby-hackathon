@@ -95,6 +95,38 @@ describe("safety", () => {
     expect((await put({ ...air(), type: "noise" })).status).toBe(400);
   });
 
+  it("rejects unbounded, negative and denormal numbers with 400 instead of a 500", async () => {
+    const cases = [
+      air({ value: 1e21 }),
+      air({ value: 1e16 }),
+      air({ value: 5e-324 }),
+      air({ value: -50 }),
+      air({ value: 100_001 }),
+      water({ normalMax: 1e21 }),
+      water({ value: -1 }),
+      heat({ feelsLike: 1e21 }),
+      heat({ feelsLike: -61 }),
+      heat({ humidity: 5e-324 }),
+    ];
+    for (const body of cases) {
+      const res = await put(body);
+      expect(res.status).toBe(400);
+      expect(res.body).toMatchObject({ error: { code: "VALIDATION_FAILED" } });
+    }
+    expect((await put(air({ area: "Edge Area", value: 100_000 }))).status).toBe(200);
+    expect((await put(air({ area: "Edge Area", value: 0 }))).status).toBe(200);
+    expect((await put(heat({ feelsLike: -60 }))).status).toBe(200);
+  });
+
+  it("allows a measuredAt up to a day ahead and rejects anything later", async () => {
+    const ahead = (ms: number) => new Date(Date.now() + ms).toISOString();
+    expect((await put(air({ measuredAt: ahead(23 * 3_600_000) }))).status).toBe(200);
+    const far = await put(air({ measuredAt: "2999-01-01T00:00:00Z" }));
+    expect(far.status).toBe(400);
+    expect(JSON.stringify(far.body)).toContain("measuredAt");
+    expect((await put(air({ measuredAt: ahead(25 * 3_600_000) }))).status).toBe(400);
+  });
+
   it("upserts one reading per type and area and normalises times to UTC", async () => {
     await put(air({ area: "Zone Upsert", value: 40 }));
     await put(air({ area: "Zone Upsert", value: 55, level: "moderate" }));
