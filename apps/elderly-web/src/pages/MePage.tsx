@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { FONT_LABEL, useAccessibility } from "../context/AccessibilityContext";
 import { tokenModeEnabled } from "../config";
 import { usePoints, useRewards } from "../hooks/useChallengesData";
@@ -20,6 +20,7 @@ import {
 import { EditProfileSheet } from "./me/EditProfileSheet";
 import { AccountSheet } from "./me/AccountSheet";
 import { HelpSafetySheet } from "./me/HelpSafetySheet";
+import { takeDetailsRequest } from "./me/detailsRequest";
 import { MyDetailsSheet } from "./me/MyDetailsSheet";
 import { MyRewardsSheet } from "./me/MyRewardsSheet";
 
@@ -33,9 +34,8 @@ function rewardsSummary(points: number | undefined, vouchers: number | undefined
 }
 
 // The old /me/details address redirects here asking for the My details drawer.
-function initialSheet(state: unknown): MeSheet {
-  const wanted = (state as { openSheet?: unknown } | null)?.openSheet;
-  return wanted === "details" ? "details" : null;
+function wantsDetails(state: unknown): boolean {
+  return (state as { openSheet?: unknown } | null)?.openSheet === "details";
 }
 
 // Profile hub: who is signed in, then one large row each for rewards, details, settings and help.
@@ -46,7 +46,21 @@ export function MePage() {
   const rewards = useRewards();
   const medical = useMedicalId();
   const location = useLocation();
-  const [sheet, setSheet] = useState<MeSheet>(() => initialSheet(location.state));
+  const navigate = useNavigate();
+  const [sheet, setSheet] = useState<MeSheet>(null);
+  const redirected = wantsDetails(location.state);
+
+  // Open My details once for a redirect or a return from the Medical ID page, then clear the
+  // request so a revisit or a reload does not open it again. The state is cleared before the
+  // drawer mounts so the drawer's own history entry is not overwritten.
+  useEffect(() => {
+    const returned = takeDetailsRequest();
+    if (!redirected && !returned) return;
+    if (redirected) navigate(location.pathname, { replace: true, state: null });
+    // The drawer opens only after the router state is cleared, so its history entry is kept.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSheet("details");
+  }, [redirected, navigate, location.pathname]);
   const name = resident?.name ?? "";
   const area = resident?.area ?? "";
   const vouchers = rewards.data?.filter((r) => r.status === "redeemed").length;

@@ -10,6 +10,7 @@ import { Button } from "../ui/Button";
 import { ChoiceButton } from "../ui/ChoiceButton";
 import { Spinner } from "../ui/Spinner";
 import { TextField } from "../ui/TextField";
+import { requestDetailsOnProfile } from "./me/detailsRequest";
 
 interface FormState {
   bloodGroup: BloodGroup | null;
@@ -113,8 +114,10 @@ export function MedicalIdPage() {
     inputs?.[index]?.focus();
   }
 
-  // Pop back to Profile so this form is not left in the history; a direct visit replaces it.
-  function returnToDetails() {
+  // Return to Profile with the My details drawer open so the result is visible. Pop back so this
+  // form is not left in the history; a direct visit replaces it.
+  function returnToProfileDetails() {
+    requestDetailsOnProfile();
     if (location.key === "default") navigate("/me", { replace: true });
     else navigate(-1);
   }
@@ -129,13 +132,13 @@ export function MedicalIdPage() {
     const saved = await save.run(body);
     if (!saved) return;
     announce("Your Medical ID was saved.");
-    returnToDetails();
+    returnToProfileDetails();
   }
 
   async function onRemove() {
     if (!(await remove.run())) return;
     announce("Your Medical ID was removed.");
-    returnToDetails();
+    returnToProfileDetails();
   }
 
   return (
