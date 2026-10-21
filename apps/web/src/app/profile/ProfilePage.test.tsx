@@ -99,6 +99,56 @@ describe("profile page", () => {
     expect(within(screen.getByLabelText("Your profile")).getByText("Aisha R")).toBeInTheDocument();
   });
 
+  it("offers the four precincts and keeps the current one selected", async () => {
+    installFakeApi(signedIn());
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Edit personal information" }));
+    const dialog = await screen.findByRole("dialog");
+    const group = within(dialog).getByRole("group", { name: "Township / neighbourhood" });
+    expect(
+      within(group)
+        .getAllByRole("button")
+        .map((b) => b.textContent),
+    ).toEqual(["Elmina West", "Elmina Valley", "Elmina East", "Central Park"]);
+    expect(within(group).getByRole("button", { name: VOLUNTEER.area })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(within(dialog).queryByText(/Choose your precinct/)).not.toBeInTheDocument();
+  });
+
+  it("asks a person with an older free-text area to choose a precinct", async () => {
+    const legacy = User.parse({ ...VOLUNTEER, area: "Precinct 1" });
+    const { calls } = installFakeApi({
+      ...signedIn({ "GET /api/me": { body: legacy } }),
+      "PATCH /api/me": ({ body }) => ({ body: User.parse({ ...legacy, ...(body as object) }) }),
+    });
+    signInAs(legacy.id);
+    renderApp("/profile");
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Edit personal information" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(
+      within(dialog).getByText("Choose your precinct to join team challenges"),
+    ).toBeInTheDocument();
+    const group = within(dialog).getByRole("group", { name: "Township / neighbourhood" });
+    for (const pill of within(group).getAllByRole("button")) {
+      expect(pill).toHaveAttribute("aria-pressed", "false");
+    }
+    await user.click(within(group).getByRole("button", { name: "Central Park" }));
+    await user.click(within(dialog).getByRole("button", { name: "Save" }));
+
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(UpdateMeBody.parse(calls.find((c) => c.method === "PATCH")?.body)).toEqual({
+      name: legacy.name,
+      area: "Central Park",
+    });
+  });
+
   it("sends skills and availability slots when preferences are saved", async () => {
     const { calls } = installFakeApi({
       ...signedIn(),
