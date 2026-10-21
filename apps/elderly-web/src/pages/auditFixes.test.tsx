@@ -47,6 +47,8 @@ describe("Rewards rankings", () => {
       "GET /api/badges": { body: { badges: [BADGE] } },
     });
     await renderApp("/challenges");
+    expect(await screen.findByRole("heading", { name: "Rankings" })).toBeInTheDocument();
+    expect(screen.queryByText(/leaderboard/i)).not.toBeInTheDocument();
     const board = await screen.findByRole("list", { name: /neighbour rankings/i });
     const mine = within(board).getAllByText("Auntie Mary");
     expect(mine).toHaveLength(1);
