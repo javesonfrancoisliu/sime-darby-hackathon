@@ -40,8 +40,9 @@ export function navItemsForRole(role: Role): NavItem[] {
   return ALL_NAV_ITEMS.filter((item) => !item.roles || item.roles.includes(role));
 }
 
-// Mobile bottom bar for the young role: Safety moves to the Home header, Volunteer is the raised
-// centre button and Play opens Challenges. Other roles keep the shared list.
+// Mobile bottom bar for the young role: Safety is reached from All hazards on Home, Profile > Help
+// and safety and the sidebar, Volunteer is the raised centre button and Play opens Challenges.
+// Other roles keep the shared list.
 const YOUNG_BOTTOM_ITEMS: NavItem[] = [
   { to: "/", label: "Home", icon: House, end: true },
   { to: "/community", label: "Community", icon: Users, end: true },
