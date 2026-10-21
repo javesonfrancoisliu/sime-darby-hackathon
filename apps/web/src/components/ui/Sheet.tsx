@@ -23,8 +23,9 @@ export type SheetProps = {
   reducedMotion?: boolean;
   // The element that opened the sheet, stored by its click handler. Focus returns to it on close.
   openerRef?: RefObject<HTMLElement | null>;
-  // Asked before Done, Escape, a scrim tap or a drag closes the sheet. Return true to keep it open
-  // (and spring it back), for example while a form holds typed text. Phone Back is never blocked.
+  // Asked before Done, Escape, a scrim tap, a drag or phone Back closes the sheet. Return true to
+  // keep it open (and spring it back), for example while a form holds typed text. Back then puts
+  // the sheet's history entry back so the next Back asks again.
   guardClose?: () => boolean;
 };
 
@@ -341,6 +342,13 @@ function SheetBody({
     function onPopState(event: PopStateEvent) {
       if (!entry.active || !isTopModal(id)) return;
       if (currentToken() === entry.token) return;
+      if (!closing.current && guardRef.current?.()) {
+        // Held back: Back already stepped off the sheet's entry, so push it again and stay open.
+        event.stopImmediatePropagation();
+        window.history.pushState({ ...stateBase(), [HISTORY_KEY]: entry.token }, "");
+        settle(0, 1);
+        return;
+      }
       entry.active = false;
       liveTokens.delete(entry.token);
       event.stopImmediatePropagation();

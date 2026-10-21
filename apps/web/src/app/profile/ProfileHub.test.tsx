@@ -266,6 +266,27 @@ describe("edit personal drawer", () => {
     await waitFor(() => expect(window.history.state?.sdhModal).toBeUndefined());
   });
 
+  it("asks before discarding typed text on phone Back, and keeps the drawer on Keep editing", async () => {
+    const { user, drawer } = await openEdit();
+    await user.type(within(drawer).getByLabelText("Display name"), " Zed");
+    window.history.back();
+
+    const ask = await screen.findByRole("dialog", { name: "Discard changes?" });
+    await user.click(within(ask).getByRole("button", { name: "Keep editing" }));
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog", { name: "Discard changes?" })).not.toBeInTheDocument(),
+    );
+    expect(screen.getByRole("dialog", { name: "Edit personal information" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Display name")).toHaveValue(`${VOLUNTEER.name} Zed`);
+
+    window.history.back();
+    const again = await screen.findByRole("dialog", { name: "Discard changes?" });
+    await user.click(within(again).getByRole("button", { name: "Discard" }));
+    await gone();
+    await waitFor(() => expect(window.history.state?.sdhSheet).toBeUndefined());
+    await waitFor(() => expect(window.history.state?.sdhModal).toBeUndefined());
+  });
+
   it("saves from the drawer with the Saved toast and no discard warning", async () => {
     const { user, drawer } = await openEdit();
     const name = within(drawer).getByLabelText("Display name");

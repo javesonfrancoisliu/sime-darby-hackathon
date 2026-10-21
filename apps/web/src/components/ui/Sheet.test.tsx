@@ -559,9 +559,22 @@ describe("Sheet guardClose", () => {
     expect(block).toHaveBeenCalledTimes(1);
   });
 
-  it("does not block the phone back button", async () => {
-    render(<Guarded block={() => true} onClosed={() => {}} />);
+  it("keeps the sheet open on phone Back while the guard says so, then closes once it lets go", async () => {
+    let hold = true;
+    const block = vi.fn(() => hold);
+    const onClosed = vi.fn();
+    render(<Guarded block={block} onClosed={onClosed} />);
+    const depth = window.history.length;
+    window.history.back();
+    await waitFor(() => expect(block).toHaveBeenCalledTimes(1));
+    expect(screen.getByRole("dialog", { name: "Guarded" })).toBeInTheDocument();
+    expect(onClosed).not.toHaveBeenCalled();
+    expect(window.history.state?.sdhSheet).toBeDefined();
+    expect(window.history.length).toBe(depth);
+
+    hold = false;
     window.history.back();
     await gone();
+    expect(onClosed).toHaveBeenCalledTimes(1);
   });
 });
