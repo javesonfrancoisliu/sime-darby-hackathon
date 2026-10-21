@@ -167,8 +167,8 @@ describe("my rewards sheet", () => {
   });
 });
 
-describe("my details page", () => {
-  it("opens as a full page from the row and goes back to Profile", async () => {
+describe("my details drawer", () => {
+  it("opens as a bottom drawer from the row with the preferences summary", async () => {
     const volunteer = User.parse({ ...VOLUNTEER, skills: ["groceries"] });
     installFakeApi(signedIn({ "GET /api/me": { body: volunteer } }));
     signInAs(volunteer.id);
@@ -176,22 +176,111 @@ describe("my details page", () => {
     const user = userEvent.setup();
 
     await user.click(await row(/^My details/));
-    expect(await screen.findByRole("heading", { name: "My details" })).toBeInTheDocument();
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    const prefs = screen.getByLabelText("Volunteering preferences");
+    const dialog = await screen.findByRole("dialog", { name: "My details" });
+    const prefs = within(dialog).getByLabelText("Volunteering preferences");
     expect(within(prefs).getByText("Groceries")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("link", { name: "Back to Profile" }));
+    await user.click(within(dialog).getByRole("button", { name: "Done" }));
+    await gone();
     expect(await screen.findByRole("heading", { name: "Profile" })).toBeInTheDocument();
   });
 
-  it("opens the existing preferences editor from Edit preferences", async () => {
+  it("closes the drawer, then opens the preferences editor as the only dialog", async () => {
+    installFakeApi(signedIn());
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    const user = userEvent.setup();
+
+    await user.click(await row(/^My details/));
+    const drawer = await screen.findByRole("dialog", { name: "My details" });
+    await user.click(within(drawer).getByRole("button", { name: "Edit preferences" }));
+
+    const editor = await screen.findByRole("dialog", { name: "Edit volunteer preferences" });
+    expect(within(editor).getByRole("group", { name: "Skills" })).toBeInTheDocument();
+    expect(screen.getAllByRole("dialog")).toHaveLength(1);
+    expect(screen.queryByRole("dialog", { name: "My details" })).not.toBeInTheDocument();
+
+    await user.click(within(editor).getByRole("button", { name: "Cancel" }));
+    await gone();
+    expect(document.body.style.overflow).not.toBe("hidden");
+    expect(document.querySelector("[inert]")).toBeNull();
+    await waitFor(() => expect(window.history.state?.sdhSheet).toBeUndefined());
+    await waitFor(() => expect(window.history.state?.sdhModal).toBeUndefined());
+  });
+
+  it("keeps /profile/details as a redirect to Profile", async () => {
     installFakeApi(signedIn());
     signInAs(VOLUNTEER.id);
     renderApp("/profile/details");
-    await userEvent.setup().click(await screen.findByRole("button", { name: "Edit preferences" }));
-    const dialog = await screen.findByRole("dialog");
-    expect(within(dialog).getByRole("group", { name: "Skills" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Profile" })).toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+});
+
+describe("edit personal drawer", () => {
+  async function openEdit() {
+    installFakeApi({
+      ...signedIn(),
+      "PATCH /api/me": ({ body }) => ({ body: User.parse({ ...VOLUNTEER, ...(body as object) }) }),
+    });
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", { name: "Edit personal information" }));
+    const drawer = await screen.findByRole("dialog", { name: "Edit personal information" });
+    return { user, drawer };
+  }
+
+  it("closes straight away on Escape when nothing was typed", async () => {
+    const { user } = await openEdit();
+    await user.keyboard("{Escape}");
+    await gone();
+  });
+
+  it("asks before discarding typed text on Escape, and keeps the text on Keep editing", async () => {
+    const { user, drawer } = await openEdit();
+    const name = within(drawer).getByLabelText("Display name");
+    await user.type(name, " Zed");
+    await user.keyboard("{Escape}");
+
+    const ask = await screen.findByRole("dialog", { name: "Discard changes?" });
+    await user.click(within(ask).getByRole("button", { name: "Keep editing" }));
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog", { name: "Discard changes?" })).not.toBeInTheDocument(),
+    );
+    expect(screen.getByRole("dialog", { name: "Edit personal information" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Display name")).toHaveValue(`${VOLUNTEER.name} Zed`);
+  });
+
+  it("asks on a scrim tap and discards on Discard", async () => {
+    const { user, drawer } = await openEdit();
+    await user.type(within(drawer).getByLabelText("Display name"), "x");
+    await user.click(screen.getByTestId("sheet-scrim"));
+
+    const ask = await screen.findByRole("dialog", { name: "Discard changes?" });
+    await user.click(within(ask).getByRole("button", { name: "Discard" }));
+    await gone();
+    expect(screen.getByText(VOLUNTEER.name)).toBeInTheDocument();
+    expect(document.body.style.overflow).not.toBe("hidden");
+    await waitFor(() => expect(window.history.state?.sdhSheet).toBeUndefined());
+    await waitFor(() => expect(window.history.state?.sdhModal).toBeUndefined());
+  });
+
+  it("saves from the drawer with the Saved toast and no discard warning", async () => {
+    const { user, drawer } = await openEdit();
+    const name = within(drawer).getByLabelText("Display name");
+    await user.clear(name);
+    await user.type(name, "Aisha R");
+    await user.click(within(drawer).getByRole("button", { name: "Save" }));
+    await gone();
+    expect(screen.getByText("Saved")).toBeInTheDocument();
+  });
+
+  it("keeps the required-name validation", async () => {
+    const { user, drawer } = await openEdit();
+    await user.clear(within(drawer).getByLabelText("Display name"));
+    await user.click(within(drawer).getByRole("button", { name: "Save" }));
+    expect(await within(drawer).findByText("Please enter a display name.")).toBeInTheDocument();
   });
 });
 

@@ -1,14 +1,15 @@
 import { useRef, useState, type MouseEvent } from "react";
 import { Gift, IdCard, LifeBuoy, Settings, UserRound } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
 import { useSession } from "@sdh/api-client";
 
 import {
   AccountSheet,
   DemoSignInCard,
-  EditPersonalModal,
+  EditPersonalSheet,
+  EditPreferencesModal,
   HelpSafetySheet,
+  MyDetailsSheet,
   MyRewardsSheet,
   ProfileHeaderCard,
   SettingsSheet,
@@ -21,7 +22,7 @@ import { tokenModeEnabled } from "../../lib/authMode";
 import { demoSignInEnabled } from "../../lib/demoFlag";
 import { preferencesSummary } from "../../lib/profileSummary";
 
-type ProfileSheet = "rewards" | "settings" | "help" | "account";
+type ProfileSheet = "rewards" | "details" | "settings" | "help" | "account";
 
 const onOff = (value: boolean) => (value ? "on" : "off");
 
@@ -30,13 +31,13 @@ const onOff = (value: boolean) => (value ? "on" : "off");
 // live in Community Challenges.
 export function ProfilePage() {
   const { user } = useSession();
-  const navigate = useNavigate();
   const { prefs, leaderboardOptIn } = useProfile();
   const { largeText } = useLargeText();
   const points = usePoints();
   const rewards = useRewards();
   const [sheet, setSheet] = useState<ProfileSheet | null>(null);
   const [editPersonal, setEditPersonal] = useState(false);
+  const [editPrefs, setEditPrefs] = useState(false);
   // The row that opened a sheet, stored on its click so focus can return to it on close.
   const opener = useRef<HTMLElement | null>(null);
   const { notify, toast } = useToast();
@@ -76,7 +77,13 @@ export function ProfilePage() {
       <PageHeader title="Profile" subtitle="Your account, preferences and rewards." />
 
       <section className="ui-section" aria-label="Personal information">
-        <ProfileHeaderCard claimedCount={claimed.length} onEdit={() => setEditPersonal(true)} />
+        <ProfileHeaderCard
+          claimedCount={claimed.length}
+          onEdit={(event) => {
+            opener.current = event.currentTarget;
+            setEditPersonal(true);
+          }}
+        />
       </section>
 
       <section className="ui-section" aria-label="Profile menu">
@@ -91,7 +98,7 @@ export function ProfilePage() {
             icon={<IdCard size={22} />}
             title="My details"
             summary={preferencesSummary(prefs)}
-            onClick={() => navigate("/profile/details")}
+            onClick={(event) => show("details", event)}
           />
           <HubRow
             icon={<Settings size={22} />}
@@ -127,16 +134,34 @@ export function ProfilePage() {
           onUsed={rewards.reload}
         />
       )}
+      {sheet === "details" && (
+        <MyDetailsSheet
+          onClose={closeSheet}
+          openerRef={opener}
+          onEditPreferences={() => {
+            // One dialog at a time: the drawer goes, then the editor opens in its place.
+            setSheet(null);
+            setEditPrefs(true);
+          }}
+        />
+      )}
       {sheet === "settings" && (
         <SettingsSheet onClose={closeSheet} openerRef={opener} onSaved={saved} />
       )}
       {sheet === "help" && <HelpSafetySheet onClose={closeSheet} openerRef={opener} />}
       {sheet === "account" && <AccountSheet onClose={closeSheet} openerRef={opener} />}
 
-      <EditPersonalModal
-        key={editPersonal ? "personal-open" : "personal-closed"}
-        open={editPersonal}
-        onClose={() => setEditPersonal(false)}
+      {editPersonal && (
+        <EditPersonalSheet
+          onClose={() => setEditPersonal(false)}
+          openerRef={opener}
+          onSaved={saved}
+        />
+      )}
+      <EditPreferencesModal
+        key={editPrefs ? "prefs-open" : "prefs-closed"}
+        open={editPrefs}
+        onClose={() => setEditPrefs(false)}
         onSaved={saved}
       />
       {toast}

@@ -1,9 +1,10 @@
 export { AccountSheet } from "./AccountSheet";
 export { Avatar } from "./Avatar";
 export { DemoSignInCard } from "./DemoSignInCard";
-export { EditPersonalModal } from "./EditPersonalModal";
+export { EditPersonalSheet } from "./EditPersonalSheet";
 export { EditPreferencesModal } from "./EditPreferencesModal";
 export { HelpSafetySheet } from "./HelpSafetySheet";
+export { MyDetailsSheet } from "./MyDetailsSheet";
 export { MyRewardsSheet } from "./MyRewardsSheet";
 export { PreferencesCard } from "./PreferencesCard";
 export { ProfileHeaderCard } from "./ProfileHeaderCard";

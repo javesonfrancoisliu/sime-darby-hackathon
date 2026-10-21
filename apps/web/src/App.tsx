@@ -5,7 +5,6 @@ import { SessionProvider, type SessionAuth } from "@sdh/api-client";
 import { ChallengesPage } from "./app/community/ChallengesPage";
 import { CommunityPage } from "./app/community/CommunityPage";
 import { HomePage } from "./app/HomePage";
-import { ProfileDetailsPage } from "./app/profile/ProfileDetailsPage";
 import { ProfilePage } from "./app/profile/ProfilePage";
 import { SafetyPage } from "./app/safety/SafetyPage";
 import { VolunteerPage } from "./app/volunteer/VolunteerPage";
@@ -52,7 +51,7 @@ export function App({ auth }: { auth?: SessionAuth }) {
                       />
                       <Route path="/safety" element={<SafetyPage />} />
                       <Route path="/profile" element={<ProfilePage />} />
-                      <Route path="/profile/details" element={<ProfileDetailsPage />} />
+                      <Route path="/profile/details" element={<Navigate to="/profile" replace />} />
                       <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
                   </SessionGate>

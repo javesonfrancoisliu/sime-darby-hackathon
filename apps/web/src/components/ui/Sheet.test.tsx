@@ -518,3 +518,50 @@ describe("Sheet stacking", () => {
     await gone();
   });
 });
+
+describe("Sheet guardClose", () => {
+  function Guarded({ block, onClosed }: { block: () => boolean; onClosed: () => void }) {
+    const [open, setOpen] = useState(true);
+    return (
+      <div className="app-shell">
+        <Sheet
+          open={open}
+          guardClose={block}
+          onClose={() => {
+            setOpen(false);
+            onClosed();
+          }}
+          title="Guarded"
+        >
+          <p>body</p>
+        </Sheet>
+      </div>
+    );
+  }
+
+  it("keeps the sheet open on Escape, Done and a scrim tap while the guard says so", async () => {
+    const block = vi.fn(() => true);
+    const onClosed = vi.fn();
+    render(<Guarded block={block} onClosed={onClosed} />);
+    await userEvent.keyboard("{Escape}");
+    await userEvent.click(screen.getByRole("button", { name: "Done" }));
+    await userEvent.click(screen.getByTestId("sheet-scrim"));
+    expect(block).toHaveBeenCalledTimes(3);
+    expect(screen.getByRole("dialog", { name: "Guarded" })).toBeInTheDocument();
+    expect(onClosed).not.toHaveBeenCalled();
+  });
+
+  it("closes normally when the guard lets it through", async () => {
+    const block = vi.fn(() => false);
+    render(<Guarded block={block} onClosed={() => {}} />);
+    await userEvent.keyboard("{Escape}");
+    await gone();
+    expect(block).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not block the phone back button", async () => {
+    render(<Guarded block={() => true} onClosed={() => {}} />);
+    window.history.back();
+    await gone();
+  });
+});

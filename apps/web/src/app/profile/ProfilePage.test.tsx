@@ -70,7 +70,8 @@ describe("profile page", () => {
   it("describes saved preferences without implying a fresh save", async () => {
     installFakeApi(signedIn());
     signInAs(VOLUNTEER.id);
-    renderApp("/profile/details");
+    renderApp("/profile");
+    await userEvent.setup().click(await screen.findByRole("button", { name: /^My details/ }));
     expect(
       await screen.findByText(
         "Your skills and availability are saved to your account and used for volunteer matching.",
@@ -158,9 +159,10 @@ describe("profile page", () => {
       "PATCH /api/me": ({ body }) => ({ body: User.parse({ ...VOLUNTEER, ...(body as object) }) }),
     });
     signInAs(VOLUNTEER.id);
-    renderApp("/profile/details");
+    renderApp("/profile");
     const user = userEvent.setup();
 
+    await user.click(await screen.findByRole("button", { name: /^My details/ }));
     await user.click(await screen.findByRole("button", { name: "Edit preferences" }));
     const dialog = await screen.findByRole("dialog");
     const skills = within(dialog).getByRole("group", { name: "Skills" });
@@ -190,9 +192,10 @@ describe("profile page", () => {
       "PATCH /api/me": ({ body }) => ({ body: User.parse({ ...scheduled, ...(body as object) }) }),
     });
     signInAs(scheduled.id);
-    renderApp("/profile/details");
+    renderApp("/profile");
     const user = userEvent.setup();
 
+    await user.click(await screen.findByRole("button", { name: /^My details/ }));
     await user.click(await screen.findByRole("button", { name: "Edit preferences" }));
     const dialog = await screen.findByRole("dialog");
     const skills = within(dialog).getByRole("group", { name: "Skills" });
@@ -211,7 +214,8 @@ describe("profile page", () => {
     });
     installFakeApi(signedIn({ "GET /api/me": { body: scheduled } }));
     signInAs(scheduled.id);
-    renderApp("/profile/details");
+    renderApp("/profile");
+    await userEvent.setup().click(await screen.findByRole("button", { name: /^My details/ }));
 
     expect(await screen.findByText("Mon 09:00 to 11:00")).toBeInTheDocument();
     expect(screen.queryByText("Weekdays")).not.toBeInTheDocument();
@@ -221,9 +225,10 @@ describe("profile page", () => {
   it("asks for a day and a time together instead of wiping availability", async () => {
     const { calls } = installFakeApi(signedIn());
     signInAs(VOLUNTEER.id);
-    renderApp("/profile/details");
+    renderApp("/profile");
     const user = userEvent.setup();
 
+    await user.click(await screen.findByRole("button", { name: /^My details/ }));
     await user.click(await screen.findByRole("button", { name: "Edit preferences" }));
     const dialog = await screen.findByRole("dialog");
     const days = within(dialog).getByRole("group", { name: "Preferred days" });
@@ -276,9 +281,10 @@ describe("profile page", () => {
       "PATCH /api/me": ({ body }) => ({ body: User.parse({ ...VOLUNTEER, ...(body as object) }) }),
     });
     signInAs(VOLUNTEER.id);
-    renderApp("/profile/details");
+    renderApp("/profile");
     const user = userEvent.setup();
 
+    await user.click(await screen.findByRole("button", { name: /^My details/ }));
     await user.click(await screen.findByRole("button", { name: "Edit preferences" }));
     const dialog = await screen.findByRole("dialog");
     const interests = within(dialog).getByRole("group", { name: "Assistance interests" });

@@ -1,3 +1,4 @@
+import type { MouseEvent } from "react";
 import { MapPin, Pencil } from "lucide-react";
 import { useSession } from "@sdh/api-client";
 import type { ContributionsResponse } from "@sdh/contracts";
@@ -11,7 +12,7 @@ import { Avatar } from "./Avatar";
 
 export type ProfileHeaderCardProps = {
   claimedCount: number;
-  onEdit: () => void;
+  onEdit: (event: MouseEvent<HTMLButtonElement>) => void;
 };
 
 export function ProfileHeaderCard({ onEdit }: ProfileHeaderCardProps) {

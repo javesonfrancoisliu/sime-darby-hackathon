@@ -23,6 +23,9 @@ export type SheetProps = {
   reducedMotion?: boolean;
   // The element that opened the sheet, stored by its click handler. Focus returns to it on close.
   openerRef?: RefObject<HTMLElement | null>;
+  // Asked before Done, Escape, a scrim tap or a drag closes the sheet. Return true to keep it open
+  // (and spring it back), for example while a form holds typed text. Phone Back is never blocked.
+  guardClose?: () => boolean;
 };
 
 const HISTORY_KEY = "sdhSheet";
@@ -53,6 +56,13 @@ function currentToken(): string | undefined {
   if (!state || typeof state !== "object") return undefined;
   const token = (state as Record<string, unknown>)[HISTORY_KEY];
   return typeof token === "string" ? token : undefined;
+}
+
+function modalToken(): unknown {
+  const state: unknown = window.history.state;
+  return state && typeof state === "object"
+    ? (state as Record<string, unknown>).sdhModal
+    : undefined;
 }
 
 function stateBase(): object {
@@ -139,6 +149,7 @@ function SheetBody({
   children,
   reducedMotion = false,
   openerRef,
+  guardClose,
 }: Omit<SheetProps, "open">) {
   const systemReduced = useSystemReducedMotion();
   const fade = reducedMotion || systemReduced;
@@ -154,8 +165,14 @@ function SheetBody({
   const doneRef = useRef<HTMLButtonElement>(null);
   const onCloseRef = useRef(onClose);
   const fadeRef = useRef(fade);
-  const closeRef = useRef<() => void>(() => {});
-  const entryRef = useRef({ token: "", active: false, mounted: false });
+  const guardRef = useRef(guardClose);
+  const closeRef = useRef<(force?: boolean) => void>(() => {});
+  const entryRef = useRef({
+    token: "",
+    active: false,
+    mounted: false,
+    modalBelow: undefined as unknown,
+  });
   const token = useRef(0);
   const timer = useRef<number | undefined>(undefined);
   const closing = useRef(false);
@@ -171,6 +188,7 @@ function SheetBody({
   useEffect(() => {
     onCloseRef.current = onClose;
     fadeRef.current = fade;
+    guardRef.current = guardClose;
     closeRef.current = requestClose;
   });
 
@@ -199,8 +217,12 @@ function SheetBody({
     }, ms + FINISH_SLACK_MS);
   }
 
-  function requestClose() {
+  function requestClose(force = false) {
     if (closing.current) return;
+    if (!force && guardRef.current?.()) {
+      settle(0, 1);
+      return;
+    }
     closing.current = true;
     settle(fadeRef.current ? offset.current : panelHeight(), 0, () => onCloseRef.current());
   }
@@ -244,7 +266,7 @@ function SheetBody({
     }
     if (closing.current) {
       closing.current = false;
-      requestClose();
+      requestClose(true);
     }
     // Only the motion kind matters here; the rest is read from refs.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -307,6 +329,7 @@ function SheetBody({
     entry.mounted = true;
     if (!entry.active) {
       entry.token = `${++entryCounter}`;
+      entry.modalBelow = modalToken();
       const next = { ...stateBase(), [HISTORY_KEY]: entry.token };
       // A marker left by a reload is reused instead of stacking another entry on it.
       if (isStale(currentToken())) window.history.replaceState(next, "");
@@ -321,7 +344,7 @@ function SheetBody({
       entry.active = false;
       liveTokens.delete(entry.token);
       event.stopImmediatePropagation();
-      closeRef.current();
+      closeRef.current(true);
     }
     window.addEventListener("popstate", onPopState, true);
     return () => {
@@ -333,6 +356,9 @@ function SheetBody({
         entry.active = false;
         liveTokens.delete(entry.token);
         if (currentToken() !== entry.token || pageIsLeaving()) return;
+        // A dialog opened on top of this entry in the same commit owns the top of the history; its
+        // own close walks back over this stale entry.
+        if (modalToken() !== entry.modalBelow) return;
         window.addEventListener("popstate", swallowOnce, true);
         window.history.back();
       });
