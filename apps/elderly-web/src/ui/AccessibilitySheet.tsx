@@ -1,23 +1,28 @@
-import { useEffect, useId, useRef } from "react";
-import { EMERGENCY_NUMBER } from "../config";
-import { useTownship } from "../hooks/useTownship";
+import { useSession } from "@sdh/api-client";
+import { meApi } from "../api/me";
+import { useMutation } from "../hooks/useMutation";
 import { FONT_LABEL, useAccessibility, type FontSizeLevel } from "../context/AccessibilityContext";
-import { IconX, IconSun, IconVolume2, IconVolumeX, IconPhone, IconCheck } from "./Icons";
-import { useCallConfirm } from "./CallConfirm";
+import { Banner } from "./Banner";
+import { IconBell, IconSun, IconTrophy, IconVolume2, IconVolumeX } from "./Icons";
+import { Sheet } from "./Sheet";
 
-const FOCUSABLE =
-  'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
-
-// Settings sheet. Focus moves to Close on open, Tab stays inside, Escape closes,
-// the page behind is inert, and focus returns to the control that opened it.
+// Settings sheet: the shared Sheet holding text size, contrast, read aloud, less movement, reminders and rankings.
 export function AccessibilitySheet() {
-  const { isSheetOpen } = useAccessibility();
-  return isSheetOpen ? <SheetBody /> : null;
+  const { isSheetOpen, closeSheet } = useAccessibility();
+  return (
+    <Sheet
+      open={isSheetOpen}
+      onClose={closeSheet}
+      title="Settings"
+      subtitle="Make the app easier to see and hear"
+    >
+      <SheetContent />
+    </Sheet>
+  );
 }
 
-function SheetBody() {
+function SheetContent() {
   const {
-    closeSheet,
     fontSize,
     setFontSize,
     highContrast,
@@ -30,50 +35,17 @@ function SheetBody() {
     speak,
     stopSpeaking,
     triggerHaptic,
+    reminders,
+    setReminders,
   } = useAccessibility();
+  const { user, updateUser } = useSession();
+  const saveRanking = useMutation(meApi.update);
 
-  const securityLine = useTownship().data?.securityLine;
-  const { requestCall } = useCallConfirm();
-  const backdropRef = useRef<HTMLDivElement>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
-  const closeRef = useRef<HTMLButtonElement>(null);
-  const titleId = useId();
-
-  useEffect(() => {
-    const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    closeRef.current?.focus();
-
-    const backdrop = backdropRef.current;
-    const background = backdrop
-      ? Array.from(backdrop.parentElement?.children ?? []).filter((el) => el !== backdrop)
-      : [];
-    background.forEach((el) => el.setAttribute("inert", ""));
-
-    return () => {
-      background.forEach((el) => el.removeAttribute("inert"));
-      if (trigger?.isConnected) trigger.focus();
-    };
-  }, []);
-
-  function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Escape") {
-      e.stopPropagation();
-      closeSheet();
-      return;
-    }
-    if (e.key !== "Tab") return;
-    const items = Array.from(panelRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? []);
-    const first = items[0];
-    const last = items[items.length - 1];
-    if (!first || !last) return;
-    const active = document.activeElement;
-    if (e.shiftKey && (active === first || !panelRef.current?.contains(active))) {
-      e.preventDefault();
-      last.focus();
-    } else if (!e.shiftKey && (active === last || !panelRef.current?.contains(active))) {
-      e.preventDefault();
-      first.focus();
-    }
+  async function handleRankingToggle() {
+    if (!user) return;
+    triggerHaptic(15);
+    const saved = await saveRanking.run({ leaderboardOptIn: !user.leaderboardOptIn });
+    if (saved) updateUser(saved);
   }
 
   function handleVoiceToggle() {
@@ -100,197 +72,163 @@ function SheetBody() {
   }
 
   return (
-    <div
-      ref={backdropRef}
-      className="apple-sheet-backdrop"
-      onClick={closeSheet}
-      onKeyDown={handleKeyDown}
-    >
-      <div
-        ref={panelRef}
-        className="apple-sheet-panel"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="apple-sheet-grabber" aria-hidden="true" />
-
-        <div className="apple-sheet-header">
-          <div>
-            <h2 id={titleId} className="apple-sheet-title">
-              Reading and sound
-            </h2>
-            <p className="apple-sheet-subtitle">Make the app easier to see and hear</p>
-          </div>
-          <button
-            type="button"
-            ref={closeRef}
-            className="apple-sheet-close-btn"
-            onClick={closeSheet}
-            aria-label="Close settings"
-          >
-            <IconX size={20} strokeWidth={2} />
-          </button>
-        </div>
-
-        <div className="apple-sheet-content">
-          <div className="apple-control-group">
-            <span className="apple-control-label">Text size</span>
-            <div className="apple-segmented-control" role="radiogroup" aria-label="Text size">
-              {(
-                [
-                  { id: "normal", label: "Normal", sizeText: "A" },
-                  { id: "large", label: "Large", sizeText: "A+" },
-                  { id: "xlarge", label: "X-Large", sizeText: "A++" },
-                ] as const
-              ).map((opt) => {
-                const isSelected = fontSize === opt.id;
-                return (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    role="radio"
-                    aria-checked={isSelected}
-                    className={`apple-segment-btn${isSelected ? " apple-segment-btn--active" : ""}`}
-                    onClick={() => handleFontSizeChange(opt.id)}
-                  >
-                    <span className="apple-segment-icon">{opt.sizeText}</span>
-                    <span className="apple-segment-text">{opt.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="apple-control-row">
-            <div className="apple-control-row__left">
-              <span className="apple-control-row__icon" aria-hidden="true">
-                <IconSun size={22} strokeWidth={1.8} />
-              </span>
-              <div>
-                <span className="apple-control-row__title">Strong contrast</span>
-                <span className="apple-control-row__desc">Bolder borders and darker text</span>
-              </div>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={highContrast}
-              aria-label="Strong contrast"
-              className={`apple-switch${highContrast ? " apple-switch--on" : ""}`}
-              onClick={handleContrastToggle}
-            >
-              <span className="apple-switch__thumb" />
-            </button>
-          </div>
-
-          <div className="apple-control-row">
-            <div className="apple-control-row__left">
-              <span className="apple-control-row__icon" aria-hidden="true">
-                {voiceAssist ? (
-                  <IconVolume2 size={22} strokeWidth={2} />
-                ) : (
-                  <IconVolumeX size={22} strokeWidth={1.8} />
-                )}
-              </span>
-              <div>
-                <span className="apple-control-row__title">Read aloud</span>
-                <span className="apple-control-row__desc">
-                  {isSpeaking ? "Speaking now" : "Hear the screen spoken out loud"}
-                </span>
-              </div>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={voiceAssist}
-              aria-label="Read aloud"
-              className={`apple-switch${voiceAssist ? " apple-switch--on" : ""}`}
-              onClick={handleVoiceToggle}
-            >
-              <span className="apple-switch__thumb" />
-            </button>
-          </div>
-
-          <div className="apple-control-row">
-            <div className="apple-control-row__left">
-              <div>
-                <span className="apple-control-row__title">Less movement</span>
-                <span className="apple-control-row__desc">Fewer slides and animations</span>
-              </div>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={reducedMotion}
-              aria-label="Less movement"
-              className={`apple-switch${reducedMotion ? " apple-switch--on" : ""}`}
-              onClick={() => {
-                triggerHaptic(15);
-                setReducedMotion((v) => !v);
-              }}
-            >
-              <span className="apple-switch__thumb" />
-            </button>
-          </div>
-
-          <div className="apple-emergency-box">
-            <div className="apple-emergency-header">
-              <IconPhone size={18} strokeWidth={2} />
-              <span>Quick dial</span>
-            </div>
-            <div className="apple-emergency-grid">
-              {securityLine ? (
+    <>
+      <div className="apple-sheet-content">
+        <div className="apple-control-group">
+          <span className="apple-control-label">Text size</span>
+          <div className="apple-segmented-control" role="radiogroup" aria-label="Text size">
+            {(
+              [
+                { id: "normal", label: "Normal", sizeText: "A" },
+                { id: "large", label: "Large", sizeText: "A+" },
+                { id: "xlarge", label: "X-Large", sizeText: "A++" },
+              ] as const
+            ).map((opt) => {
+              const isSelected = fontSize === opt.id;
+              return (
                 <button
+                  key={opt.id}
                   type="button"
-                  className="apple-emergency-btn"
-                  onClick={() =>
-                    requestCall({
-                      tel: securityLine.tel,
-                      display: securityLine.display,
-                      label: "Township security",
-                      note: "24/7 township hotline",
-                    })
-                  }
+                  role="radio"
+                  aria-checked={isSelected}
+                  className={`apple-segment-btn${isSelected ? " apple-segment-btn--active" : ""}`}
+                  onClick={() => handleFontSizeChange(opt.id)}
                 >
-                  <span className="apple-emergency-btn__label">Township security</span>
-                  <span className="apple-emergency-btn__number">{securityLine.display}</span>
+                  <span className="apple-segment-icon">{opt.sizeText}</span>
+                  <span className="apple-segment-text">{opt.label}</span>
                 </button>
-              ) : null}
-              <button
-                type="button"
-                className="apple-emergency-btn apple-emergency-btn--danger"
-                onClick={() =>
-                  requestCall({
-                    tel: EMERGENCY_NUMBER,
-                    display: EMERGENCY_NUMBER,
-                    label: "Emergency services",
-                    note: "Police, ambulance or fire",
-                    danger: true,
-                  })
-                }
-              >
-                <span className="apple-emergency-btn__label">
-                  Emergency (police, ambulance, fire)
-                </span>
-                <span className="apple-emergency-btn__number">{EMERGENCY_NUMBER}</span>
-              </button>
-            </div>
+              );
+            })}
           </div>
         </div>
 
-        <div className="apple-sheet-footer">
+        <div className="apple-control-row">
+          <div className="apple-control-row__left">
+            <span className="apple-control-row__icon" aria-hidden="true">
+              <IconSun size={22} strokeWidth={1.8} />
+            </span>
+            <div>
+              <span className="apple-control-row__title">Strong contrast</span>
+              <span className="apple-control-row__desc">Bolder borders and darker text</span>
+            </div>
+          </div>
           <button
             type="button"
-            className="ui-button ui-button--primary apple-sheet-done-btn"
-            onClick={closeSheet}
+            role="switch"
+            aria-checked={highContrast}
+            aria-label="Strong contrast"
+            className={`apple-switch${highContrast ? " apple-switch--on" : ""}`}
+            onClick={handleContrastToggle}
           >
-            <IconCheck size={18} strokeWidth={2} aria-hidden="true" />
-            <span>Done</span>
+            <span className="apple-switch__thumb" />
           </button>
         </div>
+
+        <div className="apple-control-row">
+          <div className="apple-control-row__left">
+            <span className="apple-control-row__icon" aria-hidden="true">
+              {voiceAssist ? (
+                <IconVolume2 size={22} strokeWidth={2} />
+              ) : (
+                <IconVolumeX size={22} strokeWidth={1.8} />
+              )}
+            </span>
+            <div>
+              <span className="apple-control-row__title">Read aloud</span>
+              <span className="apple-control-row__desc">
+                {isSpeaking ? "Speaking now" : "Hear the screen spoken out loud"}
+              </span>
+            </div>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={voiceAssist}
+            aria-label="Read aloud"
+            className={`apple-switch${voiceAssist ? " apple-switch--on" : ""}`}
+            onClick={handleVoiceToggle}
+          >
+            <span className="apple-switch__thumb" />
+          </button>
+        </div>
+
+        <div className="apple-control-row">
+          <div className="apple-control-row__left">
+            <div>
+              <span className="apple-control-row__title">Less movement</span>
+              <span className="apple-control-row__desc">Fewer slides and animations</span>
+            </div>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={reducedMotion}
+            aria-label="Less movement"
+            className={`apple-switch${reducedMotion ? " apple-switch--on" : ""}`}
+            onClick={() => {
+              triggerHaptic(15);
+              setReducedMotion((v) => !v);
+            }}
+          >
+            <span className="apple-switch__thumb" />
+          </button>
+        </div>
+
+        <div className="apple-control-row">
+          <div className="apple-control-row__left">
+            <span className="apple-control-row__icon" aria-hidden="true">
+              <IconBell size={22} strokeWidth={1.8} />
+            </span>
+            <div>
+              <span className="apple-control-row__title">Reminders</span>
+              <span className="apple-control-row__desc">Events and volunteering nearby</span>
+            </div>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={reminders}
+            aria-label="Reminders"
+            className={`apple-switch${reminders ? " apple-switch--on" : ""}`}
+            onClick={() => {
+              triggerHaptic(15);
+              setReminders(!reminders);
+            }}
+          >
+            <span className="apple-switch__thumb" />
+          </button>
+        </div>
+
+        {user ? (
+          <div className="apple-control-row">
+            <div className="apple-control-row__left">
+              <span className="apple-control-row__icon" aria-hidden="true">
+                <IconTrophy size={22} strokeWidth={1.8} />
+              </span>
+              <div>
+                <span className="apple-control-row__title">Show me in Rankings</span>
+                <span className="apple-control-row__desc">
+                  Neighbours can see your name and points
+                </span>
+              </div>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={user.leaderboardOptIn}
+              aria-label="Show me in Rankings"
+              className={`apple-switch${user.leaderboardOptIn ? " apple-switch--on" : ""}`}
+              disabled={saveRanking.status === "loading"}
+              onClick={() => void handleRankingToggle()}
+            >
+              <span className="apple-switch__thumb" />
+            </button>
+          </div>
+        ) : null}
+        {saveRanking.status === "error" ? (
+          <Banner message={saveRanking.error?.message ?? "We could not save that."} />
+        ) : null}
       </div>
-    </div>
+    </>
   );
 }

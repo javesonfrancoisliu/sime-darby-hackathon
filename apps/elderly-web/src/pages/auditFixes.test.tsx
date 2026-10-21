@@ -36,7 +36,7 @@ describe("read-aloud and Aa buttons on request pages", () => {
   });
 });
 
-describe("Play leaderboard", () => {
+describe("Rewards rankings", () => {
   it("lists the signed-in person once, with their real points", async () => {
     installFakeApi({
       "GET /api/me": { body: { ...ELDER, name: "Auntie Mary" } },
@@ -47,6 +47,8 @@ describe("Play leaderboard", () => {
       "GET /api/badges": { body: { badges: [BADGE] } },
     });
     await renderApp("/challenges");
+    expect(await screen.findByRole("heading", { name: "Rankings" })).toBeInTheDocument();
+    expect(screen.queryByText(/leaderboard/i)).not.toBeInTheDocument();
     const board = await screen.findByRole("list", { name: /neighbour rankings/i });
     const mine = within(board).getAllByText("Auntie Mary");
     expect(mine).toHaveLength(1);

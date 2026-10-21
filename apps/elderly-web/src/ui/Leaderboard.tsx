@@ -29,7 +29,7 @@ export function Leaderboard({ others = [], myPoints, myName }: LeaderboardProps)
 
   return (
     <div className="leaderboard-card">
-      <h2 className="leaderboard-card__title">Neighbourhood leaderboard</h2>
+      <h2 className="leaderboard-card__title">Rankings</h2>
       <ol className="leaderboard" aria-label="Neighbour rankings by points">
         {rows.map((entry, i) => (
           <li

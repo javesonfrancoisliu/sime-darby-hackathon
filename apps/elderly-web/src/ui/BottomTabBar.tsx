@@ -27,7 +27,7 @@ const TABS: Tab[] = [
     icon: (active) => <IconUsers size={22} strokeWidth={active ? 2.2 : 1.8} />,
   },
   {
-    label: "Play",
+    label: "Rewards",
     path: "/challenges",
     icon: (active) => <IconTrophy size={22} strokeWidth={active ? 2.2 : 1.8} />,
   },

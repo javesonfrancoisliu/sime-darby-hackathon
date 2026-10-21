@@ -1,7 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { render, screen, cleanup, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
+import { SessionProvider } from "@sdh/api-client";
+import { installFakeApi, signInAs } from "../test/fakeApi";
 import { AppShell } from "../ui/AppShell";
 import {
   ACCESSIBILITY_STORAGE_KEY,
@@ -22,11 +24,13 @@ function OpenSheet() {
 function renderShell() {
   return render(
     <MemoryRouter>
-      <AccessibilityProvider>
-        <AppShell>
-          <OpenSheet />
-        </AppShell>
-      </AccessibilityProvider>
+      <SessionProvider>
+        <AccessibilityProvider>
+          <AppShell>
+            <OpenSheet />
+          </AppShell>
+        </AccessibilityProvider>
+      </SessionProvider>
     </MemoryRouter>,
   );
 }
@@ -35,7 +39,11 @@ function root(container: HTMLElement) {
   return container.querySelector(".app-root") as HTMLElement;
 }
 
-beforeEach(() => window.localStorage.clear());
+beforeEach(() => {
+  window.localStorage.clear();
+  installFakeApi();
+  signInAs();
+});
 
 afterEach(() => {
   cleanup();
@@ -134,14 +142,14 @@ describe("saved settings", () => {
 });
 
 describe("settings sheet focus", () => {
-  it("moves focus to Close, traps Tab, and puts the page behind out of reach", async () => {
+  it("moves focus to Done, traps Tab, and puts the page behind out of reach", async () => {
     const { container } = renderShell();
     const trigger = screen.getByRole("button", { name: "open-settings" });
     await userEvent.click(trigger);
 
-    const dialog = screen.getByRole("dialog", { name: "Reading and sound" });
-    const close = screen.getByRole("button", { name: "Close settings" });
-    expect(close).toHaveFocus();
+    const dialog = screen.getByRole("dialog", { name: "Settings" });
+    const done = screen.getByRole("button", { name: "Done" });
+    expect(done).toHaveFocus();
     expect(trigger.closest("[inert]")).not.toBeNull();
     expect(dialog.closest("[inert]")).toBeNull();
 
@@ -160,7 +168,7 @@ describe("settings sheet focus", () => {
     trigger.focus();
     await userEvent.click(trigger);
     await userEvent.keyboard("{Escape}");
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     expect(trigger).toHaveFocus();
     expect(trigger.closest("[inert]")).toBeNull();
   });

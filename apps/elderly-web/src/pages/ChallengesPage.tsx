@@ -1,4 +1,5 @@
 import { useId, useState, type ReactNode } from "react";
+import { useHashTab } from "../ui/useHashTab";
 import { PlayIcon } from "../ui/PlayIcon";
 import {
   useBadges,
@@ -23,6 +24,7 @@ import { Spinner } from "../ui/Spinner";
 import type { FriendlyError } from "../api/errors";
 
 type PlayTab = "streak" | "challenges" | "badges" | "rewards";
+export const PLAY_TABS: readonly PlayTab[] = ["streak", "challenges", "badges", "rewards"];
 
 const DAY_LETTERS = ["S", "M", "T", "W", "T", "F", "S"];
 const WEEK_DAYS = 7;
@@ -75,7 +77,7 @@ function Loadable({
   return <>{children}</>;
 }
 
-// Community Play: team goals for the neighbourhood, a daily check-in streak,
+// Rewards (Community Play): team goals for the neighbourhood, a daily check-in streak,
 // participation badges and rewards. Everything comes from the township API.
 export function ChallengesPage() {
   const resident = useResident();
@@ -91,7 +93,7 @@ export function ChallengesPage() {
   const checkIn = useCheckIn();
   const redeem = useRedeem();
 
-  const [tab, setTab] = useState<PlayTab>("streak");
+  const [tab, setTab] = useHashTab<PlayTab>(PLAY_TABS, "streak");
   const [toast, setToast] = useState("");
   const [openGoal, setOpenGoal] = useState<string | null>(null);
   const groupId = useId();
@@ -161,7 +163,7 @@ export function ChallengesPage() {
   function handleReadSummary() {
     const earned = (badges.data ?? []).filter((b) => b.earned).length;
     speak(
-      `Community play for ${neighbourhood}. You have ${balance ?? 0} points and a ${streak.data?.current ?? 0} day check-in streak. ${earned} badges earned. Join a neighbourhood challenge or redeem a reward.`,
+      `Rewards for ${neighbourhood}. You have ${balance ?? 0} points and a ${streak.data?.current ?? 0} day check-in streak. ${earned} badges earned. Join a neighbourhood challenge or redeem a reward.`,
     );
   }
 
@@ -170,7 +172,7 @@ export function ChallengesPage() {
       <div className="safety-page__header">
         <div className="row-between play-header-row">
           <div>
-            <h1 className="safety-page__title">Community Play</h1>
+            <h1 className="safety-page__title">Rewards</h1>
             <p className="safety-page__subtitle">
               <IconUsers className="icon-inline-low" size={13} strokeWidth={2} />
               {neighbourhood}
@@ -193,7 +195,7 @@ export function ChallengesPage() {
         tabs={TABS}
         active={tab}
         onChange={setTab}
-        ariaLabel="Choose a community play area"
+        ariaLabel="Choose a rewards area"
       />
 
       {toast ? (

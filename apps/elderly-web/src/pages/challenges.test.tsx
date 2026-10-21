@@ -21,12 +21,12 @@ const alreadyDone = {
   body: { error: { code: "ALREADY_DONE", message: "done" } },
 };
 
-describe("Community Play from the API", () => {
+describe("Rewards from the API", () => {
   it("shows live points and streak with no demo labels", async () => {
     installFakeApi(baseRoutes);
     await renderApp("/challenges");
     expect((await screen.findAllByText("260")).length).toBeGreaterThan(0);
-    expect(screen.getByText("Community Play")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Rewards" })).toBeInTheDocument();
     expect(screen.getByText("Elmina Valley")).toBeInTheDocument();
     expect(screen.queryByText(/demo|example/i)).not.toBeInTheDocument();
   });
@@ -227,5 +227,21 @@ describe("Community Play from the API", () => {
     installFakeApi({ ...baseRoutes, "GET /api/me/streak": { status: 500, body: {} } });
     await renderApp("/challenges");
     expect(await screen.findByRole("button", { name: "Try again" })).toBeInTheDocument();
+  });
+
+  it("opens the sub-tab named in the URL hash", async () => {
+    installFakeApi(baseRoutes);
+    await renderApp("/challenges#rewards");
+    expect(await screen.findByText("Free kopi")).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /Rewards/i })).toHaveAttribute("aria-selected", "true");
+  });
+
+  it("falls back to the streak tab for an unknown hash", async () => {
+    installFakeApi(baseRoutes);
+    await renderApp("/challenges#nothing");
+    expect(await screen.findByRole("tab", { name: /Streak/i })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
   });
 });

@@ -1600,6 +1600,70 @@ button:active,
   border-radius: var(--radius-pill);
 }
 
+/* Generic Sheet: motion is driven from script (transform and opacity only), so no keyframes here. */
+.apple-sheet-root {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.apple-sheet-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.apple-sheet-panel--live {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh;
+  max-height: 85dvh;
+  overflow: hidden;
+  padding-bottom: 0;
+  animation: none;
+  will-change: transform, opacity;
+}
+.apple-sheet-drag {
+  flex: none;
+  touch-action: none;
+  cursor: grab;
+}
+.apple-sheet-drag:active {
+  cursor: grabbing;
+}
+.apple-sheet-header {
+  align-items: center;
+  gap: var(--space-3);
+}
+.apple-sheet-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: calc(var(--space-8) + env(safe-area-inset-bottom, 0px));
+}
+.apple-sheet-done {
+  flex: none;
+  min-width: 72px;
+  min-height: 48px;
+  padding: 0 var(--space-6);
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--brand-primary);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.high-contrast .apple-sheet-done {
+  background: #000;
+  border: 2px solid #000;
+}
+
 /* ── 8. Subpage Shell & Navigation Bar ─────────────────── */
 .apple-subpage {
   display: flex;
@@ -2734,12 +2798,14 @@ button:active,
 @media (prefers-reduced-transparency: reduce) {
   .app-tab-bar,
   .apple-sheet-backdrop,
+  .apple-sheet-scrim,
   .apple-sheet-panel {
     background: var(--surface);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
-  .apple-sheet-backdrop {
+  .apple-sheet-backdrop,
+  .apple-sheet-scrim {
     background: rgba(17, 24, 39, 0.7);
   }
   .apple-header-voice-btn,

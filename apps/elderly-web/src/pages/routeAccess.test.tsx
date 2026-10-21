@@ -40,6 +40,16 @@ describe("tab bar", () => {
     expect(document.querySelectorAll(".app-tab-bar__label")).toHaveLength(5);
   });
 
+  it("calls the rewards tab Rewards, keeps its route and names the page", async () => {
+    installFakeApi({ "GET /api/requests/mine": { body: { requests: [] } } });
+    await renderApp("/");
+    expect(screen.queryByRole("button", { name: "Play" })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Rewards" }));
+    expect(document.title).toBe("Rewards - Township Connect");
+    expect(await screen.findByRole("heading", { level: 1, name: "Rewards" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Rewards" })).toHaveAttribute("aria-current", "page");
+  });
+
   it("has a skip link first that focuses main without changing the hash", async () => {
     installFakeApi({ "GET /api/requests/mine": { body: { requests: [] } } });
     await renderApp("/safety");

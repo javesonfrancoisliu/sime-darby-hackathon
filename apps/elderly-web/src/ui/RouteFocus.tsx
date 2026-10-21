@@ -8,7 +8,7 @@ const APP_NAME = "Township Connect";
 const TITLES: [string, string][] = [
   ["/safety", "Health and safety"],
   ["/community", "Community"],
-  ["/challenges", "Play"],
+  ["/challenges", "Rewards"],
   ["/me", "Profile"],
   ["/request/confirmation", "Request sent"],
   ["/request", "Ask for help"],
@@ -26,10 +26,15 @@ export function RouteFocus() {
   const { pathname } = useLocation();
   const navigationType = useNavigationType();
   const firstRun = useRef(true);
+  const lastPath = useRef<string | null>(null);
 
   useEffect(() => {
     const isFirstRun = firstRun.current;
     firstRun.current = false;
+    // Closing a sheet with the back button pops to the same page; focus stays where the sheet put it.
+    const samePage = lastPath.current === pathname;
+    lastPath.current = pathname;
+    if (samePage) return;
     document.title = `${titleFor(pathname)} - ${APP_NAME}`;
     // A first load reports POP too, and still starts at the top.
     if (navigationType !== "POP" || isFirstRun) scrollToTop();

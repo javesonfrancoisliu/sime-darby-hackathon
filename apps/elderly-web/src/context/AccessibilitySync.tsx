@@ -12,7 +12,7 @@ export const SETTINGS_SAVE_DELAY_MS = 800;
 // The phone's own copy stays the instant cache, so a failed call never changes the screen.
 export function AccessibilitySync() {
   const { user, status } = useSession();
-  const { fontSize, highContrast, reducedMotion, voiceAssist, applyRemoteSettings } =
+  const { fontSize, highContrast, reducedMotion, voiceAssist, reminders, applyRemoteSettings } =
     useAccessibility();
   const [readyFor, setReadyFor] = useState<string | null>(null);
   const remote = useRef<PutSettingsBody>(DEFAULT_SETTINGS);
@@ -32,14 +32,15 @@ export function AccessibilitySync() {
         remote.current = loaded;
         // A person who never saved starts from the defaults; the phone's old values are not theirs.
         const source = loaded.updatedAt === createdAt ? DEFAULT_SETTINGS : loaded;
-        const four = {
+        const synced = {
           fontSize: source.fontSize,
           highContrast: source.highContrast,
           reducedMotion: source.reducedMotion,
           voiceAssist: source.voiceAssist,
+          reminders: source.notifyEvents || source.notifyVolunteering,
         };
-        lastSaved.current = JSON.stringify(four);
-        applyRemoteSettings(four);
+        lastSaved.current = JSON.stringify(synced);
+        applyRemoteSettings(synced);
         setReadyFor(userId);
       })
       .catch(logApiError);
@@ -50,15 +51,16 @@ export function AccessibilitySync() {
 
   useEffect(() => {
     if (!ready) return;
-    const four = { fontSize, highContrast, reducedMotion, voiceAssist };
-    const key = JSON.stringify(four);
+    const synced = { fontSize, highContrast, reducedMotion, voiceAssist, reminders };
+    const key = JSON.stringify(synced);
     if (key === lastSaved.current) return;
     const timer = setTimeout(() => {
+      const { reminders: notify, ...appearance } = synced;
       const body: PutSettingsBody = {
-        notifyEvents: remote.current.notifyEvents,
-        notifyVolunteering: remote.current.notifyVolunteering,
+        notifyEvents: notify,
+        notifyVolunteering: notify,
         shareApproxLocation: remote.current.shareApproxLocation,
-        ...four,
+        ...appearance,
       };
       settingsApi
         .save(body)
@@ -69,7 +71,7 @@ export function AccessibilitySync() {
         .catch(logApiError);
     }, SETTINGS_SAVE_DELAY_MS);
     return () => clearTimeout(timer);
-  }, [ready, fontSize, highContrast, reducedMotion, voiceAssist]);
+  }, [ready, fontSize, highContrast, reducedMotion, voiceAssist, reminders]);
 
   return null;
 }

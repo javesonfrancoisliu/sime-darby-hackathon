@@ -8,6 +8,7 @@ import type {
   ContributeResult,
   PointsSummary,
   RedeemResult,
+  Redemption,
   RewardsResponse,
   RewardWithStatus,
   Streak,
@@ -32,6 +33,9 @@ export const playApi = {
   },
   redeem(rewardId: string): Promise<RedeemResult> {
     return apiFetch<RedeemResult>(`/api/rewards/${id(rewardId)}/redeem`, { method: "POST" });
+  },
+  use(rewardId: string): Promise<Redemption> {
+    return apiFetch<Redemption>(`/api/rewards/${id(rewardId)}/use`, { method: "POST" });
   },
   async badges(): Promise<BadgeWithEarned[]> {
     return (await apiFetch<BadgesResponse>("/api/badges")).badges;
