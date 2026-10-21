@@ -188,7 +188,7 @@ function SheetBody() {
           <div className="apple-control-row">
             <div className="apple-control-row__left">
               <span className="apple-control-row__icon" aria-hidden="true">
-                {isSpeaking ? (
+                {voiceAssist ? (
                   <IconVolume2 size={22} strokeWidth={2} />
                 ) : (
                   <IconVolumeX size={22} strokeWidth={1.8} />

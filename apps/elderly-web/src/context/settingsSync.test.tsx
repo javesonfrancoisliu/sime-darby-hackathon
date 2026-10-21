@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, screen, waitFor } from "@testing-library/react";
+import { act, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { DEFAULT_SETTINGS } from "@sdh/contracts";
 import { renderApp } from "../test/renderRoute";
@@ -41,6 +41,24 @@ describe("settings follow the person", () => {
     expect(row).toHaveTextContent("Text size: X-Large");
     expect(row).toHaveTextContent("Strong contrast: On");
     expect(row).toHaveTextContent("Read aloud: On");
+  });
+
+  it("draws the read aloud icon from the setting, not from speech in progress", async () => {
+    installFakeApi({ "GET /api/me/settings": { body: { ...saved, voiceAssist: true } } });
+    await renderApp("/me");
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Open text and sound settings" }),
+    );
+    const row = (await screen.findByRole("switch", { name: "Read aloud" })).closest(
+      ".apple-control-row",
+    ) as HTMLElement;
+    expect(row.querySelector(".apple-control-row__icon svg")?.getAttribute("class")).toMatch(
+      /volume-2/,
+    );
+    await userEvent.click(within(row).getByRole("switch", { name: "Read aloud" }));
+    expect(row.querySelector(".apple-control-row__icon svg")?.getAttribute("class")).toMatch(
+      /volume-x/,
+    );
   });
 
   it("starts a new person from the defaults and uploads nothing", async () => {

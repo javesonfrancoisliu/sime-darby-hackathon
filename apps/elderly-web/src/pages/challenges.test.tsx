@@ -86,6 +86,47 @@ describe("Community Play from the API", () => {
     expect(await screen.findByText(/already added your part today/i)).toBeInTheDocument();
   });
 
+  it("explains a missing precinct instead of a generic failure", async () => {
+    installFakeApi({
+      ...baseRoutes,
+      [`POST /api/challenges/${TEAM_CHALLENGE.id}/contribute`]: {
+        status: 400,
+        body: { error: { code: "VALIDATION_FAILED", message: "Put your precinct in your area" } },
+      },
+    });
+    await renderApp("/challenges");
+    await userEvent.click(await screen.findByRole("tab", { name: /Goals/i }));
+    await userEvent.click(await screen.findByRole("button", { name: /Add my part today/i }));
+    expect(await screen.findByText(/not set up for team goals yet/i)).toBeInTheDocument();
+  });
+
+  it("lists rewards cheapest first and says how many points a locked one still needs", async () => {
+    const dear = {
+      ...REWARD,
+      id: "00000000-0000-4000-8000-000000000062",
+      title: "Big voucher",
+      pointsCost: 400,
+      status: "locked",
+    };
+    const cheap = {
+      ...REWARD,
+      id: "00000000-0000-4000-8000-000000000063",
+      title: "Tea bag",
+      pointsCost: 20,
+    };
+    installFakeApi({
+      ...baseRoutes,
+      "GET /api/rewards": { body: { rewards: [dear, REWARD, cheap] } },
+    });
+    await renderApp("/challenges");
+    await userEvent.click(await screen.findByRole("tab", { name: /Rewards/i }));
+    await screen.findByText("Big voucher");
+    const titles = [...document.querySelectorAll(".play-reward__title")].map((n) => n.textContent);
+    expect(titles).toEqual(["Tea bag", "Free kopi", "Big voucher"]);
+    expect(screen.getByText("140 more points to unlock")).toBeInTheDocument();
+    expect(screen.getAllByText(/more points to unlock/)).toHaveLength(1);
+  });
+
   it("redeems a reward and deducts the points", async () => {
     installFakeApi({
       ...baseRoutes,

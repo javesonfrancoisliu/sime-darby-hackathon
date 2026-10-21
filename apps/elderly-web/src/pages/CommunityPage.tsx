@@ -170,13 +170,14 @@ export function CommunityPage() {
                       <span className="community-spots__text">
                         {e.joined ? (
                           <>
-                            You have a spot · <strong>{spots}</strong> left
+                            You have a spot · <strong>{spots}</strong>{" "}
+                            {spots === 1 ? "spot" : "spots"} left
                           </>
                         ) : spots === 0 ? (
                           <>This event is full</>
                         ) : (
                           <>
-                            Only <strong>{spots}</strong> spots left
+                            Only <strong>{spots}</strong> {spots === 1 ? "spot" : "spots"} left
                           </>
                         )}
                       </span>

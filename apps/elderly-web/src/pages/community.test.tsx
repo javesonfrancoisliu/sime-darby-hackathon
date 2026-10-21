@@ -62,6 +62,13 @@ describe("Community events from the API", () => {
     expect(call?.headers["x-demo-user"]).toBe(ELDER.id);
   });
 
+  it("says spot, not spots, when one is left", async () => {
+    const last = makeEvent({ id: "8e1f2a30-5b6c-4d7e-8f90-a1b2c3d4e5f6", capacity: 8 });
+    installFakeApi({ "GET /api/events": { body: { events: [last] } } });
+    await renderApp("/community");
+    expect(await screen.findByText(/Only/)).toHaveTextContent("Only 1 spot left");
+  });
+
   it("registers with POST /api/events/{id}/join and shows the updated count", async () => {
     const { calls } = installFakeApi({
       "GET /api/events": { body: { events: [yoga] } },
