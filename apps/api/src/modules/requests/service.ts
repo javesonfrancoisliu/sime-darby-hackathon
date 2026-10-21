@@ -218,6 +218,24 @@ export async function withdrawRequest(volunteer: User, id: string): Promise<Help
   return toSummary(reopened, volunteer.location);
 }
 
+// A rejected volunteer keeps no matched requests; each goes back to the open pool.
+export async function releaseVolunteerRequests(volunteerId: string): Promise<void> {
+  for (const request of await listRequestsByVolunteer(volunteerId)) {
+    if (request.status !== "matched") continue;
+    try {
+      await leaveMatched(
+        request,
+        volunteerId,
+        { status: "open", updatedAt: nowIso() },
+        ASSIGNMENT_FIELDS,
+      );
+    } catch (error) {
+      // Lost a race with a withdraw, cancel or complete; the request already left matched.
+      if (!isConditionFailure(error)) throw error;
+    }
+  }
+}
+
 export async function acceptRequest(volunteer: User, id: string): Promise<AssignedHelpRequest> {
   const request = await loadOrThrow(id);
   // Rows matched before slot locks existed have no lock, so the list check still guards them.
@@ -287,6 +305,9 @@ export async function confirmRequest(user: User, id: string): Promise<HelpReques
   if (request.confirmedAt) throw new HttpError("ALREADY_DONE", "Request is already confirmed");
   if (request.status !== "completed" || !request.volunteerId) {
     throw new HttpError("CONFLICT", "Request is not completed yet");
+  }
+  if ((await getUser(request.volunteerId))?.verification === "rejected") {
+    throw new HttpError("CONFLICT", "This volunteer can no longer be credited");
   }
   const now = nowIso();
   const outcome = await awardOnce(

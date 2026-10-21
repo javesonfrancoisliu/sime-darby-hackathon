@@ -17,6 +17,7 @@ import {
 import { isConditionFailure } from "../../lib/db";
 import { HttpError } from "../../lib/http";
 import { nowIso } from "../../lib/time";
+import { releaseVolunteerRequests } from "../requests/service";
 import {
   deleteMedicalId,
   getMedicalId,
@@ -102,15 +103,20 @@ export async function reviewVolunteer(
   if (!volunteer || volunteer.role !== "volunteer") {
     throw new HttpError("NOT_FOUND", "Volunteer not found");
   }
-  if (volunteer.verification === decision) return volunteer;
-  try {
-    return await setVerification(volunteer, decision, new Date().toISOString());
-  } catch (error) {
-    if (isConditionFailure(error)) {
-      throw new HttpError("CONFLICT", "Volunteer was reviewed by someone else; reload and retry");
+  let reviewed = volunteer;
+  if (volunteer.verification !== decision) {
+    try {
+      reviewed = await setVerification(volunteer, decision, new Date().toISOString());
+    } catch (error) {
+      if (isConditionFailure(error)) {
+        throw new HttpError("CONFLICT", "Volunteer was reviewed by someone else; reload and retry");
+      }
+      throw error;
     }
-    throw error;
   }
+  // Also on a repeat rejection, so a run that stopped part way can be finished.
+  if (decision === "rejected") await releaseVolunteerRequests(id);
+  return reviewed;
 }
 
 // Medical ID is elder-only and always the caller's own; route handlers enforce the role.

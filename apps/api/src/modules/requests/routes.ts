@@ -11,7 +11,7 @@ import {
   type RequestsResponse,
 } from "@sdh/contracts";
 import { ok, type Route } from "../../lib/http";
-import { requireUser, requireVerifiedVolunteer } from "../../lib/identity";
+import { requireNotRejected, requireUser, requireVerifiedVolunteer } from "../../lib/identity";
 import { parse } from "../../lib/validate";
 import {
   acceptRequest,
@@ -106,7 +106,7 @@ export const requestRoutes: Route[] = [
     method: "POST",
     path: "/api/requests/{id}/complete",
     handler: async (req) => {
-      const volunteer = await requireUser(req, "volunteer");
+      const volunteer = await requireNotRejected(req, "volunteer");
       const id = parse(Id, req.params.id);
       const body = parse(CompleteRequestBody, req.body);
       return ok((await completeRequest(volunteer, id, body)) satisfies AssignedHelpRequest);

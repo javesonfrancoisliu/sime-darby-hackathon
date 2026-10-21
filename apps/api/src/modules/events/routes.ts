@@ -6,7 +6,7 @@ import {
   type EventsResponse,
 } from "@sdh/contracts";
 import { HttpError, ok, type Route } from "../../lib/http";
-import { optionalUser, requireUser } from "../../lib/identity";
+import { optionalUser, requireNotRejected, requireUser } from "../../lib/identity";
 import { parse } from "../../lib/validate";
 import { complete, completeOwnAttendance, createEvent, join, listEvents } from "./service";
 
@@ -15,7 +15,7 @@ export const eventRoutes: Route[] = [
     method: "POST",
     path: "/api/events/{id}/attendance/complete",
     handler: async (req) => {
-      const user = await requireUser(req, "volunteer");
+      const user = await requireNotRejected(req, "volunteer");
       const id = parse(Id, req.params.id);
       return ok((await completeOwnAttendance(user, id)) satisfies CommunityEvent);
     },

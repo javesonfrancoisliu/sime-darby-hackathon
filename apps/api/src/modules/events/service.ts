@@ -3,6 +3,7 @@ import type { CommunityEvent, CreateEventBody, EventPurpose, User } from "@sdh/c
 import { HttpError } from "../../lib/http";
 import { newContribution } from "../contributions/service";
 import { VOLUNTEERING_POINTS, awardOnce } from "../points/service";
+import { getUser } from "../users/repository";
 import {
   completeEvent,
   getEvent,
@@ -101,7 +102,12 @@ export async function complete(eventId: string): Promise<CommunityEvent> {
   const event = await requireEvent(eventId);
   requireStarted(event);
   const signups = await listSignups(eventId);
-  const volunteers = signups.filter((signup) => signup.role === "volunteer");
+  // A coordinator-rejected volunteer earns nothing from the event.
+  const volunteers: typeof signups = [];
+  for (const signup of signups) {
+    if (signup.role !== "volunteer") continue;
+    if ((await getUser(signup.userId))?.verification !== "rejected") volunteers.push(signup);
+  }
   const contributions = volunteers.map((signup) =>
     newContribution({
       volunteerId: signup.userId,
