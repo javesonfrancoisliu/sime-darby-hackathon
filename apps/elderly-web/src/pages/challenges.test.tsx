@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderApp } from "../test/renderRoute";
 import { installFakeApi, signInAs } from "../test/fakeApi";
@@ -48,16 +48,16 @@ describe("Community Play from the API", () => {
       },
     });
     await renderApp("/challenges");
-    await userEvent.click(await screen.findByRole("button", { name: /Check in today/i }));
+    await userEvent.click(await screen.findByRole("button", { name: /I am okay/i }));
     expect((await screen.findAllByText("270")).length).toBeGreaterThan(0);
-    expect(await screen.findByRole("button", { name: /Checked in today/i })).toBeDisabled();
+    expect(await screen.findByRole("button", { name: /You are okay today/i })).toBeDisabled();
     expect(calls.filter((c) => c.method === "POST")).toHaveLength(1);
   });
 
   it("explains kindly when already checked in today", async () => {
     installFakeApi({ ...baseRoutes, "POST /api/me/check-in": alreadyDone });
     await renderApp("/challenges");
-    await userEvent.click(await screen.findByRole("button", { name: /Check in today/i }));
+    await userEvent.click(await screen.findByRole("button", { name: /I am okay/i }));
     expect(await screen.findByText(/already checked in today/i)).toBeInTheDocument();
   });
 
@@ -86,19 +86,108 @@ describe("Community Play from the API", () => {
     expect(await screen.findByText(/already added your part today/i)).toBeInTheDocument();
   });
 
-  it("redeems a reward and deducts the points", async () => {
+  it("explains a missing precinct instead of a generic failure", async () => {
     installFakeApi({
       ...baseRoutes,
-      [`POST /api/rewards/${REWARD.id}/redeem`]: {
+      [`POST /api/challenges/${TEAM_CHALLENGE.id}/contribute`]: {
+        status: 400,
+        body: { error: { code: "VALIDATION_FAILED", message: "Put your precinct in your area" } },
+      },
+    });
+    await renderApp("/challenges");
+    await userEvent.click(await screen.findByRole("tab", { name: /Goals/i }));
+    await userEvent.click(await screen.findByRole("button", { name: /Add my part today/i }));
+    const message = await screen.findByText(/Team goals need your neighbourhood/i);
+    for (const precinct of ["Elmina West", "Elmina Valley", "Elmina East", "Central Park"]) {
+      expect(message).toHaveTextContent(precinct);
+    }
+  });
+
+  it("lists rewards cheapest first and says how many points a locked one still needs", async () => {
+    const dear = {
+      ...REWARD,
+      id: "00000000-0000-4000-8000-000000000062",
+      title: "Big voucher",
+      pointsCost: 400,
+      status: "locked",
+    };
+    const cheap = {
+      ...REWARD,
+      id: "00000000-0000-4000-8000-000000000063",
+      title: "Tea bag",
+      pointsCost: 20,
+    };
+    installFakeApi({
+      ...baseRoutes,
+      "GET /api/rewards": { body: { rewards: [dear, REWARD, cheap] } },
+    });
+    await renderApp("/challenges");
+    await userEvent.click(await screen.findByRole("tab", { name: /Rewards/i }));
+    await screen.findByText("Big voucher");
+    const titles = [...document.querySelectorAll(".play-reward__title")].map((n) => n.textContent);
+    expect(titles).toEqual(["Tea bag", "Free kopi", "Big voucher"]);
+    expect(screen.getByText("140 more points to unlock")).toBeInTheDocument();
+    expect(screen.getAllByText(/more points to unlock/)).toHaveLength(1);
+  });
+
+  it("uses the singular when a locked reward is one point away", async () => {
+    const close = { ...REWARD, pointsCost: 261, status: "locked" };
+    installFakeApi({ ...baseRoutes, "GET /api/rewards": { body: { rewards: [close] } } });
+    await renderApp("/challenges");
+    await userEvent.click(await screen.findByRole("tab", { name: /Rewards/i }));
+    expect(await screen.findByText("1 more point to unlock")).toBeInTheDocument();
+  });
+
+  it("loads the rewards again after a check-in so unlocked ones can be redeemed", async () => {
+    const { calls } = installFakeApi({
+      ...baseRoutes,
+      "POST /api/me/check-in": {
         body: {
-          redemption: {
-            rewardId: REWARD.id,
-            title: REWARD.title,
-            pointsSpent: 80,
-            redeemedAt: "2026-10-19T10:00:00Z",
+          streak: {
+            current: 1,
+            best: 1,
+            lastCheckInDate: malaysiaToday(),
+            recent: [malaysiaToday()],
           },
-          points: 180,
+          pointsAwarded: 10,
+          points: 270,
         },
+      },
+    });
+    await renderApp("/challenges");
+    await userEvent.click(await screen.findByRole("button", { name: /I am okay/i }));
+    await screen.findByRole("button", { name: /You are okay today/i });
+    await waitFor(() =>
+      expect(calls.filter((c) => c.method === "GET" && c.path === "/api/rewards")).toHaveLength(2),
+    );
+  });
+
+  it("redeems a reward and deducts the points", async () => {
+    let redeemed = false;
+    installFakeApi({
+      ...baseRoutes,
+      "GET /api/rewards": () => ({
+        body: {
+          rewards: [
+            redeemed
+              ? { ...REWARD, status: "redeemed", redeemedAt: "2026-10-19T10:00:00Z" }
+              : REWARD,
+          ],
+        },
+      }),
+      [`POST /api/rewards/${REWARD.id}/redeem`]: () => {
+        redeemed = true;
+        return {
+          body: {
+            redemption: {
+              rewardId: REWARD.id,
+              title: REWARD.title,
+              pointsSpent: 80,
+              redeemedAt: "2026-10-19T10:00:00Z",
+            },
+            points: 180,
+          },
+        };
       },
     });
     await renderApp("/challenges");
@@ -141,5 +230,21 @@ describe("Community Play from the API", () => {
     installFakeApi({ ...baseRoutes, "GET /api/me/streak": { status: 500, body: {} } });
     await renderApp("/challenges");
     expect(await screen.findByRole("button", { name: "Try again" })).toBeInTheDocument();
+  });
+
+  it("opens the sub-tab named in the URL hash", async () => {
+    installFakeApi(baseRoutes);
+    await renderApp("/challenges#rewards");
+    expect(await screen.findByText("Free kopi")).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /Rewards/i })).toHaveAttribute("aria-selected", "true");
+  });
+
+  it("falls back to the streak tab for an unknown hash", async () => {
+    installFakeApi(baseRoutes);
+    await renderApp("/challenges#nothing");
+    expect(await screen.findByRole("tab", { name: /Streak/i })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
   });
 });

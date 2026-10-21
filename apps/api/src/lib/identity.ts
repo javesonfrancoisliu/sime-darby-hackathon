@@ -43,7 +43,7 @@ async function resolveUser(req: HttpRequest): Promise<User> {
     if (!user) throw new HttpError("PROFILE_REQUIRED", "Finish setting up your account");
     return user;
   }
-  if (!config.demoAuthEnabled) throw new HttpError("UNAUTHENTICATED", "Sign-in is not available");
+  if (!config.demoAuthEnabled) throw new HttpError("UNAUTHENTICATED", "Please sign in to continue");
   const raw = req.headers[DEMO_USER_HEADER];
   if (!raw) throw new HttpError("UNAUTHENTICATED", "Sign in first");
   const id = Id.safeParse(raw);
@@ -77,10 +77,20 @@ export async function optionalUser(req: HttpRequest): Promise<User | undefined> 
   }
 }
 
+const NOT_VERIFIED_MESSAGE = "Your volunteer profile is not verified yet";
+
 export async function requireVerifiedVolunteer(req: HttpRequest): Promise<User> {
   const user = await requireUser(req, "volunteer");
-  if (user.verification !== "verified") {
-    throw new HttpError("FORBIDDEN", "Your volunteer profile is not verified yet");
+  if (user.verification !== "verified") throw new HttpError("FORBIDDEN", NOT_VERIFIED_MESSAGE);
+  return user;
+}
+
+// For points and reward actions: elders and non-rejected volunteers pass; a coordinator-rejected
+// volunteer is blocked.
+export async function requireNotRejected(req: HttpRequest, ...roles: Role[]): Promise<User> {
+  const user = await requireUser(req, ...roles);
+  if (user.role === "volunteer" && user.verification === "rejected") {
+    throw new HttpError("FORBIDDEN", NOT_VERIFIED_MESSAGE);
   }
   return user;
 }

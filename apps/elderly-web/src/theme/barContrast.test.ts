@@ -10,8 +10,10 @@ const tokensCss = readFileSync(
 );
 const appCss = readFileSync(resolve(process.cwd(), "src/theme/app.css"), "utf8");
 
+// The declarations of the rule whose selector is exactly this one, not a longer selector ending in it.
 function rule(selector: string): string {
-  const match = appCss.match(new RegExp(`${selector.replace(".", "\\.")}\\s*\\{([^}]*)\\}`, "s"));
+  const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = appCss.match(new RegExp(`(?:^|[}\\n])\\s*${escaped}\\s*\\{([^}]*)\\}`, "s"));
   if (!match?.[1]) throw new Error(`Rule ${selector} not found`);
   return match[1];
 }
@@ -34,5 +36,33 @@ describe("progress bar contrast", () => {
       expect(body, tone).not.toMatch(/--tone-bar:\s*var\(--tone-solid-text\)/);
     }
     expect(rule(".safety-bar__fill--tone")).toContain("background: var(--tone-bar)");
+  });
+});
+
+describe("voucher list", () => {
+  it("drops the default list indent so cards line up with the sheet content", () => {
+    const body = rule(".voucher-list");
+    expect(body).toContain("list-style: none");
+    expect(body).toContain("padding: 0");
+  });
+});
+
+describe("tab bar", () => {
+  it("sizes the centre bump from the bar's own border and background", () => {
+    const bump = rule(".app-tab-bar__bump");
+    expect(bump).toContain("var(--tab-bar-border-width)");
+    expect(bump).toContain("background: var(--tab-bar-bg)");
+    expect(appCss).toMatch(/\.high-contrast \.app-tab-bar \{[^}]*--tab-bar-border-width: 3px/s);
+  });
+
+  it("keeps the raised label on one line so the bar height does not change", () => {
+    // The raised rule itself must say so, even though the base label rule does as well.
+    expect(rule(".app-tab-bar__item--raised .app-tab-bar__label")).toContain("white-space: nowrap");
+  });
+
+  it("keeps a transparent outline on the current-page centre button for forced-colors modes", () => {
+    expect(
+      rule(".app-tab-bar__item--raised.app-tab-bar__item--active .app-tab-bar__fab"),
+    ).toContain("outline: 3px solid transparent");
   });
 });

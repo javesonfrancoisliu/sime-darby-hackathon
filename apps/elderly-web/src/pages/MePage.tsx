@@ -1,52 +1,77 @@
-import { useNavigate } from "react-router-dom";
-import { useSession } from "@sdh/api-client";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { FONT_LABEL, useAccessibility } from "../context/AccessibilityContext";
 import { tokenModeEnabled } from "../config";
+import { usePoints, useRewards } from "../hooks/useChallengesData";
 import { useMedicalId } from "../hooks/useMedicalId";
-import { useTownship } from "../hooks/useTownship";
 import { bloodGroupText } from "../medical/bloodGroup";
-import { Spinner } from "../ui/Spinner";
-import { Banner } from "../ui/Banner";
 import { useResident } from "../session/useResident";
+import { HUB_ICON_SIZE, HubRow } from "../ui/HubRow";
 import { PageHeaderActions } from "../ui/PageHeaderActions";
-import { useCallConfirm } from "../ui/CallConfirm";
 import {
-  IconUser,
+  IconGift,
+  IconIdCard,
+  IconLifeBuoy,
   IconMapPin,
-  IconSliders,
-  IconPhone,
-  IconHeartPulse,
-  IconChevronRight,
-  IconUsers,
-  IconVolume2,
   IconPencil,
-  IconPlus,
+  IconSettings,
+  IconUserRound,
 } from "../ui/Icons";
+import { EditProfileSheet } from "./me/EditProfileSheet";
+import { AccountSheet } from "./me/AccountSheet";
+import { HelpSafetySheet } from "./me/HelpSafetySheet";
+import { takeDetailsRequest } from "./me/detailsRequest";
+import { MyDetailsSheet } from "./me/MyDetailsSheet";
+import { MyRewardsSheet } from "./me/MyRewardsSheet";
 
-// Me page: who is signed in, one-tap text and sound settings, and the township
-// security number. The Medical ID is the resident's own, saved on the server.
+type MeSheet = "edit" | "rewards" | "details" | "help" | "account" | null;
+
+function rewardsSummary(points: number | undefined, vouchers: number | undefined): string {
+  if (points === undefined) return "Points and vouchers";
+  const voucherText =
+    vouchers === undefined ? "" : ` · ${vouchers} ${vouchers === 1 ? "voucher" : "vouchers"}`;
+  return `${points} points${voucherText}`;
+}
+
+// The old /me/details address redirects here asking for the My details drawer.
+function wantsDetails(state: unknown): boolean {
+  return (state as { openSheet?: unknown } | null)?.openSheet === "details";
+}
+
+// Profile hub: who is signed in, then one large row each for rewards, details, settings and help.
 export function MePage() {
-  const { openSheet, fontSize, highContrast, reducedMotion, voiceAssist, speak } =
-    useAccessibility();
-  const { requestCall } = useCallConfirm();
+  const { openSheet, fontSize, highContrast, speak } = useAccessibility();
   const resident = useResident();
-  const { signOut } = useSession();
-  const navigate = useNavigate();
+  const points = usePoints();
+  const rewards = useRewards();
   const medical = useMedicalId();
-  const township = useTownship();
-  const securityLine = township.data?.securityLine;
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [sheet, setSheet] = useState<MeSheet>(null);
+  const redirected = wantsDetails(location.state);
+
+  // Open My details once for a redirect or a return from the Medical ID page, then clear the
+  // request so a revisit or a reload does not open it again. The state is cleared before the
+  // drawer mounts so the drawer's own history entry is not overwritten.
+  useEffect(() => {
+    const returned = takeDetailsRequest();
+    if (!redirected && !returned) return;
+    if (redirected) navigate(location.pathname, { replace: true, state: null });
+    // The drawer opens only after the router state is cleared, so its history entry is kept.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSheet("details");
+  }, [redirected, navigate, location.pathname]);
   const name = resident?.name ?? "";
   const area = resident?.area ?? "";
+  const vouchers = rewards.data?.filter((r) => r.status === "redeemed").length;
 
-  function switchPerson() {
-    navigate("/");
-    signOut();
-  }
-
-  async function signOutOfAccount() {
-    await signOut();
-    window.location.assign("/");
-  }
+  const medicalSummary = medical.data
+    ? `Medical ID saved · Blood group ${bloodGroupText(medical.data.bloodGroup)}`
+    : medical.status === "error"
+      ? medical.error?.code === "NOT_FOUND"
+        ? "No Medical ID yet"
+        : "Medical ID and township sector"
+      : "Medical ID and township sector";
 
   function handleReadProfile() {
     speak(
@@ -67,7 +92,7 @@ export function MePage() {
       <div className="apple-profile-hero">
         <div className="apple-profile-avatar-wrap">
           <div className="apple-profile-avatar" aria-hidden="true">
-            <IconUser size={38} strokeWidth={1.8} />
+            <IconUserRound size={38} />
           </div>
         </div>
 
@@ -77,188 +102,66 @@ export function MePage() {
           {area}
         </p>
 
-        <button
-          type="button"
-          className="ui-button ui-button--ghost apple-profile-voice-btn"
-          onClick={handleReadProfile}
-          aria-label="Read profile aloud"
-        >
-          <IconVolume2 className="icon-gap" size={16} strokeWidth={2} />
-          <span>Read profile aloud</span>
-        </button>
-
-        {tokenModeEnabled() ? (
-          <>
-            <a href="/account" className="ui-button ui-button--secondary">
-              <IconUser className="icon-gap" size={18} strokeWidth={2} />
-              <span>Account settings</span>
-            </a>
-            <button
-              type="button"
-              className="ui-button ui-button--secondary"
-              onClick={signOutOfAccount}
-            >
-              <span>Sign out</span>
-            </button>
-          </>
-        ) : (
-          <button type="button" className="ui-button ui-button--secondary" onClick={switchPerson}>
-            <IconUsers className="icon-gap" size={18} strokeWidth={2} />
-            <span>Switch person</span>
-          </button>
-        )}
-      </div>
-
-      <div className="apple-profile-section">
-        <span className="apple-profile-section-title">Reading and sound</span>
-        <div className="apple-inset-group">
+        {resident ? (
           <button
             type="button"
-            className="apple-inset-btn-row no-underline"
-            onClick={openSheet}
-            aria-label="Open text and sound settings"
+            className="ui-button ui-button--secondary"
+            onClick={() => setSheet("edit")}
           >
-            <div className="apple-inset-btn-row__left">
-              <span className="apple-inset-btn-row__icon" aria-hidden="true">
-                <IconSliders size={20} strokeWidth={1.8} />
-              </span>
-              <div>
-                <span className="apple-inset-btn-row__title">Text and sound settings</span>
-                <span className="apple-inset-btn-row__subtitle">
-                  Text size: {FONT_LABEL[fontSize]} · Strong contrast: {highContrast ? "On" : "Off"}{" "}
-                  · Less movement: {reducedMotion ? "On" : "Off"} · Read aloud:{" "}
-                  {voiceAssist ? "On" : "Off"}
-                </span>
-              </div>
-            </div>
-            <span className="apple-card-button__arrow" aria-hidden="true">
-              <IconChevronRight size={18} strokeWidth={2} />
-            </span>
+            <IconPencil className="icon-gap" size={18} strokeWidth={2} aria-hidden="true" />
+            <span>Edit</span>
           </button>
-        </div>
-      </div>
-
-      <div className="apple-profile-section">
-        <span className="apple-profile-section-title">Emergency &amp; Medical ID</span>
-        <div className="apple-inset-group">
-          {medical.status === "loading" && !medical.data ? (
-            <div className="apple-inset-row">
-              <Spinner label="Loading your Medical ID" />
-            </div>
-          ) : null}
-
-          {medical.status === "error" && medical.error?.code !== "NOT_FOUND" ? (
-            <Banner
-              message={medical.error?.message ?? "We could not load your Medical ID."}
-              onRetry={medical.refetch}
-            />
-          ) : null}
-
-          {medical.status === "error" && medical.error?.code === "NOT_FOUND" ? (
-            <div className="apple-inset-row medical-empty">
-              <p className="apple-inset-value m-0">
-                Your Medical ID is empty. Add your blood group and a person to call in an emergency.
-              </p>
-              <button
-                type="button"
-                className="ui-button ui-button--primary"
-                onClick={() => navigate("/me/medical-id")}
-              >
-                <IconPlus className="icon-gap" size={18} strokeWidth={2.2} aria-hidden="true" />
-                <span>Add your Medical ID</span>
-              </button>
-            </div>
-          ) : null}
-
-          {medical.data ? (
-            <>
-              <div className="apple-inset-row">
-                <div className="medical-row__label">
-                  <IconHeartPulse className="text-brand" size={18} strokeWidth={1.8} />
-                  <span className="app-detail-label m-0">Blood Group</span>
-                </div>
-                <span className="apple-inset-value text-strong">
-                  {bloodGroupText(medical.data.bloodGroup)}
-                </span>
-              </div>
-
-              <div className="apple-inset-row">
-                <div className="medical-row__label">
-                  <IconPhone className="text-brand" size={18} strokeWidth={1.8} />
-                  <span className="app-detail-label m-0">Emergency contact</span>
-                </div>
-                <span className="apple-inset-value">
-                  {medical.data.nextOfKinName} ({medical.data.nextOfKinRelation}) ·{" "}
-                  <button
-                    type="button"
-                    className="link-button text-nowrap"
-                    onClick={() =>
-                      requestCall({
-                        tel: medical.data!.nextOfKinPhone.replace(/[^\d+]/g, ""),
-                        display: medical.data!.nextOfKinPhone,
-                        label: `${medical.data!.nextOfKinName} (${medical.data!.nextOfKinRelation})`,
-                      })
-                    }
-                  >
-                    {medical.data.nextOfKinPhone}
-                  </button>
-                </span>
-              </div>
-
-              <button
-                type="button"
-                className="apple-inset-btn-row"
-                onClick={() => navigate("/me/medical-id")}
-              >
-                <div className="apple-inset-btn-row__left">
-                  <span className="apple-inset-btn-row__icon text-brand" aria-hidden="true">
-                    <IconPencil size={18} strokeWidth={2} />
-                  </span>
-                  <span className="apple-inset-btn-row__title">Change your Medical ID</span>
-                </div>
-                <span className="apple-card-button__arrow" aria-hidden="true">
-                  <IconChevronRight size={18} strokeWidth={2} />
-                </span>
-              </button>
-            </>
-          ) : null}
-
-          {securityLine ? (
-            <button
-              type="button"
-              className="apple-inset-btn-row no-underline"
-              onClick={() =>
-                requestCall({
-                  tel: securityLine.tel,
-                  display: securityLine.display,
-                  label: "Township security",
-                  note: "24/7 township hotline",
-                })
-              }
-            >
-              <div className="apple-inset-btn-row__left">
-                <span className="apple-inset-btn-row__icon text-brand">
-                  <IconPhone size={18} strokeWidth={2} />
-                </span>
-                <div>
-                  <span className="apple-inset-btn-row__title">Township security</span>
-                </div>
-              </div>
-              <span className="text-strong text-brand">{securityLine.display}</span>
-            </button>
-          ) : null}
-        </div>
+        ) : null}
       </div>
 
       <div className="apple-profile-section mb-8">
-        <span className="apple-profile-section-title">Township Community</span>
         <div className="apple-inset-group">
-          <div className="apple-inset-row">
-            <span className="app-detail-label">Township Sector</span>
-            <span className="apple-inset-value">{area}</span>
-          </div>
+          <HubRow
+            icon={<IconGift size={HUB_ICON_SIZE} />}
+            title="My rewards"
+            summary={rewardsSummary(points.data?.points, vouchers)}
+            onClick={() => setSheet("rewards")}
+          />
+          <HubRow
+            icon={<IconIdCard size={HUB_ICON_SIZE} />}
+            title="My details"
+            summary={medicalSummary}
+            onClick={() => setSheet("details")}
+          />
+          <HubRow
+            icon={<IconSettings size={HUB_ICON_SIZE} />}
+            title="Settings"
+            summary={`Text size: ${FONT_LABEL[fontSize]} · Strong contrast: ${highContrast ? "On" : "Off"}`}
+            onClick={openSheet}
+          />
+          <HubRow
+            icon={<IconLifeBuoy size={HUB_ICON_SIZE} />}
+            title="Help and safety"
+            summary="Township security and 999"
+            onClick={() => setSheet("help")}
+          />
+          <HubRow
+            icon={<IconUserRound size={HUB_ICON_SIZE} />}
+            title="Account"
+            summary={
+              tokenModeEnabled() ? "Account settings and sign out" : "Switch to another person"
+            }
+            onClick={() => setSheet("account")}
+          />
         </div>
       </div>
+
+      {resident ? (
+        <EditProfileSheet
+          open={sheet === "edit"}
+          onClose={() => setSheet(null)}
+          resident={resident}
+        />
+      ) : null}
+      {sheet === "rewards" ? <MyRewardsSheet open onClose={() => setSheet(null)} /> : null}
+      {sheet === "details" ? <MyDetailsSheet open onClose={() => setSheet(null)} /> : null}
+      <HelpSafetySheet open={sheet === "help"} onClose={() => setSheet(null)} />
+      <AccountSheet open={sheet === "account"} onClose={() => setSheet(null)} />
     </div>
   );
 }

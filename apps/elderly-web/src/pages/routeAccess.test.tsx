@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { App } from "../App";
@@ -12,8 +12,7 @@ beforeEach(() => signInAs());
 describe("page changes", () => {
   it("names the page and moves focus to its heading", async () => {
     installFakeApi({ "GET /api/requests/mine": { body: { requests: [] } } });
-    await renderApp("/");
-    await userEvent.click(screen.getByRole("button", { name: "Safety" }));
+    await renderApp("/safety");
     expect(document.title).toBe("Health and safety - Township Connect");
     await waitFor(() => expect(screen.getByRole("heading", { level: 1 })).toHaveFocus());
   });
@@ -22,9 +21,93 @@ describe("page changes", () => {
 describe("tab bar", () => {
   it("marks Home as current on the home and ask-for-help screens", async () => {
     installFakeApi({ "GET /api/requests/mine": { body: { requests: [] } } });
-    await renderApp("/request");
+    await renderApp("/");
     expect(screen.getByRole("button", { name: "Home" })).toHaveAttribute("aria-current", "page");
-    expect(screen.getByRole("button", { name: "Safety" })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("button", { name: "Help request" })).not.toHaveAttribute(
+      "aria-current",
+    );
+  });
+
+  it("marks Help request as current on the request screens and not Home", async () => {
+    installFakeApi({ "GET /api/requests/mine": { body: { requests: [] } } });
+    await renderApp("/request");
+    expect(screen.getByRole("button", { name: "Help request" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(screen.getByRole("button", { name: "Home" })).not.toHaveAttribute("aria-current");
+  });
+
+  it("lists Home, Community, Help request, Play, Profile in that order with no Safety tab", async () => {
+    installFakeApi({ "GET /api/requests/mine": { body: { requests: [] } } });
+    await renderApp("/community");
+    const labels = Array.from(document.querySelectorAll(".app-tab-bar__label")).map(
+      (el) => el.textContent,
+    );
+    expect(labels).toEqual(["Home", "Community", "Help request", "Play", "Profile"]);
+    const bar = screen.getByRole("navigation", { name: "Main navigation" });
+    expect(within(bar).queryByRole("button", { name: /safety/i })).not.toBeInTheDocument();
+    expect(within(bar).queryByRole("button", { name: "Rewards" })).not.toBeInTheDocument();
+  });
+
+  it("draws the shared glyphs and a heavier stroke on the current tab", async () => {
+    installFakeApi({ "GET /api/requests/mine": { body: { requests: [] } } });
+    await renderApp("/community");
+    const glyphs = Array.from(document.querySelectorAll(".app-tab-bar__item svg")).map((svg) =>
+      Array.from(svg.classList).find((c) => c.startsWith("lucide-")),
+    );
+    expect(glyphs).toEqual([
+      "lucide-house",
+      "lucide-users",
+      "lucide-plus",
+      "lucide-gamepad2",
+      "lucide-user-round",
+    ]);
+    const current = document.querySelector(".app-tab-bar__item--active svg");
+    expect(current).toHaveAttribute("stroke-width", "2.5");
+  });
+
+  it("matches the volunteer app tab bar: 22px glyphs and the same stroke rule on every tab", async () => {
+    installFakeApi({ "GET /api/requests/mine": { body: { requests: [] } } });
+    await renderApp("/community");
+    const items = Array.from(document.querySelectorAll(".app-tab-bar__item"));
+    expect(items).toHaveLength(5);
+    for (const item of items) {
+      const svg = item.querySelector("svg");
+      const active = item.classList.contains("app-tab-bar__item--active");
+      expect(svg).toHaveAttribute("stroke-width", active ? "2.5" : "2");
+      // The raised centre button keeps a larger glyph; the four ordinary tabs match the volunteer bar.
+      if (!item.classList.contains("app-tab-bar__item--raised")) {
+        expect(svg).toHaveAttribute("width", "22");
+        expect(svg).toHaveAttribute("height", "22");
+      }
+    }
+  });
+
+  it("opens the request flow from the raised centre button with a keyboard", async () => {
+    installFakeApi({ "GET /api/requests/mine": { body: { requests: [] } } });
+    await renderApp("/community");
+    const centre = screen.getByRole("button", { name: "Help request" });
+    centre.focus();
+    await userEvent.keyboard("{Enter}");
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("heading", { level: 1, name: "Community" }),
+      ).not.toBeInTheDocument(),
+    );
+    expect(document.title).toBe("Ask for help - Township Connect");
+    expect(screen.getByRole("button", { name: "Help request" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+  });
+
+  it("opens Play from its tab and marks it current", async () => {
+    installFakeApi({ "GET /api/requests/mine": { body: { requests: [] } } });
+    await renderApp("/");
+    await userEvent.click(screen.getByRole("button", { name: "Play" }));
+    expect(document.title).toBe("Play - Township Connect");
+    expect(screen.getByRole("button", { name: "Play" })).toHaveAttribute("aria-current", "page");
   });
 
   it("marks no tab as current on My requests", async () => {

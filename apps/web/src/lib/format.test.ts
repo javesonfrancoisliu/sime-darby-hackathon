@@ -18,6 +18,10 @@ describe("unreadable dates", () => {
 });
 
 describe("format helpers", () => {
+  it("shows the year in a when label", () => {
+    expect(formatWhen("2030-06-01T15:00:00Z")).toBe("Sat 1 Jun 2030, 11:00 pm");
+  });
+
   it("shows a same-day window with the date once", () => {
     expect(formatDateTimeRange("2026-10-17T01:00:00Z", "2026-10-17T05:00:00Z")).toBe(
       "17 Oct 2026, 9:00 am – 1:00 pm",

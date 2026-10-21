@@ -81,3 +81,26 @@ describe("warning colours", () => {
     }
   });
 });
+
+describe("raised centre button", () => {
+  it("keeps a transparent outline for focus and the current page in forced-colors modes", () => {
+    expect(appCss).toMatch(
+      /\.app-mobilenav-link--centre\[aria-current="page"\] \.app-mobilenav-orb\s*\{[^}]*outline: 3px solid transparent/s,
+    );
+    expect(appCss).toMatch(
+      /\.app-mobilenav-link--centre:focus-visible \.app-mobilenav-orb\s*\{[^}]*outline: 3px solid transparent/s,
+    );
+  });
+
+  it("lifts the mobile toast above the orb and its ring", () => {
+    expect(appCss).toMatch(/\.ui-toast-region\s*\{[^}]*bottom: calc\(72px \+ 32px \+ 7px/s);
+  });
+});
+
+describe("mobile bottom nav labels", () => {
+  it("lets five labels share a narrow bar by shrinking the font and the side padding", () => {
+    expect(appCss).toMatch(
+      /\.app-mobilenav-link\s*\{[^}]*min-width: 0[^}]*padding: var\(--space-2\) var\(--space-1\)[^}]*font-size: clamp\(11px, 3\.4vw, 13px\)/s,
+    );
+  });
+});

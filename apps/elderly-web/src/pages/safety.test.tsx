@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderApp } from "../test/renderRoute";
 import { installFakeApi, signInAs } from "../test/fakeApi";
@@ -35,6 +35,34 @@ describe("Call 999 on Home", () => {
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByText("Call 999?")).toBeInTheDocument();
     expect(within(dialog).getByRole("slider", { name: /Slide to call 999/ })).toBeInTheDocument();
+  });
+});
+
+describe("Safety from Home", () => {
+  it("opens the Safety page from the All hazards link with no tab marked current", async () => {
+    installFakeApi({ "GET /api/requests/mine": { body: { requests: [] } }, ...safetyRoutes });
+    await renderApp("/");
+    const nav = screen.getByRole("navigation", { name: "Main navigation" });
+    expect(within(nav).queryByRole("button", { name: /safety/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^safety/i })).not.toBeInTheDocument();
+    const link = await screen.findByRole("button", { name: "All hazards" });
+    expect(link.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+    // Same right arrow as the Youth app, on every see-all link of the page.
+    for (const name of ["All hazards", "All services", "See all"]) {
+      const seeAll = await screen.findByRole("button", { name });
+      expect(seeAll.querySelector("svg.lucide-arrow-right")).not.toBeNull();
+    }
+    await userEvent.click(link);
+    expect(document.title).toBe("Health and safety - Township Connect");
+    expect(await screen.findByRole("heading", { level: 1 })).toBeInTheDocument();
+    expect(nav.querySelector("[aria-current]")).toBeNull();
+  });
+
+  it("still opens from a conditions card", async () => {
+    installFakeApi({ "GET /api/requests/mine": { body: { requests: [] } }, ...safetyRoutes });
+    await renderApp("/");
+    await userEvent.click(await screen.findByRole("button", { name: /Air Quality/ }));
+    expect(document.title).toBe("Health and safety - Township Connect");
   });
 });
 
@@ -92,26 +120,30 @@ describe("Home live conditions", () => {
 });
 
 describe("Me page", () => {
-  it("shows the saved Medical ID and the township security line", async () => {
+  it("shows the saved Medical ID on My details and the township security line in Help and safety", async () => {
     installFakeApi({
       [`GET ${MEDICAL_ROUTE}`]: { body: MEDICAL },
       "GET /api/township": { body: TOWNSHIP },
     });
     await renderApp("/me");
-    expect(await screen.findByText("O+")).toBeInTheDocument();
-    // The next-of-kin phone and township security now confirm before dialing.
     const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", { name: /^My details/ }));
+    expect(await screen.findByText("O+", { selector: ".apple-inset-value" })).toBeInTheDocument();
+    // The next-of-kin phone and township security now confirm before dialing.
     await user.click(screen.getByRole("button", { name: "012-345 6789" }));
-    let dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole("dialog", { name: /^Call 012-345 6789/ });
     expect(
       within(dialog).getByRole("slider", { name: /Slide to call 012-345 6789/ }),
     ).toBeInTheDocument();
     await user.keyboard("{Escape}");
     expect(screen.getByText(/Zainal \(Son\)/)).toBeInTheDocument();
-    await user.click(await screen.findByRole("button", { name: /Township security/ }));
-    dialog = await screen.findByRole("dialog");
+    await user.click(screen.getByRole("button", { name: "Done" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    await user.click(await screen.findByRole("button", { name: /Help and safety/ }));
+    const help = await screen.findByRole("dialog", { name: "Help and safety" });
+    await user.click(within(help).getByRole("button", { name: /Township security/ }));
     expect(
-      within(dialog).getByRole("slider", { name: /Slide to call 03-5000 1234/ }),
+      await screen.findByRole("slider", { name: /Slide to call 03-5000 1234/ }),
     ).toBeInTheDocument();
   });
 
@@ -123,8 +155,12 @@ describe("Me page", () => {
       },
     });
     await renderApp("/me");
-    expect(await screen.findByRole("button", { name: /Add your Medical ID/ })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Township security/ })).not.toBeInTheDocument();
+    await userEvent.click(await screen.findByRole("button", { name: /^My details/ }));
+    const sheet = await screen.findByRole("dialog", { name: "My details" });
+    expect(
+      await within(sheet).findByRole("button", { name: /Add your Medical ID/ }),
+    ).toBeInTheDocument();
+    expect(within(sheet).queryByRole("button", { name: /Township security/ })).toBeNull();
   });
 });
 

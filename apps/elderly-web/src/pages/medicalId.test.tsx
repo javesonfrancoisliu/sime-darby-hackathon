@@ -1,14 +1,21 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { screen } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
+import { MemoryRouter, useLocation, useNavigationType } from "react-router-dom";
+import { App } from "../App";
 import userEvent from "@testing-library/user-event";
 import { renderApp } from "../test/renderRoute";
 import { installFakeApi, signInAs } from "../test/fakeApi";
 import { MEDICAL, MEDICAL_ROUTE, NOT_FOUND } from "../test/fixtures";
+import { takeDetailsRequest } from "./me/detailsRequest";
 
 beforeEach(() => signInAs());
 
+function Where() {
+  return <p data-testid="where">{useLocation().pathname}</p>;
+}
+
 describe("Medical ID edit screen", () => {
-  it("saves a new Medical ID with PUT and returns to Me", async () => {
+  it("saves a new Medical ID with PUT and returns to Profile", async () => {
     let saved: unknown = null;
     const { calls } = installFakeApi({
       [`GET ${MEDICAL_ROUTE}`]: () => (saved ? { body: saved } : NOT_FOUND),
@@ -17,7 +24,13 @@ describe("Medical ID edit screen", () => {
         return { body: saved };
       },
     });
-    await renderApp("/me");
+    // Two Profile entries: the sheet's own entry is replaced by the Medical ID page.
+    render(
+      <MemoryRouter initialEntries={["/me", "/me"]} initialIndex={1}>
+        <App />
+      </MemoryRouter>,
+    );
+    await userEvent.click(await screen.findByRole("button", { name: /^My details/ }));
     await userEvent.click(await screen.findByRole("button", { name: /Add your Medical ID/ }));
     expect(await screen.findByRole("heading", { name: "Add your Medical ID" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Remove" })).not.toBeInTheDocument();
@@ -28,7 +41,11 @@ describe("Medical ID edit screen", () => {
     await userEvent.type(screen.getByLabelText(/phone number/), "012-345 6789");
     await userEvent.click(screen.getByRole("button", { name: "Save my Medical ID" }));
 
-    expect(await screen.findByText("Zainal (Son)", { exact: false })).toBeInTheDocument();
+    const drawer = await screen.findByRole("dialog", { name: "My details" });
+    expect(screen.queryByRole("heading", { name: "Add your Medical ID" })).not.toBeInTheDocument();
+    expect(await within(drawer).findByText("Zainal (Son)", { exact: false })).toBeInTheDocument();
+    // The one-shot request was consumed by Profile, not left armed for a later visit.
+    expect(takeDetailsRequest()).toBe(false);
     const put = calls.find((c) => c.method === "PUT" && c.path === MEDICAL_ROUTE);
     expect(put?.body).toEqual({
       bloodGroup: "O+",
@@ -36,6 +53,30 @@ describe("Medical ID edit screen", () => {
       nextOfKinRelation: "Son",
       nextOfKinPhone: "012-345 6789",
     });
+  });
+
+  it("returns by going back so the submitted form is not left in the history", async () => {
+    installFakeApi({
+      [`GET ${MEDICAL_ROUTE}`]: { body: MEDICAL },
+      [`DELETE ${MEDICAL_ROUTE}`]: { status: 204 },
+    });
+    const steps: number[] = [];
+    function Probe() {
+      const location = useLocation();
+      const type = useNavigationType();
+      steps.push(type === "POP" ? -1 : type === "PUSH" ? 1 : 0);
+      return <p data-testid="where">{`${location.pathname}|${type}`}</p>;
+    }
+    render(
+      <MemoryRouter initialEntries={["/me", "/me/medical-id"]} initialIndex={1}>
+        <App />
+        <Probe />
+      </MemoryRouter>,
+    );
+    await userEvent.click(await screen.findByRole("button", { name: "Remove" }));
+    await userEvent.click(screen.getByRole("button", { name: "Yes, remove it" }));
+    await waitFor(() => expect(screen.getByTestId("where")).toHaveTextContent("/me|POP"));
+    expect(steps.reduce((a, b) => a + b, 0)).toBeLessThan(1);
   });
 
   it("explains what is missing and sends nothing", async () => {
@@ -75,8 +116,63 @@ describe("Medical ID edit screen", () => {
     await userEvent.click(screen.getByRole("button", { name: "Remove" }));
     expect(calls.some((c) => c.method === "DELETE")).toBe(false);
     await userEvent.click(screen.getByRole("button", { name: "Yes, remove it" }));
-    expect(await screen.findByRole("button", { name: /Add your Medical ID/ })).toBeInTheDocument();
+    expect(await screen.findByRole("dialog", { name: "My details" })).toBeInTheDocument();
     expect(calls.filter((c) => c.method === "DELETE")).toHaveLength(1);
+  });
+
+  it("keeps the old My details address working by opening My details on Profile", async () => {
+    installFakeApi({ [`GET ${MEDICAL_ROUTE}`]: { body: MEDICAL } });
+    render(
+      <MemoryRouter initialEntries={["/me/details"]}>
+        <App />
+        <Where />
+      </MemoryRouter>,
+    );
+    expect(await screen.findByRole("dialog", { name: "My details" })).toBeInTheDocument();
+    expect(screen.getByTestId("where")).toHaveTextContent(/^\/me$/);
+    expect(screen.getByTestId("where")).not.toHaveTextContent("/me/details");
+  });
+
+  it("opens My details from the old address only once", async () => {
+    installFakeApi({ [`GET ${MEDICAL_ROUTE}`]: { body: MEDICAL } });
+    function State() {
+      return <p data-testid="state">{JSON.stringify(useLocation().state)}</p>;
+    }
+    render(
+      <MemoryRouter initialEntries={["/me/details"]}>
+        <App />
+        <State />
+      </MemoryRouter>,
+    );
+    const drawer = await screen.findByRole("dialog", { name: "My details" });
+    await waitFor(() => expect(screen.getByTestId("state")).toHaveTextContent("null"));
+    await userEvent.click(within(drawer).getByRole("button", { name: "Done" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    // Leave Profile and come back: the drawer stays shut.
+    const bar = screen.getByRole("navigation", { name: "Main navigation" });
+    await userEvent.click(within(bar).getByRole("button", { name: "Home" }));
+    await userEvent.click(within(bar).getByRole("button", { name: "Profile" }));
+    expect(await screen.findByRole("button", { name: /^My details/ })).toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("does not open My details later when Back after saving lands on another page", async () => {
+    installFakeApi({
+      [`GET ${MEDICAL_ROUTE}`]: { body: MEDICAL },
+      [`PUT ${MEDICAL_ROUTE}`]: { body: MEDICAL },
+    });
+    render(
+      <MemoryRouter initialEntries={["/home", "/me/medical-id"]} initialIndex={1}>
+        <App />
+        <Where />
+      </MemoryRouter>,
+    );
+    await userEvent.click(await screen.findByRole("button", { name: "Save my Medical ID" }));
+    await waitFor(() => expect(screen.getByTestId("where")).toHaveTextContent("/home"));
+    const bar = screen.getByRole("navigation", { name: "Main navigation" });
+    await userEvent.click(within(bar).getByRole("button", { name: "Profile" }));
+    expect(await screen.findByRole("button", { name: /^My details/ })).toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
   it("keeps it when the resident chooses Keep it", async () => {

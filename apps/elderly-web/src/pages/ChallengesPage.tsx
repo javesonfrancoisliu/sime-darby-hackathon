@@ -1,4 +1,5 @@
 import { useId, useState, type ReactNode } from "react";
+import { useHashTab } from "../ui/useHashTab";
 import { PlayIcon } from "../ui/PlayIcon";
 import {
   useBadges,
@@ -23,6 +24,7 @@ import { Spinner } from "../ui/Spinner";
 import type { FriendlyError } from "../api/errors";
 
 type PlayTab = "streak" | "challenges" | "badges" | "rewards";
+export const PLAY_TABS: readonly PlayTab[] = ["streak", "challenges", "badges", "rewards"];
 
 const DAY_LETTERS = ["S", "M", "T", "W", "T", "F", "S"];
 const WEEK_DAYS = 7;
@@ -38,6 +40,17 @@ function lastSevenDays(now: Date): string[] {
 function dayLetter(date: string): string {
   return DAY_LETTERS[new Date(`${date}T00:00:00Z`).getUTCDay()] ?? "";
 }
+
+// The server refuses a team goal when the profile area names none of the four precincts.
+const NO_PRECINCT_TEXT =
+  "Team goals need your neighbourhood to be Elmina West, Elmina Valley, Elmina East or Central Park. Please ask the community team to update your area.";
+
+// Cheapest first, so the next reward within reach is at the top.
+// For example "1 more point" or "3 more points".
+const moreText = (n: number) => `${n} more ${n === 1 ? "point" : "points"}`;
+
+const byCost = (a: { pointsCost: number }, b: { pointsCost: number }) =>
+  a.pointsCost - b.pointsCost;
 
 // Kinder words for the "already done" answer than the shared default.
 function kindMessage(error: FriendlyError | undefined, alreadyDone: string, fallback: string) {
@@ -80,7 +93,7 @@ export function ChallengesPage() {
   const checkIn = useCheckIn();
   const redeem = useRedeem();
 
-  const [tab, setTab] = useState<PlayTab>("streak");
+  const [tab, setTab] = useHashTab<PlayTab>(PLAY_TABS, "streak");
   const [toast, setToast] = useState("");
   const [openGoal, setOpenGoal] = useState<string | null>(null);
   const groupId = useId();
@@ -107,6 +120,8 @@ export function ChallengesPage() {
     if (!result) return;
     streak.update(() => result.streak);
     setBalance(result.points);
+    // Which rewards are locked depends on the balance, so load them again.
+    rewards.refetch();
     setToast(`Nice! +${result.pointsAwarded} points`);
     window.setTimeout(() => setToast(""), 2200);
     if (voiceAssist) {
@@ -125,6 +140,7 @@ export function ChallengesPage() {
     );
     if (result.pointsAwarded > 0) {
       points.update((p) => ({ ...p, points: p.points + result.pointsAwarded }));
+      rewards.refetch();
     }
     setToast(`Thank you! +${result.pointsAwarded} points for ${neighbourhood}`);
     window.setTimeout(() => setToast(""), 2200);
@@ -140,6 +156,7 @@ export function ChallengesPage() {
         r.id === id ? { ...r, status: "redeemed", redeemedAt: result.redemption.redeemedAt } : r,
       ),
     );
+    rewards.refetch();
     if (voiceAssist) speak(`Redeemed: ${title}.`);
   }
 
@@ -256,10 +273,10 @@ export function ChallengesPage() {
                 {checkedInToday ? (
                   <>
                     <IconCheck size={18} strokeWidth={2.4} aria-hidden="true" />
-                    Checked in today
+                    You are okay today
                   </>
                 ) : (
-                  "Check in today"
+                  "I am okay"
                 )}
               </button>
 
@@ -284,11 +301,15 @@ export function ChallengesPage() {
             <Loadable query={challenges} label="Loading challenges">
               {contribute.status === "error" ? (
                 <Banner
-                  message={kindMessage(
-                    contribute.error,
-                    "You have already added your part today. Come back tomorrow.",
-                    "We could not add your part.",
-                  )}
+                  message={
+                    contribute.error?.code === "VALIDATION_FAILED"
+                      ? NO_PRECINCT_TEXT
+                      : kindMessage(
+                          contribute.error,
+                          "You have already added your part today. Come back tomorrow.",
+                          "We could not add your part.",
+                        )
+                  }
                 />
               ) : null}
               {challenges.data && teamChallenges.length === 0 ? (
@@ -415,7 +436,7 @@ export function ChallengesPage() {
                 <p className="ui-page-subtitle">No rewards are available yet.</p>
               ) : null}
               <div className="ui-stack">
-                {(rewards.data ?? []).map((r) => {
+                {[...(rewards.data ?? [])].sort(byCost).map((r) => {
                   const isRedeemed = r.status === "redeemed";
                   const locked = r.status === "locked";
                   const affordable = (balance ?? 0) >= r.pointsCost;
@@ -425,6 +446,11 @@ export function ChallengesPage() {
                       <div className="play-reward__body">
                         <p className="play-reward__title">{r.title}</p>
                         {r.partner ? <p className="play-reward__partner">{r.partner}</p> : null}
+                        {!isRedeemed && !affordable ? (
+                          <p className="play-reward__partner">
+                            {moreText(r.pointsCost - (balance ?? 0))} to unlock
+                          </p>
+                        ) : null}
                       </div>
                       <div className="play-reward__action">
                         <span className="play-reward__cost">{r.pointsCost} pts</span>

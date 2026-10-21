@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
+import { BrowserRouter } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
 import { DemoUsersResponse } from "@sdh/contracts";
 import { DEMO_USER_STORAGE_KEY } from "@sdh/api-client";
@@ -62,6 +63,21 @@ describe("Who is using this phone", () => {
   });
 });
 
+describe("A stored person who is not a resident", () => {
+  it("is asked to choose a resident and never sees the app", async () => {
+    const volunteer = { ...ELDER, role: "volunteer", verification: "verified" };
+    installFakeApi({
+      "GET /api/me": { body: volunteer },
+      "GET /api/demo/users": { body: demoUsers },
+    });
+    signInAs(volunteer.id);
+    renderRoute(<App />, "/home");
+    expect(await screen.findByText(/This app is for residents/)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Who is using this phone?" })).toBeInTheDocument();
+    expect(screen.queryByRole("navigation", { name: "Main navigation" })).not.toBeInTheDocument();
+  });
+});
+
 describe("Me page", () => {
   it("shows the signed-in name and area, and switches person", async () => {
     installFakeApi({ "GET /api/demo/users": { body: demoUsers } });
@@ -72,11 +88,39 @@ describe("Me page", () => {
     expect(screen.getAllByText("Elmina Valley").length).toBeGreaterThan(0);
     expect(screen.queryByText(/Aminah/)).not.toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole("button", { name: /Switch person/ }));
+    await userEvent.click(screen.getByRole("button", { name: /^Account/ }));
+    await userEvent.click(
+      within(await screen.findByRole("dialog", { name: "Account" })).getByRole("button", {
+        name: /Switch person/,
+      }),
+    );
     expect(
       await screen.findByRole("heading", { name: "Who is using this phone?" }),
     ).toBeInTheDocument();
     expect(window.localStorage.getItem(DEMO_USER_STORAGE_KEY)).toBeNull();
+  });
+
+  it("removes Profile from history when switching person", async () => {
+    installFakeApi({ "GET /api/demo/users": { body: demoUsers } });
+    signInAs();
+    window.history.pushState(null, "", "/before");
+    window.history.pushState(null, "", "/me");
+    render(
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>,
+    );
+    await userEvent.click(await screen.findByRole("button", { name: /^Account/ }));
+    await userEvent.click(
+      within(await screen.findByRole("dialog", { name: "Account" })).getByRole("button", {
+        name: /Switch person/,
+      }),
+    );
+    await screen.findByRole("heading", { name: "Who is using this phone?" });
+    expect(window.location.pathname).toBe("/");
+    // One Back from the picker must skip Profile and reach the page before it.
+    window.history.back();
+    await waitFor(() => expect(window.location.pathname).toBe("/before"));
   });
 
   it("goes back to the picker when the stored person no longer exists", async () => {

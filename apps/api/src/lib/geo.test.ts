@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { approxKm, distanceKm, roundKm } from "./geo";
+import { approxKm, approxPlace, distanceKm, roundKm } from "./geo";
 
 describe("distanceKm", () => {
   it("is zero for the same point and symmetric", () => {
@@ -26,5 +26,22 @@ describe("distanceKm", () => {
   it("rounds to one decimal place", () => {
     expect(roundKm(1.26)).toBe(1.3);
     expect(roundKm(0.04)).toBe(0);
+  });
+});
+
+describe("approxPlace", () => {
+  it("snaps to a 0.5 km grid, keeps the area and stays within 0.5 km", () => {
+    const place = { lat: 3.0738, lng: 101.5183, area: "Precinct 1" };
+    const snapped = approxPlace(place);
+    expect(snapped.area).toBe("Precinct 1");
+    expect(snapped).not.toEqual(place);
+    expect(distanceKm(place, snapped)).toBeLessThan(0.5);
+  });
+
+  it("gives the same point for places in the same cell and is idempotent", () => {
+    const a = approxPlace({ lat: 3.0738, lng: 101.5183 });
+    const b = approxPlace({ lat: 3.07381, lng: 101.51831 });
+    expect(a).toEqual(b);
+    expect(approxPlace(a)).toEqual(a);
   });
 });

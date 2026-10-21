@@ -94,6 +94,21 @@ describe("challenges page", () => {
     expect(calls.some((c) => c.method === "POST" && c.path.endsWith("/join"))).toBe(true);
   });
 
+  it("asks about the quiz, not progress, before joining a quiz challenge", async () => {
+    installFakeApi(
+      signedInRoutes(VOLUNTEER, {
+        "GET /api/challenges": { body: { challenges: [QUIZ_CHALLENGE] } },
+      }),
+    );
+    signInAs(VOLUNTEER.id);
+    renderApp("/community/challenges");
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Join challenge" }));
+    expect(await screen.findByText(/You can take the quiz afterwards/)).toBeInTheDocument();
+    expect(screen.queryByText(/log your progress afterwards/)).not.toBeInTheDocument();
+  });
+
   it("validates logged progress and notes a value above the goal", async () => {
     const joined = {
       ...CHALLENGE,
@@ -260,9 +275,10 @@ describe("challenges page", () => {
 
     await user.click(await screen.findByRole("button", { name: "Take the quiz" }));
     const dialog = await screen.findByRole("dialog");
-    await user.click((await within(dialog).findAllByRole("radio"))[1]!);
-    await user.click(within(dialog).getByRole("button", { name: "Next question" }));
-    await user.click(within(dialog).getAllByRole("radio")[0]!);
+    const first = await within(dialog).findByRole("radiogroup", { name: /question 1/ });
+    await user.click(within(first).getAllByRole("radio")[1]!);
+    const second = within(dialog).getByRole("radiogroup", { name: /question 2/ });
+    await user.click(within(second).getAllByRole("radio")[0]!);
     await user.click(within(dialog).getByRole("button", { name: "Submit answers" }));
 
     expect(await within(dialog).findByText("You got 2 of 2 correct.")).toBeInTheDocument();
@@ -289,7 +305,9 @@ describe("challenges page", () => {
     renderApp("/community/challenges");
 
     const user = await openTab("Rewards");
-    await user.click(await screen.findByRole("button", { name: "Redeem for 40 pts" }));
+    await user.click(
+      await screen.findByRole("button", { name: "Redeem Coffee voucher for 40 pts" }),
+    );
     // A yes/no confirmation now precedes redeeming.
     await user.click(await screen.findByRole("button", { name: "Yes, redeem" }));
 
@@ -298,6 +316,55 @@ describe("challenges page", () => {
     ).toBeInTheDocument();
     expect(calls.some((c) => c.path.endsWith("/redeem"))).toBe(true);
     expect(screen.queryByRole("dialog", { name: "Reward redeemed" })).not.toBeInTheDocument();
+  });
+
+  it("lists rewards cheapest first and says how far a locked one is", async () => {
+    const dear = makeReward({
+      id: "00000000-0000-4000-8000-0000000000a1",
+      title: "Big voucher",
+      pointsCost: 400,
+      status: "locked",
+    });
+    const cheap = makeReward({
+      id: "00000000-0000-4000-8000-0000000000a2",
+      title: "Tea bag",
+      pointsCost: 20,
+    });
+    installFakeApi(
+      signedInRoutes(VOLUNTEER, {
+        "GET /api/me/points": { body: makePoints(120) },
+        "GET /api/rewards": {
+          body: { rewards: [dear, makeReward({ status: "available" }), cheap] },
+        },
+      }),
+    );
+    signInAs(VOLUNTEER.id);
+    renderApp("/community/challenges");
+
+    await openTab("Rewards");
+    await screen.findByText("Big voucher");
+    const titles = screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent);
+    expect(titles).toEqual(["Tea bag", "Coffee voucher", "Big voucher"]);
+    expect(screen.getByText("280 more points needed")).toBeInTheDocument();
+    const names = screen.getAllByRole("button").map((b) => b.getAttribute("aria-label"));
+    expect(names).toEqual(expect.arrayContaining(["Big voucher: locked"]));
+    expect(new Set(names.filter(Boolean)).size).toBe(names.filter(Boolean).length);
+  });
+
+  it("uses the singular when a locked reward is one point away", async () => {
+    installFakeApi(
+      signedInRoutes(VOLUNTEER, {
+        "GET /api/me/points": { body: makePoints(19) },
+        "GET /api/rewards": {
+          body: { rewards: [makeReward({ pointsCost: 20, status: "locked" })] },
+        },
+      }),
+    );
+    signInAs(VOLUNTEER.id);
+    renderApp("/community/challenges");
+
+    await openTab("Rewards");
+    expect(await screen.findByText("1 more point needed")).toBeInTheDocument();
   });
 
   it("redeems a reward and shows the points left", async () => {
@@ -323,7 +390,9 @@ describe("challenges page", () => {
     renderApp("/community/challenges");
 
     const user = await openTab("Rewards");
-    await user.click(await screen.findByRole("button", { name: "Redeem for 40 pts" }));
+    await user.click(
+      await screen.findByRole("button", { name: "Redeem Coffee voucher for 40 pts" }),
+    );
     await user.click(await screen.findByRole("button", { name: "Yes, redeem" }));
     expect(await screen.findByText(/You have 60 points left/)).toBeInTheDocument();
     expect(screen.queryByText("First steps")).not.toBeInTheDocument();
@@ -332,7 +401,7 @@ describe("challenges page", () => {
     expect(await screen.findByText("First steps")).toBeInTheDocument();
   });
 
-  it("shows an empty leaderboard and saves the opt-in with PATCH /api/me", async () => {
+  it("shows empty Rankings and saves the opt-in with PATCH /api/me", async () => {
     const { calls } = installFakeApi({
       ...signedInRoutes(VOLUNTEER),
       "PATCH /api/me": ({ body }) => ({ body: User.parse({ ...VOLUNTEER, ...(body as object) }) }),
@@ -341,8 +410,11 @@ describe("challenges page", () => {
     renderApp("/community/challenges");
 
     const user = await openTab("Rankings");
-    expect(await screen.findByText("No one is on the leaderboard yet")).toBeInTheDocument();
-    const toggle = screen.getByRole("switch", { name: /Show me on the leaderboard/ });
+    expect(await screen.findByText("No one is in Rankings yet")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Rankings" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Neighbourhood rankings")).toBeInTheDocument();
+    expect(screen.queryByText(/leaderboard/i)).not.toBeInTheDocument();
+    const toggle = screen.getByRole("switch", { name: /Show me in Rankings/ });
     expect(toggle).not.toBeChecked();
     await user.click(toggle);
 
@@ -352,7 +424,7 @@ describe("challenges page", () => {
     });
   });
 
-  it("lists the leaderboard entries with the caller's row", async () => {
+  it("lists the Rankings entries with the caller's row", async () => {
     installFakeApi(
       signedInRoutes(VOLUNTEER, {
         "GET /api/leaderboard": {

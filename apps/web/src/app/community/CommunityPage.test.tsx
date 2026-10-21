@@ -28,7 +28,7 @@ async function selectCategory(name: string) {
 describe("community page", () => {
   it("tracks and completes joined volunteer drives in the Community Volunteer tab", async () => {
     let completed = false;
-    const drive = makeDrive({ joined: true });
+    const drive = makeDrive({ joined: true, startsAt: "2026-10-01T10:00:00+08:00" });
     installFakeApi({
       ...feedRoutes,
       "GET /api/events": () => ({
@@ -49,7 +49,9 @@ describe("community page", () => {
     expect(screen.queryByLabelText(`Accepted task: ${drive.title}`)).not.toBeInTheDocument();
     await selectCategory("Volunteer");
     const card = await screen.findByLabelText(`Accepted task: ${drive.title}`);
-    await userEvent.click(within(card).getByRole("button", { name: "Confirm completion" }));
+    await userEvent.click(
+      within(card).getByRole("button", { name: `Mark complete: ${drive.title}` }),
+    );
     await userEvent.click(screen.getByRole("button", { name: "Yes, completed" }));
     expect(await screen.findByRole("dialog", { name: "Marked as completed" })).toBeVisible();
     expect(
@@ -71,6 +73,67 @@ describe("community page", () => {
     expect(screen.getByLabelText("Township update: New recycling hours")).toBeInTheDocument();
     expect(screen.queryByText("Elmina")).not.toBeInTheDocument();
     expect(screen.getByText("2 updates shown")).toBeInTheDocument();
+  });
+
+  it("orders the sub-tabs Events, Notices, Volunteer, Updates", async () => {
+    installFakeApi(feedRoutes);
+    signInAs(VOLUNTEER.id);
+    renderApp("/community");
+    await screen.findByLabelText("Event: Live tea morning");
+    expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual([
+      "Events",
+      "Notices",
+      "Volunteer",
+      "Updates",
+    ]);
+  });
+
+  it.each([
+    ["events", "Events", "Event: Live tea morning"],
+    ["notices", "Notices", "Maintenance: Lift service at Block C"],
+    ["volunteer", "Volunteer", "Volunteering: River clean-up drive"],
+    ["updates", "Updates", "Township update: New recycling hours"],
+  ])("opens the %s tab from the ?tab= link", async (param, name, card) => {
+    installFakeApi(feedRoutes);
+    signInAs(VOLUNTEER.id);
+    renderApp(`/community?tab=${param}`);
+    expect(await screen.findByRole("tab", { name })).toHaveAttribute("aria-selected", "true");
+    expect(await screen.findByLabelText(card)).toBeInTheDocument();
+  });
+
+  it.each(["", "?tab=township", "?tab=nonsense"])(
+    "falls back to Events for the unknown link %j",
+    async (query) => {
+      installFakeApi(feedRoutes);
+      signInAs(VOLUNTEER.id);
+      renderApp(`/community${query}`);
+      expect(await screen.findByRole("tab", { name: "Events" })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+      expect(await screen.findByLabelText("Event: Live tea morning")).toBeInTheDocument();
+    },
+  );
+
+  it("keeps the tab in the link when another tab is chosen", async () => {
+    installFakeApi(feedRoutes);
+    signInAs(VOLUNTEER.id);
+    renderApp("/community?tab=notices");
+    await screen.findByLabelText("Maintenance: Lift service at Block C");
+    await selectCategory("Volunteer");
+    expect(screen.getByRole("tab", { name: "Volunteer" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByLabelText("Volunteering: River clean-up drive")).toBeInTheDocument();
+  });
+
+  it("shows no Challenges entry card on the Community page", async () => {
+    installFakeApi(feedRoutes);
+    signInAs(VOLUNTEER.id);
+    renderApp("/community");
+    await screen.findByRole("heading", { name: "Neighbourhood Hub" });
+    expect(screen.queryByRole("region", { name: "Community Challenges" })).not.toBeInTheDocument();
+    // Whatever the card is called, nothing in the page body links to the challenges page.
+    const main = screen.getByRole("main");
+    expect(main.querySelector('a[href$="/community/challenges"]')).toBeNull();
   });
 
   it("keeps high priority updates in the feed without a featured card", async () => {
@@ -130,6 +193,20 @@ describe("community page", () => {
     // A yes/no confirmation now precedes the join.
     await user.click(await screen.findByRole("button", { name: "Yes, join" }));
     expect(await screen.findByRole("dialog", { name: "Couldn't sign you up" })).toBeVisible();
+  });
+
+  it("shows the year and a singular spot on an event card", async () => {
+    const last = makeEvent({ title: "Last seat", capacity: 5, signupCount: 4 });
+    installFakeApi({
+      ...feedRoutes,
+      "GET /api/events": { body: { events: [last] } },
+    });
+    signInAs(VOLUNTEER.id);
+    renderApp("/community");
+
+    const card = await screen.findByLabelText("Event: Last seat");
+    expect(within(card).getByText(/spot left/)).toHaveTextContent("Only 1 spot left");
+    expect(within(card).getAllByText(/Thu 22 Oct 2026, 10:00 am/).length).toBeGreaterThan(0);
   });
 
   it("shows free slots on a volunteer drive", async () => {

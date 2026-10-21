@@ -7,7 +7,9 @@
   background: var(--page-bg);
   /* Leave room for the fixed bottom tab bar and the phone home indicator */
   --tab-bar-height: calc(88px + env(safe-area-inset-bottom, 0px));
-  padding-bottom: calc(var(--tab-bar-height) + var(--space-4));
+  /* The raised Help request button rises this far above the bar */
+  --tab-bump-height: 40px;
+  padding-bottom: calc(var(--tab-bar-height) + var(--tab-bump-height) + var(--space-4));
 }
 
 /* One readable column, centred - no horizontal padding on home (hero bleeds full width). */
@@ -87,6 +89,10 @@
   align-items: center;
   min-height: 48px;
   padding: 0 4px;
+}
+
+.app-home__see-all-arrow {
+  margin-left: 2px;
 }
 
 /* ── Hero header ─────────────────────────────────────────────── */
@@ -307,8 +313,11 @@
   width: 100%;
   max-width: 480px;
   display: flex;
-  background: var(--surface);
-  border-top: 1px solid var(--border);
+  --tab-bar-bg: var(--surface);
+  --tab-bar-border-width: 1px;
+  --tab-bar-border-color: var(--border);
+  background: var(--tab-bar-bg);
+  border-top: var(--tab-bar-border-width) solid var(--tab-bar-border-color);
   z-index: 100;
   /* Safe area for iPhone notch */
   padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -339,6 +348,90 @@
 .app-tab-bar__icon {
   font-size: 1.25rem;
   line-height: 1;
+}
+
+/* Raised centre button: a round brand-red button half above the bar, inside a half-circle bump. */
+.app-tab-bar__item--raised {
+  position: relative;
+  --fab-size: 64px;
+}
+
+.app-tab-bar__item--raised .app-tab-bar__icon {
+  display: block;
+  min-height: 22px;
+}
+
+.app-tab-bar__bump {
+  position: absolute;
+  left: 50%;
+  top: calc(-1 * var(--tab-bump-height));
+  width: calc(var(--fab-size) + 16px);
+  height: calc(var(--tab-bump-height) + var(--tab-bar-border-width));
+  transform: translateX(-50%);
+  background: var(--tab-bar-bg);
+  border: var(--tab-bar-border-width) solid var(--tab-bar-border-color);
+  border-bottom: none;
+  border-radius: calc(var(--fab-size) / 2 + 8px) calc(var(--fab-size) / 2 + 8px) 0 0;
+  pointer-events: none;
+}
+
+.app-tab-bar__fab {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--fab-size) / -2);
+  width: var(--fab-size);
+  height: var(--fab-size);
+  margin-left: calc(var(--fab-size) / -2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--brand-primary);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  transition: transform 100ms ease-out;
+}
+
+.app-tab-bar__item--raised:active .app-tab-bar__fab {
+  transform: scale(0.97);
+}
+
+/* Dark ring while the request pages are open */
+.app-tab-bar__item--raised.app-tab-bar__item--active .app-tab-bar__fab {
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 5px var(--text-primary);
+  /* Forced-colors modes drop box-shadow, so the current page also gets an outline that is
+     transparent in normal colours and drawn in the system colour there. */
+  outline: 3px solid transparent;
+  outline-offset: 3px;
+}
+
+.app-tab-bar__item--raised:focus-visible {
+  outline: none;
+}
+
+.app-tab-bar__item--raised:focus-visible .app-tab-bar__fab {
+  outline: 3px solid var(--text-primary);
+  outline-offset: 6px;
+}
+
+.app-tab-bar__item--raised {
+  color: var(--text-secondary);
+}
+
+.app-tab-bar__item--raised.app-tab-bar__item--active {
+  color: var(--text-primary);
+}
+
+.reduced-motion .app-tab-bar__item--raised:active .app-tab-bar__fab {
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-tab-bar__item--raised:active .app-tab-bar__fab {
+    transform: none;
+  }
 }
 
 .app-tab-bar__label {
@@ -924,6 +1017,10 @@
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-width: 0;
+}
+.category-choice-card__heading {
+  flex-wrap: wrap;
 }
 
 .category-choice-card__title {
@@ -1116,10 +1213,11 @@ button:active,
 
 /* ── 2. Translucent bar ─────────────────── */
 .app-tab-bar {
-  background: rgba(255, 255, 255, 0.82);
+  --tab-bar-bg: rgba(255, 255, 255, 0.82);
+  --tab-bar-border-color: rgba(229, 231, 235, 0.7);
+  background: var(--tab-bar-bg);
   backdrop-filter: blur(24px) saturate(190%);
   -webkit-backdrop-filter: blur(24px) saturate(190%);
-  border-top: 1px solid rgba(229, 231, 235, 0.7);
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.04);
 }
 
@@ -1271,10 +1369,12 @@ button:active,
   border: 2px solid #000000;
 }
 .high-contrast .app-tab-bar {
-  background: #ffffff;
+  --tab-bar-bg: #ffffff;
+  --tab-bar-border-width: 3px;
+  --tab-bar-border-color: #000000;
+  background: var(--tab-bar-bg);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  border-top: 3px solid #000000;
 }
 .high-contrast .app-tab-bar__item,
 .high-contrast .seg-tabs__tab {
@@ -1374,8 +1474,9 @@ button:active,
 
 .apple-sheet-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
+  gap: var(--space-3);
   margin-bottom: var(--space-4);
 }
 
@@ -1390,19 +1491,6 @@ button:active,
   margin: 2px 0 0;
   font-size: 1rem;
   color: var(--text-secondary);
-}
-
-.apple-sheet-close-btn {
-  background: #e5e7eb;
-  border: none;
-  border-radius: 50%;
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-secondary);
-  cursor: pointer;
 }
 
 .apple-sheet-content {
@@ -1591,13 +1679,64 @@ button:active,
   color: var(--danger);
 }
 
-.apple-sheet-footer {
-  margin-top: var(--space-4);
+/* Generic Sheet: motion is driven from script (transform and opacity only), so no keyframes here. */
+.apple-sheet-root {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
 }
-
-.apple-sheet-done-btn {
-  width: 100%;
+.apple-sheet-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.apple-sheet-panel--live {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh;
+  max-height: 85dvh;
+  overflow: hidden;
+  padding-bottom: 0;
+  animation: none;
+  will-change: transform, opacity;
+}
+.apple-sheet-drag {
+  flex: none;
+  touch-action: none;
+  cursor: grab;
+}
+.apple-sheet-drag:active {
+  cursor: grabbing;
+}
+.apple-sheet-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: calc(var(--space-8) + env(safe-area-inset-bottom, 0px));
+}
+.apple-sheet-done {
+  flex: none;
+  min-width: 72px;
+  min-height: 48px;
+  padding: 0 var(--space-6);
+  border: none;
   border-radius: var(--radius-pill);
+  background: var(--brand-primary);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.high-contrast .apple-sheet-done {
+  background: #000;
+  border: 2px solid #000;
 }
 
 /* ── 8. Subpage Shell & Navigation Bar ─────────────────── */
@@ -1761,6 +1900,10 @@ button:active,
   min-width: 0;
   overflow-wrap: anywhere;
 }
+/* A description that wraps reads from the left, not ragged on the left. */
+.apple-inset-value--wrap {
+  text-align: left;
+}
 
 .apple-volunteer-chip {
   display: inline-flex;
@@ -1921,14 +2064,6 @@ button:active,
   margin: 0;
   font-size: 1rem;
   color: var(--text-secondary);
-}
-
-.apple-profile-voice-btn {
-  margin-top: 10px;
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--brand-primary);
-  padding: 4px 12px;
 }
 
 .apple-profile-section {
@@ -2213,7 +2348,7 @@ button:active,
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 14px;
   margin-top: var(--space-3);
 }
 .carousel__dot {
@@ -2232,7 +2367,7 @@ button:active,
 .carousel__dot::before {
   content: "";
   position: absolute;
-  inset: -14px;
+  inset: -17px;
 }
 .carousel__dot--active {
   width: 26px;
@@ -2535,13 +2670,25 @@ button:active,
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
 }
+.voucher-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
 .play-reward__icon {
   flex-shrink: 0;
   color: var(--brand-primary);
 }
+.play-reward {
+  flex-wrap: wrap;
+}
 .play-reward__body {
-  flex: 1;
+  flex: 1 1 10rem;
   min-width: 0;
+  overflow-wrap: anywhere;
+}
+.play-reward .community-register-btn {
+  flex-shrink: 0;
 }
 .play-reward__title {
   margin: 0 0 2px;
@@ -2723,19 +2870,33 @@ button:active,
   text-align: center;
   line-height: 1.15;
   letter-spacing: -0.01em;
-  overflow-wrap: anywhere;
+  /* A tab name never splits mid-word; the size ignores the text-size setting and shrinks with the
+     bar (480px wide at most) so the longest name fits at any text size. */
+  white-space: nowrap;
+  overflow-wrap: normal;
+  font-size: min(16px, 3.4vw);
+}
+
+/* The raised label stays on one line so the bar height does not change by device width. */
+.app-tab-bar__item--raised .app-tab-bar__label {
+  white-space: nowrap;
 }
 
 /* People who ask for less transparency get solid surfaces. */
 @media (prefers-reduced-transparency: reduce) {
+  .app-tab-bar {
+    --tab-bar-bg: var(--surface);
+  }
   .app-tab-bar,
   .apple-sheet-backdrop,
+  .apple-sheet-scrim,
   .apple-sheet-panel {
     background: var(--surface);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
-  .apple-sheet-backdrop {
+  .apple-sheet-backdrop,
+  .apple-sheet-scrim {
     background: rgba(17, 24, 39, 0.7);
   }
   .apple-header-voice-btn,
@@ -2957,6 +3118,16 @@ main:focus {
 .category-choice-card__heading {
   margin-bottom: 2px;
 }
+.app-sync-notice {
+  position: fixed;
+  top: var(--space-4);
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 2 * var(--space-4));
+  max-width: 480px;
+  z-index: 1100;
+}
+
 .app-banner {
   border-color: var(--danger);
   color: var(--danger);
@@ -3273,6 +3444,10 @@ main:focus {
    layout. The call is placed only after a deliberate slide-to-confirm
    gesture, so a mis-tap never dials.
 ───────────────────────────────────────────────────────────── */
+.call-confirm-panel:focus {
+  outline: none;
+}
+
 .call-confirm-panel {
   text-align: center;
 }

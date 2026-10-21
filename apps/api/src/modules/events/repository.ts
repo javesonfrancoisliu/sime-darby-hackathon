@@ -158,6 +158,45 @@ export async function joinEvent(
   }
 }
 
+// Drops one signup and its counter in one transaction. A missing signup or a closed event fails
+// the condition, so a repeat call is a no-op and returns false.
+export async function leaveEvent(eventId: string, userId: string, now: string): Promise<boolean> {
+  try {
+    await db().send(
+      new TransactWriteCommand({
+        TransactItems: [
+          {
+            Delete: {
+              TableName: table(),
+              Key: { PK: `EVENT#${eventId}`, SK: `SIGNUP#${userId}` },
+              ConditionExpression: "attribute_exists(PK)",
+            },
+          },
+          {
+            Update: {
+              TableName: table(),
+              Key: key(eventId),
+              UpdateExpression: "SET signupCount = signupCount - :one, updatedAt = :now",
+              ConditionExpression: "signupCount > :zero AND #status = :upcoming",
+              ExpressionAttributeNames: { "#status": "status" },
+              ExpressionAttributeValues: {
+                ":one": 1,
+                ":zero": 0,
+                ":upcoming": "upcoming",
+                ":now": now,
+              },
+            },
+          },
+        ],
+      }),
+    );
+    return true;
+  } catch (error) {
+    if (!isConditionFailure(error)) throw error;
+    return false;
+  }
+}
+
 // Returns false when the event was already completed. The status flip rides in the first
 // transaction so it is atomic with its contributions; any overflow beyond 100 items goes in
 // follow-up transactions, so a crash mid-way can leave later contributions unrecorded.

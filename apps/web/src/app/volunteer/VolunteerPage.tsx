@@ -45,6 +45,7 @@ export function VolunteerPage() {
     isAccepted,
     accept,
     complete,
+    withdraw,
     loading: tasksLoading,
     error: tasksError,
     refresh: refreshTasks,
@@ -140,6 +141,12 @@ export function VolunteerPage() {
     setCompleting(task);
   }
 
+  // Rejects on failure so the card can show why; the feed is refreshed so the task is back in it.
+  async function handleWithdraw(task: AcceptedTask) {
+    await withdraw(task.id);
+    await reload();
+  }
+
   async function handleComplete(task: AcceptedTask, minutesSpent: number) {
     // Volunteer-reported only - no points yet.
     setCompleteBusy(true);
@@ -203,6 +210,7 @@ export function VolunteerPage() {
           <MyTasksSection
             tasks={tasks.filter((task) => task.kind === "request")}
             onComplete={openComplete}
+            onWithdraw={handleWithdraw}
             pointsByTask={pointsByTask}
           />
 

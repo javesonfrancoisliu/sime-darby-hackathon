@@ -1,3 +1,4 @@
+import type { MouseEvent } from "react";
 import { MapPin, Pencil } from "lucide-react";
 import { useSession } from "@sdh/api-client";
 import type { ContributionsResponse } from "@sdh/contracts";
@@ -11,7 +12,7 @@ import { Avatar } from "./Avatar";
 
 export type ProfileHeaderCardProps = {
   claimedCount: number;
-  onEdit: () => void;
+  onEdit: (event: MouseEvent<HTMLButtonElement>) => void;
 };
 
 export function ProfileHeaderCard({ onEdit }: ProfileHeaderCardProps) {
@@ -36,8 +37,8 @@ export function ProfileHeaderCard({ onEdit }: ProfileHeaderCardProps) {
             {completed !== undefined && <VolunteerLevelBadge completed={completed} />}
           </div>
         </div>
-        <AppButton variant="ghost" onClick={onEdit} aria-label="Edit personal information">
-          <Pencil size={16} aria-hidden="true" />
+        <AppButton variant="secondary" onClick={onEdit} aria-label="Edit personal information">
+          <Pencil size={16} aria-hidden="true" /> Edit
         </AppButton>
       </div>
       <div className="profile-volunteer-progress">

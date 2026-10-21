@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { useAccessibility } from "../context/AccessibilityContext";
+import { takeOpener, useDialogLayer } from "./dialogLayer";
 import { IconPhone, IconChevronRight, IconX, IconCheck } from "./Icons";
 
 interface CallTarget {
@@ -38,9 +39,6 @@ export function dialNumber(tel: string) {
   link.href = `tel:${tel}`;
   link.click();
 }
-
-const FOCUSABLE =
-  'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 /**
  * Provides a single confirm-before-dial bottom sheet for every emergency /
@@ -92,7 +90,7 @@ function CallConfirmSheet({ target, onClose }: { target: CallTarget; onClose: ()
   // Focus Cancel on open (the safe default — the call needs a deliberate slide),
   // trap Tab, make the page behind inert, and restore focus on close.
   useEffect(() => {
-    const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const trigger = takeOpener();
     cancelRef.current?.focus();
     triggerHaptic(15);
 
@@ -108,34 +106,11 @@ function CallConfirmSheet({ target, onClose }: { target: CallTarget; onClose: ()
     };
   }, [triggerHaptic]);
 
-  function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Escape") {
-      e.stopPropagation();
-      onClose();
-      return;
-    }
-    if (e.key !== "Tab") return;
-    const items = Array.from(panelRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? []);
-    const first = items[0];
-    const last = items[items.length - 1];
-    if (!first || !last) return;
-    const active = document.activeElement;
-    if (e.shiftKey && (active === first || !panelRef.current?.contains(active))) {
-      e.preventDefault();
-      last.focus();
-    } else if (!e.shiftKey && (active === last || !panelRef.current?.contains(active))) {
-      e.preventDefault();
-      first.focus();
-    }
-  }
+  // Back and Escape close this confirm before any sheet underneath it.
+  useDialogLayer({ panelRef, onBack: onClose, onEscape: onClose });
 
   return (
-    <div
-      ref={backdropRef}
-      className="apple-sheet-backdrop"
-      onClick={onClose}
-      onKeyDown={handleKeyDown}
-    >
+    <div ref={backdropRef} className="apple-sheet-backdrop" onClick={onClose}>
       <div
         ref={panelRef}
         className="apple-sheet-panel call-confirm-panel"

@@ -351,7 +351,7 @@ export function SafetyPage() {
                 </div>
 
                 <div className="safety-sort">
-                  <label htmlFor="facility-status">Sort by</label>
+                  <label htmlFor="facility-status">Filter by status</label>
                   <select
                     id="facility-status"
                     value={status}

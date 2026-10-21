@@ -7,10 +7,10 @@ import type {
   User,
 } from "@sdh/contracts";
 import { beforeAll, describe, expect, it } from "vitest";
-import { call } from "../../test/api";
+import { call, createVerifiedVolunteer } from "../../test/api";
 import { createCoordinator, createElder, createVerifiedVolunteerDirect } from "../../test/people";
 import { useTestTable } from "../../test/table";
-import { createChallengeVia, putEndedChallenge } from "../play/testSupport";
+import { challengeBody, createChallengeVia, putEndedChallenge } from "../play/testSupport";
 import { getUser } from "../users/repository";
 
 useTestTable();
@@ -87,6 +87,17 @@ describe("challenges", () => {
       body: { current: 1 },
     });
     expect(progress.status).toBe(409);
+  });
+
+  it("caps challenge points at 1000 on create", async () => {
+    const post = (points: number) =>
+      call("POST", "/api/challenges", { as: coordinator.id, body: challengeBody({ points }) });
+    expect((await post(1000)).status).toBe(201);
+    for (const points of [1001, 999_999_999]) {
+      const res = await post(points);
+      expect(res.status).toBe(400);
+      expect(res.body).toMatchObject({ error: { code: "VALIDATION_FAILED" } });
+    }
   });
 
   it("joins idempotently, clamps progress and completes once with points", async () => {
@@ -260,5 +271,34 @@ describe("challenges", () => {
     });
     expect(twice.status).toBe(409);
     expect((await getUser(elder.id))?.points).toBe(30);
+  });
+
+  it("refuses to verify a volunteer who was rejected, and awards nothing", async () => {
+    const volunteer = await createVerifiedVolunteer(coordinator.id);
+    const challenge = await createChallengeVia(coordinator.id, {
+      goal: { target: 1, unit: "sessions", type: "sessions" },
+      points: 30,
+      requiresVerification: true,
+    });
+    await call("POST", `/api/challenges/${challenge.id}/join`, { as: volunteer.id });
+    await call("PUT", `/api/challenges/${challenge.id}/progress`, {
+      as: volunteer.id,
+      body: { current: 1 },
+    });
+    await call("POST", `/api/challenges/${challenge.id}/complete`, { as: volunteer.id });
+    await call("POST", `/api/volunteers/${volunteer.id}/review`, {
+      as: coordinator.id,
+      body: { decision: "rejected" },
+    });
+
+    const res = await call("POST", `/api/challenges/${challenge.id}/verify/${volunteer.id}`, {
+      as: coordinator.id,
+    });
+    expect(res.status).toBe(409);
+    expect((await getUser(volunteer.id))?.points).toBe(0);
+    const pending = await call("GET", `/api/challenges/${challenge.id}/pending`, {
+      as: coordinator.id,
+    });
+    expect((pending.body as PendingVerificationsResponse).pending).toHaveLength(1);
   });
 });

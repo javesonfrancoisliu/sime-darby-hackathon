@@ -9,7 +9,7 @@ import { Spinner } from "../ui/Spinner";
 type Load = { status: "loading" } | { status: "error" } | { status: "ready"; users: DemoUser[] };
 
 // First screen on a new phone: one big card per resident.
-export function WhoIsUsingPage() {
+export function WhoIsUsingPage({ notice }: { notice?: string }) {
   const { signIn } = useSession();
   const [load, setLoad] = useState<Load>({ status: "loading" });
   const [attempt, setAttempt] = useState(0);
@@ -37,6 +37,7 @@ export function WhoIsUsingPage() {
   return (
     <div className="apple-subpage">
       <h1 className="ui-page-title">Who is using this phone?</h1>
+      {notice ? <Banner message={notice} /> : null}
       <p className="ui-page-subtitle app-page-lead">Touch your name to begin.</p>
 
       {load.status === "loading" ? <Spinner label="Loading names" /> : null}

@@ -3,10 +3,12 @@ import type { CommunityEvent, CreateEventBody, EventPurpose, User } from "@sdh/c
 import { HttpError } from "../../lib/http";
 import { newContribution } from "../contributions/service";
 import { VOLUNTEERING_POINTS, awardOnce } from "../points/service";
+import { getUser } from "../users/repository";
 import {
   completeEvent,
   getEvent,
   joinEvent,
+  leaveEvent,
   listJoinedSignups,
   getSignup,
   completeAttendance,
@@ -90,11 +92,23 @@ async function awardVolunteer(volunteerId: string, event: CommunityEvent): Promi
   throw new HttpError("CONFLICT_RETRY", "Try again in a moment");
 }
 
+function requireStarted(event: CommunityEvent): void {
+  if (Date.parse(event.startsAt) > Date.now()) {
+    throw new HttpError("CONFLICT", "Event has not started yet");
+  }
+}
+
 // Idempotent: a repeat call on a completed event re-runs the awards and still returns 200.
 export async function complete(eventId: string): Promise<CommunityEvent> {
   const event = await requireEvent(eventId);
+  requireStarted(event);
   const signups = await listSignups(eventId);
-  const volunteers = signups.filter((signup) => signup.role === "volunteer");
+  // A coordinator-rejected volunteer earns nothing from the event.
+  const volunteers: typeof signups = [];
+  for (const signup of signups) {
+    if (signup.role !== "volunteer") continue;
+    if ((await getUser(signup.userId))?.verification !== "rejected") volunteers.push(signup);
+  }
   const contributions = volunteers.map((signup) =>
     newContribution({
       volunteerId: signup.userId,
@@ -112,6 +126,7 @@ export async function complete(eventId: string): Promise<CommunityEvent> {
 // Records only this volunteer's completion; it does not close the event or award points.
 export async function completeOwnAttendance(user: User, eventId: string): Promise<CommunityEvent> {
   const event = await requireEvent(eventId);
+  requireStarted(event);
   const signup = await getSignup(eventId, user.id);
   if (!signup || signup.role !== "volunteer")
     throw new HttpError("FORBIDDEN", "Join this activity before confirming completion");
@@ -129,4 +144,12 @@ export async function completeOwnAttendance(user: User, eventId: string): Promis
   }
   const saved = await getSignup(eventId, user.id);
   return { ...event, joined: true, attendanceCompletedAt: saved?.completedAt };
+}
+
+// A rejected volunteer keeps no signups for upcoming events; each frees its seat. Safe to repeat.
+export async function releaseVolunteerSignups(volunteerId: string): Promise<void> {
+  const now = new Date().toISOString();
+  for (const eventId of (await listJoinedSignups(volunteerId, now)).keys()) {
+    await leaveEvent(eventId, volunteerId, now);
+  }
 }

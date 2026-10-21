@@ -9,7 +9,7 @@ import { useNotices } from "../hooks/useNotices";
 import {
   IconCalendar,
   IconAlertTriangle,
-  IconHeartHandshake,
+  IconHandHeart,
   IconBell,
   IconMapPin,
   IconClock,
@@ -81,7 +81,7 @@ export function CommunityPage() {
   const TABS: TabItem<CommunityTab>[] = [
     { id: "events", label: "Events", icon: <IconCalendar size={18} strokeWidth={2} /> },
     { id: "maintenance", label: "Notices", icon: <IconAlertTriangle size={18} strokeWidth={2} /> },
-    { id: "volunteer", label: "Volunteer", icon: <IconHeartHandshake size={18} strokeWidth={2} /> },
+    { id: "volunteer", label: "Volunteer", icon: <IconHandHeart size={18} strokeWidth={2} /> },
     { id: "updates", label: "Updates", icon: <IconBell size={18} strokeWidth={2} /> },
   ];
 
@@ -170,13 +170,14 @@ export function CommunityPage() {
                       <span className="community-spots__text">
                         {e.joined ? (
                           <>
-                            You have a spot · <strong>{spots}</strong> left
+                            You have a spot · <strong>{spots}</strong>{" "}
+                            {spots === 1 ? "spot" : "spots"} left
                           </>
                         ) : spots === 0 ? (
                           <>This event is full</>
                         ) : (
                           <>
-                            Only <strong>{spots}</strong> spots left
+                            Only <strong>{spots}</strong> {spots === 1 ? "spot" : "spots"} left
                           </>
                         )}
                       </span>
@@ -286,7 +287,7 @@ export function CommunityPage() {
             aria-label="Volunteering opportunities"
           >
             <SectionHeading
-              icon={<IconHeartHandshake size={22} strokeWidth={1.8} />}
+              icon={<IconHandHeart size={22} strokeWidth={1.8} />}
               title="Community Volunteering Opportunities"
             />
             {drives.status === "loading" && !drives.data ? (

@@ -298,6 +298,9 @@ export async function verify(id: string, userId: string): Promise<ChallengeActio
   if (progress.status !== "pending_verification") {
     throw new HttpError("CONFLICT", "That person has not asked for verification");
   }
+  if ((await getUser(userId))?.verification === "rejected") {
+    throw new HttpError("CONFLICT", "This volunteer can no longer be credited");
+  }
   const result = await finish(userId, challenge, "pending_verification", "challenge");
   if (result.kind !== "done") failFinish(result);
   const done = await getProgress(userId, id);

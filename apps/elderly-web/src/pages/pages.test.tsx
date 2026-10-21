@@ -145,6 +145,48 @@ describe("Notes with line breaks", () => {
   });
 });
 
+describe("Cancelled after a volunteer was matched", () => {
+  const cancelled = makeRequest({
+    id: "4b6d9ab8-cf6a-4c99-9d34-6a7fcf7d8e07",
+    description: "Lift to clinic",
+    status: "cancelled",
+    volunteerName: "Aisha",
+  });
+
+  it("keeps showing the volunteer on the list and the detail", async () => {
+    installFakeApi({
+      ...listOf(cancelled),
+      [`GET /api/requests/${cancelled.id}`]: { body: cancelled },
+    });
+    const { unmount } = await renderApp("/requests");
+    expect(await screen.findByText("Aisha")).toBeInTheDocument();
+    unmount();
+    await renderApp(`/requests/${cancelled.id}`);
+    expect(await screen.findByText("Aisha")).toBeInTheDocument();
+    expect(screen.queryByText("No volunteer")).not.toBeInTheDocument();
+  });
+
+  it("still says No volunteer when none was ever matched", async () => {
+    const never = makeRequest({ ...cancelled, volunteerName: undefined });
+    installFakeApi({ [`GET /api/requests/${never.id}`]: { body: never } });
+    await renderApp(`/requests/${never.id}`);
+    expect(await screen.findByText("No volunteer")).toBeInTheDocument();
+  });
+
+  it("no longer offers Call 999 on a cancelled request", async () => {
+    installFakeApi({ [`GET /api/requests/${cancelled.id}`]: { body: cancelled } });
+    await renderApp(`/requests/${cancelled.id}`);
+    await screen.findByText("Lift to clinic");
+    expect(screen.queryByRole("button", { name: /Call 999/ })).not.toBeInTheDocument();
+  });
+
+  it("keeps a wrapped description left aligned", async () => {
+    installFakeApi({ [`GET /api/requests/${cancelled.id}`]: { body: cancelled } });
+    await renderApp(`/requests/${cancelled.id}`);
+    expect(await screen.findByText("Lift to clinic")).toHaveClass("apple-inset-value--wrap");
+  });
+});
+
 describe("Request detail", () => {
   it("shows the title, when and where, not the request id", async () => {
     installFakeApi({ [`GET /api/requests/${open.id}`]: { body: open } });
@@ -155,11 +197,12 @@ describe("Request detail", () => {
     expect(screen.getByText("Not matched yet")).toBeInTheDocument();
   });
 
-  it("shows the volunteer name when matched and hides Cancel", async () => {
+  it("shows the volunteer name when matched and offers Cancel with a warning for the volunteer", async () => {
     installFakeApi({ [`GET /api/requests/${matched.id}`]: { body: matched } });
     await renderApp(`/requests/${matched.id}`);
     expect(await screen.findByText("Aisha")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Cancel request" })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Cancel request" }));
+    expect(screen.getByText(/Your volunteer will be told/)).toBeInTheDocument();
   });
 
   it("shows the team's note on a rejected request and hides Cancel", async () => {
@@ -184,7 +227,7 @@ describe("Request detail", () => {
 });
 
 describe("Cancel flow", () => {
-  for (const status of ["pending_review", "open"] as const) {
+  for (const status of ["pending_review", "open", "matched"] as const) {
     it(`cancels a ${status} request after a confirmation`, async () => {
       const req = makeRequest({ status });
       const { calls } = installFakeApi({

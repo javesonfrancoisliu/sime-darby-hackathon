@@ -53,6 +53,21 @@ describe("quizzes", () => {
     expect((await call("GET", `/api/quizzes/${quiz.id}`)).status).toBe(401);
   });
 
+  it("caps submits per quiz and person at five a day without counting invalid ones", async () => {
+    const prober = await createElder();
+    const other = await createElder();
+    const submit = (as: string, picks: number[]) =>
+      call("POST", `/api/quizzes/${quiz.id}/submit`, { as, body: answers(picks) });
+    expect((await submit(prober.id, [0])).status).toBe(400);
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      expect((await submit(prober.id, [0, 0, 1])).status).toBe(200);
+    }
+    const sixth = await submit(prober.id, [1, 2, 0]);
+    expect(sixth.status).toBe(409);
+    expect(sixth.body).toMatchObject({ error: { code: "CONFLICT" } });
+    expect((await submit(other.id, [1, 2, 0])).status).toBe(200);
+  });
+
   it("grades on the server and returns only the result", async () => {
     const elder = await createElder();
     const fail = await call("POST", `/api/quizzes/${quiz.id}/submit`, {
@@ -70,6 +85,28 @@ describe("quizzes", () => {
       body: { answers: [{ questionId: "nope", optionIndex: 0 }] },
     });
     expect(unknown.status).toBe(400);
+  });
+
+  it("requires exactly one answer per question and grades nothing otherwise", async () => {
+    const elder = await createElder();
+    const submit = (body: unknown) =>
+      call("POST", `/api/quizzes/${quiz.id}/submit`, { as: elder.id, body });
+    for (const body of [
+      { answers: [] },
+      answers([1]),
+      answers([1, 2]),
+      { answers: [...answers([1, 2, 0]).answers, { questionId: "q1", optionIndex: 1 }] },
+      { answers: answers([1, 2, 0]).answers.map((a) => ({ ...a, questionId: "q1" })) },
+    ]) {
+      const res = await submit(body);
+      expect(res.status).toBe(400);
+      expect(res.body).toMatchObject({ error: { code: "VALIDATION_FAILED" } });
+    }
+    expect((await submit(answers([1, 2, 0]))).body).toEqual({
+      score: 3,
+      total: 3,
+      passed: true,
+    });
   });
 
   it("completes a linked challenge once and awards its points once", async () => {

@@ -10,7 +10,11 @@ import type {
 import { HttpError } from "../../lib/http";
 import { nowIso } from "../../lib/time";
 import { completeForQuiz } from "../challenges/service";
-import { getQuiz, listQuizzes, putQuiz } from "./repository";
+import { getQuiz, listQuizzes, putQuiz, takeAttempt } from "./repository";
+
+// Every submit returns a score, so the number of tries is capped to stop answers being probed
+// one question at a time.
+const MAX_ATTEMPTS_PER_DAY = 5;
 
 export async function createQuiz(body: CreateQuizBody): Promise<Quiz> {
   const now = nowIso();
@@ -65,6 +69,12 @@ export async function submit(user: User, id: string, body: QuizSubmitBody): Prom
       throw new HttpError("VALIDATION_FAILED", "answers: unknown or repeated question");
     }
     chosen.set(answer.questionId, answer.optionIndex);
+  }
+  if (chosen.size !== quiz.questions.length) {
+    throw new HttpError("VALIDATION_FAILED", "answers: answer every question exactly once");
+  }
+  if (!(await takeAttempt(quiz.id, user.id, nowIso().slice(0, 10), MAX_ATTEMPTS_PER_DAY))) {
+    throw new HttpError("CONFLICT", "No quiz attempts left today, try again tomorrow");
   }
   const score = quiz.questions.filter((q) => chosen.get(q.id) === q.correctIndex).length;
   const passed = score >= quiz.passMark;

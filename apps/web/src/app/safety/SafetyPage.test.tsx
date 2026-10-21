@@ -46,11 +46,17 @@ describe("safety page", () => {
     expect(await screen.findByLabelText("Facility report: Broken swing")).toBeInTheDocument();
     expect(screen.getByLabelText("Facility report: Fixed gate")).toBeInTheDocument();
 
-    await user.selectOptions(screen.getByRole("combobox", { name: "Sort by" }), "resolved");
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Filter by status" }),
+      "resolved",
+    );
     expect(screen.queryByLabelText("Facility report: Broken swing")).not.toBeInTheDocument();
     expect(screen.getByLabelText("Facility report: Fixed gate")).toBeInTheDocument();
 
-    await user.selectOptions(screen.getByRole("combobox", { name: "Sort by" }), "in_progress");
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Filter by status" }),
+      "in_progress",
+    );
     expect(screen.queryByLabelText("Facility report: Broken swing")).not.toBeInTheDocument();
     expect(screen.queryByLabelText("Facility report: Fixed gate")).not.toBeInTheDocument();
   });

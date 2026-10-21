@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { MALAYSIAN_PHONE, PutMedicalIdBody, type BloodGroup } from "@sdh/contracts";
 import { useMedicalId, useRemoveMedicalId, useSaveMedicalId } from "../hooks/useMedicalId";
 import { BLOOD_GROUPS, bloodGroupText } from "../medical/bloodGroup";
@@ -10,6 +10,7 @@ import { Button } from "../ui/Button";
 import { ChoiceButton } from "../ui/ChoiceButton";
 import { Spinner } from "../ui/Spinner";
 import { TextField } from "../ui/TextField";
+import { requestDetailsOnProfile } from "./me/detailsRequest";
 
 interface FormState {
   bloodGroup: BloodGroup | null;
@@ -44,6 +45,7 @@ function validate(form: FormState): { body?: PutMedicalIdBody; errors: Errors } 
 // Add, change or remove the Medical ID. Large buttons and plain words throughout.
 export function MedicalIdPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const announce = useAnnounce();
   const medical = useMedicalId();
   const save = useSaveMedicalId();
@@ -112,6 +114,14 @@ export function MedicalIdPage() {
     inputs?.[index]?.focus();
   }
 
+  // Return to Profile with the My details drawer open so the result is visible. Pop back so this
+  // form is not left in the history; a direct visit replaces it.
+  function returnToProfileDetails() {
+    requestDetailsOnProfile();
+    if (location.key === "default") navigate("/me", { replace: true });
+    else navigate(-1);
+  }
+
   async function onSave() {
     const { body, errors: found } = validate(form);
     setErrors(found);
@@ -122,13 +132,13 @@ export function MedicalIdPage() {
     const saved = await save.run(body);
     if (!saved) return;
     announce("Your Medical ID was saved.");
-    navigate("/me");
+    returnToProfileDetails();
   }
 
   async function onRemove() {
     if (!(await remove.run())) return;
     announce("Your Medical ID was removed.");
-    navigate("/me");
+    returnToProfileDetails();
   }
 
   return (

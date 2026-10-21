@@ -96,6 +96,8 @@ export type AcceptedTasksContextValue = {
   joinEvent: (eventId: string) => Promise<void>;
   // Volunteer-reported completion. The resident still has to confirm before points are awarded.
   complete: (id: string, minutesSpent: number) => Promise<void>;
+  // Hands an accepted request back to the open list.
+  withdraw: (id: string) => Promise<void>;
   // Re-reads the tasks from the API.
   refresh: () => Promise<void>;
 };
@@ -172,6 +174,17 @@ export function AcceptedTasksProvider({ children }: { children: ReactNode }) {
     [userId, reload, tasks],
   );
 
+  const withdraw = useCallback(
+    async (id: string) => {
+      await apiFetch(`/api/requests/${encodeURIComponent(id)}/withdraw`, {
+        method: "POST",
+        userId,
+      });
+      await reload();
+    },
+    [userId, reload],
+  );
+
   const value = useMemo<AcceptedTasksContextValue>(
     () => ({
       tasks,
@@ -181,9 +194,10 @@ export function AcceptedTasksProvider({ children }: { children: ReactNode }) {
       accept,
       joinEvent,
       complete,
+      withdraw,
       refresh: reload,
     }),
-    [tasks, userId, data, isAccepted, accept, joinEvent, complete, reload],
+    [tasks, userId, data, isAccepted, accept, joinEvent, complete, withdraw, reload],
   );
 
   return <AcceptedTasksContext.Provider value={value}>{children}</AcceptedTasksContext.Provider>;

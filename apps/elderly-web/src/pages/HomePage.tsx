@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
+import { AroundTownshipCard, CommunityPlayCard } from "./home/CommunityCards";
 import { HeroHeader } from "../ui/HeroHeader";
 import { Carousel } from "../ui/Carousel";
 import { RequestCard } from "../ui/RequestCard";
@@ -18,6 +19,7 @@ import {
   IconWrench,
   IconPlus,
   IconList,
+  IconArrowRight,
   IconChevronRight,
   IconMapPin,
   IconClock,
@@ -208,6 +210,7 @@ export function HomePage() {
           </div>
           <button type="button" className="app-home__see-all" onClick={() => navigate("/safety")}>
             All hazards
+            <IconArrowRight className="app-home__see-all-arrow" size={18} aria-hidden="true" />
           </button>
         </div>
 
@@ -253,6 +256,10 @@ export function HomePage() {
         </div>
       </section>
 
+      <CommunityPlayCard />
+
+      <AroundTownshipCard />
+
       <section className="app-home__section" aria-labelledby="daily-support-heading">
         <div className="app-home__section-header">
           <h2 id="daily-support-heading" className="app-home__section-title">
@@ -260,6 +267,7 @@ export function HomePage() {
           </h2>
           <button type="button" className="app-home__see-all" onClick={() => navigate("/request")}>
             All services
+            <IconArrowRight className="app-home__see-all-arrow" size={18} aria-hidden="true" />
           </button>
         </div>
 
@@ -291,6 +299,7 @@ export function HomePage() {
           <h2 className="app-home__section-title">My requests</h2>
           <button type="button" className="app-home__see-all" onClick={() => navigate("/requests")}>
             See all
+            <IconArrowRight className="app-home__see-all-arrow" size={18} aria-hidden="true" />
           </button>
         </div>
 

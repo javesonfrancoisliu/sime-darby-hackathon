@@ -6,7 +6,7 @@ import {
   UpdateCommand,
 } from "@aws-sdk/lib-dynamodb";
 import type { Contribution, HelpRequest, RequestStatus } from "@sdh/contracts";
-import { db, fromItem, isConditionFailure, table, type TransactItem } from "../../lib/db";
+import { db, fromItem, isConditionFailure, table, transact, type TransactItem } from "../../lib/db";
 import { contributionPut } from "../contributions/repository";
 
 const ENTITY = "REQUEST";
@@ -16,6 +16,17 @@ const statusKey = (status: RequestStatus) => `REQSTATUS#${status}`;
 const volunteerKeys = (volunteerId: string, scheduledAt: string) => ({
   GSI3PK: `VOLUNTEER#${volunteerId}`,
   GSI3SK: scheduledAt,
+});
+
+// One lock item per volunteer and start instant: accept takes it and every exit from matched
+// drops it, so two simultaneous accepts for the same slot cannot both win.
+const slotKey = (volunteerId: string, scheduledAt: string) => ({
+  PK: `VSLOT#${volunteerId}`,
+  SK: new Date(scheduledAt).toISOString(),
+});
+
+const slotRelease = (volunteerId: string, scheduledAt: string): TransactItem => ({
+  Delete: { TableName: table(), Key: slotKey(volunteerId, scheduledAt) },
 });
 
 const toRequest = (item: Record<string, unknown>) => fromItem<HelpRequest>(item);
@@ -40,7 +51,7 @@ interface Guard {
   volunteerId?: string;
 }
 
-function updateParams(request: HelpRequest, guard: Guard, changes: Changes) {
+function updateParams(request: HelpRequest, guard: Guard, changes: Changes, unset: string[] = []) {
   const fields: Record<string, unknown> = { ...changes };
   if (changes.status) fields.GSI1PK = statusKey(changes.status);
   if (changes.volunteerId) {
@@ -55,6 +66,10 @@ function updateParams(request: HelpRequest, guard: Guard, changes: Changes) {
     values[`:v${index}`] = value;
     sets.push(`#f${index} = :v${index}`);
   });
+  const removes = unset.map((field, index) => {
+    names[`#r${index}`] = field;
+    return `#r${index}`;
+  });
   let condition = "#status = :from";
   if (guard.volunteerId) {
     names["#volunteerId"] = "volunteerId";
@@ -64,7 +79,7 @@ function updateParams(request: HelpRequest, guard: Guard, changes: Changes) {
   return {
     TableName: table(),
     Key: key(request.id),
-    UpdateExpression: `SET ${sets.join(", ")}`,
+    UpdateExpression: `SET ${sets.join(", ")}${removes.length > 0 ? ` REMOVE ${removes.join(", ")}` : ""}`,
     ConditionExpression: condition,
     ExpressionAttributeNames: names,
     ExpressionAttributeValues: values,
@@ -132,15 +147,70 @@ export const listRequestsByVolunteer = (volunteerId: string) =>
   queryIndex("GSI3", `VOLUNTEER#${volunteerId}`, false);
 
 // Conditional on the status the caller read; throws a condition failure when it lost a race.
+// `unset` lists attributes to remove in the same write.
 export async function transitionRequest(
   request: HelpRequest,
   guard: Guard,
   changes: Changes,
+  unset: string[] = [],
 ): Promise<HelpRequest> {
   const result = await db().send(
-    new UpdateCommand({ ...updateParams(request, guard, changes), ReturnValues: "ALL_NEW" }),
+    new UpdateCommand({
+      ...updateParams(request, guard, changes, unset),
+      ReturnValues: "ALL_NEW",
+    }),
   );
   return toRequest(result.Attributes ?? {});
+}
+
+export type AcceptOutcome = "accepted" | "taken" | "slot_taken" | "conflict";
+
+// Matches the request and takes the volunteer's slot lock in one atomic write.
+export async function acceptWithSlot(
+  request: HelpRequest,
+  volunteerId: string,
+  changes: Changes,
+): Promise<AcceptOutcome> {
+  const result = await transact([
+    { Update: updateParams(request, { from: "open" }, changes) },
+    {
+      Put: {
+        TableName: table(),
+        Item: {
+          ...slotKey(volunteerId, request.scheduledAt),
+          entity: "VOLUNTEER_SLOT",
+          requestId: request.id,
+        },
+        ConditionExpression: "attribute_not_exists(PK)",
+      },
+    },
+  ]);
+  if (result.ok) return "accepted";
+  if (result.conflict) return "conflict";
+  if (result.reasons[0] === "ConditionalCheckFailed") return "taken";
+  if (result.reasons[1] === "ConditionalCheckFailed") return "slot_taken";
+  throw new Error("Accept was cancelled for an unexpected reason");
+}
+
+// Moves a matched request on and drops its volunteer's slot lock in one atomic write; throws a
+// condition failure when it lost a race.
+export async function leaveMatched(
+  request: HelpRequest,
+  volunteerId: string,
+  changes: Changes,
+  unset: string[] = [],
+): Promise<HelpRequest> {
+  await db().send(
+    new TransactWriteCommand({
+      TransactItems: [
+        { Update: updateParams(request, { from: "matched", volunteerId }, changes, unset) },
+        slotRelease(volunteerId, request.scheduledAt),
+      ],
+    }),
+  );
+  const saved = await getRequest(request.id);
+  if (!saved) throw new Error("Request disappeared after a transition");
+  return saved;
 }
 
 // Completes the request and records the volunteer's contribution in one atomic write.
@@ -155,6 +225,7 @@ export async function completeWithContribution(
       TransactItems: [
         { Update: updateParams(request, { from: "matched", volunteerId }, changes) },
         contributionPut(contribution),
+        slotRelease(volunteerId, request.scheduledAt),
       ],
     }),
   );

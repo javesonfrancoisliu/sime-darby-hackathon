@@ -32,7 +32,7 @@ function Row({ entry }: { entry: LeaderboardEntry }) {
   );
 }
 
-// Neighbourhood leaderboard of volunteers who chose to appear. Each person decides for themselves
+// Neighbourhood rankings of volunteers who chose to appear. Each person decides for themselves
 // with the switch; names are a first name and last initial only.
 export function Leaderboard({
   entries,
@@ -48,15 +48,15 @@ export function Leaderboard({
   const outsideTop = me !== undefined && !entries.some((entry) => entry.isCurrentUser);
 
   return (
-    <InfoCard ariaLabel="Neighbourhood leaderboard">
+    <InfoCard ariaLabel="Neighbourhood rankings">
       <div className="feature-card">
         <div className="feature-card-head">
-          <span className="inline-icon ui-strong">Neighbourhood leaderboard</span>
+          <span className="inline-icon ui-strong">Neighbourhood rankings</span>
         </div>
 
         <div className="settings-row">
           <label className="settings-row-text" htmlFor={id}>
-            <span className="settings-row-label">Show me on the leaderboard</span>
+            <span className="settings-row-label">Show me in Rankings</span>
             <span className="ui-meta-row">
               Only your first name and last initial are shown. You can switch this off any time.
             </span>
@@ -78,13 +78,13 @@ export function Leaderboard({
         )}
 
         {loading ? (
-          <LoadingState rows={1} label="Loading the leaderboard" />
+          <LoadingState rows={1} label="Loading Rankings" />
         ) : error ? (
-          <EmptyState icon={CloudOff} title="Couldn't load the leaderboard" description={error} />
+          <EmptyState icon={CloudOff} title="Couldn't load Rankings" description={error} />
         ) : entries.length === 0 && !me ? (
           <EmptyState
             icon={Trophy}
-            title="No one is on the leaderboard yet"
+            title="No one is in Rankings yet"
             description="Switch it on above to be the first."
           />
         ) : (

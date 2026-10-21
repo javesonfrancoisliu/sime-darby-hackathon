@@ -52,9 +52,33 @@ describe("volunteer page", () => {
     await userEvent.click(within(card).getByRole("button", { name: /97% match/ }));
     expect(within(card).getByText("Claude explanation")).toBeVisible();
     expect(within(card).getByText("Your grocery skills suit this nearby request.")).toBeVisible();
-    expect(within(card).getByRole("button", { name: "Accept & help" })).toBeVisible();
+    expect(within(card).getByRole("button", { name: /^Accept & help: Groceries, / })).toBeVisible();
     expect(screen.queryByText(drive.title)).not.toBeInTheDocument();
     expect(screen.getAllByLabelText(/^Opportunity:/)).toHaveLength(1);
+  });
+  it("gives repeated request titles distinct accept button names", async () => {
+    installFakeApi({
+      ...baseRoutes,
+      "GET /api/opportunities": {
+        body: {
+          items: [
+            makeRequestOpportunity(),
+            makeRequestOpportunity({
+              id: "c36d9fb8-cf60-4c99-9dd4-6fafd7d8d8e7",
+              scheduledAt: "2026-10-21T15:00:00+08:00",
+            }),
+          ],
+        },
+      },
+    });
+    signInAs(VOLUNTEER.id);
+    renderApp("/volunteer");
+    const buttons = await screen.findAllByRole("button", { name: /^Accept & help: Groceries, / });
+    expect(buttons).toHaveLength(2);
+    const names = buttons.map((button) => button.getAttribute("aria-label"));
+    expect(new Set(names).size).toBe(2);
+    expect(names[0]).toMatch(/9:00 am/);
+    expect(names[1]).toMatch(/3:00 pm/);
   });
   it("keeps ordinary community activities out of the opportunity feed", async () => {
     const event = makeEvent({ title: "Community tea morning", joined: false });
@@ -225,7 +249,7 @@ describe("volunteer page", () => {
     ).not.toBeInTheDocument();
     await user.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "false");
-    expect(within(card).getByRole("button", { name: "Accept & help" })).toBeVisible();
+    expect(within(card).getByRole("button", { name: /^Accept & help: / })).toBeVisible();
   });
 
   it("highlights urgent opportunities with an Urgent text label", async () => {
@@ -274,7 +298,7 @@ describe("volunteer page", () => {
 
   it("keeps joined event tracking and completion on Community instead of Volunteer Nearby", async () => {
     let completed = false;
-    const event = makeEvent({ joined: true });
+    const event = makeEvent({ joined: true, startsAt: "2026-10-01T10:00:00+08:00" });
     const { calls } = installFakeApi({
       ...baseRoutes,
       "GET /api/events": () => ({
@@ -294,10 +318,11 @@ describe("volunteer page", () => {
     const user = userEvent.setup();
     const card = await screen.findByLabelText(`Accepted task: ${event.title}`);
     expect(within(card).queryByText(/organiser closes/)).not.toBeInTheDocument();
-    await user.click(within(card).getByRole("button", { name: "Confirm completion" }));
+    await user.click(within(card).getByRole("button", { name: `Mark complete: ${event.title}` }));
+    expect(screen.getByRole("dialog", { name: "Mark task as completed" })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Not yet" }));
     expect(calls.some((call) => call.method === "POST")).toBe(false);
-    await user.click(within(card).getByRole("button", { name: "Confirm completion" }));
+    await user.click(within(card).getByRole("button", { name: `Mark complete: ${event.title}` }));
     await user.click(screen.getByRole("button", { name: "Yes, completed" }));
     expect(await screen.findByRole("dialog", { name: "Marked as completed" })).toBeInTheDocument();
     expect(
@@ -385,13 +410,77 @@ describe("volunteer page", () => {
 
     // Details expand inline; the accept action stays visible.
     await user.click(await screen.findByRole("button", { name: "Groceries. Show details" }));
-    await user.click(await screen.findByRole("button", { name: "Accept & help" }));
+    await user.click(await screen.findByRole("button", { name: /^Accept & help: / }));
     // A yes/no confirmation now precedes the accept.
     await user.click(await screen.findByRole("button", { name: "Yes, accept" }));
     const dialog = await screen.findByRole("dialog", { name: "Thanks for stepping up" });
     expect(dialog).toBeInTheDocument();
     expect(screen.getByLabelText("Accepted task: Groceries")).toBeInTheDocument();
     expect(screen.queryByLabelText("Opportunity: Groceries")).not.toBeInTheDocument();
+  });
+
+  it("withdraws from an accepted request after an inline confirmation", async () => {
+    let matched = true;
+    const { calls } = installFakeApi({
+      ...baseRoutes,
+      "GET /api/opportunities": () => ({
+        body: { items: matched ? [] : [makeRequestOpportunity()] },
+      }),
+      "GET /api/requests/mine": () => ({
+        body: { requests: matched ? [makeRequest({ status: "matched" })] : [] },
+      }),
+      [`POST /api/requests/${REQUEST_ID}/withdraw`]: () => {
+        matched = false;
+        return { body: makeRequestOpportunity() };
+      },
+    });
+    signInAs(VOLUNTEER.id);
+    renderApp("/volunteer");
+    const user = userEvent.setup();
+    const card = await screen.findByLabelText("Accepted task: Groceries");
+    await user.click(within(card).getByRole("button", { name: "Withdraw from Groceries" }));
+    await user.click(within(card).getByRole("button", { name: "Keep task" }));
+    expect(calls.some((c) => c.method === "POST")).toBe(false);
+    await user.click(within(card).getByRole("button", { name: "Withdraw from Groceries" }));
+    await user.click(within(card).getByRole("button", { name: "Yes, withdraw" }));
+    await waitFor(() =>
+      expect(screen.queryByLabelText("Accepted task: Groceries")).not.toBeInTheDocument(),
+    );
+    expect(calls.filter((c) => c.method === "POST")).toHaveLength(1);
+    expect(await screen.findByLabelText(/^Opportunity: Groceries/)).toBeInTheDocument();
+  });
+
+  it("keeps the task and says why when withdraw is refused", async () => {
+    installFakeApi({
+      ...baseRoutes,
+      "GET /api/requests/mine": { body: { requests: [makeRequest({ status: "matched" })] } },
+      [`POST /api/requests/${REQUEST_ID}/withdraw`]: {
+        status: 409,
+        body: { error: { code: "CONFLICT", message: "Request can no longer be withdrawn from" } },
+      },
+    });
+    signInAs(VOLUNTEER.id);
+    renderApp("/volunteer");
+    const user = userEvent.setup();
+    const card = await screen.findByLabelText("Accepted task: Groceries");
+    await user.click(within(card).getByRole("button", { name: "Withdraw from Groceries" }));
+    await user.click(within(card).getByRole("button", { name: "Yes, withdraw" }));
+    expect(await within(card).findByRole("alert")).toBeInTheDocument();
+    expect(screen.getByLabelText("Accepted task: Groceries")).toBeInTheDocument();
+  });
+
+  it("hides Mark complete until the request has started", async () => {
+    const later = makeRequest({
+      status: "matched",
+      scheduledAt: new Date(Date.now() + 2 * 86_400_000).toISOString(),
+    });
+    installFakeApi({ ...baseRoutes, "GET /api/requests/mine": { body: { requests: [later] } } });
+    signInAs(VOLUNTEER.id);
+    renderApp("/volunteer");
+    const card = await screen.findByLabelText("Accepted task: Groceries");
+    expect(within(card).queryByRole("button", { name: /Mark complete/ })).not.toBeInTheDocument();
+    expect(within(card).getByText(/once it starts/)).toBeInTheDocument();
+    expect(within(card).getByRole("button", { name: "Withdraw from Groceries" })).toBeEnabled();
   });
 
   it("shows the API message when accept is refused", async () => {
@@ -407,7 +496,7 @@ describe("volunteer page", () => {
     const user = userEvent.setup();
 
     await user.click(await screen.findByRole("button", { name: "Groceries. Show details" }));
-    await user.click(await screen.findByRole("button", { name: "Accept & help" }));
+    await user.click(await screen.findByRole("button", { name: /^Accept & help: / }));
     await user.click(await screen.findByRole("button", { name: "Yes, accept" }));
     expect(await screen.findByText("Someone else just took this")).toBeInTheDocument();
     await waitFor(() => expect(screen.getByRole("button", { name: "OK" })).toBeEnabled());

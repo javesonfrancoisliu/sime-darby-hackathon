@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { CreateRequestBody } from "@sdh/contracts";
 import { renderApp } from "../test/renderRoute";
@@ -98,14 +98,26 @@ describe("Request flow", () => {
     });
   });
 
-  it("limits the note to 500 letters and shows a counter", async () => {
+  it("limits the note to 500 characters and shows a counter", async () => {
     installFakeApi();
     await renderApp("/request/groceries");
     const note = screen.getByLabelText(/Tell us more/);
     expect(note).toHaveAttribute("maxlength", "500");
-    expect(screen.getByText("0 of 500 letters")).toBeInTheDocument();
+    expect(screen.getByText("0 of 500 characters")).toBeInTheDocument();
     await userEvent.type(note, "Hello there");
-    expect(screen.getByText("11 of 500 letters")).toBeInTheDocument();
+    expect(screen.getByText("11 of 500 characters")).toBeInTheDocument();
+  });
+
+  it("shows an error and disables Next when the note is over the limit", async () => {
+    installFakeApi();
+    await renderApp("/request/groceries");
+    const note = screen.getByLabelText(/Tell us more/);
+    fireEvent.change(note, { target: { value: "a".repeat(501) } });
+    expect(screen.getByRole("alert")).toHaveTextContent("500 characters or fewer");
+    expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
+    fireEvent.change(note, { target: { value: "a".repeat(500) } });
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Next" })).toBeEnabled();
   });
 
   it("keeps Next disabled until a day, a time and a length are chosen", async () => {

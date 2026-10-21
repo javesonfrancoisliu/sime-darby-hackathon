@@ -151,7 +151,9 @@ export function ChallengesPage() {
   function handleJoin(challenge: ChallengeWithProgress) {
     confirm.ask({
       title: "Join this challenge?",
-      message: `Join "${challenge.title}"? You can log your progress afterwards.`,
+      message: challenge.quizId
+        ? `Join "${challenge.title}"? You can take the quiz afterwards.`
+        : `Join "${challenge.title}"? You can log your progress afterwards.`,
       confirmLabel: "Yes, join",
       onConfirm: () =>
         run(
@@ -370,7 +372,7 @@ export function ChallengesPage() {
         <TabPanel idBase="challenges" id="leaderboard">
           <section className="ui-section" aria-labelledby="leaderboard-heading">
             <h2 className="ui-visually-hidden" id="leaderboard-heading">
-              Leaderboard
+              Rankings
             </h2>
             <Leaderboard
               entries={leaderboard.data?.entries ?? []}
@@ -422,6 +424,7 @@ export function ChallengesPage() {
             </h2>
             <RewardsPanel
               rewards={rewards.data?.rewards ?? []}
+              balance={points.data?.points ?? 0}
               loading={rewards.loading}
               error={rewards.error}
               redeemingId={busyId}
@@ -445,6 +448,7 @@ export function ChallengesPage() {
         key={quizChallenge?.id ?? "no-quiz"}
         open={quizOpen}
         quiz={quiz}
+        points={quizChallenge?.points ?? 0}
         loadError={quizError}
         onSubmit={handleSubmitQuiz}
         onClose={() => setQuizOpen(false)}

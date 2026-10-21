@@ -7,6 +7,7 @@ import { StatusBadge } from "./StatusBadge";
 import { Banner } from "./Banner";
 import { Spinner } from "./Spinner";
 import { AppShell } from "./AppShell";
+import { ConfirmDialog } from "./ConfirmDialog";
 import {
   STATUS_TEXT,
   STATUS_TONE,
@@ -94,8 +95,8 @@ describe("status helpers", () => {
     expect(statuses.filter(showsVolunteer)).toEqual(["matched", "completed"]);
   });
 
-  it("allows cancel only while being checked or open", () => {
-    expect(statuses.filter(canCancel)).toEqual(["pending_review", "open"]);
+  it("allows cancel until the request is completed", () => {
+    expect(statuses.filter(canCancel)).toEqual(["pending_review", "open", "matched"]);
   });
 });
 
@@ -141,5 +142,60 @@ describe("AppButton variants (design-system conformance)", () => {
     const btn = container.querySelector("button");
     expect(btn).toHaveClass("ui-button");
     expect(btn).toHaveClass("ui-button--danger");
+  });
+});
+
+describe("ConfirmDialog", () => {
+  const noop = () => {};
+
+  it("focuses the safe choice once on open", () => {
+    render(
+      <ConfirmDialog
+        title="Sign out?"
+        confirmLabel="Yes"
+        cancelLabel="Not yet"
+        onConfirm={noop}
+        onCancel={noop}
+      />,
+    );
+    expect(screen.getByRole("button", { name: "Not yet" })).toHaveFocus();
+  });
+
+  it("keeps focus in the dialog and says what is running while busy", () => {
+    const { rerender } = render(
+      <ConfirmDialog
+        title="Sign out?"
+        confirmLabel="Yes"
+        cancelLabel="Not yet"
+        busyLabel="Signing out"
+        onConfirm={noop}
+        onCancel={noop}
+      />,
+    );
+    expect(screen.getByRole("status")).toBeEmptyDOMElement();
+    rerender(
+      <ConfirmDialog
+        title="Sign out?"
+        confirmLabel="Yes"
+        cancelLabel="Not yet"
+        busyLabel="Signing out"
+        busy
+        onConfirm={noop}
+        onCancel={noop}
+      />,
+    );
+    expect(screen.getByRole("status")).toHaveTextContent("Signing out");
+    expect(screen.getByRole("dialog")).toHaveFocus();
+    rerender(
+      <ConfirmDialog
+        title="Sign out?"
+        confirmLabel="Yes"
+        cancelLabel="Not yet"
+        busyLabel="Signing out"
+        onConfirm={noop}
+        onCancel={noop}
+      />,
+    );
+    expect(screen.getByRole("button", { name: "Not yet" })).toHaveFocus();
   });
 });

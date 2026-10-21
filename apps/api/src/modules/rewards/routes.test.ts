@@ -66,6 +66,20 @@ describe("rewards", () => {
     expect((await call("GET", "/api/rewards")).status).toBe(401);
   });
 
+  it("caps a reward cost at 100000 points on create", async () => {
+    const post = (pointsCost: number) =>
+      call("POST", "/api/rewards", {
+        as: coordinator.id,
+        body: { title: "Cap test", pointsCost, icon: "gift", category: "shop" },
+      });
+    expect((await post(100_000)).status).toBe(201);
+    for (const pointsCost of [100_001, 999_999_999_999]) {
+      const res = await post(pointsCost);
+      expect(res.status).toBe(400);
+      expect(res.body).toMatchObject({ error: { code: "VALIDATION_FAILED" } });
+    }
+  });
+
   it("filters by audience and hides inactive rewards from non-coordinators", async () => {
     const elder = await createElder();
     const forVolunteers = await createReward({ audience: "volunteer" });

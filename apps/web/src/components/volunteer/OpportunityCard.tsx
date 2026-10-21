@@ -4,7 +4,7 @@ import { useId, useState } from "react";
 
 import type { Opportunity, Urgency } from "../../types/volunteer";
 import { TASK_CATEGORY_LABEL } from "../../types/volunteer";
-import { formatDate, formatTimeRange } from "../../lib/format";
+import { formatDate, formatDateTime, formatTimeRange } from "../../lib/format";
 import { AppButton, Drawer, StatusBadge } from "../ui";
 
 export type OpportunityCardProps = {
@@ -50,6 +50,7 @@ export function OpportunityCard({
   accepting,
   onAccept,
 }: OpportunityCardProps) {
+  const actionLabel = opportunity.kind === "event" ? "Join event" : "Accept & help";
   const [open, setOpen] = useState(false);
   const [showReasons, setShowReasons] = useState(false);
   const reasonsId = useId();
@@ -169,8 +170,13 @@ export function OpportunityCard({
             variant="success"
           />
         ) : (
-          <AppButton variant="primary" loading={accepting} onClick={() => onAccept(opportunity)}>
-            {opportunity.kind === "event" ? "Join event" : "Accept & help"}
+          <AppButton
+            variant="primary"
+            loading={accepting}
+            aria-label={`${actionLabel}: ${opportunity.title}, ${formatDateTime(opportunity.scheduledAt)}`}
+            onClick={() => onAccept(opportunity)}
+          >
+            {actionLabel}
           </AppButton>
         )}
       </div>

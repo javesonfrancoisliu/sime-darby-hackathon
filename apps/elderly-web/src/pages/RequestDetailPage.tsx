@@ -128,7 +128,9 @@ export function RequestDetailPage() {
         {req.description ? (
           <div className="apple-inset-row">
             <span className="app-detail-label">Your description</span>
-            <span className="apple-inset-value text-multiline">{req.description}</span>
+            <span className="apple-inset-value apple-inset-value--wrap text-multiline">
+              {req.description}
+            </span>
           </div>
         ) : null}
 
@@ -141,7 +143,7 @@ export function RequestDetailPage() {
 
         <div className="apple-inset-row">
           <span className="app-detail-label">Volunteer</span>
-          {showsVolunteer(req.status) ? (
+          {req.volunteerName || showsVolunteer(req.status) ? (
             <div className="apple-volunteer-chip">
               <span className="apple-volunteer-chip__avatar" aria-hidden="true">
                 <IconUser size={14} strokeWidth={2} />
@@ -189,9 +191,11 @@ export function RequestDetailPage() {
         )
       ) : null}
 
-      <div className="request-detail__call">
-        <EmergencyCallButton compact />
-      </div>
+      {req.status === "cancelled" || req.status === "rejected" ? null : (
+        <div className="request-detail__call">
+          <EmergencyCallButton compact />
+        </div>
+      )}
 
       {cancelMutation.status === "error" ? (
         <Banner message={cancelMutation.error?.message ?? "We could not cancel this request."} />
@@ -203,7 +207,11 @@ export function RequestDetailPage() {
             <p className="apple-confirm-card__title">
               Are you sure you want to cancel this request?
             </p>
-            <p className="apple-confirm-card__sub">This request will be closed.</p>
+            <p className="apple-confirm-card__sub">
+              {req.status === "matched"
+                ? "Your volunteer will be told and this request will be closed."
+                : "This request will be closed."}
+            </p>
             <div className="ui-stack stack-gap-3 mt-4">
               <Button
                 block

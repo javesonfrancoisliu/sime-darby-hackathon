@@ -43,6 +43,11 @@ export const HelpRequest = z.object({
 });
 export type HelpRequest = z.infer<typeof HelpRequest>;
 
+// What the assigned volunteer receives: no elder id, and the home place is snapped to a 0.5 km
+// grid when the elder turned on shareApproxLocation.
+export const AssignedHelpRequest = HelpRequest.omit({ elderId: true });
+export type AssignedHelpRequest = z.infer<typeof AssignedHelpRequest>;
+
 // What an uninvolved volunteer may see: no exact place and no elder identity.
 export const HelpRequestSummary = HelpRequest.omit({
   location: true,
@@ -84,3 +89,6 @@ export type RequestsQuery = z.infer<typeof RequestsQuery>;
 
 export const RequestsResponse = z.object({ requests: z.array(HelpRequest) });
 export type RequestsResponse = z.infer<typeof RequestsResponse>;
+
+export const AssignedRequestsResponse = z.object({ requests: z.array(AssignedHelpRequest) });
+export type AssignedRequestsResponse = z.infer<typeof AssignedRequestsResponse>;

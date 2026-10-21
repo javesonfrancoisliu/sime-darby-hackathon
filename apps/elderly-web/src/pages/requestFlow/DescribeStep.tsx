@@ -11,6 +11,7 @@ interface DescribeStepProps {
 }
 
 export function DescribeStep({ value, placeholder, onChange, onNext }: DescribeStepProps) {
+  const tooLong = value.trim().length > MAX_DESCRIPTION_LENGTH;
   return (
     <>
       <TextField
@@ -20,10 +21,15 @@ export function DescribeStep({ value, placeholder, onChange, onNext }: DescribeS
         multiline
         maxLength={MAX_DESCRIPTION_LENGTH}
         placeholder={placeholder}
-        helper={`${value.length} of ${MAX_DESCRIPTION_LENGTH} letters`}
+        helper={`${value.length} of ${MAX_DESCRIPTION_LENGTH} characters`}
+        error={
+          tooLong
+            ? `Please shorten this to ${MAX_DESCRIPTION_LENGTH} characters or fewer.`
+            : undefined
+        }
       />
       <div className="step-actions">
-        <Button block onClick={onNext}>
+        <Button block onClick={onNext} disabled={tooLong}>
           Next
         </Button>
       </div>

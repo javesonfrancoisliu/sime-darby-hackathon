@@ -72,6 +72,12 @@ export function EditPreferencesModal({ open, onClose, onSaved }: EditPreferences
   const [busy, setBusy] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
+  // Any change to the form clears the last error, so it never outlives the mistake.
+  function edit(change: () => void) {
+    setSaveError(null);
+    change();
+  }
+
   function sameSet(a: string[], b: string[]): boolean {
     return a.length === b.length && a.every((value) => b.includes(value));
   }
@@ -123,35 +129,35 @@ export function EditPreferencesModal({ open, onClose, onSaved }: EditPreferences
         options={Category.options}
         labels={TASK_CATEGORY_LABEL}
         selected={skills}
-        onToggle={(v) => setSkills((prev) => toggle(prev, v))}
+        onToggle={(v) => edit(() => setSkills((prev) => toggle(prev, v)))}
       />
       <ChipGroup
         legend="Assistance interests"
         options={Category.options}
         labels={TASK_CATEGORY_LABEL}
         selected={interests}
-        onToggle={(v) => setInterests((prev) => toggle(prev, v))}
+        onToggle={(v) => edit(() => setInterests((prev) => toggle(prev, v)))}
       />
       <ChipGroup
         legend="Preferred days"
         options={PREFERRED_DAYS}
         labels={PREFERRED_DAY_LABEL}
         selected={days}
-        onToggle={(v) => setDays((prev) => toggle(prev, v))}
+        onToggle={(v) => edit(() => setDays((prev) => toggle(prev, v)))}
       />
       <ChipGroup
         legend="Preferred time of day"
         options={TIMES_OF_DAY}
         labels={TIME_OF_DAY_LABEL}
         selected={times}
-        onToggle={(v) => setTimes((prev) => toggle(prev, v))}
+        onToggle={(v) => edit(() => setTimes((prev) => toggle(prev, v)))}
       />
       <ChipGroup
         legend="Communication languages"
         options={LANGUAGES}
         labels={LANGUAGE_LABEL}
         selected={languages}
-        onToggle={(v) => setLanguages((prev) => toggle(prev, v))}
+        onToggle={(v) => edit(() => setLanguages((prev) => toggle(prev, v)))}
       />
       <p className="ui-helper ui-flush">
         Your skills and availability are saved to your account and used for volunteer matching.

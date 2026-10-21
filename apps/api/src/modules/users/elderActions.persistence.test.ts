@@ -2,7 +2,7 @@ import { GetCommand } from "@aws-sdk/lib-dynamodb";
 import type { Challenge, CommunityEvent, HelpRequest, Reward, User } from "@sdh/contracts";
 import { beforeAll, describe, expect, it } from "vitest";
 import { db, table } from "../../lib/db";
-import { call, createVerifiedVolunteer } from "../../test/api";
+import { backdate, call, createVerifiedVolunteer } from "../../test/api";
 import { createCoordinator, createElder } from "../../test/people";
 import { useTestTable } from "../../test/table";
 import { createChallengeVia, givePoints } from "../play/testSupport";
@@ -53,6 +53,7 @@ describe("every elder action is stored in the table", () => {
     const second = (await call("POST", "/api/requests", { as: elder.id, body }))
       .body as HelpRequest;
     await call("POST", `/api/requests/${second.id}/accept`, { as: volunteer.id });
+    await backdate(second.id);
     await call("POST", `/api/requests/${second.id}/complete`, {
       as: volunteer.id,
       body: { minutesSpent: 30 },

@@ -51,6 +51,12 @@ export function App({ auth }: { auth?: SessionAuth }) {
                       />
                       <Route path="/safety" element={<SafetyPage />} />
                       <Route path="/profile" element={<ProfilePage />} />
+                      <Route
+                        path="/profile/details"
+                        element={
+                          <Navigate to="/profile" replace state={{ openSheet: "details" }} />
+                        }
+                      />
                       <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
                   </SessionGate>

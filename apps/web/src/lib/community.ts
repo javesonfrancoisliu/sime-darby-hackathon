@@ -2,6 +2,34 @@ import type { CommunityEvent, Notice } from "@sdh/contracts";
 
 import type { CommunityItem, TownshipUpdateItem } from "../types/community";
 
+export type CommunityCategory = CommunityItem["category"];
+
+// The ?tab= value for each community category, and the plain name shown for it.
+export const COMMUNITY_TAB_PARAM: Record<CommunityCategory, string> = {
+  event: "events",
+  maintenance: "notices",
+  volunteer: "volunteer",
+  township: "updates",
+};
+export const COMMUNITY_TAB_LABEL: Record<CommunityCategory, string> = {
+  event: "Events",
+  maintenance: "Notices",
+  volunteer: "Volunteer",
+  township: "Updates",
+};
+
+export function communityTabPath(category: CommunityCategory): string {
+  return `/community?tab=${COMMUNITY_TAB_PARAM[category]}`;
+}
+
+// The category a ?tab= value names; anything else falls back to events.
+export function communityCategoryFromParam(value: string | null): CommunityCategory {
+  const match = (Object.keys(COMMUNITY_TAB_PARAM) as CommunityCategory[]).find(
+    (category) => COMMUNITY_TAB_PARAM[category] === value,
+  );
+  return match ?? "event";
+}
+
 export function noticeToItem(notice: Notice): CommunityItem {
   const base = {
     id: notice.id,
