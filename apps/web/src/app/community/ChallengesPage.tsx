@@ -422,6 +422,7 @@ export function ChallengesPage() {
             </h2>
             <RewardsPanel
               rewards={rewards.data?.rewards ?? []}
+              balance={points.data?.points ?? 0}
               loading={rewards.loading}
               error={rewards.error}
               redeemingId={busyId}

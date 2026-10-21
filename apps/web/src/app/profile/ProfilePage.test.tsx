@@ -245,6 +245,10 @@ describe("profile page", () => {
 
     expect(await within(dialog).findByText(/at least one day and one time/)).toBeInTheDocument();
     expect(calls.some((c) => c.method === "PATCH")).toBe(false);
+
+    // Fixing the form clears the message straight away.
+    await user.click(within(days).getByRole("button", { name: "Weekends" }));
+    expect(within(dialog).queryByText(/at least one day and one time/)).not.toBeInTheDocument();
   });
 
   it("limits the display name field to the contract length", async () => {

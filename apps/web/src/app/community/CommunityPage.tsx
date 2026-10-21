@@ -74,7 +74,10 @@ export function CommunityPage() {
       setCompleting(null);
       setConfirmation({
         title: "Marked as completed",
-        message: `Your attendance for "${task.title}" has been recorded.`,
+        message:
+          task.eventPurpose === "volunteer_drive"
+            ? `Your attendance for "${task.title}" has been recorded. Points are added once the organiser closes the drive.`
+            : `Your attendance for "${task.title}" has been recorded.`,
       });
     } catch (err) {
       setCompleteError(errorMessage(err));

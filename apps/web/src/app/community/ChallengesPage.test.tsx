@@ -290,7 +290,9 @@ describe("challenges page", () => {
     renderApp("/community/challenges");
 
     const user = await openTab("Rewards");
-    await user.click(await screen.findByRole("button", { name: "Redeem for 40 pts" }));
+    await user.click(
+      await screen.findByRole("button", { name: "Redeem Coffee voucher for 40 pts" }),
+    );
     // A yes/no confirmation now precedes redeeming.
     await user.click(await screen.findByRole("button", { name: "Yes, redeem" }));
 
@@ -299,6 +301,39 @@ describe("challenges page", () => {
     ).toBeInTheDocument();
     expect(calls.some((c) => c.path.endsWith("/redeem"))).toBe(true);
     expect(screen.queryByRole("dialog", { name: "Reward redeemed" })).not.toBeInTheDocument();
+  });
+
+  it("lists rewards cheapest first and says how far a locked one is", async () => {
+    const dear = makeReward({
+      id: "00000000-0000-4000-8000-0000000000a1",
+      title: "Big voucher",
+      pointsCost: 400,
+      status: "locked",
+    });
+    const cheap = makeReward({
+      id: "00000000-0000-4000-8000-0000000000a2",
+      title: "Tea bag",
+      pointsCost: 20,
+    });
+    installFakeApi(
+      signedInRoutes(VOLUNTEER, {
+        "GET /api/me/points": { body: makePoints(120) },
+        "GET /api/rewards": {
+          body: { rewards: [dear, makeReward({ status: "available" }), cheap] },
+        },
+      }),
+    );
+    signInAs(VOLUNTEER.id);
+    renderApp("/community/challenges");
+
+    await openTab("Rewards");
+    await screen.findByText("Big voucher");
+    const titles = screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent);
+    expect(titles).toEqual(["Tea bag", "Coffee voucher", "Big voucher"]);
+    expect(screen.getByText("280 more points needed")).toBeInTheDocument();
+    const names = screen.getAllByRole("button").map((b) => b.getAttribute("aria-label"));
+    expect(names).toEqual(expect.arrayContaining(["Big voucher: locked"]));
+    expect(new Set(names.filter(Boolean)).size).toBe(names.filter(Boolean).length);
   });
 
   it("redeems a reward and shows the points left", async () => {
@@ -324,7 +359,9 @@ describe("challenges page", () => {
     renderApp("/community/challenges");
 
     const user = await openTab("Rewards");
-    await user.click(await screen.findByRole("button", { name: "Redeem for 40 pts" }));
+    await user.click(
+      await screen.findByRole("button", { name: "Redeem Coffee voucher for 40 pts" }),
+    );
     await user.click(await screen.findByRole("button", { name: "Yes, redeem" }));
     expect(await screen.findByText(/You have 60 points left/)).toBeInTheDocument();
     expect(screen.queryByText("First steps")).not.toBeInTheDocument();
