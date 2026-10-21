@@ -273,7 +273,7 @@ export function ChallengesPage() {
                 {checkedInToday ? (
                   <>
                     <IconCheck size={18} strokeWidth={2.4} aria-hidden="true" />
-                    Checked in today
+                    You are okay today
                   </>
                 ) : (
                   "I am okay"
