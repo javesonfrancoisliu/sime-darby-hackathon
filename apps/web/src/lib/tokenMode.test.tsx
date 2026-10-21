@@ -155,6 +155,19 @@ describe("token mode account actions", () => {
     await waitFor(() => expect(pageIsLeaving()).toBe(false));
   });
 
+  it("recovers with a reload when the sign-out navigation fails", async () => {
+    assign.mockImplementationOnce(() => {
+      throw new Error("blocked");
+    });
+    installFakeApi({ ...liveRoutes, "GET /api/me": { body: VOLUNTEER } });
+    renderToken("/profile");
+    await userEvent.click(await screen.findByRole("button", { name: /^Account/ }));
+    await userEvent.click(await screen.findByRole("button", { name: "Sign out" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Yes, sign out" }));
+    await waitFor(() => expect(reload).toHaveBeenCalledTimes(1));
+    expect(pageIsLeaving()).toBe(false);
+  });
+
   it("reloads when the signed-out page comes back from the back-forward cache", async () => {
     await signOutFromProfile();
     const event = new Event("pageshow");

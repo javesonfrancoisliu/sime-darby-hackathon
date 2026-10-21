@@ -28,10 +28,18 @@ export function AccountSheet({
     beginPageLeave();
     try {
       await signOut();
+    } catch {
+      // Still signed in on this page: let the session guard and the dialogs behave normally again.
+      endPageLeave();
+      return;
+    }
+    try {
       window.location.assign("/");
     } catch {
-      // Still on this page: let the session guard and the dialogs behave normally again.
+      // Signed out but the navigation failed: the guard would stay on its skeleton, so reload to
+      // land on the sign-in page.
       endPageLeave();
+      window.location.reload();
     }
   }
 
