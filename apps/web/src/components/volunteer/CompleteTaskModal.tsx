@@ -39,7 +39,7 @@ export function CompleteTaskModal({
   return (
     <Modal
       open={task !== null}
-      title="Confirm task completion"
+      title="Mark task as completed"
       onClose={onClose}
       footer={
         <>

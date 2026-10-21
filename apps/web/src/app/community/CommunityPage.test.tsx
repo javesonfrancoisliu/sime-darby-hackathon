@@ -28,7 +28,7 @@ async function selectCategory(name: string) {
 describe("community page", () => {
   it("tracks and completes joined volunteer drives in the Community Volunteer tab", async () => {
     let completed = false;
-    const drive = makeDrive({ joined: true });
+    const drive = makeDrive({ joined: true, startsAt: "2026-10-01T10:00:00+08:00" });
     installFakeApi({
       ...feedRoutes,
       "GET /api/events": () => ({
@@ -49,7 +49,9 @@ describe("community page", () => {
     expect(screen.queryByLabelText(`Accepted task: ${drive.title}`)).not.toBeInTheDocument();
     await selectCategory("Volunteer");
     const card = await screen.findByLabelText(`Accepted task: ${drive.title}`);
-    await userEvent.click(within(card).getByRole("button", { name: "Confirm completion" }));
+    await userEvent.click(
+      within(card).getByRole("button", { name: `Mark complete: ${drive.title}` }),
+    );
     await userEvent.click(screen.getByRole("button", { name: "Yes, completed" }));
     expect(await screen.findByRole("dialog", { name: "Marked as completed" })).toBeVisible();
     expect(
