@@ -1,8 +1,14 @@
 import { useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { ACCESSIBILITY_STORAGE_KEY, AccessibilityProvider } from "../context/AccessibilityContext";
+import {
+  ACCESSIBILITY_STORAGE_KEY,
+  AccessibilityProvider,
+  useAccessibility,
+} from "../context/AccessibilityContext";
+import { CallConfirmProvider, useCallConfirm } from "./CallConfirm";
+import { dropStaleEntry } from "./dialogLayer";
 import { Sheet } from "./Sheet";
 
 function Harness({ onClosed }: { onClosed?: () => void }) {
@@ -221,5 +227,208 @@ describe("Sheet drag", () => {
     expect(dialog.style.transition).toBe("none");
     fireEvent.pointerMove(handle, { pointerId: 1, clientY: 110 });
     expect(dialog.style.transform).toContain("130px");
+  });
+});
+
+function MotionToggle() {
+  const { setReducedMotion } = useAccessibility();
+  return (
+    <button type="button" onClick={() => setReducedMotion(true)}>
+      less movement
+    </button>
+  );
+}
+
+function CallButton() {
+  const { requestCall } = useCallConfirm();
+  return (
+    <button
+      type="button"
+      onClick={() => requestCall({ tel: "999", display: "999", label: "Emergency services" })}
+    >
+      call
+    </button>
+  );
+}
+
+function Stack({ guard }: { guard?: () => boolean }) {
+  const [first, setFirst] = useState(false);
+  const [second, setSecond] = useState(false);
+  return (
+    <AccessibilityProvider>
+      <CallConfirmProvider>
+        <div className="app-root">
+          <main>
+            <button type="button" onClick={() => setFirst(true)}>
+              open first
+            </button>
+            <button type="button" onClick={() => setSecond(true)}>
+              open second
+            </button>
+          </main>
+          <Sheet open={first} onClose={() => setFirst(false)} title="First" canDismiss={guard}>
+            <MotionToggle />
+            <CallButton />
+          </Sheet>
+          <Sheet open={second} onClose={() => setSecond(false)} title="Second">
+            <button type="button">second inside</button>
+          </Sheet>
+        </div>
+      </CallConfirmProvider>
+    </AccessibilityProvider>
+  );
+}
+
+describe("Sheet keys and focus", () => {
+  it("closes on Escape when focus has fallen to the body", async () => {
+    render(<Harness />);
+    await openSheet();
+    (document.activeElement as HTMLElement).blur();
+    expect(document.body).toHaveFocus();
+    fireEvent.keyDown(document.body, { key: "Escape" });
+    await gone();
+  });
+
+  it("pulls Tab back into the sheet when focus has fallen to the body", async () => {
+    render(<Harness />);
+    const { dialog } = await openSheet();
+    (document.activeElement as HTMLElement).blur();
+    fireEvent.keyDown(document.body, { key: "Tab" });
+    expect(dialog.contains(document.activeElement)).toBe(true);
+  });
+
+  it("gives focus back to the clicked opener even when the click did not focus it", async () => {
+    render(<Harness />);
+    const opener = screen.getByRole("button", { name: "opener" });
+    fireEvent.click(opener);
+    await screen.findByRole("dialog");
+    expect(opener).not.toHaveFocus();
+    await userEvent.click(screen.getByRole("button", { name: "Done" }));
+    await gone();
+    expect(opener).toHaveFocus();
+  });
+});
+
+describe("Sheet motion mode while open", () => {
+  it("switches to fade when the system setting turns on", async () => {
+    let listener: (() => void) | undefined;
+    const query = {
+      matches: false,
+      addEventListener: (_: string, fn: () => void) => (listener = fn),
+      removeEventListener: () => {},
+    };
+    vi.stubGlobal("matchMedia", () => query);
+    render(<Harness />);
+    const { dialog } = await openSheet();
+    expect(dialog).toHaveAttribute("data-motion", "slide");
+    query.matches = true;
+    act(() => listener?.());
+    expect(dialog).toHaveAttribute("data-motion", "fade");
+    expect(dialog.style.transform).toBe("");
+    await waitFor(() => expect(dialog.style.opacity).toBe("1"));
+    vi.unstubAllGlobals();
+  });
+
+  it("switches to fade when the app Less movement setting turns on", async () => {
+    render(<Stack />);
+    await userEvent.click(screen.getByRole("button", { name: "open first" }));
+    const dialog = screen.getByRole("dialog", { name: "First" });
+    expect(dialog).toHaveAttribute("data-motion", "slide");
+    await userEvent.click(screen.getByRole("button", { name: "less movement" }));
+    expect(dialog).toHaveAttribute("data-motion", "fade");
+  });
+});
+
+describe("Sheet drag details", () => {
+  it("ignores a drag started with a non-primary button", async () => {
+    vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockReturnValue(400);
+    render(<Harness />);
+    const { dialog } = await openSheet();
+    const handle = document.querySelector<HTMLElement>(".apple-sheet-drag") as HTMLElement;
+    fireEvent.pointerDown(handle, { pointerId: 1, clientY: 100, button: 2 });
+    fireEvent.pointerMove(handle, { pointerId: 1, clientY: 300 });
+    expect(dialog.style.transform).not.toContain("200px");
+  });
+
+  it("keeps a fast flick shorter than 24 px open", async () => {
+    vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockReturnValue(400);
+    let now = 0;
+    vi.spyOn(performance, "now").mockImplementation(() => (now += 10));
+    render(<Harness />);
+    await openSheet();
+    const handle = document.querySelector<HTMLElement>(".apple-sheet-drag") as HTMLElement;
+    fireEvent.pointerDown(handle, { pointerId: 1, clientY: 100, button: 0 });
+    fireEvent.pointerMove(handle, { pointerId: 1, clientY: 115 });
+    fireEvent.pointerUp(handle, { pointerId: 1, clientY: 115 });
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+  });
+
+  it("stays open when canDismiss refuses a scrim tap and Escape", async () => {
+    const guard = vi.fn(() => false);
+    render(<Stack guard={guard} />);
+    await userEvent.click(screen.getByRole("button", { name: "open first" }));
+    await userEvent.click(screen.getByTestId("sheet-scrim"));
+    await userEvent.keyboard("{Escape}");
+    expect(guard).toHaveBeenCalledTimes(2);
+    expect(screen.getByRole("dialog", { name: "First" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Done" }));
+    await gone();
+  });
+});
+
+describe("Sheet stacking", () => {
+  it("keeps the scroll lock until the last sheet closes", async () => {
+    render(<Stack />);
+    await userEvent.click(screen.getByRole("button", { name: "open first" }));
+    fireEvent.click(screen.getByRole("button", { name: "open second", hidden: true }));
+    expect(screen.getAllByRole("dialog")).toHaveLength(2);
+    expect(document.body.style.overflow).toBe("hidden");
+    fireEvent.keyDown(document.body, { key: "Escape" });
+    await waitFor(() => expect(screen.getAllByRole("dialog")).toHaveLength(1));
+    expect(document.body.style.overflow).toBe("hidden");
+    fireEvent.keyDown(document.body, { key: "Escape" });
+    await gone();
+    expect(document.body.style.overflow).toBe("");
+  });
+
+  it("Back closes a confirm dialog before the sheet under it", async () => {
+    render(<Stack />);
+    await userEvent.click(screen.getByRole("button", { name: "open first" }));
+    await userEvent.click(screen.getByRole("button", { name: "call" }));
+    expect(screen.getAllByRole("dialog", { hidden: true })).toHaveLength(2);
+    window.history.back();
+    await waitFor(() => expect(screen.getAllByRole("dialog", { hidden: true })).toHaveLength(1));
+    expect(screen.getByRole("dialog", { name: "First" })).toBeInTheDocument();
+    window.history.back();
+    await gone();
+  });
+
+  it("Escape closes only the confirm dialog when it sits over a sheet", async () => {
+    render(<Stack />);
+    await userEvent.click(screen.getByRole("button", { name: "open first" }));
+    await userEvent.click(screen.getByRole("button", { name: "call" }));
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(screen.getAllByRole("dialog", { hidden: true })).toHaveLength(1));
+    expect(screen.getByRole("dialog", { name: "First" })).toBeInTheDocument();
+  });
+});
+
+describe("Sheet history after a reload", () => {
+  it("steps off a stale entry left by a reload instead of leaving a dead Back press", async () => {
+    window.history.replaceState({ sdhSheet: "gone" }, "");
+    const back = vi.spyOn(window.history, "back").mockImplementation(() => {});
+    dropStaleEntry();
+    expect(back).toHaveBeenCalledTimes(1);
+    expect(sheetMarker()).toBeUndefined();
+  });
+
+  it("opens over a stale entry with a fresh marker that Back closes", async () => {
+    window.history.replaceState({ sdhSheet: "gone" }, "");
+    render(<Harness />);
+    await openSheet();
+    expect(sheetMarker()).toBeTruthy();
+    expect(sheetMarker()).not.toBe("gone");
+    window.history.back();
+    await gone();
   });
 });

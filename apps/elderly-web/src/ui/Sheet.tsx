@@ -4,15 +4,12 @@ import {
   useLayoutEffect,
   useRef,
   useState,
-  type KeyboardEvent,
   type PointerEvent,
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
 import { useAccessibility } from "../context/AccessibilityContext";
-
-const FOCUSABLE =
-  'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
+import { lockScroll, takeOpener, useDialogLayer } from "./dialogLayer";
 
 // One ease-out curve for every move of the sheet, in and out.
 const SHEET_CURVE = "cubic-bezier(0.32, 0.72, 0, 1)";
@@ -22,13 +19,13 @@ const FADE_MS = 150;
 // Let go past a quarter of the sheet, or faster than this, and it dismisses.
 const DISMISS_FRACTION = 0.25;
 const DISMISS_VELOCITY_PX_PER_MS = 0.5;
+// A flick only counts once the sheet has moved this far.
+const DISMISS_MIN_PX = 24;
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 const VELOCITY_WINDOW_MS = 100;
 const RUBBER_CONSTANT = 0.55;
 // Timer slack after a transition so the finish callback never fires early.
 const FINISH_SLACK_MS = 40;
-
-// History entries this module pushed for sheets that are still open.
-const openSheets = new Set<string>();
 
 function translate(y: number): string {
   return `translate3d(0, ${y}px, 0)`;
@@ -53,12 +50,21 @@ function rubberband(overshoot: number, dimension: number): number {
   );
 }
 
-function wantsFade(reducedMotion: boolean): boolean {
-  return (
-    reducedMotion ||
-    (typeof window !== "undefined" &&
-      !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches)
-  );
+function systemReducesMotion(): boolean {
+  return typeof window !== "undefined" && !!window.matchMedia?.(REDUCED_MOTION_QUERY).matches;
+}
+
+// Fade instead of slide when the app setting or the phone setting asks for less movement, live.
+function useFade(reducedMotion: boolean): boolean {
+  const [system, setSystem] = useState(systemReducesMotion);
+  useEffect(() => {
+    const query = window.matchMedia?.(REDUCED_MOTION_QUERY);
+    if (!query?.addEventListener) return;
+    const onChange = () => setSystem(query.matches);
+    query.addEventListener("change", onChange);
+    return () => query.removeEventListener("change", onChange);
+  }, []);
+  return reducedMotion || system;
 }
 
 interface SheetProps {
@@ -66,6 +72,8 @@ interface SheetProps {
   onClose: () => void;
   title: string;
   subtitle?: string;
+  // Asked before a scrim tap, Escape or a drag closes the sheet; false keeps it open.
+  canDismiss?: () => boolean;
   children: ReactNode;
 }
 
@@ -75,27 +83,24 @@ export function Sheet({ open, ...rest }: SheetProps) {
   return open ? <SheetBody {...rest} /> : null;
 }
 
-function SheetBody({ onClose, title, subtitle, children }: Omit<SheetProps, "open">) {
+function SheetBody({ onClose, canDismiss, title, subtitle, children }: Omit<SheetProps, "open">) {
   const { reducedMotion } = useAccessibility();
   const titleId = useId();
-  const sheetId = useId();
   const [host] = useState<HTMLElement>(
     () => document.querySelector<HTMLElement>(".app-root") ?? document.body,
   );
-  const [opener] = useState(() =>
-    document.activeElement instanceof HTMLElement ? document.activeElement : null,
-  );
-  const [fade] = useState(() => wantsFade(reducedMotion));
+  const fade = useFade(reducedMotion);
 
   const rootRef = useRef<HTMLDivElement>(null);
   const scrimRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const doneRef = useRef<HTMLButtonElement>(null);
   const onCloseRef = useRef(onClose);
+  const canDismissRef = useRef(canDismiss);
+  const shownFade = useRef(fade);
   const token = useRef(0);
   const timer = useRef<number | undefined>(undefined);
   const closing = useRef(false);
-  const popped = useRef(false);
   const offset = useRef(0);
   const drag = useRef<{
     pointerId: number;
@@ -107,6 +112,7 @@ function SheetBody({ onClose, title, subtitle, children }: Omit<SheetProps, "ope
 
   useEffect(() => {
     onCloseRef.current = onClose;
+    canDismissRef.current = canDismiss;
   });
 
   function panelHeight(): number {
@@ -133,12 +139,36 @@ function SheetBody({ onClose, title, subtitle, children }: Omit<SheetProps, "ope
     }, ms + FINISH_SLACK_MS);
   }
 
-  function requestClose(fromBackButton = false) {
+  function requestClose() {
     if (closing.current) return;
     closing.current = true;
-    if (fromBackButton) popped.current = true;
     settle(fade ? offset.current : panelHeight(), 0, () => onCloseRef.current());
   }
+
+  // Escape, a scrim tap or a drag may be refused by the owner, for example to keep typed text.
+  function requestDismiss() {
+    if (canDismissRef.current && !canDismissRef.current()) return false;
+    requestClose();
+    return true;
+  }
+
+  useDialogLayer({ panelRef, onBack: requestClose, onEscape: () => void requestDismiss() });
+
+  // The motion mode changed while open: carry on from the resting state of the new mode.
+  useLayoutEffect(() => {
+    if (shownFade.current === fade) return;
+    shownFade.current = fade;
+    const panel = panelRef.current;
+    if (!panel) return;
+    panel.style.transition = "none";
+    if (fade) panel.style.transform = "";
+    else panel.style.opacity = "";
+    void panel.offsetHeight;
+    if (closing.current) settle(fade ? 0 : panelHeight(), 0, () => onCloseRef.current());
+    else settle(0, 1);
+    // settle only reads refs and the current mode.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fade]);
 
   // Slide up (or fade in) from where the sheet starts.
   useLayoutEffect(() => {
@@ -162,69 +192,22 @@ function SheetBody({ onClose, title, subtitle, children }: Omit<SheetProps, "ope
   // Page behind: out of reach, not scrollable. Focus: into the sheet, then back to the opener.
   useEffect(() => {
     const root = rootRef.current;
+    const opener = takeOpener();
     const background = Array.from(host.children).filter((el) => el !== root);
     background.forEach((el) => el.setAttribute("inert", ""));
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const unlock = lockScroll();
     doneRef.current?.focus();
     return () => {
       background.forEach((el) => el.removeAttribute("inert"));
-      document.body.style.overflow = previousOverflow;
+      unlock();
       if (opener?.isConnected) opener.focus();
     };
-  }, [host, opener]);
-
-  // The phone's back button closes the sheet; closing any other way pops the entry it pushed.
-  useEffect(() => {
-    openSheets.add(sheetId);
-    const state: unknown = window.history.state;
-    const base = state && typeof state === "object" ? state : {};
-    if ((base as { sdhSheet?: string }).sdhSheet !== sheetId) {
-      window.history.pushState({ ...base, sdhSheet: sheetId }, "");
-    }
-    const onPop = () => requestClose(true);
-    window.addEventListener("popstate", onPop);
-    return () => {
-      window.removeEventListener("popstate", onPop);
-      openSheets.delete(sheetId);
-      // Deferred so a development remount does not undo its own entry.
-      window.setTimeout(() => {
-        const current = window.history.state as { sdhSheet?: string } | null;
-        if (!popped.current && !openSheets.has(sheetId) && current?.sdhSheet === sheetId) {
-          window.history.back();
-        }
-      }, 0);
-    };
-    // Runs once on mount; requestClose only reads refs.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sheetId]);
-
-  function handleKeyDown(e: KeyboardEvent) {
-    if (e.key === "Escape") {
-      e.stopPropagation();
-      requestClose();
-      return;
-    }
-    if (e.key !== "Tab") return;
-    const panel = panelRef.current;
-    const items = Array.from(panel?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? []);
-    const first = items[0];
-    const last = items[items.length - 1];
-    if (!first || !last) return;
-    const active = document.activeElement;
-    if (e.shiftKey && (active === first || !panel?.contains(active))) {
-      e.preventDefault();
-      last.focus();
-    } else if (!e.shiftKey && (active === last || !panel?.contains(active))) {
-      e.preventDefault();
-      first.focus();
-    }
-  }
+  }, [host]);
 
   function handlePointerDown(e: PointerEvent<HTMLDivElement>) {
     const panel = panelRef.current;
     const scrim = scrimRef.current;
-    if (!panel || !scrim || (e.target as HTMLElement).closest("button")) return;
+    if (!panel || !scrim || e.button !== 0 || (e.target as HTMLElement).closest("button")) return;
     // Grabbing mid-move stops it where it is, closing included.
     token.current++;
     window.clearTimeout(timer.current);
@@ -272,18 +255,18 @@ function SheetBody({ onClose, title, subtitle, children }: Omit<SheetProps, "ope
     const velocity = first && last && elapsed > 0 ? (last.y - first.y) / elapsed : 0;
     const dismiss =
       e.type !== "pointercancel" &&
-      (offset.current > state.height * DISMISS_FRACTION || velocity > DISMISS_VELOCITY_PX_PER_MS);
-    if (dismiss) requestClose();
-    else settle(0, 1);
+      (offset.current > state.height * DISMISS_FRACTION ||
+        (offset.current > DISMISS_MIN_PX && velocity > DISMISS_VELOCITY_PX_PER_MS));
+    if (!dismiss || !requestDismiss()) settle(0, 1);
   }
 
   return createPortal(
-    <div ref={rootRef} className="apple-sheet-root" onKeyDown={handleKeyDown}>
+    <div ref={rootRef} className="apple-sheet-root">
       <div
         ref={scrimRef}
         className="apple-sheet-scrim"
         data-testid="sheet-scrim"
-        onClick={() => requestClose()}
+        onClick={() => requestDismiss()}
       />
       <div
         ref={panelRef}
