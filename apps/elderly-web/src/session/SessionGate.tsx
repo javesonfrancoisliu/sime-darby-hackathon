@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { useSession } from "@sdh/api-client";
 import { logApiError } from "../api/errors";
 import { demoSignInEnabled, tokenModeEnabled } from "../config";
@@ -7,6 +7,7 @@ import { WhoIsUsingPage } from "../pages/WhoIsUsingPage";
 import { Banner } from "../ui/Banner";
 import { Button } from "../ui/Button";
 import { EmergencyCallButton } from "../ui/EmergencyCallButton";
+import { endPageLeave, pageIsLeaving } from "../ui/pageLeave";
 import { Spinner } from "../ui/Spinner";
 import { useSessionRedirect } from "./useSessionRedirect";
 
@@ -23,6 +24,17 @@ export function SessionGate({ children }: { children: ReactNode }) {
 function TokenSessionGate({ children }: { children: ReactNode }) {
   const { status, error } = useSession();
   const redirecting = useSessionRedirect();
+
+  // A signed-out page restored from the back-forward cache is stale: load it fresh.
+  useEffect(() => {
+    function onPageShow(event: PageTransitionEvent) {
+      if (!event.persisted || !pageIsLeaving()) return;
+      endPageLeave();
+      window.location.reload();
+    }
+    window.addEventListener("pageshow", onPageShow);
+    return () => window.removeEventListener("pageshow", onPageShow);
+  }, []);
 
   if (status === "signed_in" && !redirecting) return <>{children}</>;
   if (status === "loading" || redirecting) {

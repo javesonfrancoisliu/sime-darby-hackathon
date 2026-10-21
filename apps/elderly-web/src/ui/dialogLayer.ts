@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, type RefObject } from "react";
+import { pageIsLeaving } from "./pageLeave";
 
 export const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -161,9 +162,12 @@ export function useDialogLayer({ panelRef, onBack, onEscape }: DialogLayerOption
       document.removeEventListener("keydown", onKeyDown);
       const at = stack.lastIndexOf(id);
       if (at >= 0) stack.splice(at, 1);
-      // Deferred so a development remount does not undo its own entry.
+      // Deferred so a development remount does not undo its own entry; skipped while the page is
+      // leaving so the unwind cannot cancel the navigation.
       window.setTimeout(() => {
-        if (!popped.current && !stack.includes(id) && marker() === id) backOffOwnEntry();
+        if (!popped.current && !stack.includes(id) && marker() === id && !pageIsLeaving()) {
+          backOffOwnEntry();
+        }
       }, 0);
     };
   }, [id, panelRef]);

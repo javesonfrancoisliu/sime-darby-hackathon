@@ -10,6 +10,8 @@ interface ConfirmDialogProps {
   onConfirm: () => void;
   // Back, Escape, a scrim tap and the cancel button all land here.
   onCancel: () => void;
+  // A confirmed action is running: the confirm button stays off so a second tap cannot repeat it.
+  busy?: boolean;
   children?: ReactNode;
 }
 
@@ -21,6 +23,7 @@ export function ConfirmDialog({
   cancelLabel,
   onConfirm,
   onCancel,
+  busy = false,
   children,
 }: ConfirmDialogProps) {
   const titleId = useId();
@@ -63,7 +66,7 @@ export function ConfirmDialog({
           </h2>
           {children ? <p className="call-confirm__sub">{children}</p> : null}
           <div className="call-confirm__actions">
-            <Button block onClick={onConfirm}>
+            <Button block onClick={onConfirm} disabled={busy} aria-busy={busy || undefined}>
               {confirmLabel}
             </Button>
             <button

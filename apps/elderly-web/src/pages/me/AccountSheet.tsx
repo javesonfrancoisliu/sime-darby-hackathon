@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useSession } from "@sdh/api-client";
 import { tokenModeEnabled } from "../../config";
 import { ConfirmDialog } from "../../ui/ConfirmDialog";
+import { beginPageLeave, endPageLeave } from "../../ui/pageLeave";
 import { IconUser, IconUsers } from "../../ui/Icons";
 import { Sheet } from "../../ui/Sheet";
 
@@ -16,6 +17,7 @@ export function AccountSheet({ open, onClose }: AccountSheetProps) {
   const { signOut } = useSession();
   const navigate = useNavigate();
   const [confirming, setConfirming] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const token = tokenModeEnabled();
 
   function switchPerson() {
@@ -24,8 +26,19 @@ export function AccountSheet({ open, onClose }: AccountSheetProps) {
   }
 
   async function signOutOfAccount() {
-    await signOut();
-    window.location.assign("/");
+    if (signingOut) return;
+    setSigningOut(true);
+    // Mark the page as leaving first, so the session guard and the dialogs closing do not start
+    // a second navigation or a history move that would cancel this one.
+    beginPageLeave();
+    try {
+      await signOut();
+      window.location.assign("/");
+    } catch {
+      // Still on this page: let the guard and the dialogs behave normally again.
+      endPageLeave();
+      setSigningOut(false);
+    }
   }
 
   return (
@@ -65,6 +78,7 @@ export function AccountSheet({ open, onClose }: AccountSheetProps) {
           title="Sign out?"
           confirmLabel="Yes, sign out"
           cancelLabel="Not yet"
+          busy={signingOut}
           onConfirm={() => void signOutOfAccount()}
           onCancel={() => setConfirming(false)}
         >
