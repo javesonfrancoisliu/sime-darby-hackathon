@@ -201,6 +201,9 @@ describe("my details drawer", () => {
     expect(screen.queryByRole("dialog", { name: "My details" })).not.toBeInTheDocument();
 
     await user.click(within(editor).getByRole("button", { name: "Cancel" }));
+    const back = await screen.findByRole("dialog", { name: "My details" });
+    expect(screen.getAllByRole("dialog")).toHaveLength(1);
+    await user.click(within(back).getByRole("button", { name: "Done" }));
     await gone();
     expect(document.body.style.overflow).not.toBe("hidden");
     expect(document.querySelector("[inert]")).toBeNull();
@@ -208,12 +211,36 @@ describe("my details drawer", () => {
     await waitFor(() => expect(window.history.state?.sdhModal).toBeUndefined());
   });
 
-  it("keeps /profile/details as a redirect to Profile", async () => {
+  it("keeps /profile/details working by opening My details on Profile", async () => {
     installFakeApi(signedIn());
     signInAs(VOLUNTEER.id);
     renderApp("/profile/details");
-    expect(await screen.findByRole("heading", { name: "Profile" })).toBeInTheDocument();
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(await screen.findByRole("dialog", { name: "My details" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Profile" })).toBeInTheDocument();
+  });
+
+  it("returns to My details after the preferences editor saves", async () => {
+    installFakeApi({
+      ...signedIn(),
+      "PATCH /api/me": ({ body }) => ({ body: User.parse({ ...VOLUNTEER, ...(body as object) }) }),
+    });
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    const user = userEvent.setup();
+    await user.click(await row(/^My details/));
+    const drawer = await screen.findByRole("dialog", { name: "My details" });
+    await user.click(within(drawer).getByRole("button", { name: "Edit preferences" }));
+    const editor = await screen.findByRole("dialog", { name: "Edit volunteer preferences" });
+    const skills = within(editor).getByRole("group", { name: "Skills" });
+    await user.click(within(skills).getByRole("button", { name: "Groceries" }));
+    await user.click(within(editor).getByRole("button", { name: "Save" }));
+    const back = await screen.findByRole("dialog", { name: "My details" });
+    expect(screen.getAllByRole("dialog")).toHaveLength(1);
+    expect(screen.getByText("Saved")).toBeInTheDocument();
+    await user.click(within(back).getByRole("button", { name: "Done" }));
+    await gone();
+    await waitFor(() => expect(window.history.state?.sdhSheet).toBeUndefined());
+    await waitFor(() => expect(window.history.state?.sdhModal).toBeUndefined());
   });
 });
 

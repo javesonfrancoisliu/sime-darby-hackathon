@@ -1,5 +1,6 @@
 import { useRef, useState, type MouseEvent } from "react";
 import { Gift, IdCard, LifeBuoy, Settings, UserRound } from "lucide-react";
+import { useLocation } from "react-router-dom";
 
 import { useSession } from "@sdh/api-client";
 
@@ -24,6 +25,12 @@ import { preferencesSummary } from "../../lib/profileSummary";
 
 type ProfileSheet = "rewards" | "details" | "settings" | "help" | "account";
 
+// The old /profile/details address redirects here asking for the My details drawer.
+function initialSheet(state: unknown): ProfileSheet | null {
+  const wanted = (state as { openSheet?: unknown } | null)?.openSheet;
+  return wanted === "details" ? "details" : null;
+}
+
 const onOff = (value: boolean) => (value ? "on" : "off");
 
 // Young-resident Profile hub: who is signed in, then one row each for rewards, details, settings,
@@ -35,9 +42,12 @@ export function ProfilePage() {
   const { largeText } = useLargeText();
   const points = usePoints();
   const rewards = useRewards();
-  const [sheet, setSheet] = useState<ProfileSheet | null>(null);
+  const location = useLocation();
+  const [sheet, setSheet] = useState<ProfileSheet | null>(() => initialSheet(location.state));
   const [editPersonal, setEditPersonal] = useState(false);
   const [editPrefs, setEditPrefs] = useState(false);
+  // True while the preferences editor was opened from My details, which comes back when it closes.
+  const fromDetails = useRef(false);
   // The row that opened a sheet, stored on its click so focus can return to it on close.
   const opener = useRef<HTMLElement | null>(null);
   const { notify, toast } = useToast();
@@ -71,6 +81,11 @@ export function ProfilePage() {
     setSheet(next);
   }
   const closeSheet = () => setSheet(null);
+  function closePrefs() {
+    setEditPrefs(false);
+    if (fromDetails.current) setSheet("details");
+    fromDetails.current = false;
+  }
 
   return (
     <>
@@ -140,6 +155,7 @@ export function ProfilePage() {
           openerRef={opener}
           onEditPreferences={() => {
             // One dialog at a time: the drawer goes, then the editor opens in its place.
+            fromDetails.current = true;
             setSheet(null);
             setEditPrefs(true);
           }}
@@ -161,7 +177,7 @@ export function ProfilePage() {
       <EditPreferencesModal
         key={editPrefs ? "prefs-open" : "prefs-closed"}
         open={editPrefs}
-        onClose={() => setEditPrefs(false)}
+        onClose={closePrefs}
         onSaved={saved}
       />
       {toast}
