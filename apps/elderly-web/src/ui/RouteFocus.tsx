@@ -8,7 +8,7 @@ const APP_NAME = "Township Connect";
 const TITLES: [string, string][] = [
   ["/safety", "Health and safety"],
   ["/community", "Community"],
-  ["/challenges", "Rewards"],
+  ["/challenges", "Play"],
   ["/me", "Profile"],
   ["/request/confirmation", "Request sent"],
   ["/request", "Ask for help"],

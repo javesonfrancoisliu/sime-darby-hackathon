@@ -21,12 +21,12 @@ const alreadyDone = {
   body: { error: { code: "ALREADY_DONE", message: "done" } },
 };
 
-describe("Rewards from the API", () => {
+describe("Community Play from the API", () => {
   it("shows live points and streak with no demo labels", async () => {
     installFakeApi(baseRoutes);
     await renderApp("/challenges");
     expect((await screen.findAllByText("260")).length).toBeGreaterThan(0);
-    expect(screen.getByRole("heading", { level: 1, name: "Rewards" })).toBeInTheDocument();
+    expect(screen.getByText("Community Play")).toBeInTheDocument();
     expect(screen.getByText("Elmina Valley")).toBeInTheDocument();
     expect(screen.queryByText(/demo|example/i)).not.toBeInTheDocument();
   });
