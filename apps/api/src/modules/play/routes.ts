@@ -6,7 +6,7 @@ import {
   type Streak,
 } from "@sdh/contracts";
 import { ok, type Route } from "../../lib/http";
-import { requireUser } from "../../lib/identity";
+import { requireNotRejected, requireUser } from "../../lib/identity";
 import { parse } from "../../lib/validate";
 import { checkIn, leaderboard, pointsSummary, streakFor } from "./service";
 
@@ -32,7 +32,7 @@ export const playRoutes: Route[] = [
     method: "POST",
     path: "/api/me/check-in",
     handler: async (req) => {
-      const user = await requireUser(req, "elder", "volunteer");
+      const user = await requireNotRejected(req, "elder", "volunteer");
       return ok((await checkIn(user)) satisfies CheckInResult);
     },
   },

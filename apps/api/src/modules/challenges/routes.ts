@@ -10,7 +10,7 @@ import {
   type PendingVerificationsResponse,
 } from "@sdh/contracts";
 import { ok, type Route } from "../../lib/http";
-import { requireUser } from "../../lib/identity";
+import { requireNotRejected, requireUser } from "../../lib/identity";
 import { parse } from "../../lib/validate";
 import {
   complete,
@@ -46,7 +46,7 @@ export const challengeRoutes: Route[] = [
     method: "POST",
     path: "/api/challenges/{id}/join",
     handler: async (req) => {
-      const user = await requireUser(req, "elder", "volunteer");
+      const user = await requireNotRejected(req, "elder", "volunteer");
       const id = parse(Id, req.params.id);
       return ok((await join(user, id)) satisfies ChallengeActionResult);
     },
@@ -55,7 +55,7 @@ export const challengeRoutes: Route[] = [
     method: "PUT",
     path: "/api/challenges/{id}/progress",
     handler: async (req) => {
-      const user = await requireUser(req, "elder", "volunteer");
+      const user = await requireNotRejected(req, "elder", "volunteer");
       const id = parse(Id, req.params.id);
       const body = parse(ChallengeProgressBody, req.body);
       return ok((await updateProgress(user, id, body.current)) satisfies ChallengeActionResult);
@@ -65,7 +65,7 @@ export const challengeRoutes: Route[] = [
     method: "POST",
     path: "/api/challenges/{id}/complete",
     handler: async (req) => {
-      const user = await requireUser(req, "elder", "volunteer");
+      const user = await requireNotRejected(req, "elder", "volunteer");
       const id = parse(Id, req.params.id);
       return ok((await complete(user, id)) satisfies ChallengeActionResult);
     },
@@ -74,7 +74,7 @@ export const challengeRoutes: Route[] = [
     method: "POST",
     path: "/api/challenges/{id}/contribute",
     handler: async (req) => {
-      const user = await requireUser(req, "elder", "volunteer");
+      const user = await requireNotRejected(req, "elder", "volunteer");
       const id = parse(Id, req.params.id);
       return ok((await contribute(user, id)) satisfies ContributeResult);
     },
