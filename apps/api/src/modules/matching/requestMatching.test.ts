@@ -2,6 +2,7 @@ import type { Message } from "@anthropic-ai/sdk/resources/messages";
 import { describe, expect, it, vi } from "vitest";
 import { scenarios } from "../../../scripts/matching-benchmark/dataset";
 import { scoreVolunteer } from "./scoring";
+import { createMemoryAnswerStore } from "./answerStore";
 import { buildRequestRankingPrompt, createRequestMatcher } from "./requestMatching";
 
 const scenario = scenarios[0]!;
@@ -53,7 +54,11 @@ describe("requests ranked for the authenticated volunteer", () => {
         { candidate: "c1", reason: "A certified doctor." },
       ]),
     );
-    const result = await createRequestMatcher({ send, modelId: () => "mock" })(viewer, entries);
+    const result = await createRequestMatcher({
+      store: createMemoryAnswerStore(),
+      send,
+      modelId: () => "mock",
+    })(viewer, entries);
     expect(result.map((entry) => entry.id)).toEqual([entries[1]!.id, entries[0]!.id]);
     expect(result[0]).toMatchObject({ rankedBy: "ai", explanationSource: "ai" });
     expect(result[1]).toMatchObject({ rankedBy: "ai", explanationSource: "rules" });
@@ -68,7 +73,11 @@ describe("requests ranked for the authenticated volunteer", () => {
         { candidate: "c3", reason: "Nearby." },
       ]),
     );
-    const match = createRequestMatcher({ send, modelId: () => "mock" });
+    const match = createRequestMatcher({
+      store: createMemoryAnswerStore(),
+      send,
+      modelId: () => "mock",
+    });
     const [a, b] = await Promise.all([match(viewer, entriesFor()), match(viewer, entriesFor())]);
     expect(a.map((r) => r.id)).toEqual(["scenario-06", "scenario-01", "scenario-11"]);
     expect(a).toEqual(b);
@@ -90,6 +99,7 @@ describe("requests ranked for the authenticated volunteer", () => {
     "returns rules for unusable ranking %j",
     async (ranking) => {
       const match = createRequestMatcher({
+        store: createMemoryAnswerStore(),
         send: vi.fn().mockResolvedValue(message(ranking)),
         modelId: () => "mock",
       });
@@ -98,6 +108,7 @@ describe("requests ranked for the authenticated volunteer", () => {
   );
   it("retains known IDs once, repairs unsupported reasons and appends omitted requests", async () => {
     const match = createRequestMatcher({
+      store: createMemoryAnswerStore(),
       modelId: () => "mock",
       send: vi.fn().mockResolvedValue(
         message([
@@ -117,6 +128,7 @@ describe("requests ranked for the authenticated volunteer", () => {
     let now = 0;
     const send = vi.fn(() => new Promise<Message>(() => {}));
     const match = createRequestMatcher({
+      store: createMemoryAnswerStore(),
       send,
       modelId: () => "mock",
       timeoutMs: 5,
@@ -125,19 +137,30 @@ describe("requests ranked for the authenticated volunteer", () => {
     expect((await match(viewer, entriesFor()))[0]?.rankedBy).toBe("rules");
     await match(viewer, entriesFor());
     expect(send).toHaveBeenCalledTimes(1);
-    now = 10_001;
+    now = 60_001;
     await match(viewer, entriesFor());
     expect(send).toHaveBeenCalledTimes(2);
   });
   it("does not invoke the provider when disabled, empty or credentials fail", async () => {
     const send = vi.fn().mockRejectedValue(new Error("missing credentials"));
-    await createRequestMatcher({ send, modelId: () => "" })(viewer, entriesFor());
+    await createRequestMatcher({ store: createMemoryAnswerStore(), send, modelId: () => "" })(
+      viewer,
+      entriesFor(),
+    );
     expect(send).not.toHaveBeenCalled();
-    await createRequestMatcher({ send, modelId: () => "mock" })(viewer, []);
+    await createRequestMatcher({ store: createMemoryAnswerStore(), send, modelId: () => "mock" })(
+      viewer,
+      [],
+    );
     expect(send).not.toHaveBeenCalled();
     expect(
-      (await createRequestMatcher({ send, modelId: () => "mock" })(viewer, entriesFor()))[0]
-        ?.rankedBy,
+      (
+        await createRequestMatcher({
+          store: createMemoryAnswerStore(),
+          send,
+          modelId: () => "mock",
+        })(viewer, entriesFor())
+      )[0]?.rankedBy,
     ).toBe("rules");
   });
 });
