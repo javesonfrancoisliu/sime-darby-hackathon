@@ -62,6 +62,13 @@ const dateFormat = new Intl.DateTimeFormat("en-GB", {
   month: "short",
   timeZone: TIME_ZONE,
 });
+const whenDateFormat = new Intl.DateTimeFormat("en-GB", {
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  timeZone: TIME_ZONE,
+});
 const timeFormat = new Intl.DateTimeFormat("en-GB", {
   hour: "numeric",
   minute: "2-digit",
@@ -77,11 +84,11 @@ export function safeDate(iso: string): Date | null {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-// For example "Tue 20 Oct, 9:00 am", in Malaysia time.
+// For example "Tue 20 Oct 2026, 9:00 am", in Malaysia time.
 export function formatWhen(iso: string): string {
   const date = safeDate(iso);
   if (!date) return DATE_UNKNOWN;
-  return `${dateFormat.format(date).replace(",", "")}, ${timeFormat.format(date)}`;
+  return `${whenDateFormat.format(date).replace(",", "")}, ${timeFormat.format(date)}`;
 }
 
 const longDateFormat = new Intl.DateTimeFormat("en-GB", {
@@ -97,13 +104,13 @@ export function formatDate(iso: string): string {
   return date ? longDateFormat.format(date) : DATE_UNKNOWN;
 }
 
-// For example "Tue 20 Oct", in Malaysia time. Same style as formatWhen without the clock.
+// For example "Tue 20 Oct", in Malaysia time. Same style as formatWhen without the year and clock.
 export function formatShortDate(iso: string): string {
   const date = safeDate(iso);
   return date ? dateFormat.format(date).replace(",", "") : DATE_UNKNOWN;
 }
 
-// For example "Tue 20 Oct, 9:00 am to 5:00 pm", in Malaysia time.
+// For example "Tue 20 Oct 2026, 9:00 am to 5:00 pm", in Malaysia time.
 export function formatWindow(startIso: string, endIso: string): string {
   const end = safeDate(endIso);
   if (!end || !safeDate(startIso)) return DATE_UNKNOWN;

@@ -87,11 +87,12 @@ export function formatTemperature(value: number, unit: string): string {
   return CELSIUS_UNITS.has(unit.trim().toLowerCase()) ? `${value}°C` : withUnit(value, unit);
 }
 
-// For example "Mon 19 Oct, 8:30 am", in Malaysia time.
+// For example "Mon 19 Oct 2026, 8:30 am", in Malaysia time.
 const whenDateFormat = new Intl.DateTimeFormat("en-GB", {
   weekday: "short",
   day: "numeric",
   month: "short",
+  year: "numeric",
   timeZone: KL_TIME_ZONE,
 });
 const whenTimeFormat = new Intl.DateTimeFormat("en-GB", {

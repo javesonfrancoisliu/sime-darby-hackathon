@@ -69,7 +69,7 @@ describe("labels", () => {
 
   it("formats a time in Malaysia time", () => {
     const text = formatWhen("2026-10-20T09:00:00+08:00");
-    expect(text).toMatch(/20 Oct/);
+    expect(text).toBe("Tue 20 Oct 2026, 9:00 am");
     expect(text).toMatch(/9:00\s?am/i);
     expect(formatWhen("2026-10-20T01:00:00Z")).toMatch(/9:00\s?am/i);
   });
