@@ -9,6 +9,7 @@ export { FormField } from "./FormField";
 export { InfoCard } from "./InfoCard";
 export { LoadingState } from "./LoadingState";
 export { Modal } from "./Modal";
+export { Sheet, dropStaleSheetEntry, type SheetProps } from "./Sheet";
 export { PageHeader } from "./PageHeader";
 export { Pill } from "./Pill";
 export { ProgressBar } from "./ProgressBar";

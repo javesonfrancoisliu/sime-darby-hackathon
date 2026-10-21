@@ -2367,3 +2367,94 @@
 .back-link {
   align-self: flex-start;
 }
+
+/* ---------- Sheet (bottom sheet) ---------- */
+/* Motion is driven from script with transform and opacity only, so no keyframes here. */
+.ui-sheet-root {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.ui-sheet-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(31, 41, 55, 0.5);
+}
+.ui-sheet-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 540px;
+  max-height: 85vh;
+  max-height: 85dvh;
+  overflow: hidden;
+  background: var(--surface);
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.15);
+  will-change: transform, opacity;
+}
+.ui-sheet-drag {
+  flex: none;
+  padding: var(--space-3) var(--space-4) 0;
+  touch-action: none;
+  cursor: grab;
+}
+.ui-sheet-drag:active {
+  cursor: grabbing;
+}
+.ui-sheet-grabber {
+  width: 38px;
+  height: 5px;
+  margin: 0 auto var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--control-border);
+  opacity: 0.5;
+}
+.ui-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-bottom: var(--space-3);
+}
+.ui-sheet-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.ui-sheet-subtitle {
+  margin: 2px 0 0;
+  color: var(--text-secondary);
+}
+.ui-sheet-done {
+  flex: none;
+  min-width: 72px;
+  min-height: 44px;
+  padding: 0 var(--space-6);
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--brand-primary);
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.ui-sheet-done:hover {
+  background: var(--brand-primary-hover);
+}
+.ui-sheet-done:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+.ui-sheet-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--space-2) var(--space-4) calc(var(--space-6) + env(safe-area-inset-bottom, 0px));
+}

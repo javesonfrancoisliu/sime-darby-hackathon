@@ -6,6 +6,7 @@ import { AppErrorBoundary, setAccessTokenProvider } from "@sdh/api-client";
 import { startAuthFromEnv } from "@sdh/auth";
 
 import { App } from "./App";
+import { dropStaleSheetEntry } from "./components/ui";
 import "@sdh/design-tokens/tokens.css";
 import "./styles/app.css";
 
@@ -20,6 +21,9 @@ if (auth) setAccessTokenProvider(auth.getAccessToken);
 
 // Vite's base ends in a slash; the router wants it without.
 const basename = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+// A reload can leave the marker of a closed sheet on the current history entry.
+dropStaleSheetEntry();
 
 createRoot(rootElement).render(
   <StrictMode>
