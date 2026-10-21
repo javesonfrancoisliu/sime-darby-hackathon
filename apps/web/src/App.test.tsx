@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { ELDER, VOLUNTEER } from "./test/fixtures";
@@ -25,8 +25,9 @@ describe("session wiring", () => {
     renderApp("/volunteer");
 
     expect(await screen.findByRole("heading", { name: "Volunteer nearby" })).toBeInTheDocument();
+    // The page shell renders before the feed request goes out, so wait for the call.
+    await waitFor(() => expect(calls.some((c) => c.path === "/api/opportunities")).toBe(true));
     const live = calls.filter((c) => c.path === "/api/opportunities");
-    expect(live.length).toBeGreaterThan(0);
     expect(live.every((c) => c.headers["x-demo-user"] === VOLUNTEER.id)).toBe(true);
   });
 
