@@ -1374,8 +1374,9 @@ button:active,
 
 .apple-sheet-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
+  gap: var(--space-3);
   margin-bottom: var(--space-4);
 }
 
@@ -1390,19 +1391,6 @@ button:active,
   margin: 2px 0 0;
   font-size: 1rem;
   color: var(--text-secondary);
-}
-
-.apple-sheet-close-btn {
-  background: #e5e7eb;
-  border: none;
-  border-radius: 50%;
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-secondary);
-  cursor: pointer;
 }
 
 .apple-sheet-content {
@@ -1591,15 +1579,6 @@ button:active,
   color: var(--danger);
 }
 
-.apple-sheet-footer {
-  margin-top: var(--space-4);
-}
-
-.apple-sheet-done-btn {
-  width: 100%;
-  border-radius: var(--radius-pill);
-}
-
 /* Generic Sheet: motion is driven from script (transform and opacity only), so no keyframes here. */
 .apple-sheet-root {
   position: fixed;
@@ -1634,10 +1613,6 @@ button:active,
 }
 .apple-sheet-drag:active {
   cursor: grabbing;
-}
-.apple-sheet-header {
-  align-items: center;
-  gap: var(--space-3);
 }
 .apple-sheet-body {
   flex: 1 1 auto;
@@ -1985,14 +1960,6 @@ button:active,
   margin: 0;
   font-size: 1rem;
   color: var(--text-secondary);
-}
-
-.apple-profile-voice-btn {
-  margin-top: 10px;
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--brand-primary);
-  padding: 4px 12px;
 }
 
 .apple-profile-section {
