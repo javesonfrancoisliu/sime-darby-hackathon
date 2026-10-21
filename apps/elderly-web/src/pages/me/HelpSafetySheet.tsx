@@ -32,7 +32,7 @@ export function HelpSafetySheet({ open, onClose }: HelpSafetySheetProps) {
           <QuickDial />
           <div className="apple-inset-group">
             <HubRow
-              icon={<IconShield size={20} strokeWidth={1.8} />}
+              icon={<IconShield size={24} />}
               title="Health and safety conditions"
               summary="Haze, heat and township facilities"
               onClick={openConditions}

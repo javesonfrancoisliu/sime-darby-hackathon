@@ -518,6 +518,21 @@ describe("Help and safety sheet", () => {
     await waitFor(() => expect(window.location.pathname).toBe("/me"));
   });
 
+  it("draws the conditions row icon at the same size and stroke as the Profile rows", async () => {
+    installFakeApi(hubRoutes);
+    await renderApp("/me");
+    const profileRow = await screen.findByRole("button", { name: /^Help and safety/ });
+    const profileIcon = profileRow.querySelector("svg");
+    await userEvent.click(profileRow);
+    const sheet = await sheetNamed("Help and safety");
+    const icon = within(sheet)
+      .getByRole("button", { name: /^Health and safety conditions/ })
+      .querySelector("svg");
+    for (const attr of ["width", "height", "stroke-width"]) {
+      expect(icon).toHaveAttribute(attr, profileIcon?.getAttribute(attr) ?? "");
+    }
+  });
+
   it("leaves out the security line when the township has none set", async () => {
     installFakeApi({
       ...hubRoutes,
