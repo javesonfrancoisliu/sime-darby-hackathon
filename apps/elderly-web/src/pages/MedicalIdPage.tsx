@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { MALAYSIAN_PHONE, PutMedicalIdBody, type BloodGroup } from "@sdh/contracts";
 import { useMedicalId, useRemoveMedicalId, useSaveMedicalId } from "../hooks/useMedicalId";
 import { BLOOD_GROUPS, bloodGroupText } from "../medical/bloodGroup";
@@ -44,6 +44,7 @@ function validate(form: FormState): { body?: PutMedicalIdBody; errors: Errors } 
 // Add, change or remove the Medical ID. Large buttons and plain words throughout.
 export function MedicalIdPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const announce = useAnnounce();
   const medical = useMedicalId();
   const save = useSaveMedicalId();
@@ -112,6 +113,12 @@ export function MedicalIdPage() {
     inputs?.[index]?.focus();
   }
 
+  // Pop back to My details so this form is not left in the history; a direct visit replaces it.
+  function returnToDetails() {
+    if (location.key === "default") navigate("/me/details", { replace: true });
+    else navigate(-1);
+  }
+
   async function onSave() {
     const { body, errors: found } = validate(form);
     setErrors(found);
@@ -122,13 +129,13 @@ export function MedicalIdPage() {
     const saved = await save.run(body);
     if (!saved) return;
     announce("Your Medical ID was saved.");
-    navigate("/me/details");
+    returnToDetails();
   }
 
   async function onRemove() {
     if (!(await remove.run())) return;
     announce("Your Medical ID was removed.");
-    navigate("/me/details");
+    returnToDetails();
   }
 
   return (

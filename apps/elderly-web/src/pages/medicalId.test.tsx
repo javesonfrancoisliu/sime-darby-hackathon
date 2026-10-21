@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
+import { MemoryRouter, useLocation, useNavigationType } from "react-router-dom";
+import { App } from "../App";
 import userEvent from "@testing-library/user-event";
 import { renderApp } from "../test/renderRoute";
 import { installFakeApi, signInAs } from "../test/fakeApi";
@@ -36,6 +38,30 @@ describe("Medical ID edit screen", () => {
       nextOfKinRelation: "Son",
       nextOfKinPhone: "012-345 6789",
     });
+  });
+
+  it("returns by going back so the submitted form is not left in the history", async () => {
+    installFakeApi({
+      [`GET ${MEDICAL_ROUTE}`]: { body: MEDICAL },
+      [`DELETE ${MEDICAL_ROUTE}`]: { status: 204 },
+    });
+    let index = 0;
+    function Probe() {
+      const location = useLocation();
+      const type = useNavigationType();
+      index += type === "POP" ? -1 : type === "PUSH" ? 1 : 0;
+      return <p data-testid="where">{`${location.pathname}|${type}`}</p>;
+    }
+    render(
+      <MemoryRouter initialEntries={["/me/details", "/me/medical-id"]} initialIndex={1}>
+        <App />
+        <Probe />
+      </MemoryRouter>,
+    );
+    await userEvent.click(await screen.findByRole("button", { name: "Remove" }));
+    await userEvent.click(screen.getByRole("button", { name: "Yes, remove it" }));
+    await waitFor(() => expect(screen.getByTestId("where")).toHaveTextContent("/me/details|POP"));
+    expect(index).toBeLessThan(1);
   });
 
   it("explains what is missing and sends nothing", async () => {
