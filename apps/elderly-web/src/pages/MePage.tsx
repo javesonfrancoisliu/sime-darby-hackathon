@@ -6,7 +6,7 @@ import { usePoints, useRewards } from "../hooks/useChallengesData";
 import { useMedicalId } from "../hooks/useMedicalId";
 import { bloodGroupText } from "../medical/bloodGroup";
 import { useResident } from "../session/useResident";
-import { HubRow } from "../ui/HubRow";
+import { HUB_ICON_SIZE, HubRow } from "../ui/HubRow";
 import { PageHeaderActions } from "../ui/PageHeaderActions";
 import {
   IconGift,
@@ -117,31 +117,31 @@ export function MePage() {
       <div className="apple-profile-section mb-8">
         <div className="apple-inset-group">
           <HubRow
-            icon={<IconGift size={24} />}
+            icon={<IconGift size={HUB_ICON_SIZE} />}
             title="My rewards"
             summary={rewardsSummary(points.data?.points, vouchers)}
             onClick={() => setSheet("rewards")}
           />
           <HubRow
-            icon={<IconIdCard size={24} />}
+            icon={<IconIdCard size={HUB_ICON_SIZE} />}
             title="My details"
             summary={medicalSummary}
             onClick={() => setSheet("details")}
           />
           <HubRow
-            icon={<IconSettings size={24} />}
+            icon={<IconSettings size={HUB_ICON_SIZE} />}
             title="Settings"
             summary={`Text size: ${FONT_LABEL[fontSize]} · Strong contrast: ${highContrast ? "On" : "Off"}`}
             onClick={openSheet}
           />
           <HubRow
-            icon={<IconLifeBuoy size={24} />}
+            icon={<IconLifeBuoy size={HUB_ICON_SIZE} />}
             title="Help and safety"
             summary="Township security and 999"
             onClick={() => setSheet("help")}
           />
           <HubRow
-            icon={<IconUserRound size={24} />}
+            icon={<IconUserRound size={HUB_ICON_SIZE} />}
             title="Account"
             summary={
               tokenModeEnabled() ? "Account settings and sign out" : "Switch to another person"

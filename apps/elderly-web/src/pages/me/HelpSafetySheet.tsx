@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { HubRow } from "../../ui/HubRow";
+import { HUB_ICON_SIZE, HubRow } from "../../ui/HubRow";
 import { IconShield } from "../../ui/Icons";
 import { QuickDial } from "../../ui/QuickDial";
 import { Sheet } from "../../ui/Sheet";
@@ -32,7 +32,7 @@ export function HelpSafetySheet({ open, onClose }: HelpSafetySheetProps) {
           <QuickDial />
           <div className="apple-inset-group">
             <HubRow
-              icon={<IconShield size={24} />}
+              icon={<IconShield size={HUB_ICON_SIZE} />}
               title="Health and safety conditions"
               summary="Haze, heat and township facilities"
               onClick={openConditions}

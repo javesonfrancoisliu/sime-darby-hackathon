@@ -67,6 +67,23 @@ describe("tab bar", () => {
     expect(current).toHaveAttribute("stroke-width", "2.5");
   });
 
+  it("matches the volunteer app tab bar: 22px glyphs and the same stroke rule on every tab", async () => {
+    installFakeApi({ "GET /api/requests/mine": { body: { requests: [] } } });
+    await renderApp("/community");
+    const items = Array.from(document.querySelectorAll(".app-tab-bar__item"));
+    expect(items).toHaveLength(5);
+    for (const item of items) {
+      const svg = item.querySelector("svg");
+      const active = item.classList.contains("app-tab-bar__item--active");
+      expect(svg).toHaveAttribute("stroke-width", active ? "2.5" : "2");
+      // The raised centre button keeps a larger glyph; the four ordinary tabs match the volunteer bar.
+      if (!item.classList.contains("app-tab-bar__item--raised")) {
+        expect(svg).toHaveAttribute("width", "22");
+        expect(svg).toHaveAttribute("height", "22");
+      }
+    }
+  });
+
   it("opens the request flow from the raised centre button with a keyboard", async () => {
     installFakeApi({ "GET /api/requests/mine": { body: { requests: [] } } });
     await renderApp("/community");

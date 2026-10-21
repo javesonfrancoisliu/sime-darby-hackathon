@@ -518,6 +518,18 @@ describe("Help and safety sheet", () => {
     await waitFor(() => expect(window.location.pathname).toBe("/me"));
   });
 
+  it("draws the Profile row icons at the volunteer app size of 22", async () => {
+    installFakeApi(hubRoutes);
+    await renderApp("/me");
+    await screen.findByRole("button", { name: /^Help and safety/ });
+    const icons = document.querySelectorAll(".apple-inset-btn-row__icon svg");
+    expect(icons.length).toBeGreaterThanOrEqual(5);
+    for (const icon of icons) {
+      expect(icon).toHaveAttribute("width", "22");
+      expect(icon).toHaveAttribute("height", "22");
+    }
+  });
+
   it("draws the conditions row icon at the same size and stroke as the Profile rows", async () => {
     installFakeApi(hubRoutes);
     await renderApp("/me");

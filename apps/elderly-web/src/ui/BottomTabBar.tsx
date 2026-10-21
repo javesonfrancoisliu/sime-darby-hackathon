@@ -11,8 +11,9 @@ interface Tab {
   raised?: boolean;
 }
 
-// Same glyph size and stroke rule as the volunteer app tab bar: stroke 2, heavier when current.
-const TAB_ICON_SIZE = 24;
+// Same glyph size and stroke rule as the volunteer app tab bar: 22, stroke 2, heavier when current.
+// The raised centre button keeps a larger glyph for its larger target but follows the same stroke.
+const TAB_ICON_SIZE = 22;
 const tabStroke = (active: boolean) => (active ? 2.5 : 2);
 
 const TABS: Tab[] = [
@@ -30,7 +31,7 @@ const TABS: Tab[] = [
     label: "Help request",
     path: "/request",
     raised: true,
-    icon: () => <IconPlus size={30} strokeWidth={2.5} />,
+    icon: (active) => <IconPlus size={30} strokeWidth={tabStroke(active)} />,
   },
   {
     label: "Play",

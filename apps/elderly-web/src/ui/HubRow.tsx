@@ -1,6 +1,9 @@
 import type { ReactNode } from "react";
 import { IconChevronRight } from "./Icons";
 
+// Row icon size, the same as the volunteer app Profile rows.
+export const HUB_ICON_SIZE = 22;
+
 interface HubRowProps {
   icon: ReactNode;
   title: string;
