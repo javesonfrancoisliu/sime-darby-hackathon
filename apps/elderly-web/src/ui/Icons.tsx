@@ -2,7 +2,6 @@ import {
   Activity,
   AlertTriangle,
   TreeDeciduous,
-  Trash2,
   Ticket,
   Star,
   ShoppingCart,
@@ -40,7 +39,6 @@ import {
   Plus,
   Settings,
   Shield,
-  ShieldCheck,
   ShoppingBag,
   Smartphone,
   Sparkles,
@@ -96,7 +94,6 @@ export const IconCalendar = withDefaults(Calendar);
 export const IconAlertTriangle = withDefaults(AlertTriangle);
 export const IconClock = withDefaults(Clock);
 export const IconCheck = withDefaults(Check);
-export const IconShieldCheck = withDefaults(ShieldCheck);
 export const IconArrowRight = withDefaults(ArrowRight);
 export const IconChevronLeft = withDefaults(ChevronLeft);
 export const IconChevronRight = withDefaults(ChevronRight);
@@ -135,5 +132,4 @@ export const IconRecycle = withDefaults(Recycle);
 export const IconCart = withDefaults(ShoppingCart);
 export const IconStar = withDefaults(Star);
 export const IconTicket = withDefaults(Ticket);
-export const IconTrash = withDefaults(Trash2);
 export const IconTree = withDefaults(TreeDeciduous);
