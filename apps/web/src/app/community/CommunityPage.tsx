@@ -21,7 +21,6 @@ import {
   TabPanel,
 } from "../../components/ui";
 import { useConfirm } from "../../lib/useConfirm";
-import { ChallengesEntryCard } from "../../components/challenges";
 import { useRole } from "../../components/layout";
 import { useAcceptedTasks, type AcceptedTask } from "../../data/AcceptedTasksContext";
 import { CompleteTaskModal, MyTasksSection } from "../../components/volunteer";
@@ -178,12 +177,6 @@ export function CommunityPage() {
         title="Neighbourhood Hub"
         subtitle="Everything happening in your township - events, maintenance, volunteering and official updates."
       />
-
-      {role === "young" && (
-        <section className="ui-section" aria-label="Community Challenges">
-          <ChallengesEntryCard />
-        </section>
-      )}
 
       {loading ? (
         <LoadingState rows={3} label="Loading community updates" />

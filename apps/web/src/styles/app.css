@@ -1449,54 +1449,6 @@
   justify-content: flex-end;
 }
 
-/* ---------- Community: Challenges entry card ---------- */
-.challenges-entry {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-  border-left: 4px solid var(--brand-amber);
-}
-.challenges-entry-icon {
-  display: inline-grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-control);
-  background: var(--brand-amber);
-  color: var(--caution-ink);
-  flex: 0 0 auto;
-}
-.challenges-entry-body {
-  flex: 1;
-  min-width: 0;
-}
-.challenges-entry-body p {
-  margin: 2px 0 0;
-  color: var(--text-secondary);
-  font-size: var(--font-small);
-}
-.challenges-entry-body .challenges-entry-links {
-  display: flex;
-  gap: var(--space-4);
-  margin-top: var(--space-2);
-}
-.challenges-entry-links a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  font-weight: 600;
-}
-.challenges-entry .ui-button {
-  flex: 0 0 auto;
-}
-/* On the narrowest phones the button drops to its own full-width row so the icon + text never get cramped. */
-@media (max-width: 400px) {
-  .challenges-entry .ui-button {
-    flex: 1 1 100%;
-  }
-}
-
 /* ---------- Rewards: locked requirement (wrapping, not a nowrap badge) ---------- */
 .reward-lock {
   display: flex;

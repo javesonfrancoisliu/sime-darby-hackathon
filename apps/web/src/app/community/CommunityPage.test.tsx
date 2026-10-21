@@ -125,24 +125,12 @@ describe("community page", () => {
     expect(screen.getByLabelText("Volunteering: River clean-up drive")).toBeInTheDocument();
   });
 
-  it("links Rankings and Rewards from the Challenges entry card", async () => {
+  it("shows no Challenges entry card on the Community page", async () => {
     installFakeApi(feedRoutes);
     signInAs(VOLUNTEER.id);
     renderApp("/community");
-    const card = await screen.findByRole("region", { name: "Community Challenges" });
-    expect(within(card).getByRole("link", { name: "Rankings" })).toHaveAttribute(
-      "href",
-      "/community/challenges?tab=leaderboard",
-    );
-    expect(within(card).getByRole("link", { name: "Rewards" })).toHaveAttribute(
-      "href",
-      "/community/challenges?tab=rewards",
-    );
-    await userEvent.setup().click(within(card).getByRole("link", { name: "Rewards" }));
-    expect(await screen.findByRole("tab", { name: "Rewards" })).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
+    await screen.findByRole("heading", { name: "Neighbourhood Hub" });
+    expect(screen.queryByRole("region", { name: "Community Challenges" })).not.toBeInTheDocument();
   });
 
   it("keeps high priority updates in the feed without a featured card", async () => {
