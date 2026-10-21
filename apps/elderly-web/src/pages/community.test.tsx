@@ -153,6 +153,25 @@ describe("Notices, volunteering and updates from the API", () => {
     expect(calls.some((c) => c.path === "/api/notices?kind=maintenance")).toBe(true);
   });
 
+  it("shows the year on an update only when it is not the current year", async () => {
+    const old = { ...UPDATE_NOTICE, publishedAt: "2025-03-04T09:00:00+08:00" };
+    const fresh = {
+      ...UPDATE_NOTICE,
+      id: "7e90c14b-f293-4fcc-8f67-9da2f2a0b10b",
+      title: "Recycling day",
+      publishedAt: new Date().toISOString(),
+    };
+    installFakeApi({
+      "GET /api/events": { body: { events: [] } },
+      "GET /api/notices": { body: { items: [old, fresh] } },
+    });
+    await renderApp("/community#updates");
+    expect(await screen.findByText(/Health · Tue 4 Mar 2025/)).toBeInTheDocument();
+    const currentYear = String(new Date().getFullYear());
+    const freshRow = (await screen.findByText("Recycling day")).closest("div") as HTMLElement;
+    expect(freshRow.textContent).not.toContain(currentYear);
+  });
+
   it("shows Finished for an in-progress notice whose window has passed", async () => {
     const past = {
       ...MAINTENANCE,

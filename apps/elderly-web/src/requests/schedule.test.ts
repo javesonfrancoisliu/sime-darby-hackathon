@@ -64,7 +64,16 @@ describe("labels", () => {
   });
 
   it("formats a short date without the clock", () => {
-    expect(formatShortDate("2026-10-19T09:00:00+08:00")).toBe("Mon 19 Oct");
+    const now = new Date("2026-10-21T09:00:00+08:00");
+    expect(formatShortDate("2026-10-19T09:00:00+08:00", now)).toBe("Mon 19 Oct");
+  });
+
+  it("adds the year to a short date outside the current year", () => {
+    const now = new Date("2026-10-21T09:00:00+08:00");
+    expect(formatShortDate("2027-01-05T09:00:00+08:00", now)).toBe("Tue 5 Jan 2027");
+    expect(formatShortDate("2025-12-31T23:30:00+08:00", now)).toBe("Wed 31 Dec 2025");
+    // 31 Dec 2026 at 23:30 Malaysia time is still 2026, though it is 2027 elsewhere.
+    expect(formatShortDate("2026-12-31T23:30:00+08:00", now)).toBe("Thu 31 Dec");
   });
 
   it("formats a time in Malaysia time", () => {

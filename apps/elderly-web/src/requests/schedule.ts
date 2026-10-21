@@ -104,10 +104,13 @@ export function formatDate(iso: string): string {
   return date ? longDateFormat.format(date) : DATE_UNKNOWN;
 }
 
-// For example "Tue 20 Oct", in Malaysia time. Same style as formatWhen without the year and clock.
-export function formatShortDate(iso: string): string {
+// For example "Tue 20 Oct", in Malaysia time, with the year ("Tue 20 Oct 2027") when it is not
+// the current year. Same style as formatWhen without the clock.
+export function formatShortDate(iso: string, now: Date = new Date()): string {
   const date = safeDate(iso);
-  return date ? dateFormat.format(date).replace(",", "") : DATE_UNKNOWN;
+  if (!date) return DATE_UNKNOWN;
+  const otherYear = malaysiaDate(date, 0).slice(0, 4) !== malaysiaDate(now, 0).slice(0, 4);
+  return (otherYear ? whenDateFormat : dateFormat).format(date).replace(",", "");
 }
 
 // For example "Tue 20 Oct 2026, 9:00 am to 5:00 pm", in Malaysia time.
