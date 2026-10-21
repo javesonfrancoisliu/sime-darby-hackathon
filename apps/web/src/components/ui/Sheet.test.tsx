@@ -121,7 +121,7 @@ beforeEach(() => {
 afterEach(async () => {
   vi.restoreAllMocks();
   // Let any history step a closing sheet started finish before the next test.
-  await new Promise((resolve) => setTimeout(resolve, 30));
+  await new Promise((resolve) => setTimeout(resolve, 60));
 });
 
 describe("Sheet open", () => {
@@ -272,6 +272,13 @@ describe("Sheet history after a reload", () => {
     window.history.replaceState({ sdhSheet: "left-over" }, "");
     const back = vi.spyOn(window.history, "back").mockImplementation(() => {});
     dropStaleSheetEntry();
+    expect(back).toHaveBeenCalledTimes(1);
+  });
+
+  it("steps over a stale entry when Back lands on it later", () => {
+    window.history.replaceState({ sdhSheet: "left-over" }, "");
+    const back = vi.spyOn(window.history, "back").mockImplementation(() => {});
+    window.dispatchEvent(new PopStateEvent("popstate"));
     expect(back).toHaveBeenCalledTimes(1);
   });
 

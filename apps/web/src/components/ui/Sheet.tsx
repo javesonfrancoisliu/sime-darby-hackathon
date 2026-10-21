@@ -69,6 +69,18 @@ export function dropStaleSheetEntry(): void {
   if (isStale(currentToken())) window.history.back();
 }
 
+// Going Back onto an entry whose sheet is gone (for example after leaving through a link in the
+// sheet) would be a dead press, so step over it.
+if (typeof window !== "undefined") {
+  window.addEventListener(
+    "popstate",
+    () => {
+      if (isStale(currentToken())) window.history.back();
+    },
+    true,
+  );
+}
+
 // Stop a popstate that only unwinds a sheet's own history entry from reaching the router.
 function swallowOnce(event: PopStateEvent): void {
   event.stopImmediatePropagation();
