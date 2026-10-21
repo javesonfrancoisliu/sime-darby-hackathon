@@ -6,7 +6,7 @@ interface LeaderboardRow {
 
 interface LeaderboardProps {
   /** Other neighbours (display names only, no personal data). */
-  others: { displayName: string; points: number }[];
+  others?: { displayName: string; points: number }[];
   /** The resident's own live points — merged in and highlighted. */
   myPoints: number;
   /** The resident's own name; a neighbour row with the same name is dropped so nobody shows twice. */
@@ -15,10 +15,10 @@ interface LeaderboardProps {
 
 /**
  * Compact neighbourhood leaderboard (ported from the volunteer app's design).
- * Fictional neighbours + the resident's live points; the resident's own row is
+ * The resident's live points plus any real neighbours passed in; the resident's own row is
  * highlighted with "(you)". Display names only. Ranked high to low.
  */
-export function Leaderboard({ others, myPoints, myName }: LeaderboardProps) {
+export function Leaderboard({ others = [], myPoints, myName }: LeaderboardProps) {
   const me = myName.trim();
   const rows: LeaderboardRow[] = [
     ...others
@@ -47,15 +47,9 @@ export function Leaderboard({ others, myPoints, myName }: LeaderboardProps) {
           </li>
         ))}
       </ol>
+      {others.length === 0 ? (
+        <p className="leaderboard-note">Other neighbours will appear here as they join.</p>
+      ) : null}
     </div>
   );
 }
-
-// A small fixed set of fellow neighbours for the demo leaderboard.
-export const NEIGHBOUR_LEADERBOARD: { displayName: string; points: number }[] = [
-  { displayName: "Auntie Mary", points: 320 },
-  { displayName: "Encik Rahman", points: 285 },
-  { displayName: "Uncle Lim", points: 240 },
-  { displayName: "Kak Siti", points: 180 },
-  { displayName: "Pak Hassan", points: 150 },
-];

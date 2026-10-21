@@ -3159,6 +3159,11 @@ main:focus {
   font-size: 1.125rem;
   font-weight: 700;
 }
+.leaderboard-note {
+  margin: var(--space-3) 0 0;
+  color: var(--text-secondary);
+  font-size: var(--font-small);
+}
 .leaderboard {
   list-style: none;
   margin: 0;

@@ -16,7 +16,7 @@ import { IconTrophy, IconFlame, IconGift, IconSparkles, IconUsers, IconCheck } f
 import { SegmentedTabs, TabPanel, type TabItem } from "../ui/SegmentedTabs";
 import { Drawer } from "../ui/Drawer";
 import { PageHeaderActions } from "../ui/PageHeaderActions";
-import { Leaderboard, NEIGHBOUR_LEADERBOARD } from "../ui/Leaderboard";
+import { Leaderboard } from "../ui/Leaderboard";
 import { useAccessibility } from "../context/AccessibilityContext";
 import { Banner } from "../ui/Banner";
 import { Spinner } from "../ui/Spinner";
@@ -263,11 +263,7 @@ export function ChallengesPage() {
                 )}
               </button>
 
-              <Leaderboard
-                others={NEIGHBOUR_LEADERBOARD}
-                myPoints={balance ?? 0}
-                myName={resident?.name ?? ""}
-              />
+              <Leaderboard myPoints={balance ?? 0} myName={resident?.name ?? ""} />
             </Loadable>
           </section>
         </TabPanel>

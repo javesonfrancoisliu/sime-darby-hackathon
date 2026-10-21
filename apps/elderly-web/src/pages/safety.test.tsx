@@ -43,7 +43,7 @@ describe("Home live conditions", () => {
     installFakeApi({
       "GET /api/requests/mine": { body: { requests: [] } },
       ...safetyRoutes,
-      "GET /api/notices": { body: { items: [MAINTENANCE] } },
+      "GET /api/notices": { body: { items: [{ ...MAINTENANCE, area: "Elmina Valley" }] } },
     });
     await renderApp("/");
     const section = (await screen.findByText("Township Live Conditions")).closest("section")!;
@@ -54,6 +54,32 @@ describe("Home live conditions", () => {
     expect(within(section).getByText("Water supply cut")).toBeInTheDocument();
     expect(within(section).getByText("Broken streetlight")).toBeInTheDocument();
     expect(screen.queryByText(/Demo data|Example readings/)).not.toBeInTheDocument();
+  });
+
+  it("skips maintenance that is finished or in another area, and facility damage elsewhere", async () => {
+    installFakeApi({
+      "GET /api/requests/mine": { body: { requests: [] } },
+      "GET /api/safety": {
+        body: {
+          readings: [AIR],
+          facilityReports: FACILITIES.map((f) => ({ ...f, area: "Elmina East" })),
+        },
+      },
+      "GET /api/notices": {
+        body: {
+          items: [
+            { ...MAINTENANCE, title: "Done already", area: "Elmina Valley", status: "completed" },
+            { ...MAINTENANCE, title: "Other precinct", area: "Elmina West" },
+          ],
+        },
+      },
+    });
+    await renderApp("/");
+    const section = (await screen.findByText("Township Live Conditions")).closest("section")!;
+    expect(await within(section).findByText(AIR.advice)).toBeInTheDocument();
+    expect(within(section).queryByText("Done already")).not.toBeInTheDocument();
+    expect(within(section).queryByText("Other precinct")).not.toBeInTheDocument();
+    expect(within(section).queryByText("Broken streetlight")).not.toBeInTheDocument();
   });
 
   it("explains a failed load with Try again and invents nothing", async () => {
