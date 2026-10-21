@@ -1,6 +1,6 @@
-import { useRef, useState, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { Gift, IdCard, LifeBuoy, Settings, UserRound } from "lucide-react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { useSession } from "@sdh/api-client";
 
@@ -43,6 +43,7 @@ export function ProfilePage() {
   const points = usePoints();
   const rewards = useRewards();
   const location = useLocation();
+  const navigate = useNavigate();
   const [sheet, setSheet] = useState<ProfileSheet | null>(() => initialSheet(location.state));
   const [editPersonal, setEditPersonal] = useState(false);
   const [editPrefs, setEditPrefs] = useState(false);
@@ -52,6 +53,13 @@ export function ProfilePage() {
   const opener = useRef<HTMLElement | null>(null);
   const { notify, toast } = useToast();
   const saved = () => notify("Saved");
+
+  // The redirect state only opens My details once: clear it so a reload or a later Back does not.
+  useEffect(() => {
+    if (initialSheet(location.state)) {
+      navigate({ pathname: location.pathname, search: location.search }, { replace: true });
+    }
+  }, [location.state, location.pathname, location.search, navigate]);
 
   const showLocalSignIn = demoSignInEnabled() && !tokenModeEnabled();
 

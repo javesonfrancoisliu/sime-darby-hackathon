@@ -1,10 +1,12 @@
-import { screen, waitFor, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter, useLocation } from "react-router-dom";
 import { User } from "@sdh/contracts";
 import { describe, expect, it } from "vitest";
 
 import { installFakeApi, signInAs } from "../../test/fakeApi";
 import { makePoints, makeReward, TOWNSHIP, VOLUNTEER } from "../../test/fixtures";
+import { App } from "../../App";
 import { renderApp } from "../../test/renderApp";
 import { signedInRoutes } from "../../test/routes";
 
@@ -217,6 +219,24 @@ describe("my details drawer", () => {
     renderApp("/profile/details");
     expect(await screen.findByRole("dialog", { name: "My details" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Profile" })).toBeInTheDocument();
+  });
+
+  it("consumes the redirect state once so a reload or later Back cannot reopen My details", async () => {
+    installFakeApi(signedIn());
+    signInAs(VOLUNTEER.id);
+    let seen: unknown = "unset";
+    function Probe() {
+      seen = useLocation().state;
+      return null;
+    }
+    render(
+      <MemoryRouter initialEntries={["/profile/details"]}>
+        <Probe />
+        <App />
+      </MemoryRouter>,
+    );
+    expect(await screen.findByRole("dialog", { name: "My details" })).toBeInTheDocument();
+    await waitFor(() => expect(seen).toBeNull());
   });
 
   it("returns to My details after the preferences editor saves", async () => {
