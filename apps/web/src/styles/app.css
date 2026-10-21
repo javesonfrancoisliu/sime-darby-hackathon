@@ -1016,6 +1016,15 @@
 .home-help-cta {
   width: 100%;
 }
+.home-challenge-links {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+.home-challenge-links .ui-button {
+  min-width: 0;
+  padding-inline: var(--space-2);
+}
 
 /* ---------- Progress bar ---------- */
 .ui-progress {
@@ -1390,6 +1399,17 @@
   margin: 2px 0 0;
   color: var(--text-secondary);
   font-size: var(--font-small);
+}
+.challenges-entry-body .challenges-entry-links {
+  display: flex;
+  gap: var(--space-4);
+  margin-top: var(--space-2);
+}
+.challenges-entry-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 600;
 }
 .challenges-entry .ui-button {
   flex: 0 0 auto;

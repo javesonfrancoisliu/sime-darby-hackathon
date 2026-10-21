@@ -1,5 +1,5 @@
 import { ArrowRight, Trophy } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { AppButton, InfoCard } from "../ui";
 
@@ -16,6 +16,10 @@ export function ChallengesEntryCard() {
       <div className="challenges-entry-body">
         <strong>Community Challenges</strong>
         <p>Earn points for fitness, clean-ups and eco actions.</p>
+        <p className="challenges-entry-links">
+          <Link to="/community/challenges?tab=leaderboard">Rankings</Link>
+          <Link to="/community/challenges?tab=rewards">Rewards</Link>
+        </p>
       </div>
       <AppButton variant="secondary" onClick={() => navigate("/community/challenges")}>
         Open

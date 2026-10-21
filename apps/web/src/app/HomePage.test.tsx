@@ -1,8 +1,10 @@
 import { screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
 import { installFakeApi, signInAs } from "../test/fakeApi";
 import {
+  ELDER,
   makeDrive,
   makeEvent,
   makeMaintenance,
@@ -84,6 +86,56 @@ describe("home page", () => {
       expect(link).toHaveAttribute("href", href);
       expect(within(link).getByText(chip)).toBeInTheDocument();
     }
+  });
+
+  it("offers Community Challenges below Help a neighbour with deep links for a young resident", async () => {
+    const { calls } = installFakeApi(signedInRoutes(VOLUNTEER));
+    signInAs(VOLUNTEER.id);
+    renderApp("/");
+
+    const card = await screen.findByLabelText("Community Challenges card");
+    const help = screen.getByLabelText("Help a neighbour");
+    expect(help.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(within(card).getByRole("link", { name: "Open challenges" })).toHaveAttribute(
+      "href",
+      "/community/challenges",
+    );
+    expect(within(card).getByRole("link", { name: "Rankings" })).toHaveAttribute(
+      "href",
+      "/community/challenges?tab=leaderboard",
+    );
+    expect(within(card).getByRole("link", { name: "Badges" })).toHaveAttribute(
+      "href",
+      "/community/challenges?tab=badges",
+    );
+    expect(within(card).getByRole("link", { name: "Rewards" })).toHaveAttribute(
+      "href",
+      "/community/challenges?tab=rewards",
+    );
+    // No points are shown, so Home makes no extra request for them.
+    expect(calls.some((c) => c.path.startsWith("/api/me/points"))).toBe(false);
+  });
+
+  it("opens the matching Challenges tab from a shortcut", async () => {
+    installFakeApi(signedInRoutes(VOLUNTEER));
+    signInAs(VOLUNTEER.id);
+    renderApp("/");
+    const user = userEvent.setup();
+
+    const card = await screen.findByLabelText("Community Challenges card");
+    await user.click(within(card).getByRole("link", { name: "Badges" }));
+    expect(await screen.findByRole("tab", { name: "Badges" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+  });
+
+  it("does not show Community Challenges to an elderly resident", async () => {
+    installFakeApi(signedInRoutes(ELDER as typeof VOLUNTEER));
+    signInAs(ELDER.id);
+    renderApp("/");
+    await screen.findByRole("heading", { name: "Welcome to Elmina" });
+    expect(screen.queryByLabelText("Community Challenges card")).not.toBeInTheDocument();
   });
 
   it("shows empty and error states instead of invented content", async () => {
