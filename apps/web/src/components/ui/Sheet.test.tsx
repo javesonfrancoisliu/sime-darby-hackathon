@@ -577,4 +577,16 @@ describe("Sheet guardClose", () => {
     await gone();
     expect(onClosed).toHaveBeenCalledTimes(1);
   });
+
+  it("puts the sheet's own address back when a reused entry sat above another page", async () => {
+    window.history.pushState(null, "", "/elsewhere");
+    window.history.pushState({ sdhSheet: "left-over" }, "", "/here");
+    const block = vi.fn(() => true);
+    render(<Guarded block={block} onClosed={() => {}} />);
+    expect(window.location.pathname).toBe("/here");
+    window.history.back();
+    await waitFor(() => expect(block).toHaveBeenCalledTimes(1));
+    expect(screen.getByRole("dialog", { name: "Guarded" })).toBeInTheDocument();
+    expect(window.location.pathname).toBe("/here");
+  });
 });

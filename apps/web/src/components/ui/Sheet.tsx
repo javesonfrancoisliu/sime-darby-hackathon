@@ -170,6 +170,7 @@ function SheetBody({
   const closeRef = useRef<(force?: boolean) => void>(() => {});
   const entryRef = useRef({
     token: "",
+    url: "",
     active: false,
     mounted: false,
     modalBelow: undefined as unknown,
@@ -332,6 +333,7 @@ function SheetBody({
       entry.token = `${++entryCounter}`;
       entry.modalBelow = modalToken();
       const next = { ...stateBase(), [HISTORY_KEY]: entry.token };
+      entry.url = `${window.location.pathname}${window.location.search}${window.location.hash}`;
       // A marker left by a reload is reused instead of stacking another entry on it.
       if (isStale(currentToken())) window.history.replaceState(next, "");
       else window.history.pushState(next, "");
@@ -344,8 +346,9 @@ function SheetBody({
       if (currentToken() === entry.token) return;
       if (!closing.current && guardRef.current?.()) {
         // Held back: Back already stepped off the sheet's entry, so push it again and stay open.
+        // The sheet's own address is passed, since a reused entry may sit above a different page.
         event.stopImmediatePropagation();
-        window.history.pushState({ ...stateBase(), [HISTORY_KEY]: entry.token }, "");
+        window.history.pushState({ ...stateBase(), [HISTORY_KEY]: entry.token }, "", entry.url);
         settle(0, 1);
         return;
       }
