@@ -5,10 +5,11 @@ import { parse } from "../../lib/validate";
 import { getRequest } from "../requests/repository";
 import { listUsersByRole } from "../users/repository";
 import { matchVolunteers } from "./service";
-import { opportunityRoutes } from "../opportunities/routes";
+import { createOpportunityRoutes } from "../opportunities/routes";
+import { matchOpportunitiesForVolunteer } from "./requestMatching";
 
 export const matchingRoutes: Route[] = [
-  ...opportunityRoutes,
+  ...createOpportunityRoutes(matchOpportunitiesForVolunteer),
   {
     method: "GET",
     path: "/api/requests/{id}/matches",

@@ -1,9 +1,15 @@
 import type { HelpRequest, Opportunity, OpportunitiesQuery, User } from "@sdh/contracts";
 import { scoreVolunteer, type MatchTarget, type ScoredVolunteer } from "../matching/scoring";
 import { DEFAULT_RADIUS_KM } from "../matching/weights";
-import { matchOpportunitiesForVolunteer } from "../matching/requestMatching";
+import type { OpportunityCandidate, OpportunityRecommendation } from "../matching/requestMatching";
 import { listRequestsByStatus } from "../requests/repository";
 import { toSummary } from "../requests/service";
+
+// Injected so the core Lambda, which has no Anthropic client, can serve rules only.
+export type OpportunityRanker = (
+  viewer: User,
+  entries: OpportunityCandidate[],
+) => Promise<OpportunityRecommendation[]>;
 
 interface Candidate {
   startsAt: string;
@@ -47,6 +53,7 @@ function inWindow(startsAt: string, query: OpportunitiesQuery): boolean {
 export async function listOpportunities(
   viewer: User,
   query: OpportunitiesQuery,
+  rank?: OpportunityRanker,
 ): Promise<Opportunity[]> {
   const now = new Date().toISOString();
   const requests = await listRequestsByStatus("open");
@@ -75,7 +82,8 @@ export async function listOpportunities(
     const item = items[index]!;
     return { id: key(item), kind: item.kind, target: candidate.target, scored: score };
   });
-  const recommendations = await matchOpportunitiesForVolunteer(viewer, entries);
+  if (!rank) return items;
+  const recommendations = await rank(viewer, entries);
   const byId = new Map(items.map((item) => [key(item), item]));
   return recommendations.map((recommendation, index) => {
     const item = byId.get(recommendation.id)!;

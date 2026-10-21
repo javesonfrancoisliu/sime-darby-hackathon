@@ -1,11 +1,15 @@
 import { createHash } from "node:crypto";
 import type { User } from "@sdh/contracts";
 import { config } from "../../lib/config";
+import { logger } from "../../lib/logger";
 import { sendClaudeMessage, withTimeout, type SendMessage } from "./claudeReranker";
 import { prepareExplanation } from "./explanations";
 import { buildMessageRequest, matchingText, RankingInput, RANKING_TOOL_NAME } from "./prompt";
 import { ruleReason, type MatchTarget, type ScoredVolunteer } from "./scoring";
 import { CATEGORY_LABELS, SHORTLIST_SIZE } from "./weights";
+
+// The browser gives up on a GET after 8 s, so the feed falls back to rules well before that.
+const FEED_TIMEOUT_MS = 4000;
 
 export interface OpportunityCandidate {
   id: string;
@@ -86,6 +90,18 @@ export function createOpportunityMatcher(
         rankedBy: "rules",
         explanationSource: "rules",
       }));
+    const started = now();
+    // One line per feed load so a live check can read the outcome from CloudWatch.
+    const report = (value: OpportunityRecommendation[], cache: "hit" | "miss") => {
+      logger.info("Opportunity re-rank", {
+        items: entries.length,
+        rankedBy: value.some((r) => r.rankedBy === "ai") ? "ai" : "rules",
+        cache,
+        ms: now() - started,
+        orderChanged: value.some((r, index) => r.id !== entries[index]?.id),
+      });
+      return value;
+    };
     const model = modelId();
     if (
       !model ||
@@ -94,7 +110,7 @@ export function createOpportunityMatcher(
       viewer.verification !== "verified"
     )
       return rules();
-    const timeout = overrides.timeoutMs ?? config.matchingAiTimeoutMs;
+    const timeout = overrides.timeoutMs ?? Math.min(config.matchingAiTimeoutMs, FEED_TIMEOUT_MS);
     const key = createHash("sha256")
       .update(
         JSON.stringify({
@@ -109,9 +125,9 @@ export function createOpportunityMatcher(
       )
       .digest("hex");
     const saved = cache.get(key);
-    if (saved && saved.expires > now()) return saved.value;
+    if (saved && saved.expires > now()) return report(saved.value, "hit");
     const inFlight = pending.get(key);
-    if (inFlight) return inFlight;
+    if (inFlight) return report(await inFlight, "hit");
     if (pending.size >= 100) return rules();
     const work = (async () => {
       let value = rules();
@@ -141,8 +157,12 @@ export function createOpportunityMatcher(
           });
         }
         if (ai.length) value = [...ai, ...value.filter((r) => !seen.has(r.id))];
-      } catch {
-        /* Missing credentials, timeout, quota and malformed output retain deterministic rules. */
+      } catch (error) {
+        // Missing credentials, timeout, quota and malformed output keep the rule order.
+        // Log the failure kind only; never feed, volunteer or key data.
+        logger.warn("Opportunity re-rank failed, using rules", {
+          error: error instanceof Error ? error.name : "unknown",
+        });
       }
       for (const [k, v] of cache) if (v.expires <= now()) cache.delete(k);
       if (cache.size >= 100) cache.delete(cache.keys().next().value!);
@@ -153,7 +173,7 @@ export function createOpportunityMatcher(
       return value;
     })().finally(() => pending.delete(key));
     pending.set(key, work);
-    return work;
+    return report(await work, "miss");
   };
 }
 export const matchOpportunitiesForVolunteer = createOpportunityMatcher();
