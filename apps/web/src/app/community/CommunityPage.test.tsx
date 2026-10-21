@@ -134,6 +134,20 @@ describe("community page", () => {
     expect(await screen.findByRole("dialog", { name: "Couldn't sign you up" })).toBeVisible();
   });
 
+  it("shows the year and a singular spot on an event card", async () => {
+    const last = makeEvent({ title: "Last seat", capacity: 5, signupCount: 4 });
+    installFakeApi({
+      ...feedRoutes,
+      "GET /api/events": { body: { events: [last] } },
+    });
+    signInAs(VOLUNTEER.id);
+    renderApp("/community");
+
+    const card = await screen.findByLabelText("Event: Last seat");
+    expect(within(card).getByText(/spot left/)).toHaveTextContent("Only 1 spot left");
+    expect(within(card).getAllByText(/Thu 22 Oct 2026, 10:00 am/).length).toBeGreaterThan(0);
+  });
+
   it("shows free slots on a volunteer drive", async () => {
     installFakeApi(feedRoutes);
     signInAs(VOLUNTEER.id);

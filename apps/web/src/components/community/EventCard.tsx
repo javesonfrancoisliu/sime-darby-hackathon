@@ -59,7 +59,7 @@ export function EventCard({ event, onRegister }: EventCardProps) {
             "Fully booked"
           ) : (
             <>
-              Only <strong>{slots}</strong> spots left
+              Only <strong>{slots}</strong> {slots === 1 ? "spot" : "spots"} left
             </>
           )}
         </span>

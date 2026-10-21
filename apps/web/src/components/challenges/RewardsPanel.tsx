@@ -18,7 +18,10 @@ export type RewardsPanelProps = {
 
 // Why a locked reward is out of reach, in plain words.
 function lockHint(reward: RewardWithStatus, balance: number): string {
-  if (reward.pointsCost > balance) return `${reward.pointsCost - balance} more points needed`;
+  if (reward.pointsCost > balance) {
+    const short = reward.pointsCost - balance;
+    return `${short} more ${short === 1 ? "point" : "points"} needed`;
+  }
   if (reward.minVolunteerTasks) {
     return `Complete ${reward.minVolunteerTasks} volunteer tasks to unlock`;
   }

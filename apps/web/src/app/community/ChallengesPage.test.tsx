@@ -336,6 +336,22 @@ describe("challenges page", () => {
     expect(new Set(names.filter(Boolean)).size).toBe(names.filter(Boolean).length);
   });
 
+  it("uses the singular when a locked reward is one point away", async () => {
+    installFakeApi(
+      signedInRoutes(VOLUNTEER, {
+        "GET /api/me/points": { body: makePoints(19) },
+        "GET /api/rewards": {
+          body: { rewards: [makeReward({ pointsCost: 20, status: "locked" })] },
+        },
+      }),
+    );
+    signInAs(VOLUNTEER.id);
+    renderApp("/community/challenges");
+
+    await openTab("Rewards");
+    expect(await screen.findByText("1 more point needed")).toBeInTheDocument();
+  });
+
   it("redeems a reward and shows the points left", async () => {
     const reward = makeReward({ status: "available" });
     installFakeApi(
