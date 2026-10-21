@@ -51,7 +51,7 @@ function ToggleRow({
 
 // Settings: notification and privacy choices saved to the account, plus help and sign out.
 export function SettingsCard() {
-  const { settings, loading, error, saveError, update } = useSettings();
+  const { settings, loading, error, saveError, update, reload } = useSettings();
   const { leaderboardOptIn, setLeaderboardOptIn } = useProfile();
   const { township } = useTownship();
   const { signOut } = useSession();
@@ -73,6 +73,17 @@ export function SettingsCard() {
       confirmVariant: "danger",
       onConfirm: signOutOfAccount,
     });
+  }
+
+  async function changeLargeText(next: boolean) {
+    setOptInError(null);
+    try {
+      await setLargeText(next);
+      // Reload so the next toggle starts from the saved text size.
+      await reload();
+    } catch (err) {
+      setOptInError(errorMessage(err));
+    }
   }
 
   async function changeOptIn(next: boolean) {
@@ -130,7 +141,7 @@ export function SettingsCard() {
             description="Increase text and control sizes across the app."
             checked={largeText}
             disabled={false}
-            onChange={setLargeText}
+            onChange={(next) => void changeLargeText(next)}
           />
 
           <h3 className="impact-subhead">Notifications</h3>

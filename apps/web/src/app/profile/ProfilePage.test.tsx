@@ -4,7 +4,7 @@ import { PutSettingsBody, UpdateMeBody, User } from "@sdh/contracts";
 import { describe, expect, it, vi } from "vitest";
 
 import { installFakeApi, signInAs } from "../../test/fakeApi";
-import { makeReward, VOLUNTEER } from "../../test/fixtures";
+import { makeReward, SETTINGS, VOLUNTEER } from "../../test/fixtures";
 import { renderApp } from "../../test/renderApp";
 import { signedInRoutes } from "../../test/routes";
 
@@ -344,7 +344,13 @@ describe("profile page", () => {
   });
 
   it("turns on larger text and applies the comfort sizing to the app shell", async () => {
-    installFakeApi(signedIn());
+    const { calls } = installFakeApi(
+      signedIn({
+        "PUT /api/me/settings": ({ body }) => ({
+          body: { ...(body as object), updatedAt: "2026-10-19T00:00:00Z" },
+        }),
+      }),
+    );
     signInAs(VOLUNTEER.id);
     const { container } = renderApp("/profile");
     const user = userEvent.setup();
@@ -358,6 +364,59 @@ describe("profile page", () => {
 
     await waitFor(() => expect(toggle).toBeChecked());
     expect(container.querySelector(".app-shell")).toHaveClass("easy-view");
+    await waitFor(() => expect(calls.some((c) => c.method === "PUT")).toBe(true));
+    expect(PutSettingsBody.parse(calls.find((c) => c.method === "PUT")?.body)).toMatchObject({
+      fontSize: "large",
+      notifyEvents: true,
+    });
+  });
+
+  it("loads larger text from the account and saves normal when it is turned off", async () => {
+    const { calls } = installFakeApi(
+      signedIn({
+        "GET /api/me/settings": { body: { ...SETTINGS, fontSize: "large" } },
+        "PUT /api/me/settings": ({ body }) => ({
+          body: { ...(body as object), updatedAt: "2026-10-19T00:00:00Z" },
+        }),
+      }),
+    );
+    signInAs(VOLUNTEER.id);
+    const { container } = renderApp("/profile");
+    const user = userEvent.setup();
+
+    await waitFor(() => expect(container.querySelector(".app-shell")).toHaveClass("easy-view"));
+    await user.click(await screen.findByRole("button", { name: "Settings. Show details" }));
+    const toggle = await screen.findByRole("switch", { name: /Larger text/ });
+    expect(toggle).toBeChecked();
+
+    await user.click(toggle);
+
+    await waitFor(() => expect(toggle).not.toBeChecked());
+    await waitFor(() => expect(calls.some((c) => c.method === "PUT")).toBe(true));
+    expect(PutSettingsBody.parse(calls.find((c) => c.method === "PUT")?.body).fontSize).toBe(
+      "normal",
+    );
+  });
+
+  it("puts larger text back and shows the error when saving fails", async () => {
+    installFakeApi(
+      signedIn({
+        "PUT /api/me/settings": {
+          status: 500,
+          body: { error: { code: "INTERNAL", message: "Could not save" } },
+        },
+      }),
+    );
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Settings. Show details" }));
+    const toggle = await screen.findByRole("switch", { name: /Larger text/ });
+    await user.click(toggle);
+
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
+    await waitFor(() => expect(toggle).not.toBeChecked());
   });
 
   it("lists the redeemed rewards with their date", async () => {

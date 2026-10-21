@@ -44,5 +44,5 @@ export function useSettings() {
   );
 
   const settings = data ? { ...data, ...pending } : null;
-  return { settings, loading, error, saveError, update };
+  return { settings, loading, error, saveError, update, reload };
 }
