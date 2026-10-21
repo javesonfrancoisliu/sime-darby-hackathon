@@ -94,6 +94,21 @@ describe("challenges page", () => {
     expect(calls.some((c) => c.method === "POST" && c.path.endsWith("/join"))).toBe(true);
   });
 
+  it("asks about the quiz, not progress, before joining a quiz challenge", async () => {
+    installFakeApi(
+      signedInRoutes(VOLUNTEER, {
+        "GET /api/challenges": { body: { challenges: [QUIZ_CHALLENGE] } },
+      }),
+    );
+    signInAs(VOLUNTEER.id);
+    renderApp("/community/challenges");
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Join challenge" }));
+    expect(await screen.findByText(/You can take the quiz afterwards/)).toBeInTheDocument();
+    expect(screen.queryByText(/log your progress afterwards/)).not.toBeInTheDocument();
+  });
+
   it("validates logged progress and notes a value above the goal", async () => {
     const joined = {
       ...CHALLENGE,

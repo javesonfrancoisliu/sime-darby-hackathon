@@ -151,7 +151,9 @@ export function ChallengesPage() {
   function handleJoin(challenge: ChallengeWithProgress) {
     confirm.ask({
       title: "Join this challenge?",
-      message: `Join "${challenge.title}"? You can log your progress afterwards.`,
+      message: challenge.quizId
+        ? `Join "${challenge.title}"? You can take the quiz afterwards.`
+        : `Join "${challenge.title}"? You can log your progress afterwards.`,
       confirmLabel: "Yes, join",
       onConfirm: () =>
         run(
