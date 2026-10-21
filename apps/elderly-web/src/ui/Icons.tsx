@@ -18,6 +18,7 @@ import {
   Bell,
   Calendar,
   Car,
+  ArrowRight,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -96,6 +97,7 @@ export const IconAlertTriangle = withDefaults(AlertTriangle);
 export const IconClock = withDefaults(Clock);
 export const IconCheck = withDefaults(Check);
 export const IconShieldCheck = withDefaults(ShieldCheck);
+export const IconArrowRight = withDefaults(ArrowRight);
 export const IconChevronLeft = withDefaults(ChevronLeft);
 export const IconChevronRight = withDefaults(ChevronRight);
 export const IconPlus = withDefaults(Plus);

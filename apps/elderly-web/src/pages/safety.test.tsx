@@ -47,6 +47,11 @@ describe("Safety from Home", () => {
     expect(screen.queryByRole("button", { name: "Safety" })).not.toBeInTheDocument();
     const link = await screen.findByRole("button", { name: "All hazards" });
     expect(link.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+    // Same right arrow as the Youth app, on every see-all link of the page.
+    for (const name of ["All hazards", "All services", "See all"]) {
+      const seeAll = await screen.findByRole("button", { name });
+      expect(seeAll.querySelector("svg.lucide-arrow-right")).not.toBeNull();
+    }
     await userEvent.click(link);
     expect(document.title).toBe("Health and safety - Township Connect");
     expect(await screen.findByRole("heading", { level: 1 })).toBeInTheDocument();
