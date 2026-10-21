@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderApp } from "../test/renderRoute";
 import { installFakeApi, signInAs } from "../test/fakeApi";
@@ -127,19 +127,64 @@ describe("Community Play from the API", () => {
     expect(screen.getAllByText(/more points to unlock/)).toHaveLength(1);
   });
 
+  it("uses the singular when a locked reward is one point away", async () => {
+    const close = { ...REWARD, pointsCost: 261, status: "locked" };
+    installFakeApi({ ...baseRoutes, "GET /api/rewards": { body: { rewards: [close] } } });
+    await renderApp("/challenges");
+    await userEvent.click(await screen.findByRole("tab", { name: /Rewards/i }));
+    expect(await screen.findByText("1 more point to unlock")).toBeInTheDocument();
+  });
+
+  it("loads the rewards again after a check-in so unlocked ones can be redeemed", async () => {
+    const { calls } = installFakeApi({
+      ...baseRoutes,
+      "POST /api/me/check-in": {
+        body: {
+          streak: {
+            current: 1,
+            best: 1,
+            lastCheckInDate: malaysiaToday(),
+            recent: [malaysiaToday()],
+          },
+          pointsAwarded: 10,
+          points: 270,
+        },
+      },
+    });
+    await renderApp("/challenges");
+    await userEvent.click(await screen.findByRole("button", { name: /Check in today/i }));
+    await screen.findByRole("button", { name: /Checked in today/i });
+    await waitFor(() =>
+      expect(calls.filter((c) => c.method === "GET" && c.path === "/api/rewards")).toHaveLength(2),
+    );
+  });
+
   it("redeems a reward and deducts the points", async () => {
+    let redeemed = false;
     installFakeApi({
       ...baseRoutes,
-      [`POST /api/rewards/${REWARD.id}/redeem`]: {
+      "GET /api/rewards": () => ({
         body: {
-          redemption: {
-            rewardId: REWARD.id,
-            title: REWARD.title,
-            pointsSpent: 80,
-            redeemedAt: "2026-10-19T10:00:00Z",
-          },
-          points: 180,
+          rewards: [
+            redeemed
+              ? { ...REWARD, status: "redeemed", redeemedAt: "2026-10-19T10:00:00Z" }
+              : REWARD,
+          ],
         },
+      }),
+      [`POST /api/rewards/${REWARD.id}/redeem`]: () => {
+        redeemed = true;
+        return {
+          body: {
+            redemption: {
+              rewardId: REWARD.id,
+              title: REWARD.title,
+              pointsSpent: 80,
+              redeemedAt: "2026-10-19T10:00:00Z",
+            },
+            points: 180,
+          },
+        };
       },
     });
     await renderApp("/challenges");

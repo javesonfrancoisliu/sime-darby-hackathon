@@ -44,6 +44,9 @@ const NO_PRECINCT_TEXT =
   "Your neighbourhood is not set up for team goals yet. Please ask the community team to update your area.";
 
 // Cheapest first, so the next reward within reach is at the top.
+// For example "1 more point" or "3 more points".
+const moreText = (n: number) => `${n} more ${n === 1 ? "point" : "points"}`;
+
 const byCost = (a: { pointsCost: number }, b: { pointsCost: number }) =>
   a.pointsCost - b.pointsCost;
 
@@ -115,6 +118,8 @@ export function ChallengesPage() {
     if (!result) return;
     streak.update(() => result.streak);
     setBalance(result.points);
+    // Which rewards are locked depends on the balance, so load them again.
+    rewards.refetch();
     setToast(`Nice! +${result.pointsAwarded} points`);
     window.setTimeout(() => setToast(""), 2200);
     if (voiceAssist) {
@@ -133,6 +138,7 @@ export function ChallengesPage() {
     );
     if (result.pointsAwarded > 0) {
       points.update((p) => ({ ...p, points: p.points + result.pointsAwarded }));
+      rewards.refetch();
     }
     setToast(`Thank you! +${result.pointsAwarded} points for ${neighbourhood}`);
     window.setTimeout(() => setToast(""), 2200);
@@ -148,6 +154,7 @@ export function ChallengesPage() {
         r.id === id ? { ...r, status: "redeemed", redeemedAt: result.redemption.redeemedAt } : r,
       ),
     );
+    rewards.refetch();
     if (voiceAssist) speak(`Redeemed: ${title}.`);
   }
 
@@ -439,7 +446,7 @@ export function ChallengesPage() {
                         {r.partner ? <p className="play-reward__partner">{r.partner}</p> : null}
                         {!isRedeemed && !affordable ? (
                           <p className="play-reward__partner">
-                            {r.pointsCost - (balance ?? 0)} more points to unlock
+                            {moreText(r.pointsCost - (balance ?? 0))} to unlock
                           </p>
                         ) : null}
                       </div>
