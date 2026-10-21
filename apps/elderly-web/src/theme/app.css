@@ -2994,6 +2994,16 @@ main:focus {
 .category-choice-card__heading {
   margin-bottom: 2px;
 }
+.app-sync-notice {
+  position: fixed;
+  top: var(--space-4);
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 2 * var(--space-4));
+  max-width: 480px;
+  z-index: 1100;
+}
+
 .app-banner {
   border-color: var(--danger);
   color: var(--danger);

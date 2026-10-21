@@ -100,6 +100,58 @@ describe("settings follow the person", () => {
     expect(window.localStorage.getItem(ACCESSIBILITY_STORAGE_KEY)).toContain("xlarge");
   });
 
+  it("leaves a split reminders state alone when something else changes", async () => {
+    const { calls } = installFakeApi({
+      "GET /api/me/settings": {
+        body: { ...saved, notifyEvents: true, notifyVolunteering: false, fontSize: "large" },
+      },
+      "PUT /api/me/settings": (call) => ({ body: { ...(call.body as object), updatedAt: "x" } }),
+    });
+    await renderApp("/me");
+    await waitFor(() => expect(calls.some((c) => c.path === "/api/me/settings")).toBe(true));
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    await userEvent.click(screen.getByRole("button", { name: /^Settings/ }));
+    await userEvent.click(screen.getByRole("radio", { name: /X-Large/i }));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(SETTINGS_SAVE_DELAY_MS + 50);
+    });
+    expect(calls.filter((c) => c.method === "PUT")[0]?.body).toMatchObject({
+      notifyEvents: true,
+      notifyVolunteering: false,
+    });
+    await userEvent.click(screen.getByRole("switch", { name: "Reminders" }));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(SETTINGS_SAVE_DELAY_MS + 50);
+    });
+    expect(calls.filter((c) => c.method === "PUT")[1]?.body).toMatchObject({
+      notifyEvents: false,
+      notifyVolunteering: false,
+    });
+  });
+
+  it("shows a retryable message when saving fails and saves again on retry", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    let puts = 0;
+    const { calls } = installFakeApi({
+      "GET /api/me/settings": { body: { ...saved, fontSize: "large" } },
+      "PUT /api/me/settings": (call) => {
+        puts += 1;
+        return puts === 1
+          ? { status: 500, body: {} }
+          : { body: { ...(call.body as object), updatedAt: "x" } };
+      },
+    });
+    await renderApp("/me");
+    await waitFor(() => expect(calls.some((c) => c.path === "/api/me/settings")).toBe(true));
+    await userEvent.click(screen.getByRole("button", { name: /^Settings/ }));
+    await userEvent.click(screen.getByRole("radio", { name: /X-Large/i }));
+    const alert = await screen.findByText(/settings were not saved/i, {}, { timeout: 3000 });
+    expect(alert).toBeVisible();
+    await userEvent.click(screen.getByRole("button", { name: "Save again" }));
+    await waitFor(() => expect(screen.queryByText(/settings were not saved/i)).toBeNull());
+    expect(calls.filter((c) => c.method === "PUT")).toHaveLength(2);
+  });
+
   it("keeps working from the local copy when the server cannot be reached", async () => {
     vi.spyOn(console, "warn").mockImplementation(() => {});
     installFakeApi({ "GET /api/me/settings": { status: 500, body: {} } });

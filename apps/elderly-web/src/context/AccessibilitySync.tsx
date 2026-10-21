@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { useSession } from "@sdh/api-client";
 import { DEFAULT_SETTINGS, type PutSettingsBody } from "@sdh/contracts";
 import { settingsApi } from "../api/settings";
-import { logApiError } from "../api/errors";
+import { logApiError, toFriendlyError } from "../api/errors";
+import { Banner } from "../ui/Banner";
 import { useAccessibility } from "./AccessibilityContext";
 
 // Wait for the person to stop tapping before saving, so one burst is one save.
@@ -17,6 +18,10 @@ export function AccessibilitySync() {
   const [readyFor, setReadyFor] = useState<string | null>(null);
   const remote = useRef<PutSettingsBody>(DEFAULT_SETTINGS);
   const lastSaved = useRef("");
+  const lastReminders = useRef(false);
+  const retryNow = useRef(false);
+  const [failure, setFailure] = useState("");
+  const [attempt, setAttempt] = useState(0);
 
   const userId = status === "signed_in" ? (user?.id ?? null) : null;
   const createdAt = user?.createdAt;
@@ -40,6 +45,7 @@ export function AccessibilitySync() {
           reminders: source.notifyEvents || source.notifyVolunteering,
         };
         lastSaved.current = JSON.stringify(synced);
+        lastReminders.current = synced.reminders;
         applyRemoteSettings(synced);
         setReadyFor(userId);
       })
@@ -54,11 +60,15 @@ export function AccessibilitySync() {
     const synced = { fontSize, highContrast, reducedMotion, voiceAssist, reminders };
     const key = JSON.stringify(synced);
     if (key === lastSaved.current) return;
+    const delay = retryNow.current ? 0 : SETTINGS_SAVE_DELAY_MS;
+    retryNow.current = false;
     const timer = setTimeout(() => {
       const { reminders: notify, ...appearance } = synced;
+      // Only a changed Reminders switch writes the two flags; otherwise the server's own stay.
+      const remindersChanged = notify !== lastReminders.current;
       const body: PutSettingsBody = {
-        notifyEvents: notify,
-        notifyVolunteering: notify,
+        notifyEvents: remindersChanged ? notify : remote.current.notifyEvents,
+        notifyVolunteering: remindersChanged ? notify : remote.current.notifyVolunteering,
         shareApproxLocation: remote.current.shareApproxLocation,
         ...appearance,
       };
@@ -67,11 +77,26 @@ export function AccessibilitySync() {
         .then((saved) => {
           remote.current = saved;
           lastSaved.current = key;
+          lastReminders.current = notify;
+          setFailure("");
         })
-        .catch(logApiError);
-    }, SETTINGS_SAVE_DELAY_MS);
+        .catch((error: unknown) => setFailure(toFriendlyError(error).message));
+    }, delay);
     return () => clearTimeout(timer);
-  }, [ready, fontSize, highContrast, reducedMotion, voiceAssist, reminders]);
+    // attempt re-arms the save after a failed one.
+  }, [ready, fontSize, highContrast, reducedMotion, voiceAssist, reminders, attempt]);
 
-  return null;
+  if (!failure) return null;
+  return (
+    <div className="app-sync-notice">
+      <Banner
+        message={`Your settings were not saved to your account. ${failure}`}
+        retryLabel="Save again"
+        onRetry={() => {
+          retryNow.current = true;
+          setAttempt((n) => n + 1);
+        }}
+      />
+    </div>
+  );
 }
