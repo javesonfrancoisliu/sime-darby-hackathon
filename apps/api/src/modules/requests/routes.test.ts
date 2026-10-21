@@ -462,6 +462,22 @@ describe("help requests", () => {
       expect((matched.body as RequestsResponse).requests.map((r) => r.id)).toContain(open.id);
     });
 
+    it("tells a volunteer the request was cancelled rather than taken", async () => {
+      const open = await createOpen();
+      await call("POST", `/api/requests/${open.id}/cancel`, { as: elder.id });
+      const res = await call("POST", `/api/requests/${open.id}/accept`, { as: volunteer.id });
+      expect(res.status).toBe(409);
+      expect(res.body).toMatchObject({
+        error: { code: "CONFLICT", message: "Request was cancelled" },
+      });
+
+      const taken = await createOpen();
+      const first = await createVerifiedVolunteer(coordinator.id);
+      await call("POST", `/api/requests/${taken.id}/accept`, { as: first.id });
+      const late = await call("POST", `/api/requests/${taken.id}/accept`, { as: volunteer.id });
+      expect(late.body).toMatchObject({ error: { message: "Request was already taken" } });
+    });
+
     it("returns the exact place and no elder id when the elder shares nothing extra", async () => {
       const open = await createOpen();
       const res = await call("POST", `/api/requests/${open.id}/accept`, { as: volunteer.id });

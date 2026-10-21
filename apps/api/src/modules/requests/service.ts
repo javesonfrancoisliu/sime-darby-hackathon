@@ -253,7 +253,12 @@ export async function acceptRequest(volunteer: User, id: string): Promise<Assign
     updatedAt: now,
   });
   if (outcome === "conflict") throw new HttpError("CONFLICT_RETRY", "Try again in a moment");
-  if (outcome === "taken") throw new HttpError("CONFLICT", "Request was already taken");
+  if (outcome === "taken") {
+    const current = await loadOrThrow(id);
+    const message =
+      current.status === "cancelled" ? "Request was cancelled" : "Request was already taken";
+    throw new HttpError("CONFLICT", message);
+  }
   if (outcome === "slot_taken") {
     throw new HttpError("CONFLICT", "You already have a request at this time");
   }
