@@ -30,7 +30,8 @@ function PillRow({ label, values }: { label: string; values: string[] }) {
 export function PreferencesCard({ onEdit }: PreferencesCardProps) {
   const [open, setOpen] = useState(false);
   const { prefs } = useProfile();
-  const availability = [
+  // Slots saved outside the day and time choices are shown exactly, not as a lossy summary.
+  const availability = prefs.customAvailability ?? [
     ...prefs.availability.days.map((d) => PREFERRED_DAY_LABEL[d]),
     ...prefs.availability.times.map((t) => TIME_OF_DAY_LABEL[t]),
   ];

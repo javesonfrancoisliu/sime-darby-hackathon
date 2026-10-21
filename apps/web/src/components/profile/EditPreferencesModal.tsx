@@ -18,6 +18,8 @@ import { AppButton, Modal } from "../ui";
 export type EditPreferencesModalProps = {
   open: boolean;
   onClose: () => void;
+  // Called after the preferences are saved.
+  onSaved?: () => void;
 };
 
 function toggle<T>(list: T[], value: T): T[] {
@@ -60,7 +62,7 @@ function ChipGroup<T extends string>({
 // Edit volunteer preferences: skills, interests, availability (simplified
 // day-group + time-of-day), languages. Chip multi-selects keep it compact on
 // mobile.
-export function EditPreferencesModal({ open, onClose }: EditPreferencesModalProps) {
+export function EditPreferencesModal({ open, onClose, onSaved }: EditPreferencesModalProps) {
   const { prefs, updatePrefs } = useProfile();
   const [skills, setSkills] = useState(prefs.skills);
   const [interests, setInterests] = useState(prefs.interests);
@@ -91,6 +93,7 @@ export function EditPreferencesModal({ open, onClose }: EditPreferencesModalProp
         ...(!sameSet(languages, prefs.languages) && { languages }),
         ...(availabilityChanged && { availability: { days, times } }),
       });
+      onSaved?.();
       onClose();
     } catch (err) {
       setSaveError(errorMessage(err));

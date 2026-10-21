@@ -115,3 +115,30 @@ it("keeps a long validated explanation accessible with Show more and Show less",
   await userEvent.click(screen.getByRole("button", { name: "Show less" }));
   expect(text.parentElement).toHaveClass("opportunity-card__reason-lines--preview");
 });
+
+it("keeps the line breaks of the request note", () => {
+  render(
+    <ul>
+      <OpportunityCard
+        opportunity={{
+          id: "fictional-notes",
+          kind: "request",
+          title: "Nearby help",
+          summary: "Milk\nBread",
+          category: "groceries",
+          distanceKm: 0.5,
+          area: "Elmina West",
+          scheduledAt: "2027-01-01T02:00:00Z",
+          durationMinutes: 60,
+          matchScore: 70,
+          reasons: [],
+          fitsMySchedule: false,
+        }}
+        urgency="low"
+        joined={false}
+        onAccept={vi.fn()}
+      />
+    </ul>,
+  );
+  expect(screen.getByText(/Milk/)).toHaveClass("ui-multiline");
+});

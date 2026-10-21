@@ -84,7 +84,7 @@ export function RequestsListPage() {
                 </div>
                 <p className="apple-card-button__desc">{formatWhen(req.scheduledAt)}</p>
                 {req.description ? (
-                  <p className="apple-card-button__desc">{req.description}</p>
+                  <p className="apple-card-button__desc text-multiline">{req.description}</p>
                 ) : null}
                 {req.volunteerName && (
                   <span className="apple-card-button__volunteer">

@@ -89,7 +89,7 @@ export function OpportunityCard({
         }
       >
         <div className="ui-stack ui-gap-2">
-          <p className="feature-card-desc">{opportunity.summary}</p>
+          <p className="feature-card-desc ui-multiline">{opportunity.summary}</p>
           <span className="inline-icon">
             <Clock size={16} aria-hidden="true" />
             {opportunity.durationMinutes} min

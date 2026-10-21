@@ -37,7 +37,7 @@ export function ConfirmStep(props: ConfirmStepProps) {
         {description.trim() ? (
           <div className="apple-inset-row">
             <span className="app-detail-label">Your note</span>
-            <span className="apple-inset-value">{description.trim()}</span>
+            <span className="apple-inset-value text-multiline">{description.trim()}</span>
           </div>
         ) : null}
         <div className="apple-inset-row">

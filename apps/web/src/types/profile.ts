@@ -27,6 +27,8 @@ export type ProfilePrefs = {
   // Preferred assistance interests - also task categories.
   interests: TaskCategory[];
   availability: AvailabilityPreference;
+  // Exact slots as text, set only when the stored slots do not fit the day and time choices.
+  customAvailability?: string[];
   // Preferred communication languages.
   languages: Language[];
 };

@@ -114,6 +114,27 @@ describe("Requests list", () => {
   });
 });
 
+describe("Notes with line breaks", () => {
+  const multi = makeRequest({
+    id: "3a5c8fa7-be5f-4b88-8c23-5f6ebe6c7d06",
+    description: "Milk\nBread\nEggs",
+    status: "matched",
+    volunteerName: "Aisha",
+  });
+
+  it("keeps the line breaks in the list", async () => {
+    installFakeApi(listOf(multi));
+    await renderApp("/requests");
+    expect(await screen.findByText(/Milk/)).toHaveClass("text-multiline");
+  });
+
+  it("keeps the line breaks in the detail", async () => {
+    installFakeApi({ [`GET /api/requests/${multi.id}`]: { body: multi } });
+    await renderApp(`/requests/${multi.id}`);
+    expect(await screen.findByText(/Milk/)).toHaveClass("text-multiline");
+  });
+});
+
 describe("Request detail", () => {
   it("shows the title, when and where, not the request id", async () => {
     installFakeApi({ [`GET /api/requests/${open.id}`]: { body: open } });

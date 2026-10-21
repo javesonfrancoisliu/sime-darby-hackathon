@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import { errorMessage } from "@sdh/api-client";
-import { MAX_NAME_LENGTH } from "@sdh/contracts";
+import { MAX_NAME_LENGTH, Precinct } from "@sdh/contracts";
 
 import { useProfile } from "../../data/ProfileContext";
 import { AppButton, FormField, Modal } from "../ui";
@@ -10,28 +10,29 @@ import { Avatar } from "./Avatar";
 export type EditPersonalModalProps = {
   open: boolean;
   onClose: () => void;
+  // Called after the details are saved.
+  onSaved?: () => void;
 };
 
-// Edit display name and area. The avatar is initials-based and previews live.
-export function EditPersonalModal({ open, onClose }: EditPersonalModalProps) {
+// Edit display name and precinct. The avatar is initials-based and previews live.
+export function EditPersonalModal({ open, onClose, onSaved }: EditPersonalModalProps) {
   const { prefs, updatePrefs } = useProfile();
   const [name, setName] = useState(prefs.displayName);
-  const [area, setArea] = useState(prefs.area);
+  // Team challenges only accept the four precincts; an older free-text area starts unselected.
+  const [area, setArea] = useState(Precinct.safeParse(prefs.area).success ? prefs.area : "");
   const [nameError, setNameError] = useState<string | null>(null);
-  const [areaError, setAreaError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   async function save() {
     const nextName = name.trim();
-    const nextArea = area.trim();
     setNameError(nextName ? null : "Please enter a display name.");
-    setAreaError(nextArea ? null : "Please enter your township or neighbourhood.");
-    if (!nextName || !nextArea) return;
+    if (!nextName) return;
     setBusy(true);
     setSaveError(null);
     try {
-      await updatePrefs({ displayName: nextName, area: nextArea });
+      await updatePrefs({ displayName: nextName, ...(area && { area }) });
+      onSaved?.();
       onClose();
     } catch (err) {
       setSaveError(errorMessage(err));
@@ -67,14 +68,25 @@ export function EditPersonalModal({ open, onClose }: EditPersonalModalProps) {
         onChange={(e) => setName(e.target.value)}
         error={nameError ?? undefined}
       />
-      <FormField
-        label="Township / neighbourhood"
-        value={area}
-        maxLength={MAX_NAME_LENGTH}
-        onChange={(e) => setArea(e.target.value)}
-        error={areaError ?? undefined}
-        helper="Saved to your account."
-      />
+      <fieldset className="chip-fieldset">
+        <legend className="pref-row-label">Township / neighbourhood</legend>
+        <div className="ui-chip-row ui-gap-2">
+          {Precinct.options.map((precinct) => (
+            <button
+              key={precinct}
+              type="button"
+              className="ui-chip"
+              aria-pressed={area === precinct}
+              onClick={() => setArea(precinct)}
+            >
+              {precinct}
+            </button>
+          ))}
+        </div>
+        <p className="ui-helper">
+          {area ? "Saved to your account." : "Choose your precinct to join team challenges"}
+        </p>
+      </fieldset>
       {saveError && (
         <p className="ui-error ui-flush" role="alert">
           {saveError}

@@ -26,7 +26,8 @@ import {
 // Me page: who is signed in, one-tap text and sound settings, and the township
 // security number. The Medical ID is the resident's own, saved on the server.
 export function MePage() {
-  const { openSheet, fontSize, highContrast, voiceAssist, speak } = useAccessibility();
+  const { openSheet, fontSize, highContrast, reducedMotion, voiceAssist, speak } =
+    useAccessibility();
   const { requestCall } = useCallConfirm();
   const resident = useResident();
   const { signOut } = useSession();
@@ -125,7 +126,8 @@ export function MePage() {
                 <span className="apple-inset-btn-row__title">Text and sound settings</span>
                 <span className="apple-inset-btn-row__subtitle">
                   Text size: {FONT_LABEL[fontSize]} · Strong contrast: {highContrast ? "On" : "Off"}{" "}
-                  · Read aloud: {voiceAssist ? "On" : "Off"}
+                  · Less movement: {reducedMotion ? "On" : "Off"} · Read aloud:{" "}
+                  {voiceAssist ? "On" : "Off"}
                 </span>
               </div>
             </div>

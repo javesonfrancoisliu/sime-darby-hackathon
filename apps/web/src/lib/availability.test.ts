@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { preferenceToSlots, slotsToPreference } from "./availability";
+import {
+  describeSlots,
+  preferenceToSlots,
+  slotsMatchPreference,
+  slotsToPreference,
+} from "./availability";
 
 describe("availability conversion", () => {
   it("expands day groups and times into weekly slots", () => {
@@ -29,6 +34,21 @@ describe("availability conversion", () => {
   it("round-trips a preference", () => {
     const pref = { days: ["weekdays" as const], times: ["afternoon" as const] };
     expect(slotsToPreference(preferenceToSlots(pref))).toEqual(pref);
+  });
+
+  it("recognises slots made by the day and time choices", () => {
+    const slots = preferenceToSlots({ days: ["weekends"], times: ["morning"] });
+    expect(slotsMatchPreference(slots)).toBe(true);
+    expect(slotsMatchPreference([])).toBe(true);
+  });
+
+  it("flags a custom slot and describes it exactly", () => {
+    const slots = [
+      { day: "wed" as const, start: "14:00", end: "15:30" },
+      { day: "mon" as const, start: "09:00", end: "11:00" },
+    ];
+    expect(slotsMatchPreference(slots)).toBe(false);
+    expect(describeSlots(slots)).toEqual(["Mon 09:00 to 11:00", "Wed 14:00 to 15:30"]);
   });
 
   it("buckets slots saved with other hours by their start time", () => {
