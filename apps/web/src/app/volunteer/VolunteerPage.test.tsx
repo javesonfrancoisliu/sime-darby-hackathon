@@ -52,9 +52,33 @@ describe("volunteer page", () => {
     await userEvent.click(within(card).getByRole("button", { name: /97% match/ }));
     expect(within(card).getByText("Claude explanation")).toBeVisible();
     expect(within(card).getByText("Your grocery skills suit this nearby request.")).toBeVisible();
-    expect(within(card).getByRole("button", { name: "Accept & help: Groceries" })).toBeVisible();
+    expect(within(card).getByRole("button", { name: /^Accept & help: Groceries, / })).toBeVisible();
     expect(screen.queryByText(drive.title)).not.toBeInTheDocument();
     expect(screen.getAllByLabelText(/^Opportunity:/)).toHaveLength(1);
+  });
+  it("gives repeated request titles distinct accept button names", async () => {
+    installFakeApi({
+      ...baseRoutes,
+      "GET /api/opportunities": {
+        body: {
+          items: [
+            makeRequestOpportunity(),
+            makeRequestOpportunity({
+              id: "c36d9fb8-cf60-4c99-9dd4-6fafd7d8d8e7",
+              scheduledAt: "2026-10-21T15:00:00+08:00",
+            }),
+          ],
+        },
+      },
+    });
+    signInAs(VOLUNTEER.id);
+    renderApp("/volunteer");
+    const buttons = await screen.findAllByRole("button", { name: /^Accept & help: Groceries, / });
+    expect(buttons).toHaveLength(2);
+    const names = buttons.map((button) => button.getAttribute("aria-label"));
+    expect(new Set(names).size).toBe(2);
+    expect(names[0]).toMatch(/9:00 am/);
+    expect(names[1]).toMatch(/3:00 pm/);
   });
   it("keeps ordinary community activities out of the opportunity feed", async () => {
     const event = makeEvent({ title: "Community tea morning", joined: false });

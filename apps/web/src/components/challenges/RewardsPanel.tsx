@@ -28,6 +28,8 @@ function lockHint(reward: RewardWithStatus, balance: number): string {
   return "Not available yet";
 }
 
+const pointsUnit = (n: number) => (n === 1 ? "pt" : "pts");
+
 // Cheapest first, so the next reward within reach is at the top.
 const byCost = (a: RewardWithStatus, b: RewardWithStatus) => a.pointsCost - b.pointsCost;
 
@@ -72,14 +74,14 @@ export function RewardsPanel({
                     )}
                   </div>
                   <div className="reward-card__action">
-                    <span className="reward-card__points">{reward.pointsCost} pts</span>
+                    <span className="reward-card__points">{reward.pointsCost} {pointsUnit(reward.pointsCost)}</span>
                     <AppButton
                       variant={reward.status === "available" ? "primary" : "secondary"}
                       disabled={reward.status !== "available"}
                       loading={redeemingId === reward.id}
                       aria-label={
                         reward.status === "available"
-                          ? `Redeem ${reward.title} for ${reward.pointsCost} pts`
+                          ? `Redeem ${reward.title} for ${reward.pointsCost} ${pointsUnit(reward.pointsCost)}`
                           : `${reward.title}: ${reward.status}`
                       }
                       onClick={() => onRedeem(reward)}

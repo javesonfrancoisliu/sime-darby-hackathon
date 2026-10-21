@@ -4,7 +4,7 @@ import { useId, useState } from "react";
 
 import type { Opportunity, Urgency } from "../../types/volunteer";
 import { TASK_CATEGORY_LABEL } from "../../types/volunteer";
-import { formatDate, formatTimeRange } from "../../lib/format";
+import { formatDate, formatDateTime, formatTimeRange } from "../../lib/format";
 import { AppButton, Drawer, StatusBadge } from "../ui";
 
 export type OpportunityCardProps = {
@@ -173,7 +173,7 @@ export function OpportunityCard({
           <AppButton
             variant="primary"
             loading={accepting}
-            aria-label={`${actionLabel}: ${opportunity.title}`}
+            aria-label={`${actionLabel}: ${opportunity.title}, ${formatDateTime(opportunity.scheduledAt)}`}
             onClick={() => onAccept(opportunity)}
           >
             {actionLabel}
