@@ -9,7 +9,13 @@ import type {
   User,
 } from "@sdh/contracts";
 import { beforeAll, describe, expect, it } from "vitest";
-import { call, createUser, createVerifiedVolunteer, createVolunteerInState } from "../../test/api";
+import {
+  backdateEvent,
+  call,
+  createUser,
+  createVerifiedVolunteer,
+  createVolunteerInState,
+} from "../../test/api";
 import { useTestTable } from "../../test/table";
 import { VOLUNTEERING_POINTS } from "../points/service";
 import { getUser } from "../users/repository";
@@ -54,6 +60,7 @@ describe("events", () => {
     const other = await createVerifiedVolunteer(coordinator.id);
     const event = await createEvent();
     await join(event.id, volunteer.id);
+    await backdateEvent(event.id);
     const path = `/api/events/${event.id}/attendance/complete`;
     expect((await call("POST", path, { as: other.id })).status).toBe(403);
     expect((await call("POST", path, { as: coordinator.id })).status).toBe(403);
@@ -76,7 +83,9 @@ describe("events", () => {
       completedCount: 1,
       totalMinutes: event.durationMinutes,
     });
-    const mine = (await call("GET", "/api/events", { as: volunteer.id })).body as EventsResponse;
+    const query = { includeJoined: "true" };
+    const mine = (await call("GET", "/api/events", { as: volunteer.id, query }))
+      .body as EventsResponse;
     expect(mine.events.find((item) => item.id === event.id)?.attendanceCompletedAt).toBeDefined();
     await call("POST", `/api/events/${event.id}/complete`, { as: coordinator.id });
     expect(await summary()).toMatchObject({
@@ -198,6 +207,7 @@ describe("events", () => {
     const volunteer = await createVerifiedVolunteer(coordinator.id);
     await join(event.id, elder.id);
     await join(event.id, volunteer.id);
+    await backdateEvent(event.id);
 
     const forbidden = await call("POST", `/api/events/${event.id}/complete`, { as: elder.id });
     expect(forbidden.status).toBe(403);
@@ -221,8 +231,37 @@ describe("events", () => {
     expect((await join(event.id, (await createUser("elder")).id)).status).toBe(409);
   });
 
+  it("refuses to complete or confirm attendance before the event starts with 409", async () => {
+    const volunteer = await createVerifiedVolunteer(coordinator.id);
+    const event = await createEvent();
+    await join(event.id, volunteer.id);
+    const attendance = await call("POST", `/api/events/${event.id}/attendance/complete`, {
+      as: volunteer.id,
+    });
+    expect(attendance.status).toBe(409);
+    expect(attendance.body).toMatchObject({ error: { code: "CONFLICT" } });
+    const closed = await call("POST", `/api/events/${event.id}/complete`, { as: coordinator.id });
+    expect(closed.status).toBe(409);
+    expect(JSON.stringify(closed.body)).toContain("not started");
+    expect(await pointsOf(volunteer.id)).toEqual({ points: 0, lifetimePoints: 0 });
+    const summary = (await call("GET", "/api/contributions/mine", { as: volunteer.id }))
+      .body as ContributionsResponse;
+    expect(summary.items).toHaveLength(0);
+    expect(ids(await call("GET", "/api/events"))).toContain(event.id);
+
+    await backdateEvent(event.id);
+    expect(
+      (await call("POST", `/api/events/${event.id}/attendance/complete`, { as: volunteer.id }))
+        .status,
+    ).toBe(200);
+    expect(
+      (await call("POST", `/api/events/${event.id}/complete`, { as: coordinator.id })).status,
+    ).toBe(200);
+  });
+
   it("completing twice returns 200 and 404 for an unknown event", async () => {
     const event = await createEvent();
+    await backdateEvent(event.id);
     const path = `/api/events/${event.id}/complete`;
     expect((await call("POST", path, { as: coordinator.id })).status).toBe(200);
     expect((await call("POST", path, { as: coordinator.id })).status).toBe(200);
@@ -258,6 +297,7 @@ describe("events", () => {
     const volunteer = await createVerifiedVolunteer(coordinator.id);
     await join(event.id, elder.id);
     await join(event.id, volunteer.id);
+    await backdateEvent(event.id);
     const path = `/api/events/${event.id}/complete`;
     expect((await call("POST", path, { as: coordinator.id })).status).toBe(200);
     expect((await call("POST", path, { as: coordinator.id })).status).toBe(200);
@@ -275,6 +315,7 @@ describe("events", () => {
     const event = await createEvent();
     const volunteer = await createVerifiedVolunteer(coordinator.id);
     await join(event.id, volunteer.id);
+    await backdateEvent(event.id);
     // Simulate a crash after the status flip: complete without awards.
     await completeEvent(event.id, new Date().toISOString(), []);
     expect(await pointsOf(volunteer.id)).toEqual({ points: 0, lifetimePoints: 0 });

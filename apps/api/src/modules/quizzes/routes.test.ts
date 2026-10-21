@@ -72,6 +72,28 @@ describe("quizzes", () => {
     expect(unknown.status).toBe(400);
   });
 
+  it("requires exactly one answer per question and grades nothing otherwise", async () => {
+    const elder = await createElder();
+    const submit = (body: unknown) =>
+      call("POST", `/api/quizzes/${quiz.id}/submit`, { as: elder.id, body });
+    for (const body of [
+      { answers: [] },
+      answers([1]),
+      answers([1, 2]),
+      { answers: [...answers([1, 2, 0]).answers, { questionId: "q1", optionIndex: 1 }] },
+      { answers: answers([1, 2, 0]).answers.map((a) => ({ ...a, questionId: "q1" })) },
+    ]) {
+      const res = await submit(body);
+      expect(res.status).toBe(400);
+      expect(res.body).toMatchObject({ error: { code: "VALIDATION_FAILED" } });
+    }
+    expect((await submit(answers([1, 2, 0]))).body).toEqual({
+      score: 3,
+      total: 3,
+      passed: true,
+    });
+  });
+
   it("completes a linked challenge once and awards its points once", async () => {
     const elder = await createElder();
     const challenge = await createChallengeVia(coordinator.id, {

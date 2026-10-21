@@ -40,7 +40,7 @@ interface Guard {
   volunteerId?: string;
 }
 
-function updateParams(request: HelpRequest, guard: Guard, changes: Changes) {
+function updateParams(request: HelpRequest, guard: Guard, changes: Changes, unset: string[] = []) {
   const fields: Record<string, unknown> = { ...changes };
   if (changes.status) fields.GSI1PK = statusKey(changes.status);
   if (changes.volunteerId) {
@@ -55,6 +55,10 @@ function updateParams(request: HelpRequest, guard: Guard, changes: Changes) {
     values[`:v${index}`] = value;
     sets.push(`#f${index} = :v${index}`);
   });
+  const removes = unset.map((field, index) => {
+    names[`#r${index}`] = field;
+    return `#r${index}`;
+  });
   let condition = "#status = :from";
   if (guard.volunteerId) {
     names["#volunteerId"] = "volunteerId";
@@ -64,7 +68,7 @@ function updateParams(request: HelpRequest, guard: Guard, changes: Changes) {
   return {
     TableName: table(),
     Key: key(request.id),
-    UpdateExpression: `SET ${sets.join(", ")}`,
+    UpdateExpression: `SET ${sets.join(", ")}${removes.length > 0 ? ` REMOVE ${removes.join(", ")}` : ""}`,
     ConditionExpression: condition,
     ExpressionAttributeNames: names,
     ExpressionAttributeValues: values,
@@ -132,13 +136,18 @@ export const listRequestsByVolunteer = (volunteerId: string) =>
   queryIndex("GSI3", `VOLUNTEER#${volunteerId}`, false);
 
 // Conditional on the status the caller read; throws a condition failure when it lost a race.
+// `unset` lists attributes to remove in the same write.
 export async function transitionRequest(
   request: HelpRequest,
   guard: Guard,
   changes: Changes,
+  unset: string[] = [],
 ): Promise<HelpRequest> {
   const result = await db().send(
-    new UpdateCommand({ ...updateParams(request, guard, changes), ReturnValues: "ALL_NEW" }),
+    new UpdateCommand({
+      ...updateParams(request, guard, changes, unset),
+      ReturnValues: "ALL_NEW",
+    }),
   );
   return toRequest(result.Attributes ?? {});
 }

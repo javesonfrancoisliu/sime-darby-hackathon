@@ -7,7 +7,7 @@ import {
   type RewardsResponse,
 } from "@sdh/contracts";
 import { ok, type Route } from "../../lib/http";
-import { requireUser } from "../../lib/identity";
+import { requireNotRejected, requireUser } from "../../lib/identity";
 import { parse } from "../../lib/validate";
 import { createReward, listFor, redeemReward, useReward } from "./service";
 
@@ -16,7 +16,7 @@ export const rewardRoutes: Route[] = [
     method: "POST",
     path: "/api/rewards/{id}/use",
     handler: async (req) => {
-      const user = await requireUser(req, "elder", "volunteer");
+      const user = await requireNotRejected(req, "elder", "volunteer");
       const id = parse(Id, req.params.id);
       return ok((await useReward(user, id)) satisfies Redemption);
     },
@@ -42,7 +42,7 @@ export const rewardRoutes: Route[] = [
     method: "POST",
     path: "/api/rewards/{id}/redeem",
     handler: async (req) => {
-      const user = await requireUser(req, "elder", "volunteer");
+      const user = await requireNotRejected(req, "elder", "volunteer");
       const id = parse(Id, req.params.id);
       return ok((await redeemReward(user, id)) satisfies RedeemResult);
     },

@@ -41,6 +41,8 @@ export type RewardWithStatus = z.infer<typeof RewardWithStatus>;
 export const RewardsResponse = z.object({ rewards: z.array(RewardWithStatus) });
 export type RewardsResponse = z.infer<typeof RewardsResponse>;
 
+export const MAX_REWARD_POINTS_COST = 100_000;
+
 export const CreateRewardBody = Reward.pick({
   title: true,
   pointsCost: true,
@@ -50,6 +52,7 @@ export const CreateRewardBody = Reward.pick({
   category: true,
 })
   .extend({
+    pointsCost: Reward.shape.pointsCost.max(MAX_REWARD_POINTS_COST),
     description: Reward.shape.description.default(""),
     audience: Audience.default("all"),
     active: z.boolean().default(true),

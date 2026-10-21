@@ -42,6 +42,19 @@ describe("township", () => {
     expect(extra.status).toBe(400);
   });
 
+  it("accepts only dial characters in the phone fields", async () => {
+    const coordinator = await createCoordinator();
+    const put = (override: Record<string, unknown>) =>
+      call("PUT", "/api/township", { as: coordinator.id, body: { ...body, ...override } });
+    expect((await put({ emergencyNumber: "+60 (3) 1234-5678" })).status).toBe(200);
+    for (const bad of ["javascript:alert(1)", "<b>x</b>", "ab", "---", "1".repeat(21)]) {
+      expect((await put({ emergencyNumber: bad })).status).toBe(400);
+      const line = await put({ securityLine: { display: "Guard", tel: bad } });
+      expect(line.status).toBe(400);
+      expect(line.body).toMatchObject({ error: { code: "VALIDATION_FAILED" } });
+    }
+  });
+
   it("upserts in place", async () => {
     const coordinator = await createCoordinator();
     await call("PUT", "/api/township", { as: coordinator.id, body });

@@ -66,6 +66,9 @@ export async function submit(user: User, id: string, body: QuizSubmitBody): Prom
     }
     chosen.set(answer.questionId, answer.optionIndex);
   }
+  if (chosen.size !== quiz.questions.length) {
+    throw new HttpError("VALIDATION_FAILED", "answers: answer every question exactly once");
+  }
   const score = quiz.questions.filter((q) => chosen.get(q.id) === q.correctIndex).length;
   const passed = score >= quiz.passMark;
   if (passed) await completeForQuiz(user, quiz.id);

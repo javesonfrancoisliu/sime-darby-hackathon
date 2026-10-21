@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type {
+  AssignedHelpRequest,
   CompleteRequestBody,
   CreateRequestBody,
   HelpRequest,
@@ -10,11 +11,11 @@ import type {
   User,
 } from "@sdh/contracts";
 import { isConditionFailure } from "../../lib/db";
-import { approxKm, distanceKm } from "../../lib/geo";
+import { approxKm, approxPlace, distanceKm } from "../../lib/geo";
 import { HttpError } from "../../lib/http";
 import { nowIso } from "../../lib/time";
 import { newContribution } from "../contributions/service";
-import { getUser } from "../users/repository";
+import { getSettings, getUser } from "../users/repository";
 import { VOLUNTEERING_POINTS, awardOnce } from "../points/service";
 import {
   backfillConfirmedAt,
@@ -74,6 +75,24 @@ export async function withCurrentNames(requests: HelpRequest[]): Promise<HelpReq
 const withCurrentName = async (request: HelpRequest): Promise<HelpRequest> =>
   (await withCurrentNames([request]))[0] as HelpRequest;
 
+// The assigned volunteer never gets the elder id, and gets only an approximate place when the elder
+// opted in with shareApproxLocation.
+export async function toAssigned(requests: HelpRequest[]): Promise<AssignedHelpRequest[]> {
+  const approx = new Map<string, boolean>();
+  await Promise.all(
+    [...new Set(requests.map((r) => r.elderId))].map(async (id) => {
+      approx.set(id, (await getSettings(id))?.shareApproxLocation === true);
+    }),
+  );
+  return requests.map(({ elderId, ...rest }) => ({
+    ...rest,
+    location: approx.get(elderId) ? approxPlace(rest.location) : rest.location,
+  }));
+}
+
+const toAssignedOne = async (request: HelpRequest): Promise<AssignedHelpRequest> =>
+  (await toAssigned([request]))[0] as AssignedHelpRequest;
+
 export function toSummary(request: HelpRequest, viewerLocation: Location): HelpRequestSummary {
   return {
     id: request.id,
@@ -118,9 +137,11 @@ export async function createRequest(elder: User, body: CreateRequestBody): Promi
   return request;
 }
 
-export async function listMine(user: User): Promise<HelpRequest[]> {
+export async function listMine(user: User): Promise<AssignedHelpRequest[]> {
   if (user.role === "elder") return withCurrentNames(await listRequestsByElder(user.id));
-  if (user.role === "volunteer") return withCurrentNames(await listRequestsByVolunteer(user.id));
+  if (user.role === "volunteer") {
+    return toAssigned(await withCurrentNames(await listRequestsByVolunteer(user.id)));
+  }
   throw new HttpError("FORBIDDEN", "Not allowed for your role");
 }
 
@@ -131,12 +152,12 @@ export const listByStatus = async (status: RequestStatus) =>
 export async function viewRequest(
   user: User,
   id: string,
-): Promise<HelpRequest | HelpRequestSummary> {
+): Promise<HelpRequest | AssignedHelpRequest | HelpRequestSummary> {
   const request = await loadOrThrow(id);
   if (user.role === "coordinator") return withCurrentName(request);
   if (user.role === "elder" && request.elderId === user.id) return withCurrentName(request);
   if (user.role === "volunteer") {
-    if (request.volunteerId === user.id) return withCurrentName(request);
+    if (request.volunteerId === user.id) return toAssignedOne(await withCurrentName(request));
     if (request.status === "open" && user.verification === "verified") {
       return toSummary(request, user.location);
     }
@@ -164,7 +185,10 @@ export async function reviewRequest(id: string, body: ReviewRequestBody): Promis
 export async function cancelRequest(elder: User, id: string): Promise<HelpRequest> {
   const request = await loadOrThrow(id);
   if (request.elderId !== elder.id) throw notFound();
-  const cancellable = request.status === "pending_review" || request.status === "open";
+  const cancellable =
+    request.status === "pending_review" ||
+    request.status === "open" ||
+    request.status === "matched";
   if (!cancellable) throw new HttpError("CONFLICT", "Request can no longer be cancelled");
   return guarded("Request can no longer be cancelled", async () =>
     withCurrentName(
@@ -177,21 +201,50 @@ export async function cancelRequest(elder: User, id: string): Promise<HelpReques
   );
 }
 
-export async function acceptRequest(volunteer: User, id: string): Promise<HelpRequest> {
+// Fields a withdrawing volunteer leaves behind; the GSI3 keys go too so the request leaves their list.
+const ASSIGNMENT_FIELDS = ["volunteerId", "volunteerName", "acceptedAt", "GSI3PK", "GSI3SK"];
+
+// The accepted volunteer backs out; the request goes back to the open pool.
+export async function withdrawRequest(volunteer: User, id: string): Promise<HelpRequestSummary> {
   const request = await loadOrThrow(id);
+  if (request.volunteerId !== volunteer.id) throw notFound();
+  if (request.status !== "matched") {
+    throw new HttpError("CONFLICT", "Request can no longer be withdrawn from");
+  }
+  const reopened = await guarded("Request can no longer be withdrawn from", () =>
+    transitionRequest(
+      request,
+      { from: "matched", volunteerId: volunteer.id },
+      { status: "open", updatedAt: nowIso() },
+      ASSIGNMENT_FIELDS,
+    ),
+  );
+  return toSummary(reopened, volunteer.location);
+}
+
+export async function acceptRequest(volunteer: User, id: string): Promise<AssignedHelpRequest> {
+  const request = await loadOrThrow(id);
+  // Check then write, so two simultaneous accepts of different requests can still both pass.
+  const slot = Date.parse(request.scheduledAt);
+  const taken = (await listRequestsByVolunteer(volunteer.id)).some(
+    (r) => r.status === "matched" && r.id !== id && Date.parse(r.scheduledAt) === slot,
+  );
+  if (taken) throw new HttpError("CONFLICT", "You already have a request at this time");
   const now = nowIso();
   return guarded("Request was already taken", async () =>
-    withCurrentName(
-      await transitionRequest(
-        request,
-        { from: "open" },
-        {
-          status: "matched",
-          volunteerId: volunteer.id,
-          volunteerName: volunteer.name,
-          acceptedAt: now,
-          updatedAt: now,
-        },
+    toAssignedOne(
+      await withCurrentName(
+        await transitionRequest(
+          request,
+          { from: "open" },
+          {
+            status: "matched",
+            volunteerId: volunteer.id,
+            volunteerName: volunteer.name,
+            acceptedAt: now,
+            updatedAt: now,
+          },
+        ),
       ),
     ),
   );
@@ -201,9 +254,12 @@ export async function completeRequest(
   volunteer: User,
   id: string,
   body: CompleteRequestBody,
-): Promise<HelpRequest> {
+): Promise<AssignedHelpRequest> {
   const request = await loadOrThrow(id);
   if (request.volunteerId !== volunteer.id) throw notFound();
+  if (Date.parse(request.scheduledAt) > Date.now()) {
+    throw new HttpError("CONFLICT", "Request has not started yet");
+  }
   if (body.minutesSpent > request.durationMinutes * MAX_OVERRUN_FACTOR) {
     throw new HttpError(
       "VALIDATION_FAILED",
@@ -227,7 +283,7 @@ export async function completeRequest(
   await guarded("Request is not in progress", () =>
     completeWithContribution(request, volunteer.id, changes, contribution),
   );
-  return withCurrentName({ ...request, ...changes });
+  return toAssignedOne(await withCurrentName({ ...request, ...changes }));
 }
 
 // Elder (owner) or coordinator confirms a completed request; the volunteer's points land in the

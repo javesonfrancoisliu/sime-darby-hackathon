@@ -75,6 +75,9 @@ export type ChallengesQuery = z.infer<typeof ChallengesQuery>;
 export const ChallengesResponse = z.object({ challenges: z.array(ChallengeWithProgress) });
 export type ChallengesResponse = z.infer<typeof ChallengesResponse>;
 
+// Upper bounds on what a coordinator can set, so a typo cannot mint a huge payout.
+export const MAX_CHALLENGE_POINTS = 1000;
+
 export const CreateChallengeBody = Challenge.pick({
   title: true,
   icon: true,
@@ -89,7 +92,7 @@ export const CreateChallengeBody = Challenge.pick({
   .extend({
     description: Challenge.shape.description.default(""),
     audience: Audience.default("all"),
-    points: Challenge.shape.points.default(0),
+    points: Challenge.shape.points.max(MAX_CHALLENGE_POINTS).default(0),
     requiresVerification: z.boolean().default(false),
   })
   .strict();

@@ -8,7 +8,7 @@ import {
   type QuizzesResponse,
 } from "@sdh/contracts";
 import { ok, type Route } from "../../lib/http";
-import { requireUser } from "../../lib/identity";
+import { requireNotRejected, requireUser } from "../../lib/identity";
 import { parse } from "../../lib/validate";
 import { allQuizzes, createQuiz, publicQuiz, submit } from "./service";
 
@@ -43,7 +43,7 @@ export const quizRoutes: Route[] = [
     method: "POST",
     path: "/api/quizzes/{id}/submit",
     handler: async (req) => {
-      const user = await requireUser(req, "elder", "volunteer");
+      const user = await requireNotRejected(req, "elder", "volunteer");
       const id = parse(Id, req.params.id);
       const body = parse(QuizSubmitBody, req.body);
       return ok((await submit(user, id, body)) satisfies QuizResult);

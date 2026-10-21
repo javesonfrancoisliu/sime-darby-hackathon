@@ -1,6 +1,6 @@
 import type { HelpRequest, RequestsResponse, User } from "@sdh/contracts";
 import { describe, expect, it } from "vitest";
-import { call, createUser, createVerifiedVolunteer } from "../../test/api";
+import { backdate, call, createUser, createVerifiedVolunteer } from "../../test/api";
 import { useTestTable } from "../../test/table";
 
 useTestTable();
@@ -56,6 +56,7 @@ describe("names on requests follow profile renames", () => {
     await rename(elder, "Elder Two");
     const accepted = await call("POST", `/api/requests/${id}/accept`, { as: volunteer.id });
     expect((accepted.body as HelpRequest).elderName).toBe("Elder Two");
+    await backdate(id);
     await rename(volunteer, "Volunteer Two");
     const done = await call("POST", `/api/requests/${id}/complete`, {
       as: volunteer.id,

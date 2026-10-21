@@ -1,4 +1,6 @@
+import { UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import type { CreateUserBody, HelpRequest, Role, User, Verification } from "@sdh/contracts";
+import { db, table } from "../lib/db";
 import { DEMO_USER_HEADER } from "../lib/identity";
 import { transitionRequest } from "../modules/requests/repository";
 import { setVerification } from "../modules/users/repository";
@@ -72,5 +74,31 @@ export async function setPendingReview(request: HelpRequest): Promise<HelpReques
     request,
     { from: "open" },
     { status: "pending_review", updatedAt: new Date().toISOString() },
+  );
+}
+
+// Creation forbids a past start, so tests that need a started request move it back directly.
+export async function backdate(requestId: string, hours = 2): Promise<void> {
+  const past = new Date(Date.now() - hours * 3_600_000).toISOString();
+  await db().send(
+    new UpdateCommand({
+      TableName: table(),
+      Key: { PK: `REQUEST#${requestId}`, SK: "META" },
+      UpdateExpression: "SET scheduledAt = :at, GSI1SK = :at, GSI3SK = :at",
+      ExpressionAttributeValues: { ":at": past },
+    }),
+  );
+}
+
+// Same for events: creation forbids a past start, so tests move the start back directly.
+export async function backdateEvent(eventId: string, hours = 2): Promise<void> {
+  const past = new Date(Date.now() - hours * 3_600_000).toISOString();
+  await db().send(
+    new UpdateCommand({
+      TableName: table(),
+      Key: { PK: `EVENT#${eventId}`, SK: "META" },
+      UpdateExpression: "SET startsAt = :at, GSI1SK = :at",
+      ExpressionAttributeValues: { ":at": past },
+    }),
   );
 }

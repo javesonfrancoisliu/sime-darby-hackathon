@@ -4,9 +4,25 @@ import { Area, Id, IsoDateTime } from "./common";
 const Advice = z.string().trim().min(1).max(300);
 const Unit = z.string().trim().min(1).max(20);
 
+// Readings are stored as DynamoDB numbers, which cannot hold huge or denormal values.
+export const MAX_READING_VALUE = 100_000;
+const MIN_READING_MAGNITUDE = 1e-6;
+const MIN_FEELS_LIKE_C = -60;
+const MAX_FEELS_LIKE_C = 80;
+// How far ahead of the server clock a measurement time may be, for device clock skew.
+export const MAX_FUTURE_READING_MS = 24 * 60 * 60 * 1000;
+
+const bounded = (min: number, max: number) =>
+  z
+    .number()
+    .min(min)
+    .max(max)
+    .refine((n) => n === 0 || Math.abs(n) >= MIN_READING_MAGNITUDE, "Too close to zero");
+const Measure = bounded(0, MAX_READING_VALUE);
+
 const ReadingBase = {
   area: Area,
-  value: z.number(),
+  value: Measure,
   unit: Unit,
   advice: Advice,
   measuredAt: IsoDateTime,
@@ -28,14 +44,14 @@ export const WaterReading = z.object({
   level: WaterLevel,
   name: z.string().trim().min(1).max(80),
   waterBody: WaterBody,
-  normalMax: z.number(),
+  normalMax: Measure,
   ...ReadingBase,
 });
 export const HeatReading = z.object({
   type: z.literal("heat"),
   level: HeatLevel,
-  feelsLike: z.number(),
-  humidity: z.number().min(0).max(100),
+  feelsLike: bounded(MIN_FEELS_LIKE_C, MAX_FEELS_LIKE_C),
+  humidity: bounded(0, 100),
   ...ReadingBase,
 });
 
@@ -45,7 +61,10 @@ export const SafetyReadingType = z.enum(["air", "water", "heat"]);
 export type SafetyReadingType = z.infer<typeof SafetyReadingType>;
 
 // Upsert: the latest reading per type and area (water: per name) replaces the previous one.
-export const PutSafetyReadingBody = SafetyReading;
+export const PutSafetyReadingBody = SafetyReading.refine(
+  (reading) => Date.parse(reading.measuredAt) <= Date.now() + MAX_FUTURE_READING_MS,
+  { message: "measuredAt cannot be more than a day in the future", path: ["measuredAt"] },
+);
 export type PutSafetyReadingBody = SafetyReading;
 
 export const FacilityStatus = z.enum(["reported", "in_progress", "resolved"]);
