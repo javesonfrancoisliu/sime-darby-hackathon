@@ -51,8 +51,13 @@ export function HomePage() {
 
   const localAir = pickLocal(safety.air, resident?.area);
   const localHeat = pickLocal(safety.heat, resident?.area);
-  const localMaintenance = maintenance.data?.[0];
-  const localFacilityDamage = safety.facilities.find((f) => f.status === "in_progress");
+  // Only the resident's own area, and not work that is already finished.
+  const localMaintenance = maintenance.data?.find(
+    (n) => n.area === resident?.area && n.status !== "completed",
+  );
+  const localFacilityDamage = safety.facilities.find(
+    (f) => f.status === "in_progress" && f.area === resident?.area,
+  );
 
   // One condition card per carousel slide (shown one at a time).
   const conditionSlides: ReactNode[] = [];

@@ -54,5 +54,8 @@ describe("Play leaderboard", () => {
     expect(within(board).queryByText("You")).not.toBeInTheDocument();
     expect(within(board).queryByText("320 pts")).not.toBeInTheDocument();
     expect(within(board).getByText("0 pts")).toBeInTheDocument();
+    // No invented neighbours: only the signed-in person is listed.
+    expect(within(board).getAllByRole("listitem")).toHaveLength(1);
+    expect(screen.getByText(/other neighbours will appear here/i)).toBeInTheDocument();
   });
 });
