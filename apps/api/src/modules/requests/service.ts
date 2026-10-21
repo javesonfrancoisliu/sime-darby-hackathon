@@ -224,6 +224,12 @@ export async function withdrawRequest(volunteer: User, id: string): Promise<Help
 
 export async function acceptRequest(volunteer: User, id: string): Promise<AssignedHelpRequest> {
   const request = await loadOrThrow(id);
+  // Check then write, so two simultaneous accepts of different requests can still both pass.
+  const slot = Date.parse(request.scheduledAt);
+  const taken = (await listRequestsByVolunteer(volunteer.id)).some(
+    (r) => r.status === "matched" && r.id !== id && Date.parse(r.scheduledAt) === slot,
+  );
+  if (taken) throw new HttpError("CONFLICT", "You already have a request at this time");
   const now = nowIso();
   return guarded("Request was already taken", async () =>
     toAssignedOne(

@@ -532,6 +532,44 @@ describe("help requests", () => {
       ).toBe(404);
     });
 
+    it("refuses a second request at the same time with 409 until the first is released", async () => {
+      const worker = await createVerifiedVolunteer(coordinator.id, { name: "Slot" });
+      const at = inDays(5);
+      const first = await createOpen({ scheduledAt: at });
+      const same = await createOpen({ scheduledAt: at });
+      const later = await createOpen({ scheduledAt: inDays(6) });
+      expect(
+        (await call("POST", `/api/requests/${first.id}/accept`, { as: worker.id })).status,
+      ).toBe(200);
+      const clash = await call("POST", `/api/requests/${same.id}/accept`, { as: worker.id });
+      expect(clash.status).toBe(409);
+      expect(clash.body).toMatchObject({ error: { code: "CONFLICT" } });
+      expect(JSON.stringify(clash.body)).toContain("already have a request at this time");
+      const stillOpen = await call("GET", `/api/requests/${same.id}`, { as: elder.id });
+      expect(stillOpen.body).toMatchObject({ status: "open" });
+      expect(
+        (await call("POST", `/api/requests/${later.id}/accept`, { as: worker.id })).status,
+      ).toBe(200);
+
+      await call("POST", `/api/requests/${first.id}/withdraw`, { as: worker.id });
+      expect(
+        (await call("POST", `/api/requests/${same.id}/accept`, { as: worker.id })).status,
+      ).toBe(200);
+    });
+
+    it("lets a different volunteer take the same time slot", async () => {
+      const at = inDays(7);
+      const a = await createOpen({ scheduledAt: at });
+      const b = await createOpen({ scheduledAt: at });
+      const other = await createVerifiedVolunteer(coordinator.id);
+      expect(
+        (await call("POST", `/api/requests/${a.id}/accept`, { as: volunteer.id })).status,
+      ).toBe(200);
+      expect((await call("POST", `/api/requests/${b.id}/accept`, { as: other.id })).status).toBe(
+        200,
+      );
+    });
+
     it("lets exactly one of two concurrent volunteers win", async () => {
       const open = await createOpen();
       const other = await createVerifiedVolunteer(coordinator.id, { name: "Wei Ling" });
