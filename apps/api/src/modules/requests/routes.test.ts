@@ -9,6 +9,7 @@ import type {
 } from "@sdh/contracts";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
+  backdate,
   call,
   createUser,
   createVerifiedVolunteer,
@@ -320,9 +321,126 @@ describe("help requests", () => {
         (await call("POST", `/api/requests/${open.id}/cancel`, { as: coordinator.id })).status,
       ).toBe(403);
 
-      await call("POST", `/api/requests/${open.id}/accept`, { as: volunteer.id });
+      await call("POST", `/api/requests/${open.id}/cancel`, { as: elder.id });
       const late = await call("POST", `/api/requests/${open.id}/cancel`, { as: elder.id });
       expect(late.status).toBe(409);
+    });
+
+    it("lets the owner cancel a matched request and keeps it in the volunteer's list", async () => {
+      const matched = await createOpen();
+      await call("POST", `/api/requests/${matched.id}/accept`, { as: volunteer.id });
+      const stranger = await createUser("elder");
+      expect(
+        (await call("POST", `/api/requests/${matched.id}/cancel`, { as: stranger.id })).status,
+      ).toBe(404);
+      expect(
+        (await call("POST", `/api/requests/${matched.id}/cancel`, { as: volunteer.id })).status,
+      ).toBe(403);
+
+      const res = await call("POST", `/api/requests/${matched.id}/cancel`, { as: elder.id });
+      expect(res.status).toBe(200);
+      expect(res.body).toMatchObject({ status: "cancelled", volunteerId: volunteer.id });
+      const mine = await call("GET", "/api/requests/mine", { as: volunteer.id });
+      const found = (mine.body as RequestsResponse).requests.find((r) => r.id === matched.id);
+      expect(found?.status).toBe("cancelled");
+    });
+
+    it("refuses to cancel a completed or already cancelled request with 409", async () => {
+      const done = await createOpen();
+      await call("POST", `/api/requests/${done.id}/accept`, { as: volunteer.id });
+      await backdate(done.id);
+      await call("POST", `/api/requests/${done.id}/complete`, {
+        as: volunteer.id,
+        body: { minutesSpent: 30 },
+      });
+      const completed = await call("POST", `/api/requests/${done.id}/cancel`, { as: elder.id });
+      expect(completed.status).toBe(409);
+      await call("POST", `/api/requests/${done.id}/confirm`, { as: elder.id });
+      const confirmed = await call("POST", `/api/requests/${done.id}/cancel`, { as: elder.id });
+      expect(confirmed.status).toBe(409);
+    });
+
+    it("lets a cancel and a complete race end with exactly one winner", async () => {
+      const raced = await createOpen();
+      await call("POST", `/api/requests/${raced.id}/accept`, { as: volunteer.id });
+      await backdate(raced.id);
+      const [cancel, complete] = await Promise.all([
+        call("POST", `/api/requests/${raced.id}/cancel`, { as: elder.id }),
+        call("POST", `/api/requests/${raced.id}/complete`, {
+          as: volunteer.id,
+          body: { minutesSpent: 30 },
+        }),
+      ]);
+      expect([cancel.status, complete.status].sort()).toEqual([200, 409]);
+    });
+  });
+
+  describe("withdraw", () => {
+    const withdraw = (id: string, as: string) =>
+      call("POST", `/api/requests/${id}/withdraw`, { as });
+
+    it("reopens the request and clears the volunteer", async () => {
+      const open = await createOpen();
+      await call("POST", `/api/requests/${open.id}/accept`, { as: volunteer.id });
+      const res = await withdraw(open.id, volunteer.id);
+      expect(res.status).toBe(200);
+      const summary = res.body as HelpRequestSummary;
+      expect(summary).toMatchObject({ id: open.id, status: "open", area: "Precinct 1" });
+      expect(summary).not.toHaveProperty("elderId");
+      expect(summary).not.toHaveProperty("location");
+
+      const stored = (await call("GET", `/api/requests/${open.id}`, { as: elder.id }))
+        .body as HelpRequest;
+      expect(stored.status).toBe("open");
+      expect(stored.volunteerId).toBeUndefined();
+      expect(stored.volunteerName).toBeUndefined();
+      expect(stored.acceptedAt).toBeUndefined();
+
+      const mine = await call("GET", "/api/requests/mine", { as: volunteer.id });
+      expect((mine.body as RequestsResponse).requests.map((r) => r.id)).not.toContain(open.id);
+
+      const other = await createVerifiedVolunteer(coordinator.id);
+      const retaken = await call("POST", `/api/requests/${open.id}/accept`, { as: other.id });
+      expect(retaken.status).toBe(200);
+      expect(retaken.body).toMatchObject({ status: "matched", volunteerId: other.id });
+    });
+
+    it("hides the request from other volunteers and refuses other roles", async () => {
+      const open = await createOpen();
+      await call("POST", `/api/requests/${open.id}/accept`, { as: volunteer.id });
+      const other = await createVerifiedVolunteer(coordinator.id);
+      expect((await withdraw(open.id, other.id)).status).toBe(404);
+      expect((await withdraw(open.id, elder.id)).status).toBe(403);
+      expect((await withdraw(open.id, coordinator.id)).status).toBe(403);
+      expect((await withdraw(randomUUID(), volunteer.id)).status).toBe(404);
+    });
+
+    it("refuses a second withdraw and a completed request with 409", async () => {
+      const open = await createOpen();
+      await call("POST", `/api/requests/${open.id}/accept`, { as: volunteer.id });
+      await withdraw(open.id, volunteer.id);
+      expect((await withdraw(open.id, volunteer.id)).status).toBe(404);
+
+      const done = await createOpen();
+      await call("POST", `/api/requests/${done.id}/accept`, { as: volunteer.id });
+      await backdate(done.id);
+      await call("POST", `/api/requests/${done.id}/complete`, {
+        as: volunteer.id,
+        body: { minutesSpent: 30 },
+      });
+      const late = await withdraw(done.id, volunteer.id);
+      expect(late.status).toBe(409);
+      expect(late.body).toMatchObject({ error: { code: "CONFLICT" } });
+    });
+
+    it("lets a withdraw and an elder cancel race end with exactly one winner", async () => {
+      const raced = await createOpen();
+      await call("POST", `/api/requests/${raced.id}/accept`, { as: volunteer.id });
+      const [out, cancel] = await Promise.all([
+        withdraw(raced.id, volunteer.id),
+        call("POST", `/api/requests/${raced.id}/cancel`, { as: elder.id }),
+      ]);
+      expect([out.status, cancel.status].sort()).toEqual([200, 409]);
     });
   });
 

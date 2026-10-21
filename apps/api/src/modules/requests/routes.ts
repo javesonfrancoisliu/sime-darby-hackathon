@@ -21,6 +21,7 @@ import {
   listMine,
   reviewRequest,
   viewRequest,
+  withdrawRequest,
 } from "./service";
 
 export const requestRoutes: Route[] = [
@@ -85,6 +86,15 @@ export const requestRoutes: Route[] = [
       const volunteer = await requireVerifiedVolunteer(req);
       const id = parse(Id, req.params.id);
       return ok((await acceptRequest(volunteer, id)) satisfies HelpRequest);
+    },
+  },
+  {
+    method: "POST",
+    path: "/api/requests/{id}/withdraw",
+    handler: async (req) => {
+      const volunteer = await requireUser(req, "volunteer");
+      const id = parse(Id, req.params.id);
+      return ok((await withdrawRequest(volunteer, id)) satisfies HelpRequestSummary);
     },
   },
   {

@@ -164,7 +164,10 @@ export async function reviewRequest(id: string, body: ReviewRequestBody): Promis
 export async function cancelRequest(elder: User, id: string): Promise<HelpRequest> {
   const request = await loadOrThrow(id);
   if (request.elderId !== elder.id) throw notFound();
-  const cancellable = request.status === "pending_review" || request.status === "open";
+  const cancellable =
+    request.status === "pending_review" ||
+    request.status === "open" ||
+    request.status === "matched";
   if (!cancellable) throw new HttpError("CONFLICT", "Request can no longer be cancelled");
   return guarded("Request can no longer be cancelled", async () =>
     withCurrentName(
@@ -175,6 +178,27 @@ export async function cancelRequest(elder: User, id: string): Promise<HelpReques
       ),
     ),
   );
+}
+
+// Fields a withdrawing volunteer leaves behind; the GSI3 keys go too so the request leaves their list.
+const ASSIGNMENT_FIELDS = ["volunteerId", "volunteerName", "acceptedAt", "GSI3PK", "GSI3SK"];
+
+// The accepted volunteer backs out; the request goes back to the open pool.
+export async function withdrawRequest(volunteer: User, id: string): Promise<HelpRequestSummary> {
+  const request = await loadOrThrow(id);
+  if (request.volunteerId !== volunteer.id) throw notFound();
+  if (request.status !== "matched") {
+    throw new HttpError("CONFLICT", "Request can no longer be withdrawn from");
+  }
+  const reopened = await guarded("Request can no longer be withdrawn from", () =>
+    transitionRequest(
+      request,
+      { from: "matched", volunteerId: volunteer.id },
+      { status: "open", updatedAt: nowIso() },
+      ASSIGNMENT_FIELDS,
+    ),
+  );
+  return toSummary(reopened, volunteer.location);
 }
 
 export async function acceptRequest(volunteer: User, id: string): Promise<HelpRequest> {
