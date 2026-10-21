@@ -523,6 +523,7 @@
   text-decoration: none;
   display: inline-flex;
   align-items: center;
+  gap: 2px;
   min-height: 44px;
   padding: 0 4px;
 }

@@ -1,4 +1,4 @@
-import { ArrowRight, Gift, HandHeart, Shield, Sparkles, Target, Trophy } from "lucide-react";
+import { ArrowRight, Gift, HandHeart, Sparkles, Target, Trophy } from "lucide-react";
 
 import { CommunityOverview } from "../components/community";
 import { useRole } from "../components/layout";
@@ -29,12 +29,6 @@ export function HomePage() {
           young
             ? "Your neighbourhood at a glance - find a quick way to help, stay safe and stay connected."
             : "Your neighbourhood at a glance - stay safe, stay connected and get involved."
-        }
-        actions={
-          <AppLinkButton to="/safety" variant="secondary">
-            <Shield size={16} aria-hidden="true" />
-            Safety
-          </AppLinkButton>
         }
       />
 

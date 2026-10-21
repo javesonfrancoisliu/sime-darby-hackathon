@@ -154,7 +154,7 @@ describe("home page", () => {
     expect(await screen.findByText("Couldn't load safety readings")).toBeInTheDocument();
   });
 
-  it("keeps Safety reachable from a header button, the live conditions card and Profile", async () => {
+  it("keeps Safety reachable from the live conditions link and Profile, with no header button", async () => {
     installFakeApi(signedInRoutes(VOLUNTEER, { "GET /api/safety": { body: SAFETY } }));
     signInAs(VOLUNTEER.id);
     renderApp("/");
@@ -162,7 +162,7 @@ describe("home page", () => {
     const header = (await screen.findByRole("heading", { name: "Welcome to Elmina" })).closest(
       "header",
     ) as HTMLElement;
-    expect(within(header).getByRole("link", { name: "Safety" })).toHaveAttribute("href", "/safety");
+    expect(within(header).queryByRole("link", { name: "Safety" })).not.toBeInTheDocument();
     const safety = screen.getByLabelText("Safety summary for Elmina");
     expect(within(safety).getByRole("link", { name: "All hazards" })).toHaveAttribute(
       "href",
@@ -170,8 +170,8 @@ describe("home page", () => {
     );
     const nav = within(screen.getAllByRole("navigation", { name: "Primary" }).at(-1)!);
     expect(nav.queryByRole("link", { name: "Safety" })).not.toBeInTheDocument();
-    // The Home header button opens the existing Safety page.
-    await userEvent.setup().click(within(header).getByRole("link", { name: "Safety" }));
+    // The live conditions link opens the existing Safety page.
+    await userEvent.setup().click(within(safety).getByRole("link", { name: "All hazards" }));
     expect(await screen.findByRole("heading", { name: "Health & Safety" })).toBeInTheDocument();
   });
 });

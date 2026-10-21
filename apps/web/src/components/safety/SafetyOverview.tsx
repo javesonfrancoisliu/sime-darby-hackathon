@@ -1,4 +1,4 @@
-import { AlertTriangle, CloudOff, MapPin } from "lucide-react";
+import { AlertTriangle, ChevronRight, CloudOff, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import type { SafetyReading } from "@sdh/contracts";
@@ -44,6 +44,7 @@ export function SafetyOverview({ townshipName }: SafetyOverviewProps) {
         </div>
         <Link to="/safety" className="app-home__see-all">
           All hazards
+          <ChevronRight size={16} strokeWidth={2} aria-hidden="true" />
         </Link>
       </div>
 
