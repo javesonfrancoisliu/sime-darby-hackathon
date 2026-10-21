@@ -157,6 +157,24 @@ describe("profile page", () => {
     expect(body).toEqual({ skills: ["groceries"] });
   });
 
+  it("shows a custom saved slot exactly instead of a lossy summary", async () => {
+    const scheduled = User.parse({
+      ...VOLUNTEER,
+      availability: [{ day: "mon", start: "09:00", end: "11:00" }],
+    });
+    installFakeApi(signedIn({ "GET /api/me": { body: scheduled } }));
+    signInAs(scheduled.id);
+    renderApp("/profile");
+    const user = userEvent.setup();
+
+    await user.click(
+      await screen.findByRole("button", { name: "Volunteering preferences. Show details" }),
+    );
+    expect(await screen.findByText("Mon 09:00 to 11:00")).toBeInTheDocument();
+    expect(screen.queryByText("Weekdays")).not.toBeInTheDocument();
+    expect(screen.queryByText("Morning")).not.toBeInTheDocument();
+  });
+
   it("asks for a day and a time together instead of wiping availability", async () => {
     const { calls } = installFakeApi(signedIn());
     signInAs(VOLUNTEER.id);
