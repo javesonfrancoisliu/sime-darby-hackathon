@@ -114,7 +114,7 @@ export function RequestDetailPage() {
         {req.description ? (
           <div className="apple-inset-row">
             <span className="app-detail-label">Your description</span>
-            <span className="apple-inset-value">{req.description}</span>
+            <span className="apple-inset-value text-multiline">{req.description}</span>
           </div>
         ) : null}
 

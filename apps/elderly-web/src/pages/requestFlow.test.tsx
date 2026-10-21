@@ -73,6 +73,12 @@ describe("Request flow", () => {
     expect(calls.some((c) => c.method === "GET" && c.path === "/api/me")).toBe(true);
   });
 
+  it("keeps the line breaks of the note on the summary", async () => {
+    installFakeApi(createRoute());
+    await walkToConfirm("Milk\nBread");
+    expect(await screen.findByText(/Milk/)).toHaveClass("text-multiline");
+  });
+
   it("sends tomorrow's date and an empty note when the note is skipped", async () => {
     const { calls } = installFakeApi(createRoute());
     await renderApp("/request/transport");

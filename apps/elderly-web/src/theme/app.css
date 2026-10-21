@@ -2662,6 +2662,10 @@ button:active,
 .text-nowrap {
   white-space: nowrap;
 }
+.text-multiline {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
 .medical-row__label {
   display: flex;
   align-items: center;

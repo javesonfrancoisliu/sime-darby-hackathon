@@ -86,7 +86,7 @@ export function OpportunityDetailsModal({
             {opportunity.durationMinutes} min
           </span>
 
-          <p className="ui-flush">{opportunity.summary}</p>
+          <p className="ui-flush ui-multiline">{opportunity.summary}</p>
 
           {reasons.length > 0 && (
             <ul className="match-reasons" aria-label="Why this matches you">
