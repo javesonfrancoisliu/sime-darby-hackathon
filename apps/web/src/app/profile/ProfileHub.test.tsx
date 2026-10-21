@@ -1,6 +1,6 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter, useLocation } from "react-router-dom";
+import { BrowserRouter, MemoryRouter, useLocation } from "react-router-dom";
 import { User } from "@sdh/contracts";
 import { describe, expect, it } from "vitest";
 
@@ -237,6 +237,56 @@ describe("my details drawer", () => {
     );
     expect(await screen.findByRole("dialog", { name: "My details" })).toBeInTheDocument();
     await waitFor(() => expect(seen).toBeNull());
+  });
+
+  it("keeps the sheet's history entry when the redirect state is cleared", async () => {
+    installFakeApi(signedIn());
+    signInAs(VOLUNTEER.id);
+    window.history.pushState(null, "", "/before");
+    window.history.pushState(null, "", "/profile/details");
+    render(
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>,
+    );
+    const sheet = await screen.findByRole("dialog", { name: "My details" });
+    // The sheet's marker is on the top entry and the redirect request is gone from it.
+    expect(window.history.state?.sdhSheet).toEqual(expect.any(String));
+    expect(window.history.state?.usr).toBeFalsy();
+    await userEvent.click(within(sheet).getByRole("button", { name: "Done" }));
+    await gone();
+    await waitFor(() => expect(window.history.state?.sdhSheet).toBeUndefined());
+    expect(window.location.pathname).toBe("/profile");
+    // One Back leaves Profile: no dead entry is left behind by the sheet.
+    window.history.back();
+    await waitFor(() => expect(window.location.pathname).toBe("/before"));
+  });
+
+  it("returns focus to the My details row after a redirect-opened sheet closes", async () => {
+    installFakeApi(signedIn());
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile/details");
+    const sheet = await screen.findByRole("dialog", { name: "My details" });
+    await userEvent.click(within(sheet).getByRole("button", { name: "Done" }));
+    await gone();
+    expect(await row(/^My details/)).toHaveFocus();
+  });
+
+  it("keeps the redirect request while signed out", async () => {
+    installFakeApi(signedIn());
+    let seen: unknown = "unset";
+    function Probe() {
+      seen = useLocation().state;
+      return null;
+    }
+    render(
+      <MemoryRouter initialEntries={["/profile/details"]}>
+        <Probe />
+        <App />
+      </MemoryRouter>,
+    );
+    await screen.findByRole("heading", { name: "Profile" });
+    expect(seen).toEqual({ openSheet: "details" });
   });
 
   it("returns to My details after the preferences editor saves", async () => {

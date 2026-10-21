@@ -1,5 +1,5 @@
 import { ChevronRight } from "lucide-react";
-import type { MouseEvent, ReactNode } from "react";
+import type { MouseEvent, ReactNode, Ref } from "react";
 
 export type HubRowProps = {
   icon: ReactNode;
@@ -7,12 +7,14 @@ export type HubRowProps = {
   // One line that shows the live state behind the row.
   summary: string;
   onClick: (event: MouseEvent<HTMLButtonElement>) => void;
+  // The row button, for a caller that must return focus to it without a click.
+  buttonRef?: Ref<HTMLButtonElement>;
 };
 
 // Large tappable row for a hub screen: icon, title, one-line summary and a chevron.
-export function HubRow({ icon, title, summary, onClick }: HubRowProps) {
+export function HubRow({ icon, title, summary, onClick, buttonRef }: HubRowProps) {
   return (
-    <button type="button" className="ui-hub-row" onClick={onClick}>
+    <button type="button" className="ui-hub-row" onClick={onClick} ref={buttonRef}>
       <span className="ui-hub-row__icon" aria-hidden="true">
         {icon}
       </span>

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type MouseEvent } from "react";
+import { useLayoutEffect, useRef, useState, type MouseEvent } from "react";
 import { Gift, IdCard, LifeBuoy, Settings, UserRound } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -51,15 +51,21 @@ export function ProfilePage() {
   const fromDetails = useRef(false);
   // The row that opened a sheet, stored on its click so focus can return to it on close.
   const opener = useRef<HTMLElement | null>(null);
+  const detailsRow = useRef<HTMLButtonElement>(null);
   const { notify, toast } = useToast();
   const saved = () => notify("Saved");
 
   // The redirect state only opens My details once: clear it so a reload or a later Back does not.
-  useEffect(() => {
-    if (initialSheet(location.state)) {
-      navigate({ pathname: location.pathname, search: location.search }, { replace: true });
-    }
-  }, [location.state, location.pathname, location.search, navigate]);
+  // This runs in the layout phase, before the sheet's own effect pushes its history entry, so the
+  // replace lands on the Profile entry and never overwrites the sheet's marker. Signed out, the
+  // request is kept: the sheet state is already set and opens once the person is in.
+  const signedIn = user !== null;
+  useLayoutEffect(() => {
+    if (!signedIn || !initialSheet(location.state)) return;
+    // No click opened it, so focus goes back to the My details row when it closes.
+    opener.current ??= detailsRow.current;
+    navigate({ pathname: location.pathname, search: location.search }, { replace: true });
+  }, [signedIn, location.state, location.pathname, location.search, navigate]);
 
   const showLocalSignIn = demoSignInEnabled() && !tokenModeEnabled();
 
@@ -120,6 +126,7 @@ export function ProfilePage() {
           <HubRow
             icon={<IdCard size={22} />}
             title="My details"
+            buttonRef={detailsRow}
             summary={preferencesSummary(prefs)}
             onClick={(event) => show("details", event)}
           />
