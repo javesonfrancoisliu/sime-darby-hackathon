@@ -74,7 +74,9 @@ export function RewardsPanel({
                     )}
                   </div>
                   <div className="reward-card__action">
-                    <span className="reward-card__points">{reward.pointsCost} {pointsUnit(reward.pointsCost)}</span>
+                    <span className="reward-card__points">
+                      {reward.pointsCost} {pointsUnit(reward.pointsCost)}
+                    </span>
                     <AppButton
                       variant={reward.status === "available" ? "primary" : "secondary"}
                       disabled={reward.status !== "available"}

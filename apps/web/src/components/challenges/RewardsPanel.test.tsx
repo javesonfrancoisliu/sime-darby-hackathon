@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import type { RewardWithStatus } from "@sdh/contracts";
 import { describe, expect, it } from "vitest";
 
 import { makeReward } from "../../test/fixtures";
@@ -7,7 +8,9 @@ import { RewardsPanel } from "./RewardsPanel";
 function renderPanel(pointsCost: number) {
   render(
     <RewardsPanel
-      rewards={[makeReward({ title: "Sticker", pointsCost, status: "available" })]}
+      rewards={[
+        makeReward({ title: "Sticker", pointsCost, status: "available" }) as RewardWithStatus,
+      ]}
       balance={100}
       loading={false}
       error={null}
