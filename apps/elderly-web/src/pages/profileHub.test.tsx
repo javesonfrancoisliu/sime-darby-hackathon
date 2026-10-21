@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
 import { App } from "../App";
 import userEvent from "@testing-library/user-event";
-import { RewardWithStatus } from "@sdh/contracts";
+import { MAX_NAME_LENGTH, RewardWithStatus } from "@sdh/contracts";
 import { renderApp } from "../test/renderRoute";
 import { installFakeApi, signInAs } from "../test/fakeApi";
 import { DEFAULT_SETTINGS } from "@sdh/contracts";
@@ -141,6 +141,68 @@ describe("Edit your details", () => {
     await userEvent.click(within(sheet).getByRole("button", { name: "Save" }));
     expect(await within(sheet).findByText(/something went wrong/i)).toBeInTheDocument();
     expect(screen.queryByText("boom")).not.toBeInTheDocument();
+  });
+});
+
+describe("Edit your details, saving and leaving", () => {
+  async function openEdit(routes: Record<string, unknown> = {}) {
+    const api = installFakeApi({
+      ...hubRoutes,
+      "PATCH /api/me": (call) => ({ body: { ...ELDER, ...(call.body as object) } }),
+      ...routes,
+    });
+    await renderApp("/me");
+    await userEvent.click(await screen.findByRole("button", { name: "Edit" }));
+    return { ...api, sheet: await sheetNamed("Edit your details") };
+  }
+
+  it("sends the trimmed name and announces Saved", async () => {
+    const { calls, sheet } = await openEdit();
+    const name = within(sheet).getByLabelText("Your name");
+    await userEvent.clear(name);
+    await userEvent.type(name, "  Puan Aini  ");
+    await userEvent.click(within(sheet).getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(calls.find((c) => c.method === "PATCH")?.body).toEqual({ name: "Puan Aini" });
+    expect(screen.getByRole("status")).toHaveTextContent("Saved");
+  });
+
+  it("announces Nothing changed and sends nothing when nothing was edited", async () => {
+    const { calls, sheet } = await openEdit();
+    await userEvent.click(within(sheet).getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(screen.getByRole("status")).toHaveTextContent("Nothing changed");
+    expect(calls.some((c) => c.method === "PATCH")).toBe(false);
+  });
+
+  it("names the real problem when the name is too long", async () => {
+    const { calls, sheet } = await openEdit();
+    fireEvent.change(within(sheet).getByLabelText("Your name"), {
+      target: { value: "x".repeat(MAX_NAME_LENGTH + 1) },
+    });
+    await userEvent.click(within(sheet).getByRole("button", { name: "Save" }));
+    expect(
+      await within(sheet).findByText(
+        `Please keep your name to ${MAX_NAME_LENGTH} letters or fewer.`,
+      ),
+    ).toBeInTheDocument();
+    expect(calls.some((c) => c.method === "PATCH")).toBe(false);
+  });
+
+  it("asks before Escape or a scrim tap throws away typed text", async () => {
+    const { sheet } = await openEdit();
+    await userEvent.type(within(sheet).getByLabelText("Your name"), "x");
+    await userEvent.keyboard("{Escape}");
+    expect(await within(sheet).findByText(/changes are not saved yet/i)).toBeInTheDocument();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    await userEvent.click(screen.getByTestId("sheet-scrim"));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  });
+
+  it("closes at once on Escape when nothing was typed", async () => {
+    await openEdit();
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
   });
 });
 
