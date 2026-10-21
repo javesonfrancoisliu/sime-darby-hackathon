@@ -7,7 +7,14 @@ import { StatusBadge } from "./StatusBadge";
 import { Banner } from "./Banner";
 import { Spinner } from "./Spinner";
 import { AppShell } from "./AppShell";
-import { STATUS_TEXT, STATUS_TONE, canCancel, showsVolunteer } from "./status";
+import {
+  STATUS_TEXT,
+  STATUS_TONE,
+  canCancel,
+  requestStatusText,
+  requestStatusTone,
+  showsVolunteer,
+} from "./status";
 import { RequestStatus } from "@sdh/contracts";
 
 describe("Button", () => {
@@ -52,7 +59,9 @@ describe("status helpers", () => {
   it("maps all six statuses to plain text and a tone", () => {
     expect(statuses).toHaveLength(6);
     for (const s of statuses) {
-      const { container, unmount } = render(<StatusBadge status={s} />);
+      const { container, unmount } = render(
+        <StatusBadge status={s} confirmedAt="2026-10-19T10:00:00Z" />,
+      );
       expect(screen.getByText(STATUS_TEXT[s])).toBeInTheDocument();
       expect(container.querySelector(".ui-badge")).toHaveClass(`ui-badge--${STATUS_TONE[s]}`);
       unmount();
@@ -70,6 +79,15 @@ describe("status helpers", () => {
     });
     expect(STATUS_TONE.matched).toBe("success");
     expect(STATUS_TONE.rejected).toBe("danger");
+  });
+
+  it("says waiting for confirmation until a completed request is confirmed", () => {
+    expect(requestStatusText({ status: "completed" })).toBe("Waiting for your confirmation");
+    expect(requestStatusTone({ status: "completed" })).toBe("warning");
+    expect(requestStatusText({ status: "completed", confirmedAt: "2026-10-19T10:00:00Z" })).toBe(
+      "Completed",
+    );
+    expect(requestStatusText({ status: "open" })).toBe("Finding a volunteer");
   });
 
   it("shows the volunteer only once matched or completed", () => {

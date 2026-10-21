@@ -80,7 +80,7 @@ export function RequestsListPage() {
               <div className="apple-card-button__body">
                 <div className="apple-card-button__header">
                   <span className="ui-card-title m-0">{req.title}</span>
-                  <StatusBadge status={req.status} />
+                  <StatusBadge status={req.status} confirmedAt={req.confirmedAt} />
                 </div>
                 <p className="apple-card-button__desc">{formatWhen(req.scheduledAt)}</p>
                 {req.description ? (

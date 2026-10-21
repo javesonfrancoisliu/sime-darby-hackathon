@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { UserRound } from "lucide-react";
@@ -41,20 +42,30 @@ const TABS: Tab[] = [
 export function BottomTabBar() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const navRef = useRef<HTMLElement>(null);
+
+  // Publish the real bar height so page content always clears it, at any text size.
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    const root = nav.closest<HTMLElement>(".app-root");
+    if (!root) return;
+    const publish = () => root.style.setProperty("--tab-bar-height", `${nav.offsetHeight}px`);
+    publish();
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(publish);
+    observer.observe(nav);
+    return () => observer.disconnect();
+  }, []);
 
   return (
-    <nav className="app-tab-bar" aria-label="Main navigation">
+    <nav ref={navRef} className="app-tab-bar" aria-label="Main navigation">
       {TABS.map((tab) => {
-        // Request screens belong to the Home tab.
+        // Home also owns the "Ask for help" flow; My requests pages highlight no tab.
         const isHomeArea =
           tab.path === "/home" &&
-          (pathname === "/" || pathname === "/request" || pathname === "/requests");
-        const active =
-          isHomeArea ||
-          pathname === tab.path ||
-          pathname.startsWith(tab.path + "/") ||
-          (tab.path === "/home" &&
-            (pathname.startsWith("/request/") || pathname.startsWith("/requests/")));
+          (pathname === "/" || pathname === "/request" || pathname.startsWith("/request/"));
+        const active = isHomeArea || pathname === tab.path || pathname.startsWith(tab.path + "/");
         return (
           <button
             key={tab.path}

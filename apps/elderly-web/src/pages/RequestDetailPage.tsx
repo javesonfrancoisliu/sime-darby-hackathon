@@ -12,7 +12,7 @@ import { Banner } from "../ui/Banner";
 import { EmergencyCallButton } from "../ui/EmergencyCallButton";
 import { Spinner } from "../ui/Spinner";
 import { StatusBadge } from "../ui/StatusBadge";
-import { IconUser } from "../ui/Icons";
+import { IconCheck, IconUser } from "../ui/Icons";
 
 // Plain words for the volunteer row before anyone has taken the request.
 function noVolunteerText(status: string): string {
@@ -107,7 +107,10 @@ export function RequestDetailPage() {
       <div className="apple-inset-group">
         <div className="apple-inset-row">
           <span className="app-detail-label">Status</span>
-          <StatusBadge status={req.status} />
+          <StatusBadge
+            status={req.status}
+            confirmedAt={req.confirmedAt ?? (alreadyConfirmed ? "confirmed" : undefined)}
+          />
         </div>
 
         <div className="apple-inset-row">
@@ -143,7 +146,7 @@ export function RequestDetailPage() {
               <span className="apple-volunteer-chip__avatar" aria-hidden="true">
                 <IconUser size={14} strokeWidth={2} />
               </span>
-              <span>{req.volunteerName ?? "Assigned"}</span>
+              <span className="apple-volunteer-chip__name">{req.volunteerName ?? "Assigned"}</span>
             </div>
           ) : (
             <span className="apple-inset-value text-secondary">{noVolunteerText(req.status)}</span>
@@ -153,8 +156,11 @@ export function RequestDetailPage() {
 
       {req.status === "completed" ? (
         req.confirmedAt || alreadyConfirmed ? (
-          <div className="apple-confirm-card" role="status">
-            <p className="apple-confirm-card__title">Thank you, you confirmed</p>
+          <div className="apple-confirm-card apple-confirm-card--success" role="status">
+            <p className="apple-confirm-card__title">
+              <IconCheck size={20} strokeWidth={2.5} aria-hidden="true" />
+              Thank you, you confirmed
+            </p>
             <p className="apple-confirm-card__sub">We are glad your volunteer could help.</p>
           </div>
         ) : (

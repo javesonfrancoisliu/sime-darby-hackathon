@@ -597,7 +597,7 @@
 /* Every carousel card is the same fixed size so the height never jumps. */
 .carousel__slide .apple-condition-card {
   width: 100%;
-  height: 196px;
+  height: 224px;
   min-height: 0;
   justify-content: flex-start;
   position: relative;

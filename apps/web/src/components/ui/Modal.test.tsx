@@ -1,7 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { waitFor } from "@testing-library/react";
 
 import { Modal } from "./Modal";
 
@@ -147,5 +148,49 @@ describe("Modal", () => {
     expect(onClose).not.toHaveBeenCalled();
     fireEvent.mouseDown(screen.getByRole("dialog").parentElement!);
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  describe("browser Back", () => {
+    function Toggle() {
+      const [open, setOpen] = useState(false);
+      return (
+        <div>
+          <button type="button" onClick={() => setOpen(true)}>
+            open
+          </button>
+          <Modal open={open} title="Back test" onClose={() => setOpen(false)}>
+            body
+          </Modal>
+        </div>
+      );
+    }
+
+    // Anchor the history on a known page so assertions do not depend on earlier tests.
+    // Let traversals queued by earlier tests settle before placing the marker.
+    beforeEach(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      window.history.pushState({ page: "base" }, "");
+    });
+
+    it("closes the dialog first and leaves the page where it was", async () => {
+      const user = userEvent.setup();
+      render(<Toggle />);
+      await user.click(screen.getByRole("button", { name: "open" }));
+      expect(window.history.state).toMatchObject({ page: "base", sdhModal: expect.any(String) });
+      window.history.back();
+      await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+      expect(window.history.state).toEqual({ page: "base" });
+    });
+
+    it("removes its entry when closed by Escape or the close button", async () => {
+      const user = userEvent.setup();
+      render(<Toggle />);
+      await user.click(screen.getByRole("button", { name: "open" }));
+      await user.click(screen.getByRole("button", { name: "Close dialog" }));
+      await waitFor(() => expect(window.history.state).toEqual({ page: "base" }));
+      await user.click(screen.getByRole("button", { name: "open" }));
+      await user.keyboard("{Escape}");
+      await waitFor(() => expect(window.history.state).toEqual({ page: "base" }));
+    });
   });
 });

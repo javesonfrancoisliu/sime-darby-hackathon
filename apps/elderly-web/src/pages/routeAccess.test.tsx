@@ -20,11 +20,34 @@ describe("page changes", () => {
 });
 
 describe("tab bar", () => {
-  it("marks Home as current on the request screens", async () => {
+  it("marks Home as current on the home and ask-for-help screens", async () => {
     installFakeApi({ "GET /api/requests/mine": { body: { requests: [] } } });
-    await renderApp("/requests");
+    await renderApp("/request");
     expect(screen.getByRole("button", { name: "Home" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("button", { name: "Safety" })).not.toHaveAttribute("aria-current");
+  });
+
+  it("marks no tab as current on My requests", async () => {
+    installFakeApi({ "GET /api/requests/mine": { body: { requests: [] } } });
+    await renderApp("/requests");
+    expect(screen.getByRole("button", { name: "Home" })).not.toHaveAttribute("aria-current");
+  });
+
+  it("keeps all five labels without an ellipsis rule", async () => {
+    installFakeApi({ "GET /api/requests/mine": { body: { requests: [] } } });
+    await renderApp("/community");
+    expect(screen.getByRole("button", { name: "Community" })).toBeInTheDocument();
+    expect(document.querySelectorAll(".app-tab-bar__label")).toHaveLength(5);
+  });
+
+  it("has a skip link first that focuses main without changing the hash", async () => {
+    installFakeApi({ "GET /api/requests/mine": { body: { requests: [] } } });
+    await renderApp("/safety");
+    const link = screen.getByRole("link", { name: "Skip to main content" });
+    expect(document.querySelector("a, button")).toBe(link);
+    await userEvent.click(link);
+    expect(document.getElementById("main-content")).toHaveFocus();
+    expect(window.location.hash).toBe("");
   });
 });
 

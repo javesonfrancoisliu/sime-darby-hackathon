@@ -1,8 +1,17 @@
 import type { RequestStatus } from "@sdh/contracts";
-import { STATUS_TEXT, STATUS_TONE } from "./status";
+import { requestStatusText, requestStatusTone } from "./status";
 
 // Shared badge with a semantic tone; always shows words, never colour alone.
-export function StatusBadge({ status }: { status: RequestStatus }) {
-  const tone = STATUS_TONE[status];
-  return <span className={`ui-badge ui-badge--${tone}`}>{STATUS_TEXT[status]}</span>;
+// Pass confirmedAt so a self-reported completion reads as waiting for the resident.
+export function StatusBadge({
+  status,
+  confirmedAt,
+}: {
+  status: RequestStatus;
+  confirmedAt?: string | undefined;
+}) {
+  const req = { status, confirmedAt };
+  return (
+    <span className={`ui-badge ui-badge--${requestStatusTone(req)}`}>{requestStatusText(req)}</span>
+  );
 }

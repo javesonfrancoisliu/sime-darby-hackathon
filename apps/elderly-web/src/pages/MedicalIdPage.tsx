@@ -53,6 +53,7 @@ export function MedicalIdPage() {
   const [confirmingRemove, setConfirmingRemove] = useState(false);
   const filled = useRef(false);
   const removeRef = useRef<HTMLDivElement>(null);
+  const bloodRef = useRef<HTMLFieldSetElement>(null);
 
   const exists = medical.data !== undefined;
 
@@ -99,10 +100,25 @@ export function MedicalIdPage() {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
+  // Send keyboard and screen reader focus to the first field that needs fixing.
+  function focusFirstInvalid(found: Errors) {
+    if (found.bloodGroup) {
+      bloodRef.current?.querySelector<HTMLElement>("button")?.focus();
+      return;
+    }
+    const fields = ["name", "relation", "phone"] as const;
+    const index = fields.findIndex((key) => found[key]);
+    const inputs = bloodRef.current?.parentElement?.querySelectorAll<HTMLInputElement>("input");
+    inputs?.[index]?.focus();
+  }
+
   async function onSave() {
     const { body, errors: found } = validate(form);
     setErrors(found);
-    if (!body) return;
+    if (!body) {
+      focusFirstInvalid(found);
+      return;
+    }
     const saved = await save.run(body);
     if (!saved) return;
     announce("Your Medical ID was saved.");
@@ -127,7 +143,7 @@ export function MedicalIdPage() {
         </p>
       </div>
 
-      <fieldset className="medical-field">
+      <fieldset ref={bloodRef} className="medical-field">
         <legend className="ui-label">Blood group</legend>
         <div className="choice-grid">
           {BLOOD_GROUPS.map((group) => (

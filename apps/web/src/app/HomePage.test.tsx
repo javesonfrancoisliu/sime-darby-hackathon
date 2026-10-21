@@ -31,6 +31,8 @@ describe("home page", () => {
     expect(within(safety).getByText("AQI")).toBeInTheDocument();
     expect(within(safety).getByText("Air quality")).toBeInTheDocument();
     expect(within(safety).getByText("34°C")).toBeInTheDocument();
+    // Each card names its area and when it was measured.
+    expect(within(safety).getAllByText(/^Updated /).length).toBeGreaterThan(0);
     expect(within(safety).getByRole("link", { name: "All hazards" })).toHaveAttribute(
       "href",
       "/safety",
