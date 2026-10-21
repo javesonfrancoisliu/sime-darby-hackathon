@@ -1,4 +1,5 @@
 import { useId, useState, type ReactNode } from "react";
+import { useHashTab } from "../ui/useHashTab";
 import { PlayIcon } from "../ui/PlayIcon";
 import {
   useBadges,
@@ -23,6 +24,7 @@ import { Spinner } from "../ui/Spinner";
 import type { FriendlyError } from "../api/errors";
 
 type PlayTab = "streak" | "challenges" | "badges" | "rewards";
+export const PLAY_TABS: readonly PlayTab[] = ["streak", "challenges", "badges", "rewards"];
 
 const DAY_LETTERS = ["S", "M", "T", "W", "T", "F", "S"];
 const WEEK_DAYS = 7;
@@ -80,7 +82,7 @@ export function ChallengesPage() {
   const checkIn = useCheckIn();
   const redeem = useRedeem();
 
-  const [tab, setTab] = useState<PlayTab>("streak");
+  const [tab, setTab] = useHashTab<PlayTab>(PLAY_TABS, "streak");
   const [toast, setToast] = useState("");
   const [openGoal, setOpenGoal] = useState<string | null>(null);
   const groupId = useId();

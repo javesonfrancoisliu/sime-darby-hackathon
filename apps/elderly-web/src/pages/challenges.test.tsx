@@ -142,4 +142,20 @@ describe("Community Play from the API", () => {
     await renderApp("/challenges");
     expect(await screen.findByRole("button", { name: "Try again" })).toBeInTheDocument();
   });
+
+  it("opens the sub-tab named in the URL hash", async () => {
+    installFakeApi(baseRoutes);
+    await renderApp("/challenges#rewards");
+    expect(await screen.findByText("Free kopi")).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /Rewards/i })).toHaveAttribute("aria-selected", "true");
+  });
+
+  it("falls back to the streak tab for an unknown hash", async () => {
+    installFakeApi(baseRoutes);
+    await renderApp("/challenges#nothing");
+    expect(await screen.findByRole("tab", { name: /Streak/i })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+  });
 });
