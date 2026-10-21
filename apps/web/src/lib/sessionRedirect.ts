@@ -3,6 +3,8 @@ import { useEffect } from "react";
 import { useSession } from "@sdh/api-client";
 import { APP_PATHS, homePathForRole, signInUrl } from "@sdh/auth";
 
+import { pageIsLeaving } from "./pageLeave";
+
 // Where this person belongs right now, or null when they can stay on this page.
 export function useSessionRedirect(): string | null {
   const { status, user } = useSession();
@@ -18,7 +20,7 @@ export function useSessionRedirect(): string | null {
   }
 
   useEffect(() => {
-    if (target) window.location.assign(target);
+    if (target && !pageIsLeaving()) window.location.assign(target);
   }, [target]);
 
   return target;

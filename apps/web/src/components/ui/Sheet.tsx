@@ -10,6 +10,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 
+import { pageIsLeaving } from "../../lib/pageLeave";
 import { closeModal, isTopModal, openModal } from "./modalStack";
 
 export type SheetProps = {
@@ -331,7 +332,7 @@ function SheetBody({
         if (entry.mounted || !entry.active) return;
         entry.active = false;
         liveTokens.delete(entry.token);
-        if (currentToken() !== entry.token) return;
+        if (currentToken() !== entry.token || pageIsLeaving()) return;
         window.addEventListener("popstate", swallowOnce, true);
         window.history.back();
       });

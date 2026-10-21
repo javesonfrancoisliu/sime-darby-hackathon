@@ -11,6 +11,7 @@ import { ELDER, VOLUNTEER } from "../test/fixtures";
 import { signedInRoutes } from "../test/routes";
 
 const assign = vi.fn();
+const reload = vi.fn();
 
 const liveRoutes = signedInRoutes(VOLUNTEER);
 
@@ -26,6 +27,7 @@ function renderToken(path: string, signOut = vi.fn(async () => {})) {
 
 beforeEach(() => {
   assign.mockClear();
+  reload.mockClear();
   vi.stubEnv("VITE_COGNITO_REGION", "ap-southeast-5");
   vi.stubEnv("VITE_COGNITO_USER_POOL_ID", "ap-southeast-5_test");
   vi.stubEnv("VITE_COGNITO_CLIENT_ID", "client");
@@ -34,6 +36,7 @@ beforeEach(() => {
     search: "?x=1",
     hash: "#top",
     assign,
+    reload,
   });
   signInWithToken();
 });
@@ -101,5 +104,43 @@ describe("token mode account actions", () => {
     await userEvent.click(await screen.findByRole("button", { name: "Yes, sign out" }));
     await waitFor(() => expect(assign).toHaveBeenCalledWith("/"));
     expect(signOut).toHaveBeenCalled();
+  });
+
+  async function signOutFromProfile() {
+    installFakeApi({ ...liveRoutes, "GET /api/me": { body: VOLUNTEER } });
+    const { signOut } = renderToken("/profile");
+    await userEvent.click(await screen.findByRole("button", { name: /^Account/ }));
+    await userEvent.click(await screen.findByRole("button", { name: "Sign out" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Yes, sign out" }));
+    await waitFor(() => expect(assign).toHaveBeenCalledWith("/"));
+    // Let React finish unmounting the signed-in page and settle any follow-up navigation.
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    return { signOut };
+  }
+
+  it("leaves with one navigation to the sign-in page, not a second one to the last page", async () => {
+    await signOutFromProfile();
+    expect(assign.mock.calls).toEqual([["/"]]);
+  });
+
+  it("does not unwind the dialog history entries while the page is leaving", async () => {
+    const back = vi.spyOn(window.history, "back");
+    await signOutFromProfile();
+    expect(back).not.toHaveBeenCalled();
+    back.mockRestore();
+  });
+
+  it("leaves nothing locked or inert behind when the page unmounts", async () => {
+    await signOutFromProfile();
+    expect(document.body.style.overflow).not.toBe("hidden");
+    expect(document.querySelector("[inert]")).toBeNull();
+  });
+
+  it("reloads when the signed-out page comes back from the back-forward cache", async () => {
+    await signOutFromProfile();
+    const event = new Event("pageshow");
+    Object.defineProperty(event, "persisted", { value: true });
+    window.dispatchEvent(event);
+    expect(reload).toHaveBeenCalledTimes(1);
   });
 });

@@ -1,8 +1,9 @@
-import { Fragment, type ReactNode } from "react";
+import { Fragment, useEffect, type ReactNode } from "react";
 
 import { useSession } from "@sdh/api-client";
 
 import { tokenModeEnabled } from "../../lib/authMode";
+import { endPageLeave, pageIsLeaving } from "../../lib/pageLeave";
 import { useSessionRedirect } from "../../lib/sessionRedirect";
 import { AppButton, EmptyState, LoadingState } from "../ui";
 import { RoleProvider } from "./RoleContext";
@@ -45,6 +46,16 @@ function DemoSessionGate({ children }: { children: ReactNode }) {
 function TokenSessionGate({ children }: { children: ReactNode }) {
   const { status, refresh } = useSession();
   const redirecting = useSessionRedirect();
+  // A signed-out page restored from the back-forward cache is stale: load it fresh.
+  useEffect(() => {
+    function onPageShow(event: PageTransitionEvent) {
+      if (!event.persisted || !pageIsLeaving()) return;
+      endPageLeave();
+      window.location.reload();
+    }
+    window.addEventListener("pageshow", onPageShow);
+    return () => window.removeEventListener("pageshow", onPageShow);
+  }, []);
   if (status === "loading" || redirecting) return <LoadingState rows={2} label="Signing in" />;
   if (status === "error") {
     return (

@@ -1,6 +1,7 @@
 import { X } from "lucide-react";
 import { useEffect, useId, useRef, type ReactNode } from "react";
 
+import { pageIsLeaving } from "../../lib/pageLeave";
 import { closeModal, isTopModal, openModal } from "./modalStack";
 
 export type ModalProps = {
@@ -106,7 +107,7 @@ export function Modal({ open, title, onClose, children, footer }: ModalProps) {
       queueMicrotask(() => {
         if (entry.mounted || !entry.active) return;
         entry.active = false;
-        if (window.history.state?.[HISTORY_KEY] !== entry.token) return;
+        if (window.history.state?.[HISTORY_KEY] !== entry.token || pageIsLeaving()) return;
         window.addEventListener("popstate", swallowOnce, true);
         window.history.back();
       });

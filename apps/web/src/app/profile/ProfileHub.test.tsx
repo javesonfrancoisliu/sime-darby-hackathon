@@ -269,4 +269,20 @@ describe("account sheet", () => {
       within(dialog).queryByRole("link", { name: "Account settings" }),
     ).not.toBeInTheDocument();
   });
+
+  it("signs out of a demo build and leaves the page unlocked with no sheet history behind", async () => {
+    installFakeApi({ ...signedIn(), "GET /api/demo/users": { body: { users: [] } } });
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    const user = userEvent.setup();
+    await user.click(await row(/^Account/));
+    const dialog = await screen.findByRole("dialog", { name: "Account" });
+    await user.click(within(dialog).getByRole("button", { name: "Sign out" }));
+    await gone();
+    expect(await screen.findByLabelText("Local sign-in")).toBeInTheDocument();
+    expect(window.localStorage.getItem("tc.demoUserId")).toBeNull();
+    expect(document.body.style.overflow).not.toBe("hidden");
+    expect(document.querySelector("[inert]")).toBeNull();
+    await waitFor(() => expect(window.history.state?.sdhSheet).toBeUndefined());
+  });
 });
