@@ -29,6 +29,19 @@ data "aws_iam_policy_document" "matching" {
     resources = [var.table_arn, "${var.table_arn}/index/*"]
   }
 
+  # Saved Claude answers only: writes are limited to the AIANSWER# partitions of the table.
+  statement {
+    sid       = "WriteSavedAiAnswers"
+    actions   = ["dynamodb:PutItem"]
+    resources = [var.table_arn]
+
+    condition {
+      test     = "ForAllValues:StringLike"
+      variable = "dynamodb:LeadingKeys"
+      values   = ["AIANSWER#*"]
+    }
+  }
+
   dynamic "statement" {
     for_each = local.anthropic_api_key_parameter_arn == null ? [] : [1]
 

@@ -11,7 +11,14 @@ const MAX_OUTPUT_TOKENS = 1024;
 // Validates the tool input; unknown labels and long reasons are handled by the caller.
 export const RankingInput = z.object({
   ranking: z
-    .array(z.object({ candidate: z.string(), reason: z.string().trim().min(1).max(2000) }))
+    .array(
+      z.object({
+        candidate: z.string(),
+        reason: z.string().trim().min(1).max(2000),
+        // Optional so the elder-facing ranking, which never asks for it, still parses.
+        fit: z.number().min(0).max(100).optional().catch(undefined),
+      }),
+    )
     .min(1)
     .max(SHORTLIST_SIZE * 2),
 });
@@ -42,6 +49,12 @@ const TOOL_INPUT_SCHEMA = {
         properties: {
           candidate: { type: "string", description: "A candidate label such as c1." },
           reason: { type: "string", description: "One short plain-English reason." },
+          fit: {
+            type: "integer",
+            minimum: 0,
+            maximum: 100,
+            description: "How well this item fits, 0 (poor) to 100 (excellent). Optional.",
+          },
         },
         required: ["candidate", "reason"],
       },
