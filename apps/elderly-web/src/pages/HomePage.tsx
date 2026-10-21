@@ -209,6 +209,7 @@ export function HomePage() {
           </div>
           <button type="button" className="app-home__see-all" onClick={() => navigate("/safety")}>
             All hazards
+            <IconChevronRight className="app-home__see-all-arrow" size={18} aria-hidden="true" />
           </button>
         </div>
 

@@ -1,6 +1,5 @@
-import { useNavigate } from "react-router-dom";
 import { useAccessibility } from "../context/AccessibilityContext";
-import { IconMapPin, IconShield, IconVolume2, IconVolumeX } from "./Icons";
+import { IconMapPin, IconVolume2, IconVolumeX } from "./Icons";
 
 interface HeroHeaderProps {
   name: string;
@@ -21,7 +20,6 @@ function getTimeOfDay(): string {
 // - Speaker button reads aloud current screen summary for visually impaired elders
 export function HeroHeader({ name, location = "Elmina West" }: HeroHeaderProps) {
   const { openSheet, isSpeaking, speak, stopSpeaking } = useAccessibility();
-  const navigate = useNavigate();
   const greeting = `${getTimeOfDay()}, ${name}`;
 
   function handleReadAloud() {
@@ -84,11 +82,6 @@ export function HeroHeader({ name, location = "Elmina West" }: HeroHeaderProps) 
           </button>
         </div>
       </div>
-
-      <button type="button" className="app-hero__safety-btn" onClick={() => navigate("/safety")}>
-        <IconShield size={20} strokeWidth={2.2} aria-hidden="true" />
-        <span>Safety</span>
-      </button>
     </div>
   );
 }

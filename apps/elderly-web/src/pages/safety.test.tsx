@@ -39,12 +39,15 @@ describe("Call 999 on Home", () => {
 });
 
 describe("Safety from Home", () => {
-  it("opens the Safety page from the Home header with no tab marked current", async () => {
+  it("opens the Safety page from the All hazards link with no tab marked current", async () => {
     installFakeApi({ "GET /api/requests/mine": { body: { requests: [] } }, ...safetyRoutes });
     await renderApp("/");
     const nav = screen.getByRole("navigation", { name: "Main navigation" });
     expect(within(nav).queryByRole("button", { name: "Safety" })).not.toBeInTheDocument();
-    await userEvent.click(await screen.findByRole("button", { name: "Safety" }));
+    expect(screen.queryByRole("button", { name: "Safety" })).not.toBeInTheDocument();
+    const link = await screen.findByRole("button", { name: "All hazards" });
+    expect(link.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+    await userEvent.click(link);
     expect(document.title).toBe("Health and safety - Township Connect");
     expect(await screen.findByRole("heading", { level: 1 })).toBeInTheDocument();
     expect(nav.querySelector("[aria-current]")).toBeNull();
