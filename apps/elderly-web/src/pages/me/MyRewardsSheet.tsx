@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePoints, useRewards, useUseReward } from "../../hooks/useChallengesData";
 import { formatDate } from "../../requests/schedule";
@@ -19,14 +20,17 @@ export function MyRewardsSheet({ open, onClose }: MyRewardsSheetProps) {
   const useVoucher = useUseReward();
   const claimed = (rewards.data ?? []).filter((r) => r.status === "redeemed");
 
+  const [lastTried, setLastTried] = useState("");
+
   async function handleUse(id: string) {
+    setLastTried(id);
     const result = await useVoucher.run(id);
     if (!result) return;
-    rewards.update((list) =>
-      list.map((r) =>
-        r.id === id ? { ...r, usedAt: result.usedAt ?? new Date().toISOString() } : r,
-      ),
-    );
+    const { usedAt } = result;
+    if (usedAt) rewards.update((list) => list.map((r) => (r.id === id ? { ...r, usedAt } : r)));
+    // Points and the Rewards list may have changed on the server.
+    points.refetch();
+    rewards.refetch();
   }
 
   function seeAvailable() {
@@ -69,7 +73,10 @@ export function MyRewardsSheet({ open, onClose }: MyRewardsSheetProps) {
           <p className="ui-page-subtitle">You have not claimed any vouchers yet.</p>
         ) : null}
         {useVoucher.status === "error" ? (
-          <Banner message={useVoucher.error?.message ?? "We could not use that voucher."} />
+          <Banner
+            message={useVoucher.error?.message ?? "We could not use that voucher."}
+            onRetry={() => void handleUse(lastTried)}
+          />
         ) : null}
         <ul className="ui-stack voucher-list">
           {claimed.map((r) => (

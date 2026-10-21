@@ -208,16 +208,23 @@ describe("Edit your details, saving and leaving", () => {
 
 describe("My rewards sheet", () => {
   it("shows points and the claimed vouchers and uses one", async () => {
+    let used = false;
     const { calls } = installFakeApi({
       ...hubRoutes,
-      [`POST /api/rewards/${REWARD.id}/use`]: {
-        body: {
-          rewardId: REWARD.id,
-          title: REWARD.title,
-          pointsSpent: 80,
-          redeemedAt: "2026-10-19T10:00:00+08:00",
-          usedAt: "2026-10-21T10:00:00+08:00",
-        },
+      "GET /api/rewards": () => ({
+        body: { rewards: [used ? { ...CLAIMED, usedAt: "2026-10-21T10:00:00+08:00" } : CLAIMED] },
+      }),
+      [`POST /api/rewards/${REWARD.id}/use`]: () => {
+        used = true;
+        return {
+          body: {
+            rewardId: REWARD.id,
+            title: REWARD.title,
+            pointsSpent: 80,
+            redeemedAt: "2026-10-19T10:00:00+08:00",
+            usedAt: "2026-10-21T10:00:00+08:00",
+          },
+        };
       },
     });
     await renderApp("/me");
@@ -231,6 +238,42 @@ describe("My rewards sheet", () => {
     expect(
       calls.some((c) => c.method === "POST" && c.path === `/api/rewards/${REWARD.id}/use`),
     ).toBe(true);
+  });
+
+  it("offers a retry when Use now fails and refetches points and rewards after it works", async () => {
+    let tries = 0;
+    let used = false;
+    const { calls } = installFakeApi({
+      ...hubRoutes,
+      "GET /api/rewards": () => ({
+        body: { rewards: [used ? { ...CLAIMED, usedAt: "2026-10-21T10:00:00+08:00" } : CLAIMED] },
+      }),
+      [`POST /api/rewards/${REWARD.id}/use`]: () => {
+        tries += 1;
+        if (tries === 1) return { status: 500, body: {} };
+        used = true;
+        return {
+          body: {
+            rewardId: REWARD.id,
+            title: REWARD.title,
+            pointsSpent: 80,
+            redeemedAt: "2026-10-19T10:00:00+08:00",
+            usedAt: "2026-10-21T10:00:00+08:00",
+          },
+        };
+      },
+    });
+    await renderApp("/me");
+    await userEvent.click(await screen.findByRole("button", { name: /^My rewards/ }));
+    const sheet = await sheetNamed("My rewards");
+    await userEvent.click(await within(sheet).findByRole("button", { name: "Use now: Free kopi" }));
+    await userEvent.click(await within(sheet).findByRole("button", { name: "Try again" }));
+    expect(await within(sheet).findByRole("button", { name: "Used" })).toBeDisabled();
+    expect(within(sheet).getByText(/Used on/)).toBeInTheDocument();
+    const count = (path: string) =>
+      calls.filter((c) => c.method === "GET" && c.path === path).length;
+    await waitFor(() => expect(count("/api/me/points")).toBeGreaterThanOrEqual(2));
+    expect(count("/api/rewards")).toBeGreaterThanOrEqual(2);
   });
 
   it("says so when no voucher has been claimed", async () => {
