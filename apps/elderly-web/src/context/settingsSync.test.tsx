@@ -31,17 +31,23 @@ describe("settings follow the person", () => {
     });
   });
 
-  it("uploads this phone's settings when nothing was ever saved", async () => {
+  it("starts a new person from the defaults and uploads nothing", async () => {
+    window.localStorage.setItem(
+      ACCESSIBILITY_STORAGE_KEY,
+      JSON.stringify({ ...DEFAULT_SETTINGS, fontSize: "xlarge", highContrast: true }),
+    );
     const { calls } = installFakeApi({
       "GET /api/me/settings": { body: { ...DEFAULT_SETTINGS, updatedAt: ELDER.createdAt } },
       "PUT /api/me/settings": (call) => ({ body: { ...(call.body as object), updatedAt: "x" } }),
     });
-    await renderApp("/me");
-    await waitFor(() => expect(calls.some((c) => c.method === "PUT")).toBe(true), {
-      timeout: SETTINGS_SAVE_DELAY_MS * 4,
+    const { container } = await renderApp("/me");
+    await waitFor(() => {
+      expect(container.querySelector(".app-root")).toHaveClass("text-size-normal");
     });
-    const put = calls.find((c) => c.method === "PUT");
-    expect(put?.body).toMatchObject({ fontSize: "normal", highContrast: false });
+    expect(container.querySelector(".app-root")).not.toHaveClass("high-contrast");
+    await new Promise((resolve) => setTimeout(resolve, SETTINGS_SAVE_DELAY_MS + 300));
+    expect(calls.some((c) => c.method === "PUT")).toBe(false);
+    expect(window.localStorage.getItem(ACCESSIBILITY_STORAGE_KEY)).not.toContain("xlarge");
   });
 
   it("saves a change once after a pause and keeps the local copy", async () => {
