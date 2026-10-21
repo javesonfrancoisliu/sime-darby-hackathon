@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import { BrowserRouter } from "react-router-dom";
+import { BrowserRouter, MemoryRouter, useLocation } from "react-router-dom";
 import { App } from "../App";
 import userEvent from "@testing-library/user-event";
 import { MAX_NAME_LENGTH, RewardWithStatus } from "@sdh/contracts";
@@ -88,13 +88,22 @@ describe("Profile hub", () => {
 describe("My details drawer", () => {
   it("shows the Medical ID summary and the township sector in a sheet", async () => {
     installFakeApi(hubRoutes);
-    await renderApp("/me");
+    function Where() {
+      return <p data-testid="where">{useLocation().pathname}</p>;
+    }
+    render(
+      <MemoryRouter initialEntries={["/me"]}>
+        <App />
+        <Where />
+      </MemoryRouter>,
+    );
     await userEvent.click(await screen.findByRole("button", { name: /^My details/ }));
     const sheet = await sheetNamed("My details");
     expect(await within(sheet).findByText("O+")).toBeInTheDocument();
     expect(within(sheet).getByText(/Zainal/)).toBeInTheDocument();
     expect(within(sheet).getByText("Township Sector")).toBeInTheDocument();
-    expect(window.location.pathname).not.toBe("/me/details");
+    // The router location, not the window's, since this renders under a memory router.
+    expect(screen.getByTestId("where")).toHaveTextContent(/^\/me$/);
   });
 
   it("closes and opens the Medical ID page from Change your Medical ID", async () => {

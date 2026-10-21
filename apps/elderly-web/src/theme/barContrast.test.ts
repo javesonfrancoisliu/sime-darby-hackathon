@@ -10,8 +10,10 @@ const tokensCss = readFileSync(
 );
 const appCss = readFileSync(resolve(process.cwd(), "src/theme/app.css"), "utf8");
 
+// The declarations of the rule whose selector is exactly this one, not a longer selector ending in it.
 function rule(selector: string): string {
-  const match = appCss.match(new RegExp(`${selector.replace(".", "\\.")}\\s*\\{([^}]*)\\}`, "s"));
+  const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = appCss.match(new RegExp(`(?:^|[}\\n])\\s*${escaped}\\s*\\{([^}]*)\\}`, "s"));
   if (!match?.[1]) throw new Error(`Rule ${selector} not found`);
   return match[1];
 }
@@ -54,6 +56,7 @@ describe("tab bar", () => {
   });
 
   it("keeps the raised label on one line so the bar height does not change", () => {
+    // The raised rule itself must say so, even though the base label rule does as well.
     expect(rule(".app-tab-bar__item--raised .app-tab-bar__label")).toContain("white-space: nowrap");
   });
 
