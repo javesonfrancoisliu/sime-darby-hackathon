@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type MutableRefObject } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSession } from "@sdh/api-client";
 import { MAX_NAME_LENGTH, Precinct, UpdateMeBody, type User } from "@sdh/contracts";
 import { meApi } from "../../api/me";
@@ -19,6 +19,9 @@ interface EditProfileSheetProps {
 export function EditProfileSheet({ open, onClose, resident }: EditProfileSheetProps) {
   // The form says whether leaving now may go ahead; false keeps the sheet open.
   const guard = useRef<() => boolean>(() => true);
+  const setGuard = useCallback((next: () => boolean) => {
+    guard.current = next;
+  }, []);
   return (
     <Sheet
       open={open}
@@ -26,7 +29,7 @@ export function EditProfileSheet({ open, onClose, resident }: EditProfileSheetPr
       title="Edit your details"
       canDismiss={() => guard.current()}
     >
-      <EditForm resident={resident} onSaved={onClose} guard={guard} />
+      <EditForm resident={resident} onSaved={onClose} setGuard={setGuard} />
     </Sheet>
   );
 }
@@ -54,11 +57,11 @@ function validationProblem(error: ParseError): { field: "name" | "form"; message
 function EditForm({
   resident,
   onSaved,
-  guard,
+  setGuard,
 }: {
   resident: User;
   onSaved: () => void;
-  guard: MutableRefObject<() => boolean>;
+  setGuard: (guard: () => boolean) => void;
 }) {
   const { updateUser } = useSession();
   const announce = useAnnounce();
@@ -75,21 +78,20 @@ function EditForm({
 
   // Escape and a scrim tap ask first when there is typed text; a second try leaves.
   useEffect(() => {
-    guard.current = () => {
+    setGuard(() => {
       if (!dirty || warnedRef.current) return true;
       warnedRef.current = true;
       setWarned(true);
       return false;
-    };
-    return () => {
-      guard.current = () => true;
-    };
-  }, [dirty, guard]);
+    });
+    return () => setGuard(() => true);
+  }, [dirty, setGuard]);
 
-  useEffect(() => {
+  // Any further edit withdraws the warning.
+  function edited() {
     warnedRef.current = false;
     setWarned(false);
-  }, [name, area]);
+  }
 
   async function save() {
     setNameError("");
@@ -125,7 +127,10 @@ function EditForm({
       <TextField
         label="Your name"
         value={name}
-        onChange={setName}
+        onChange={(value) => {
+          setName(value);
+          edited();
+        }}
         error={nameError}
         placeholder="Type your name"
         maxLength={MAX_NAME_LENGTH}
@@ -136,7 +141,10 @@ function EditForm({
           <ChoiceButton
             key={precinct}
             selected={area === precinct}
-            onClick={() => setArea(precinct)}
+            onClick={() => {
+              setArea(precinct);
+              edited();
+            }}
           >
             {precinct}
           </ChoiceButton>
