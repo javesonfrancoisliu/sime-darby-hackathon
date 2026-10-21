@@ -13,21 +13,10 @@ import { EmergencyCallButton } from "../ui/EmergencyCallButton";
 import { Spinner } from "../ui/Spinner";
 import { StatusBadge } from "../ui/StatusBadge";
 import { IconUser } from "../ui/Icons";
-import { LevelBadge, LevelLegend } from "../ui/LevelBadge";
-import type { VolunteerLevelNumber } from "../ui/volunteerLevels";
 
 // Plain words for the volunteer row before anyone has taken the request.
 function noVolunteerText(status: string): string {
   return status === "cancelled" || status === "rejected" ? "No volunteer" : "Not matched yet";
-}
-
-// The contract has no volunteer level yet, so derive a stable demo level from
-// the volunteer's name (1–4) — the same volunteer always shows the same level.
-function volunteerLevel(name: string | undefined): VolunteerLevelNumber {
-  if (!name) return 1;
-  let sum = 0;
-  for (let i = 0; i < name.length; i += 1) sum += name.charCodeAt(i);
-  return ((sum % 4) + 1) as VolunteerLevelNumber;
 }
 
 // Request detail: grouped rows for status, time, place and volunteer.
@@ -144,15 +133,12 @@ export function RequestDetailPage() {
                 <IconUser size={14} strokeWidth={2} />
               </span>
               <span>{req.volunteerName ?? "Assigned"}</span>
-              <LevelBadge level={volunteerLevel(req.volunteerName)} />
             </div>
           ) : (
             <span className="apple-inset-value text-secondary">{noVolunteerText(req.status)}</span>
           )}
         </div>
       </div>
-
-      {showsVolunteer(req.status) ? <LevelLegend /> : null}
 
       {req.status === "completed" ? (
         req.confirmedAt || alreadyConfirmed ? (
