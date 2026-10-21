@@ -10,6 +10,9 @@ import { signedInRoutes } from "../../test/routes";
 
 const signedIn = (overrides: Record<string, unknown> = {}) => signedInRoutes(VOLUNTEER, overrides);
 
+// The toast region that announces a finished save.
+const savedNotice = () => screen.queryByText("Saved")?.closest("[role=status][aria-live=polite]");
+
 describe("profile page", () => {
   it("offers the local sign-in and no profile when signed out", async () => {
     installFakeApi({ "GET /api/demo/users": { body: { users: [] } } });
@@ -322,6 +325,84 @@ describe("profile page", () => {
     const put = calls.find((c) => c.method === "PUT");
     expect(put?.path).toBe("/api/me/settings");
     expect(PutSettingsBody.parse(put?.body)).toMatchObject({ notifyVolunteering: true });
+  });
+
+  it("says Saved after a settings toggle is saved", async () => {
+    installFakeApi({
+      ...signedIn(),
+      "PUT /api/me/settings": ({ body }) => ({
+        body: { ...(body as object), updatedAt: "2026-10-19T00:00:00Z" },
+      }),
+    });
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Settings. Show details" }));
+    const toggle = await screen.findByRole("switch", { name: /Volunteering updates/ });
+    await waitFor(() => expect(toggle).toBeEnabled());
+    await user.click(toggle);
+
+    await waitFor(() => expect(savedNotice()).toBeInTheDocument());
+  });
+
+  it("shows an error with Try again when a settings toggle fails, then saves on retry", async () => {
+    let attempts = 0;
+    installFakeApi({
+      ...signedIn(),
+      "PUT /api/me/settings": ({ body }) => {
+        attempts += 1;
+        return attempts === 1
+          ? { status: 500, body: { error: { code: "INTERNAL", message: "Please try later" } } }
+          : { body: { ...(body as object), updatedAt: "2026-10-19T00:00:00Z" } };
+      },
+    });
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Settings. Show details" }));
+    const toggle = await screen.findByRole("switch", { name: /Volunteering updates/ });
+    await waitFor(() => expect(toggle).toBeEnabled());
+    await user.click(toggle);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Please try later");
+    expect(screen.queryByText("Saved")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Try again" }));
+
+    await waitFor(() => expect(savedNotice()).toBeInTheDocument());
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(attempts).toBe(2);
+  });
+
+  it("says Saved after personal details and preferences are saved", async () => {
+    installFakeApi({
+      ...signedIn(),
+      "PATCH /api/me": ({ body }) => ({ body: User.parse({ ...VOLUNTEER, ...(body as object) }) }),
+    });
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("button", { name: "Edit personal information" }));
+    let dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(savedNotice()).toBeInTheDocument();
+
+    await user.click(
+      await screen.findByRole("button", { name: "Volunteering preferences. Show details" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Edit volunteer preferences" }));
+    dialog = await screen.findByRole("dialog");
+    await user.click(
+      within(within(dialog).getByRole("group", { name: "Skills" })).getByRole("button", {
+        name: "Groceries",
+      }),
+    );
+    await user.click(within(dialog).getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(savedNotice()).toBeInTheDocument();
   });
 
   it("saves the leaderboard choice with PATCH /api/me", async () => {

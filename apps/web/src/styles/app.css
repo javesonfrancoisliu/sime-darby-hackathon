@@ -276,6 +276,31 @@
   height: 16px;
 }
 
+/* ---------- Toast ---------- */
+.ui-toast-region {
+  position: fixed;
+  inset: auto var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom)) var(--space-4);
+  z-index: 60;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+@media (max-width: 639px) {
+  .ui-toast-region {
+    bottom: calc(72px + var(--space-3) + env(safe-area-inset-bottom));
+  }
+}
+.ui-toast {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--success);
+  border-radius: var(--radius-control);
+  background: var(--success-bg);
+  color: var(--success);
+  font-weight: 600;
+  box-shadow: var(--shadow-card);
+}
+
 /* ---------- Modal ---------- */
 .ui-modal-backdrop {
   position: fixed;

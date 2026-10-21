@@ -50,15 +50,15 @@ function ToggleRow({
 }
 
 // Settings: notification and privacy choices saved to the account, plus help and sign out.
-export function SettingsCard() {
-  const { settings, loading, error, saveError, update, reload } = useSettings();
+export function SettingsCard({ onSaved }: { onSaved: () => void }) {
+  const { settings, loading, error, update, reload } = useSettings();
   const { leaderboardOptIn, setLeaderboardOptIn } = useProfile();
   const { township } = useTownship();
   const { signOut } = useSession();
   const { largeText, setLargeText } = useLargeText();
   const confirm = useConfirm();
   const [open, setOpen] = useState(false);
-  const [optInError, setOptInError] = useState<string | null>(null);
+  const [failure, setFailure] = useState<{ message: string; retry: () => void } | null>(null);
 
   async function signOutOfAccount() {
     await signOut();
@@ -75,25 +75,25 @@ export function SettingsCard() {
     });
   }
 
-  async function changeLargeText(next: boolean) {
-    setOptInError(null);
+  // Runs one save, says "Saved" on success and offers a retry on failure.
+  async function save(action: () => Promise<void>) {
+    setFailure(null);
     try {
-      await setLargeText(next);
-      // Reload so the next toggle starts from the saved text size.
-      await reload();
+      await action();
+      onSaved();
     } catch (err) {
-      setOptInError(errorMessage(err));
+      setFailure({ message: errorMessage(err), retry: () => void save(action) });
     }
   }
 
-  async function changeOptIn(next: boolean) {
-    setOptInError(null);
-    try {
-      await setLeaderboardOptIn(next);
-    } catch (err) {
-      setOptInError(errorMessage(err));
-    }
-  }
+  const changeLargeText = (next: boolean) =>
+    save(async () => {
+      await setLargeText(next);
+      // Reload so the next toggle starts from the saved text size.
+      await reload();
+    });
+
+  const changeOptIn = (next: boolean) => save(() => setLeaderboardOptIn(next));
 
   const ready = settings !== null;
   const toggles: { key: ToggleKey; label: string; description: string }[] = [
@@ -152,7 +152,7 @@ export function SettingsCard() {
               description={t.description}
               checked={settings?.[t.key] ?? false}
               disabled={!ready}
-              onChange={(next) => void update({ [t.key]: next })}
+              onChange={(next) => void save(() => update({ [t.key]: next }))}
             />
           ))}
 
@@ -164,7 +164,7 @@ export function SettingsCard() {
               description={t.description}
               checked={settings?.[t.key] ?? false}
               disabled={!ready}
-              onChange={(next) => void update({ [t.key]: next })}
+              onChange={(next) => void save(() => update({ [t.key]: next }))}
             />
           ))}
           <ToggleRow
@@ -174,10 +174,15 @@ export function SettingsCard() {
             disabled={false}
             onChange={(next) => void changeOptIn(next)}
           />
-          {(saveError ?? optInError) && (
-            <p className="ui-error" role="alert" style={{ margin: "var(--space-2) 0 0" }}>
-              {saveError ?? optInError}
-            </p>
+          {failure && (
+            <div className="ui-stack ui-gap-2">
+              <p className="ui-error" role="alert" style={{ margin: "var(--space-2) 0 0" }}>
+                Couldn&rsquo;t save that change. {failure.message}
+              </p>
+              <AppButton variant="secondary" onClick={failure.retry}>
+                Try again
+              </AppButton>
+            </div>
           )}
 
           {tokenModeEnabled() && (

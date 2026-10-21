@@ -13,5 +13,6 @@ export { PageHeader } from "./PageHeader";
 export { Pill } from "./Pill";
 export { ProgressBar } from "./ProgressBar";
 export { StatusBadge } from "./StatusBadge";
+export { Toast, useToast } from "./Toast";
 export { Tabs, TabPanel, type TabItem, type TabsProps } from "./Tabs";
 export { SignInPrompt } from "./SignInPrompt";

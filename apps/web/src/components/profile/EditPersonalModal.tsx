@@ -10,10 +10,12 @@ import { Avatar } from "./Avatar";
 export type EditPersonalModalProps = {
   open: boolean;
   onClose: () => void;
+  // Called after the details are saved.
+  onSaved?: () => void;
 };
 
 // Edit display name and precinct. The avatar is initials-based and previews live.
-export function EditPersonalModal({ open, onClose }: EditPersonalModalProps) {
+export function EditPersonalModal({ open, onClose, onSaved }: EditPersonalModalProps) {
   const { prefs, updatePrefs } = useProfile();
   const [name, setName] = useState(prefs.displayName);
   // Team challenges only accept the four precincts; an older free-text area starts unselected.
@@ -30,6 +32,7 @@ export function EditPersonalModal({ open, onClose }: EditPersonalModalProps) {
     setSaveError(null);
     try {
       await updatePrefs({ displayName: nextName, ...(area && { area }) });
+      onSaved?.();
       onClose();
     } catch (err) {
       setSaveError(errorMessage(err));
