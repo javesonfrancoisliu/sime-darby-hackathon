@@ -12,6 +12,8 @@ interface ConfirmDialogProps {
   onCancel: () => void;
   // A confirmed action is running: the confirm button stays off so a second tap cannot repeat it.
   busy?: boolean;
+  // Spoken and shown while busy, so the wait is not silent.
+  busyLabel?: string;
   children?: ReactNode;
 }
 
@@ -24,6 +26,7 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
   busy = false,
+  busyLabel,
   children,
 }: ConfirmDialogProps) {
   const titleId = useId();
@@ -47,9 +50,13 @@ export function ConfirmDialog({
     };
   }, [host]);
 
-  // Back to the safe choice once a running action finishes, since its button was disabled meanwhile.
+  // Both buttons are disabled while an action runs, so keep focus on the dialog itself, then return
+  // it to the safe choice if the action finishes and the dialog stays.
+  const wasBusy = useRef(false);
   useEffect(() => {
-    if (!busy) cancelRef.current?.focus();
+    if (busy) panelRef.current?.focus();
+    else if (wasBusy.current) cancelRef.current?.focus();
+    wasBusy.current = busy;
   }, [busy]);
 
   // While the confirmed action runs, leaving the dialog by any route is off.
@@ -67,6 +74,7 @@ export function ConfirmDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
+        tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="apple-sheet-grabber" aria-hidden="true" />
@@ -75,6 +83,11 @@ export function ConfirmDialog({
             {title}
           </h2>
           {children ? <p className="call-confirm__sub">{children}</p> : null}
+          {busyLabel ? (
+            <p role="status" className="call-confirm__sub">
+              {busy ? `${busyLabel}…` : ""}
+            </p>
+          ) : null}
           <div className="call-confirm__actions">
             <Button block onClick={onConfirm} disabled={busy} aria-busy={busy || undefined}>
               {confirmLabel}

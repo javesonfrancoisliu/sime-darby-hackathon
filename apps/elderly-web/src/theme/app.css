@@ -3444,6 +3444,10 @@ main:focus {
    layout. The call is placed only after a deliberate slide-to-confirm
    gesture, so a mis-tap never dials.
 ───────────────────────────────────────────────────────────── */
+.call-confirm-panel:focus {
+  outline: none;
+}
+
 .call-confirm-panel {
   text-align: center;
 }
