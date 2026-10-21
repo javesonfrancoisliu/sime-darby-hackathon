@@ -46,7 +46,7 @@ describe("tab bar", () => {
     );
     expect(labels).toEqual(["Home", "Community", "Help request", "Play", "Profile"]);
     const bar = screen.getByRole("navigation", { name: "Main navigation" });
-    expect(within(bar).queryByRole("button", { name: "Safety" })).not.toBeInTheDocument();
+    expect(within(bar).queryByRole("button", { name: /safety/i })).not.toBeInTheDocument();
     expect(within(bar).queryByRole("button", { name: "Rewards" })).not.toBeInTheDocument();
   });
 

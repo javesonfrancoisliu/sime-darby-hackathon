@@ -43,8 +43,8 @@ describe("Safety from Home", () => {
     installFakeApi({ "GET /api/requests/mine": { body: { requests: [] } }, ...safetyRoutes });
     await renderApp("/");
     const nav = screen.getByRole("navigation", { name: "Main navigation" });
-    expect(within(nav).queryByRole("button", { name: "Safety" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Safety" })).not.toBeInTheDocument();
+    expect(within(nav).queryByRole("button", { name: /safety/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^safety/i })).not.toBeInTheDocument();
     const link = await screen.findByRole("button", { name: "All hazards" });
     expect(link.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
     // Same right arrow as the Youth app, on every see-all link of the page.
