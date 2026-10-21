@@ -179,6 +179,16 @@
   .app-mobilenav-link--centre:active .app-mobilenav-orb {
     transform: scale(0.97);
   }
+  /* Forced-colors modes drop box-shadow, so the current and focus states also get an outline
+     that is transparent in normal colours and drawn in the system colour there. */
+  .app-mobilenav-link--centre[aria-current="page"] .app-mobilenav-orb {
+    outline: 3px solid transparent;
+    outline-offset: 3px;
+  }
+  .app-mobilenav-link--centre:focus-visible .app-mobilenav-orb {
+    outline: 3px solid transparent;
+    outline-offset: 6px;
+  }
   .app-mobilenav-link--centre[aria-current="page"] {
     color: var(--text-primary);
   }
@@ -349,7 +359,8 @@
 }
 @media (max-width: 639px) {
   .ui-toast-region {
-    bottom: calc(72px + var(--space-3) + env(safe-area-inset-bottom));
+    /* Clears the bar plus the raised centre button: half of the 64px Easy view orb and its ring. */
+    bottom: calc(72px + 32px + 7px + var(--space-3) + env(safe-area-inset-bottom));
   }
 }
 .ui-toast {
