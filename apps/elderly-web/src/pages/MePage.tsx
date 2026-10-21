@@ -10,7 +10,6 @@ import { Banner } from "../ui/Banner";
 import { useResident } from "../session/useResident";
 import { PageHeaderActions } from "../ui/PageHeaderActions";
 import { useCallConfirm } from "../ui/CallConfirm";
-import { LevelBadge } from "../ui/LevelBadge";
 import {
   IconUser,
   IconMapPin,
@@ -76,9 +75,6 @@ export function MePage() {
           <IconMapPin className="icon-inline-low" size={14} strokeWidth={2} />
           {area}
         </p>
-        <div className="apple-profile-level">
-          <LevelBadge level={2} variant="full" />
-        </div>
 
         <button
           type="button"

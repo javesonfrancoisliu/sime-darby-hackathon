@@ -11,24 +11,38 @@ const MIN_REFRESH_GAP_MS = 2_000;
 // whenever the scope changes, and again on `reload`. A slower older reply never
 // overwrites a newer one. `load` must be a stable function that does not throw.
 // With `refreshMs` it also reloads on that interval and when the tab regains focus, only while visible.
+// A background refresh whose result `failed` flags keeps the last list on screen instead of replacing it.
 export function useLoader<T>(
   scope: string | null,
   load: (scope: string | null) => Promise<T>,
   enabled = true,
   refreshMs?: number,
+  failed?: (value: T) => boolean,
 ): { loaded: Loaded<T> | null; reload: () => Promise<void> } {
   const [loaded, setLoaded] = useState<Loaded<T> | null>(null);
   const latest = useRef(0);
   const lastRun = useRef(0);
+  // A ref, so an inline `failed` function never restarts the load.
+  const failedRef = useRef(failed);
+  useEffect(() => {
+    failedRef.current = failed;
+  }, [failed]);
 
-  const reload = useCallback(async () => {
-    if (!enabled) return;
-    latest.current += 1;
-    lastRun.current = Date.now();
-    const ticket = latest.current;
-    const value = await load(scope);
-    if (ticket === latest.current) setLoaded({ scope, value });
-  }, [scope, load, enabled]);
+  const run = useCallback(
+    async (background: boolean) => {
+      if (!enabled) return;
+      latest.current += 1;
+      lastRun.current = Date.now();
+      const ticket = latest.current;
+      const value = await load(scope);
+      if (ticket !== latest.current) return;
+      if (background && failedRef.current?.(value)) return;
+      setLoaded({ scope, value });
+    },
+    [scope, load, enabled],
+  );
+  // Not `run` itself: callers pass this to onClick, which would hand it an event.
+  const reload = useCallback(() => run(false), [run]);
 
   useEffect(() => {
     void reload();
@@ -42,7 +56,7 @@ export function useLoader<T>(
     const refresh = () => {
       if (document.visibilityState !== "visible") return;
       if (Date.now() - lastRun.current < MIN_REFRESH_GAP_MS) return;
-      void reload();
+      void run(true);
     };
     const timer = setInterval(refresh, refreshMs);
     document.addEventListener("visibilitychange", refresh);
@@ -52,7 +66,7 @@ export function useLoader<T>(
       document.removeEventListener("visibilitychange", refresh);
       window.removeEventListener("focus", refresh);
     };
-  }, [enabled, refreshMs, reload]);
+  }, [enabled, refreshMs, run]);
 
   return { loaded, reload };
 }

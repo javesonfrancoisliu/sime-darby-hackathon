@@ -94,11 +94,20 @@ async function loadLive(userId: string | null): Promise<LiveResult> {
   };
 }
 
+// A failed background refresh must not replace a list the volunteer is reading.
+const feedFailed = (result: LiveResult): boolean => result.error !== null;
+
 // The volunteer's opportunities and hours. Idle until someone is signed in; errors are shown
 // rather than hidden.
 export function useVolunteerData(): VolunteerData {
   const { userId } = useSession();
-  const { loaded, reload } = useLoader(userId, loadLive, userId !== null, LIVE_REFRESH_MS);
+  const { loaded, reload } = useLoader(
+    userId,
+    loadLive,
+    userId !== null,
+    LIVE_REFRESH_MS,
+    feedFailed,
+  );
   // A reload after accept or complete keeps the current list on screen; only a
   // different user shows loading.
   const ready = loaded !== null && loaded.scope === userId ? loaded.value : null;
