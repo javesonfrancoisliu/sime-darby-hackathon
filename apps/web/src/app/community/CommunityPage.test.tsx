@@ -75,6 +75,56 @@ describe("community page", () => {
     expect(screen.getByText("2 updates shown")).toBeInTheDocument();
   });
 
+  it("orders the sub-tabs Events, Notices, Volunteer, Updates", async () => {
+    installFakeApi(feedRoutes);
+    signInAs(VOLUNTEER.id);
+    renderApp("/community");
+    await screen.findByLabelText("Event: Live tea morning");
+    expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual([
+      "Events",
+      "Notices",
+      "Volunteer",
+      "Updates",
+    ]);
+  });
+
+  it.each([
+    ["events", "Events", "Event: Live tea morning"],
+    ["notices", "Notices", "Maintenance: Lift service at Block C"],
+    ["volunteer", "Volunteer", "Volunteering: River clean-up drive"],
+    ["updates", "Updates", "Township update: New recycling hours"],
+  ])("opens the %s tab from the ?tab= link", async (param, name, card) => {
+    installFakeApi(feedRoutes);
+    signInAs(VOLUNTEER.id);
+    renderApp(`/community?tab=${param}`);
+    expect(await screen.findByRole("tab", { name })).toHaveAttribute("aria-selected", "true");
+    expect(await screen.findByLabelText(card)).toBeInTheDocument();
+  });
+
+  it.each(["", "?tab=township", "?tab=nonsense"])(
+    "falls back to Events for the unknown link %j",
+    async (query) => {
+      installFakeApi(feedRoutes);
+      signInAs(VOLUNTEER.id);
+      renderApp(`/community${query}`);
+      expect(await screen.findByRole("tab", { name: "Events" })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+      expect(await screen.findByLabelText("Event: Live tea morning")).toBeInTheDocument();
+    },
+  );
+
+  it("keeps the tab in the link when another tab is chosen", async () => {
+    installFakeApi(feedRoutes);
+    signInAs(VOLUNTEER.id);
+    renderApp("/community?tab=notices");
+    await screen.findByLabelText("Maintenance: Lift service at Block C");
+    await selectCategory("Volunteer");
+    expect(screen.getByRole("tab", { name: "Volunteer" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByLabelText("Volunteering: River clean-up drive")).toBeInTheDocument();
+  });
+
   it("keeps high priority updates in the feed without a featured card", async () => {
     installFakeApi(feedRoutes);
     signInAs(VOLUNTEER.id);

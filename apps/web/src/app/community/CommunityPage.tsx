@@ -1,5 +1,6 @@
 import { AlertTriangle, Bell, CalendarDays, CloudOff, HandHeart } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import {
   AnnouncementCard,
@@ -26,10 +27,15 @@ import { useAcceptedTasks, type AcceptedTask } from "../../data/AcceptedTasksCon
 import { CompleteTaskModal, MyTasksSection } from "../../components/volunteer";
 import { errorMessage } from "@sdh/api-client";
 import { useCommunityItems } from "../../data/useCommunityItems";
+import {
+  COMMUNITY_TAB_PARAM,
+  communityCategoryFromParam,
+  type CommunityCategory,
+} from "../../lib/community";
 import { formatDate } from "../../lib/format";
 import type { CommunityItem, EventItem, VolunteerItem } from "../../types/community";
 
-type CommunityTab = "event" | "maintenance" | "volunteer" | "township";
+type CommunityTab = CommunityCategory;
 const COMMUNITY_TABS = [
   { id: "event" as const, label: "Events", icon: <CalendarDays size={18} /> },
   { id: "maintenance" as const, label: "Notices", icon: <AlertTriangle size={18} /> },
@@ -49,7 +55,15 @@ export function CommunityPage() {
   const { joinEvent, tasks, complete } = useAcceptedTasks();
   const { role } = useRole();
 
-  const [filter, setFilter] = useState<CommunityTab>("event");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const filter = communityCategoryFromParam(searchParams.get("tab"));
+  function setFilter(next: CommunityTab) {
+    setSearchParams((current) => {
+      const updated = new URLSearchParams(current);
+      updated.set("tab", COMMUNITY_TAB_PARAM[next]);
+      return updated;
+    });
+  }
   // Success confirmation shown after registering/joining. null = hidden.
   const [confirmation, setConfirmation] = useState<{ title: string; message: string } | null>(null);
   const [failure, setFailure] = useState<{ title: string; message: string } | null>(null);

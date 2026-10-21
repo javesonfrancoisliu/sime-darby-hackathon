@@ -2,7 +2,14 @@ import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { installFakeApi, signInAs } from "../test/fakeApi";
-import { makeEvent, makeNotice, SAFETY, VOLUNTEER } from "../test/fixtures";
+import {
+  makeDrive,
+  makeEvent,
+  makeMaintenance,
+  makeNotice,
+  SAFETY,
+  VOLUNTEER,
+} from "../test/fixtures";
 import { renderApp } from "../test/renderApp";
 import { signedInRoutes } from "../test/routes";
 
@@ -39,7 +46,44 @@ describe("home page", () => {
     );
     expect(
       within(community).getAllByRole("link", { name: /New recycling hours/ })[0],
-    ).toHaveAttribute("href", "/community");
+    ).toHaveAttribute("href", "/community?tab=updates");
+  });
+
+  it("labels each update with its category and opens that Community tab", async () => {
+    installFakeApi(
+      signedInRoutes(VOLUNTEER, {
+        "GET /api/notices": {
+          body: {
+            items: [
+              makeNotice({ title: "Township note", publishedAt: "2026-10-20T09:00:00Z" }),
+              makeMaintenance({ title: "Pipe repair", publishedAt: "2026-10-19T09:00:00Z" }),
+            ],
+          },
+        },
+        "GET /api/events": {
+          body: {
+            events: [
+              makeEvent({ title: "Tea morning", createdAt: "2026-10-18T09:00:00Z" }),
+              makeDrive({ title: "Park drive", createdAt: "2026-10-17T09:00:00Z" }),
+            ],
+          },
+        },
+      }),
+    );
+    signInAs(VOLUNTEER.id);
+    renderApp("/");
+
+    const community = await screen.findByLabelText("Latest community updates");
+    const expected = [
+      ["Township note", "Updates", "/community?tab=updates"],
+      ["Pipe repair", "Notices", "/community?tab=notices"],
+      ["Tea morning", "Events", "/community?tab=events"],
+    ] as const;
+    for (const [title, chip, href] of expected) {
+      const link = await within(community).findByRole("link", { name: new RegExp(title) });
+      expect(link).toHaveAttribute("href", href);
+      expect(within(link).getByText(chip)).toBeInTheDocument();
+    }
   });
 
   it("shows empty and error states instead of invented content", async () => {
