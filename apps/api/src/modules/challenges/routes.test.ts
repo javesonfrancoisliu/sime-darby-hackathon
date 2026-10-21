@@ -7,7 +7,7 @@ import type {
   User,
 } from "@sdh/contracts";
 import { beforeAll, describe, expect, it } from "vitest";
-import { call } from "../../test/api";
+import { call, createVerifiedVolunteer } from "../../test/api";
 import { createCoordinator, createElder, createVerifiedVolunteerDirect } from "../../test/people";
 import { useTestTable } from "../../test/table";
 import { challengeBody, createChallengeVia, putEndedChallenge } from "../play/testSupport";
@@ -271,5 +271,34 @@ describe("challenges", () => {
     });
     expect(twice.status).toBe(409);
     expect((await getUser(elder.id))?.points).toBe(30);
+  });
+
+  it("refuses to verify a volunteer who was rejected, and awards nothing", async () => {
+    const volunteer = await createVerifiedVolunteer(coordinator.id);
+    const challenge = await createChallengeVia(coordinator.id, {
+      goal: { target: 1, unit: "sessions", type: "sessions" },
+      points: 30,
+      requiresVerification: true,
+    });
+    await call("POST", `/api/challenges/${challenge.id}/join`, { as: volunteer.id });
+    await call("PUT", `/api/challenges/${challenge.id}/progress`, {
+      as: volunteer.id,
+      body: { current: 1 },
+    });
+    await call("POST", `/api/challenges/${challenge.id}/complete`, { as: volunteer.id });
+    await call("POST", `/api/volunteers/${volunteer.id}/review`, {
+      as: coordinator.id,
+      body: { decision: "rejected" },
+    });
+
+    const res = await call("POST", `/api/challenges/${challenge.id}/verify/${volunteer.id}`, {
+      as: coordinator.id,
+    });
+    expect(res.status).toBe(409);
+    expect((await getUser(volunteer.id))?.points).toBe(0);
+    const pending = await call("GET", `/api/challenges/${challenge.id}/pending`, {
+      as: coordinator.id,
+    });
+    expect((pending.body as PendingVerificationsResponse).pending).toHaveLength(1);
   });
 });
