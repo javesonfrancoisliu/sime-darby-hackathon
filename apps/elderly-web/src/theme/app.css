@@ -2213,7 +2213,7 @@ button:active,
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 14px;
   margin-top: var(--space-3);
 }
 .carousel__dot {
@@ -2232,7 +2232,7 @@ button:active,
 .carousel__dot::before {
   content: "";
   position: absolute;
-  inset: -14px;
+  inset: -17px;
 }
 .carousel__dot--active {
   width: 26px;
