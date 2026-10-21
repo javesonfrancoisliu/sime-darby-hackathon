@@ -20,7 +20,7 @@ describe("Scroll and focus on page change", () => {
     installFakeApi();
     await renderApp("/request");
     vi.mocked(window.scrollTo).mockClear();
-    await userEvent.click(screen.getAllByRole("button", { name: /Groceries/ })[0]!);
+    await userEvent.click(screen.getAllByRole("button", { name: /^Grocery Trip Together/ })[0]!);
     expect(window.scrollTo).toHaveBeenCalledWith(TOP);
     await waitFor(() => expect(screen.getByRole("heading", { level: 1 })).toHaveFocus());
   });
@@ -38,7 +38,7 @@ describe("Scroll and focus on page change", () => {
   it("keeps the browser's scroll position when going back, and still focuses the heading", async () => {
     installFakeApi();
     await renderApp("/request");
-    await userEvent.click(screen.getAllByRole("button", { name: /Groceries/ })[0]!);
+    await userEvent.click(screen.getAllByRole("button", { name: /^Grocery Trip Together/ })[0]!);
     vi.mocked(window.scrollTo).mockClear();
     await userEvent.click(screen.getByRole("button", { name: "Go Back" }));
     await waitFor(() => expect(screen.getByRole("heading", { level: 1 })).toHaveFocus());

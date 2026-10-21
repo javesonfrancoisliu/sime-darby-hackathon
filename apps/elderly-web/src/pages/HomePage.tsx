@@ -22,7 +22,7 @@ import {
   IconMapPin,
   IconClock,
 } from "../ui/Icons";
-import { STATUS_TEXT, STATUS_TONE } from "../ui/status";
+import { requestStatusText, requestStatusTone } from "../ui/status";
 import {
   ALERT_LEVEL,
   FACILITY_STATUS,
@@ -85,7 +85,9 @@ export function HomePage() {
           />
         </div>
         <span className="apple-condition-card__label">Air Quality (Haze)</span>
+        <span className="apple-condition-card__location">{localAir.area}</span>
         <span className="apple-condition-card__sub">{localAir.advice}</span>
+        <span className="apple-condition-card__sub">Updated {formatWhen(localAir.measuredAt)}</span>
       </button>,
     );
   }
@@ -116,7 +118,11 @@ export function HomePage() {
           </span>
         </div>
         <span className="apple-condition-card__label">Temperature Alert</span>
+        <span className="apple-condition-card__location">{localHeat.area}</span>
         <span className="apple-condition-card__sub">{localHeat.advice}</span>
+        <span className="apple-condition-card__sub">
+          Updated {formatWhen(localHeat.measuredAt)}
+        </span>
       </button>,
     );
   }
@@ -303,8 +309,8 @@ export function HomePage() {
                 key={req.id}
                 title={req.title}
                 date={formatWhen(req.scheduledAt)}
-                statusLabel={STATUS_TEXT[req.status]}
-                statusVariant={STATUS_TONE[req.status]}
+                statusLabel={requestStatusText(req)}
+                statusVariant={requestStatusTone(req)}
                 volunteerName={req.volunteerName}
                 onClick={() => navigate(`/requests/${req.id}`)}
               />
