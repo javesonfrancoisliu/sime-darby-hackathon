@@ -42,7 +42,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
             skills: user.skills,
             interests: user.interests,
             languages: user.languages,
-            availability: slotsToPreference(user.availability),
+            availability: slotsToPreference(user.availability ?? []),
           }
         : EMPTY_PREFS,
     [user],

@@ -44,6 +44,27 @@ export type SessionContextValue = {
 
 const SessionContext = createContext<SessionContextValue | null>(null);
 
+// While the profile could not be loaded, ask again this often and when the tab regains focus.
+export const SESSION_RETRY_MS = 30_000;
+
+// Clears an "error" session on its own once the API is back, so no manual reload is needed.
+function useRetryWhileError(status: SessionStatus, refresh: () => void) {
+  useEffect(() => {
+    if (status !== "error") return;
+    const retry = () => {
+      if (document.visibilityState === "visible") refresh();
+    };
+    const timer = setInterval(retry, SESSION_RETRY_MS);
+    document.addEventListener("visibilitychange", retry);
+    window.addEventListener("focus", retry);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", retry);
+      window.removeEventListener("focus", retry);
+    };
+  }, [status, refresh]);
+}
+
 function persist(userId: string | null) {
   writeStorage(DEMO_USER_STORAGE_KEY, userId);
 }
@@ -117,6 +138,7 @@ function DemoSessionProvider({ children }: { children: ReactNode }) {
       : error
         ? "error"
         : "loading";
+  useRetryWhileError(status, refresh);
 
   const value = useMemo<SessionContextValue>(
     () => ({
@@ -210,6 +232,7 @@ function TokenSessionProvider({ children, auth }: { children: ReactNode; auth: S
   }, []);
 
   const refresh = load;
+  useRetryWhileError(status, refresh);
 
   const value = useMemo<SessionContextValue>(
     () => ({

@@ -15,7 +15,7 @@ const ROLE_LABEL: Record<DemoUser["role"], string> = {
 // Local sign-in: pick one of the seeded users. This picks an identity for the
 // X-Demo-User header - it is NOT authentication.
 export function DemoSignInCard() {
-  const { user, userId, status, error: sessionError, signIn, signOut } = useSession();
+  const { user, userId, status, signIn, signOut, refresh } = useSession();
   const labelId = useId();
   const [users, setUsers] = useState<DemoUser[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -51,8 +51,8 @@ export function DemoSignInCard() {
               </span>
             </h2>
             <StatusBadge
-              label={status === "signed_in" ? "Signed in" : "Signed out"}
-              variant={status === "signed_in" ? "success" : "info"}
+              label={status === "signed_in" ? "Signed in" : userId ? "Not loaded" : "Signed out"}
+              variant={status === "signed_in" ? "success" : userId ? "warning" : "info"}
             />
           </div>
 
@@ -62,10 +62,11 @@ export function DemoSignInCard() {
                 {status === "signed_in" && user
                   ? `Signed in as ${user.name} (${ROLE_LABEL[user.role]}, ${user.area}).`
                   : status === "error"
-                    ? `Couldn't load the signed-in user: ${sessionError}`
+                    ? "We could not load this. Check your connection and try again."
                     : "Signing in…"}
               </p>
               <div className="feature-card-foot">
+                {status === "error" && <AppButton onClick={refresh}>Try again</AppButton>}
                 <AppButton variant="secondary" onClick={signOut}>
                   <LogOut size={16} aria-hidden="true" />
                   Sign out
