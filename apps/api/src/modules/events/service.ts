@@ -8,6 +8,7 @@ import {
   completeEvent,
   getEvent,
   joinEvent,
+  leaveEvent,
   listJoinedSignups,
   getSignup,
   completeAttendance,
@@ -143,4 +144,12 @@ export async function completeOwnAttendance(user: User, eventId: string): Promis
   }
   const saved = await getSignup(eventId, user.id);
   return { ...event, joined: true, attendanceCompletedAt: saved?.completedAt };
+}
+
+// A rejected volunteer keeps no signups for upcoming events; each frees its seat. Safe to repeat.
+export async function releaseVolunteerSignups(volunteerId: string): Promise<void> {
+  const now = new Date().toISOString();
+  for (const eventId of (await listJoinedSignups(volunteerId, now)).keys()) {
+    await leaveEvent(eventId, volunteerId, now);
+  }
 }

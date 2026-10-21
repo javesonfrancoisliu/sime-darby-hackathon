@@ -17,6 +17,7 @@ import {
 import { isConditionFailure } from "../../lib/db";
 import { HttpError } from "../../lib/http";
 import { nowIso } from "../../lib/time";
+import { releaseVolunteerSignups } from "../events/service";
 import { releaseVolunteerRequests } from "../requests/service";
 import {
   deleteMedicalId,
@@ -115,7 +116,10 @@ export async function reviewVolunteer(
     }
   }
   // Also on a repeat rejection, so a run that stopped part way can be finished.
-  if (decision === "rejected") await releaseVolunteerRequests(id);
+  if (decision === "rejected") {
+    await releaseVolunteerRequests(id);
+    await releaseVolunteerSignups(id);
+  }
   return reviewed;
 }
 

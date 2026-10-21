@@ -127,4 +127,71 @@ describe("a volunteer rejected after joining work", () => {
     const summary = await call("GET", "/api/contributions/mine", { as: rejected.id });
     expect((summary.body as ContributionsResponse).completedCount).toBe(0);
   });
+  describe("signups for upcoming events", () => {
+    async function openEvent(capacity: number): Promise<CommunityEvent> {
+      const created = await call("POST", "/api/events", {
+        as: coordinator.id,
+        body: {
+          title: "Garden morning",
+          category: "digital_literacy",
+          startsAt: inDays(7),
+          durationMinutes: 60,
+          location: { lat: 3.07, lng: 101.52, area: "Precinct 1" },
+          capacity,
+        },
+      });
+      return created.body as CommunityEvent;
+    }
+    const join = (eventId: string, userId: string) =>
+      call("POST", `/api/events/${eventId}/join`, { as: userId });
+    const count = async (eventId: string) =>
+      ((await call("GET", "/api/events")).body as { events: CommunityEvent[] }).events.find(
+        (e) => e.id === eventId,
+      )?.signupCount;
+
+    it("are removed and free their seats, and a repeat rejection changes nothing more", async () => {
+      const volunteer = await createVerifiedVolunteer(coordinator.id);
+      const other = await createVerifiedVolunteer(coordinator.id);
+      const first = await openEvent(1);
+      const second = await openEvent(5);
+      await join(first.id, volunteer.id);
+      await join(second.id, volunteer.id);
+      await join(second.id, other.id);
+      expect((await join(first.id, other.id)).status).toBe(409);
+
+      expect((await reject(coordinator.id, volunteer.id)).status).toBe(200);
+      expect(await count(first.id)).toBe(0);
+      expect(await count(second.id)).toBe(1);
+      expect((await join(first.id, other.id)).status).toBe(200);
+
+      expect((await reject(coordinator.id, volunteer.id)).status).toBe(200);
+      expect(await count(first.id)).toBe(1);
+      expect(await count(second.id)).toBe(1);
+    });
+
+    it("keep other people's signups and survive two rejections at once", async () => {
+      const volunteer = await createVerifiedVolunteer(coordinator.id);
+      const event = await openEvent(5);
+      await join(event.id, volunteer.id);
+      await join(event.id, elder.id);
+      const results = await Promise.all([
+        reject(coordinator.id, volunteer.id),
+        reject(coordinator.id, volunteer.id),
+      ]);
+      expect(results.some((r) => r.status === 200)).toBe(true);
+      await reject(coordinator.id, volunteer.id);
+      expect(await count(event.id)).toBe(1);
+    });
+
+    it("does not touch a volunteer who is verified", async () => {
+      const volunteer = await createVerifiedVolunteer(coordinator.id);
+      const event = await openEvent(5);
+      await join(event.id, volunteer.id);
+      await call("POST", `/api/volunteers/${volunteer.id}/review`, {
+        as: coordinator.id,
+        body: { decision: "verified" },
+      });
+      expect(await count(event.id)).toBe(1);
+    });
+  });
 });
