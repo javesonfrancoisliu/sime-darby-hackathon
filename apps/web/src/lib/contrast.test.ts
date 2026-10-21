@@ -96,3 +96,11 @@ describe("raised centre button", () => {
     expect(appCss).toMatch(/\.ui-toast-region\s*\{[^}]*bottom: calc\(72px \+ 32px \+ 7px/s);
   });
 });
+
+describe("mobile bottom nav labels", () => {
+  it("lets five labels share a narrow bar by shrinking the font and the side padding", () => {
+    expect(appCss).toMatch(
+      /\.app-mobilenav-link\s*\{[^}]*min-width: 0[^}]*padding: var\(--space-2\) var\(--space-1\)[^}]*font-size: clamp\(11px, 3\.4vw, 13px\)/s,
+    );
+  });
+});
