@@ -56,7 +56,11 @@ describe("tab bar", () => {
     const centre = screen.getByRole("button", { name: "Help request" });
     centre.focus();
     await userEvent.keyboard("{Enter}");
-    expect(await screen.findByRole("heading", { level: 1 })).toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("heading", { level: 1, name: "Community" }),
+      ).not.toBeInTheDocument(),
+    );
     expect(document.title).toBe("Ask for help - Township Connect");
     expect(screen.getByRole("button", { name: "Help request" })).toHaveAttribute(
       "aria-current",

@@ -127,7 +127,7 @@ describe("Medical ID edit screen", () => {
       </MemoryRouter>,
     );
     expect(await screen.findByRole("button", { name: /^My details/ })).toBeInTheDocument();
-    expect(screen.getByTestId("where")).toHaveTextContent("/me");
+    expect(screen.getByTestId("where")).toHaveTextContent(/^\/me$/);
     expect(screen.getByTestId("where")).not.toHaveTextContent("/me/details");
   });
 
