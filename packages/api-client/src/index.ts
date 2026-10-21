@@ -9,6 +9,7 @@ export {
   type ApiErrorCode,
   type ApiOptions,
 } from "./fetch";
+export { AppErrorBoundary, type AppErrorBoundaryProps } from "./errorBoundary";
 export { FRIENDLY_ERROR_COPY, GENERIC_ERROR_COPY } from "./friendly";
 export {
   SessionProvider,

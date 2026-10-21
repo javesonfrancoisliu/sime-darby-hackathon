@@ -2,7 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 
-import { SessionProvider, setAccessTokenProvider } from "@sdh/api-client";
+import { AppErrorBoundary, SessionProvider, setAccessTokenProvider } from "@sdh/api-client";
 import { startAuthFromEnv } from "@sdh/auth";
 
 import { App } from "./App";
@@ -20,14 +20,16 @@ if (auth) setAccessTokenProvider(auth.getAccessToken);
 
 createRoot(rootElement).render(
   <StrictMode>
-    <BrowserRouter>
-      {auth ? (
-        <SessionProvider auth={auth}>
-          <App />
-        </SessionProvider>
-      ) : (
-        <Unconfigured />
-      )}
-    </BrowserRouter>
+    <AppErrorBoundary homeHref="/">
+      <BrowserRouter>
+        {auth ? (
+          <SessionProvider auth={auth}>
+            <App />
+          </SessionProvider>
+        ) : (
+          <Unconfigured />
+        )}
+      </BrowserRouter>
+    </AppErrorBoundary>
   </StrictMode>,
 );
