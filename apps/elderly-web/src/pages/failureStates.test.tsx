@@ -71,7 +71,7 @@ describe("request detail not found", () => {
 });
 
 describe("unknown paths", () => {
-  it("replaces the bad path with home", async () => {
+  it("says the page was not found and offers a way back to home", async () => {
     installFakeApi({ "GET /api/requests/mine": { body: { requests: [] } } });
     render(
       <MemoryRouter initialEntries={["/", "/nonsense/path"]} initialIndex={1}>
@@ -79,6 +79,9 @@ describe("unknown paths", () => {
         <Where />
       </MemoryRouter>,
     );
+    expect(await screen.findByText("We could not find that page.")).toBeInTheDocument();
+    expect(screen.getByTestId("where")).toHaveTextContent("/nonsense/path");
+    await userEvent.click(screen.getByRole("button", { name: "Go to Home" }));
     await waitFor(() => expect(screen.getByTestId("where")).toHaveTextContent(/^\/$/));
   });
 });

@@ -1,4 +1,4 @@
-import { Navigate, Outlet, Route, Routes } from "react-router-dom";
+import { Outlet, Route, Routes } from "react-router-dom";
 import { SessionProvider, type SessionAuth } from "@sdh/api-client";
 import { SessionGate } from "./session/SessionGate";
 import { AppShell } from "./ui/AppShell";
@@ -13,6 +13,7 @@ import { CommunityPage } from "./pages/CommunityPage";
 import { ChallengesPage } from "./pages/ChallengesPage";
 import { MePage } from "./pages/MePage";
 import { MedicalIdPage } from "./pages/MedicalIdPage";
+import { NotFoundPage } from "./pages/NotFoundPage";
 import { MyDetailsPage } from "./pages/MyDetailsPage";
 import { AccessibilityProvider } from "./context/AccessibilityContext";
 import { AccessibilitySync } from "./context/AccessibilitySync";
@@ -45,7 +46,7 @@ export function App({ auth }: { auth?: SessionAuth }) {
               <Route path="request/:category" element={<RequestFlowPage />} />
               <Route path="requests" element={<RequestsListPage />} />
               <Route path="requests/:id" element={<RequestDetailPage />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
+              <Route path="*" element={<NotFoundPage />} />
             </Route>
           </Routes>
         </SessionGate>
