@@ -84,7 +84,7 @@ describe("unknown paths", () => {
 });
 
 describe("missing fields in API replies", () => {
-  it("still shows Community Play when the streak has no recent days", async () => {
+  it("still shows Rewards when the streak has no recent days", async () => {
     installFakeApi({
       "GET /api/me/streak": { body: { current: 1, best: 1 } },
       "GET /api/me/points": { body: { points: 0 } },

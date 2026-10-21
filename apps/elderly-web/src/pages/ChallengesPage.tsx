@@ -66,7 +66,7 @@ function Loadable({
   return <>{children}</>;
 }
 
-// Community Play: team goals for the neighbourhood, a daily check-in streak,
+// Rewards (Community Play): team goals for the neighbourhood, a daily check-in streak,
 // participation badges and rewards. Everything comes from the township API.
 export function ChallengesPage() {
   const resident = useResident();
@@ -148,7 +148,7 @@ export function ChallengesPage() {
   function handleReadSummary() {
     const earned = (badges.data ?? []).filter((b) => b.earned).length;
     speak(
-      `Community play for ${neighbourhood}. You have ${balance ?? 0} points and a ${streak.data?.current ?? 0} day check-in streak. ${earned} badges earned. Join a neighbourhood challenge or redeem a reward.`,
+      `Rewards for ${neighbourhood}. You have ${balance ?? 0} points and a ${streak.data?.current ?? 0} day check-in streak. ${earned} badges earned. Join a neighbourhood challenge or redeem a reward.`,
     );
   }
 
@@ -157,7 +157,7 @@ export function ChallengesPage() {
       <div className="safety-page__header">
         <div className="row-between play-header-row">
           <div>
-            <h1 className="safety-page__title">Community Play</h1>
+            <h1 className="safety-page__title">Rewards</h1>
             <p className="safety-page__subtitle">
               <IconUsers className="icon-inline-low" size={13} strokeWidth={2} />
               {neighbourhood}
@@ -180,7 +180,7 @@ export function ChallengesPage() {
         tabs={TABS}
         active={tab}
         onChange={setTab}
-        ariaLabel="Choose a community play area"
+        ariaLabel="Choose a rewards area"
       />
 
       {toast ? (
