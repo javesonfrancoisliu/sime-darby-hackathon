@@ -43,7 +43,7 @@ function dayLetter(date: string): string {
 
 // The server refuses a team goal when the profile area names none of the four precincts.
 const NO_PRECINCT_TEXT =
-  "Your neighbourhood is not set up for team goals yet. Please ask the community team to update your area.";
+  "Team goals need your neighbourhood to be Elmina West, Elmina Valley, Elmina East or Central Park. Please ask the community team to update your area.";
 
 // Cheapest first, so the next reward within reach is at the top.
 // For example "1 more point" or "3 more points".

@@ -97,7 +97,10 @@ describe("Rewards from the API", () => {
     await renderApp("/challenges");
     await userEvent.click(await screen.findByRole("tab", { name: /Goals/i }));
     await userEvent.click(await screen.findByRole("button", { name: /Add my part today/i }));
-    expect(await screen.findByText(/not set up for team goals yet/i)).toBeInTheDocument();
+    const message = await screen.findByText(/Team goals need your neighbourhood/i);
+    for (const precinct of ["Elmina West", "Elmina Valley", "Elmina East", "Central Park"]) {
+      expect(message).toHaveTextContent(precinct);
+    }
   });
 
   it("lists rewards cheapest first and says how many points a locked one still needs", async () => {
