@@ -428,6 +428,10 @@
   box-shadow:
     0 0 0 2px var(--surface),
     0 0 0 5px var(--text-primary);
+  /* Forced-colors modes drop box-shadow, so the current page also gets an outline that is
+     transparent in normal colours and drawn in the system colour there. */
+  outline: 3px solid transparent;
+  outline-offset: 3px;
 }
 
 .app-tab-bar__item--raised:focus-visible {

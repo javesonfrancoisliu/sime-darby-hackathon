@@ -56,4 +56,10 @@ describe("tab bar", () => {
   it("keeps the raised label on one line so the bar height does not change", () => {
     expect(rule(".app-tab-bar__item--raised .app-tab-bar__label")).toContain("white-space: nowrap");
   });
+
+  it("keeps a transparent outline on the current-page centre button for forced-colors modes", () => {
+    expect(
+      rule(".app-tab-bar__item--raised.app-tab-bar__item--active .app-tab-bar__fab"),
+    ).toContain("outline: 3px solid transparent");
+  });
 });
