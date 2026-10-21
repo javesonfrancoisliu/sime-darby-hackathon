@@ -173,6 +173,13 @@ describe("Cancelled after a volunteer was matched", () => {
     expect(await screen.findByText("No volunteer")).toBeInTheDocument();
   });
 
+  it("no longer offers Call 999 on a cancelled request", async () => {
+    installFakeApi({ [`GET /api/requests/${cancelled.id}`]: { body: cancelled } });
+    await renderApp(`/requests/${cancelled.id}`);
+    await screen.findByText("Lift to clinic");
+    expect(screen.queryByRole("button", { name: /Call 999/ })).not.toBeInTheDocument();
+  });
+
   it("keeps a wrapped description left aligned", async () => {
     installFakeApi({ [`GET /api/requests/${cancelled.id}`]: { body: cancelled } });
     await renderApp(`/requests/${cancelled.id}`);

@@ -191,9 +191,11 @@ export function RequestDetailPage() {
         )
       ) : null}
 
-      <div className="request-detail__call">
-        <EmergencyCallButton compact />
-      </div>
+      {req.status === "cancelled" || req.status === "rejected" ? null : (
+        <div className="request-detail__call">
+          <EmergencyCallButton compact />
+        </div>
+      )}
 
       {cancelMutation.status === "error" ? (
         <Banner message={cancelMutation.error?.message ?? "We could not cancel this request."} />
