@@ -51,15 +51,23 @@ describe("tab icons", () => {
   ];
 
   for (const { app, dir } of apps) {
-    it(`gives the ${app} a tab icon and an iOS icon that exist`, () => {
+    it(`gives the ${app} small tab icons, a large icon and an iOS icon that all exist`, () => {
       const html = read(`${dir}/index.html`);
-      const icon = html.match(/<link rel="icon" href="([^"]+)"/)?.[1];
-      const touch = html.match(/<link rel="apple-touch-icon" href="([^"]+)"/)?.[1];
-      expect(icon).toBeTruthy();
-      expect(touch).toBeTruthy();
-      for (const href of [icon, touch]) {
-        expect(existsSync(resolve(process.cwd(), dir, "public", (href ?? "").slice(1)))).toBe(true);
+      const icons = [
+        ...html.matchAll(/<link rel="(?:icon|apple-touch-icon)"[^>]*href="([^"]+)"/g),
+      ].map((match) => match[1] ?? "");
+      expect(icons.some((href) => href.endsWith("favicon-32.png"))).toBe(true);
+      expect(icons.some((href) => href.endsWith("favicon-16.png"))).toBe(true);
+      expect(icons.some((href) => href.endsWith("pwa-192.png"))).toBe(true);
+      expect(icons.some((href) => href.endsWith("apple-touch-icon.png"))).toBe(true);
+      for (const href of icons) {
+        expect(existsSync(resolve(process.cwd(), dir, "public", href.slice(1)))).toBe(true);
       }
     });
   }
+
+  it("also serves /favicon.ico from the sign-in portal for browsers that ask for it", () => {
+    expect(existsSync(resolve(process.cwd(), "../portal/public/favicon.ico"))).toBe(true);
+    expect(read("../portal/index.html")).toContain('href="/favicon.ico"');
+  });
 });
