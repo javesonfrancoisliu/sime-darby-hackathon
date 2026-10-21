@@ -89,3 +89,16 @@ export async function backdate(requestId: string, hours = 2): Promise<void> {
     }),
   );
 }
+
+// Same for events: creation forbids a past start, so tests move the start back directly.
+export async function backdateEvent(eventId: string, hours = 2): Promise<void> {
+  const past = new Date(Date.now() - hours * 3_600_000).toISOString();
+  await db().send(
+    new UpdateCommand({
+      TableName: table(),
+      Key: { PK: `EVENT#${eventId}`, SK: "META" },
+      UpdateExpression: "SET startsAt = :at, GSI1SK = :at",
+      ExpressionAttributeValues: { ":at": past },
+    }),
+  );
+}

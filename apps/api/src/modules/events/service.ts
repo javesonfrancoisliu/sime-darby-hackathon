@@ -90,9 +90,16 @@ async function awardVolunteer(volunteerId: string, event: CommunityEvent): Promi
   throw new HttpError("CONFLICT_RETRY", "Try again in a moment");
 }
 
+function requireStarted(event: CommunityEvent): void {
+  if (Date.parse(event.startsAt) > Date.now()) {
+    throw new HttpError("CONFLICT", "Event has not started yet");
+  }
+}
+
 // Idempotent: a repeat call on a completed event re-runs the awards and still returns 200.
 export async function complete(eventId: string): Promise<CommunityEvent> {
   const event = await requireEvent(eventId);
+  requireStarted(event);
   const signups = await listSignups(eventId);
   const volunteers = signups.filter((signup) => signup.role === "volunteer");
   const contributions = volunteers.map((signup) =>
@@ -112,6 +119,7 @@ export async function complete(eventId: string): Promise<CommunityEvent> {
 // Records only this volunteer's completion; it does not close the event or award points.
 export async function completeOwnAttendance(user: User, eventId: string): Promise<CommunityEvent> {
   const event = await requireEvent(eventId);
+  requireStarted(event);
   const signup = await getSignup(eventId, user.id);
   if (!signup || signup.role !== "volunteer")
     throw new HttpError("FORBIDDEN", "Join this activity before confirming completion");
