@@ -7,7 +7,9 @@
   background: var(--page-bg);
   /* Leave room for the fixed bottom tab bar and the phone home indicator */
   --tab-bar-height: calc(88px + env(safe-area-inset-bottom, 0px));
-  padding-bottom: calc(var(--tab-bar-height) + var(--space-4));
+  /* The raised Help request button rises this far above the bar */
+  --tab-bump-height: 40px;
+  padding-bottom: calc(var(--tab-bar-height) + var(--tab-bump-height) + var(--space-4));
 }
 
 /* One readable column, centred - no horizontal padding on home (hero bleeds full width). */
@@ -339,6 +341,86 @@
 .app-tab-bar__icon {
   font-size: 1.25rem;
   line-height: 1;
+}
+
+/* Raised centre button: a round brand-red button half above the bar, inside a half-circle bump. */
+.app-tab-bar__item--raised {
+  position: relative;
+  --fab-size: 64px;
+}
+
+.app-tab-bar__item--raised .app-tab-bar__icon {
+  display: block;
+  min-height: 22px;
+}
+
+.app-tab-bar__bump {
+  position: absolute;
+  left: 50%;
+  top: calc(-1 * var(--tab-bump-height));
+  width: calc(var(--fab-size) + 16px);
+  height: calc(var(--tab-bump-height) + 1px);
+  transform: translateX(-50%);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: calc(var(--fab-size) / 2 + 8px) calc(var(--fab-size) / 2 + 8px) 0 0;
+  pointer-events: none;
+}
+
+.app-tab-bar__fab {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--fab-size) / -2);
+  width: var(--fab-size);
+  height: var(--fab-size);
+  margin-left: calc(var(--fab-size) / -2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--brand-primary);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  transition: transform 100ms ease-out;
+}
+
+.app-tab-bar__item--raised:active .app-tab-bar__fab {
+  transform: scale(0.97);
+}
+
+/* Dark ring while the request pages are open */
+.app-tab-bar__item--raised.app-tab-bar__item--active .app-tab-bar__fab {
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 5px var(--text-primary);
+}
+
+.app-tab-bar__item--raised:focus-visible {
+  outline: none;
+}
+
+.app-tab-bar__item--raised:focus-visible .app-tab-bar__fab {
+  outline: 3px solid var(--text-primary);
+  outline-offset: 6px;
+}
+
+.app-tab-bar__item--raised {
+  color: var(--text-secondary);
+}
+
+.app-tab-bar__item--raised.app-tab-bar__item--active {
+  color: var(--text-primary);
+}
+
+.reduced-motion .app-tab-bar__item--raised:active .app-tab-bar__fab {
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-tab-bar__item--raised:active .app-tab-bar__fab {
+    transform: none;
+  }
 }
 
 .app-tab-bar__label {
@@ -2779,6 +2861,13 @@ button:active,
   white-space: nowrap;
   overflow-wrap: normal;
   font-size: min(16px, 3.4vw);
+}
+
+/* The raised label may wrap, but only between words. */
+.app-tab-bar__item--raised .app-tab-bar__label {
+  white-space: normal;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 
 /* People who ask for less transparency get solid surfaces. */

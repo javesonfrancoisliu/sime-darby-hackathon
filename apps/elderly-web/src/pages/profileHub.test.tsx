@@ -290,7 +290,7 @@ describe("My rewards sheet", () => {
     await userEvent.click(await screen.findByRole("button", { name: /^My rewards/ }));
     const sheet = await sheetNamed("My rewards");
     await userEvent.click(within(sheet).getByRole("button", { name: "See available rewards" }));
-    expect(await screen.findByRole("heading", { level: 1, name: "Rewards" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { level: 1, name: "Community Play" })).toBeInTheDocument();
     expect(await screen.findByRole("tab", { name: /Rewards/ })).toHaveAttribute(
       "aria-selected",
       "true",
