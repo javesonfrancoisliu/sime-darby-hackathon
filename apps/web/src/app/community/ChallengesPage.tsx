@@ -445,6 +445,7 @@ export function ChallengesPage() {
         key={quizChallenge?.id ?? "no-quiz"}
         open={quizOpen}
         quiz={quiz}
+        points={quizChallenge?.points ?? 0}
         loadError={quizError}
         onSubmit={handleSubmitQuiz}
         onClose={() => setQuizOpen(false)}

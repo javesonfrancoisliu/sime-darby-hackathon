@@ -260,9 +260,10 @@ describe("challenges page", () => {
 
     await user.click(await screen.findByRole("button", { name: "Take the quiz" }));
     const dialog = await screen.findByRole("dialog");
-    await user.click((await within(dialog).findAllByRole("radio"))[1]!);
-    await user.click(within(dialog).getByRole("button", { name: "Next question" }));
-    await user.click(within(dialog).getAllByRole("radio")[0]!);
+    const first = await within(dialog).findByRole("radiogroup", { name: /question 1/ });
+    await user.click(within(first).getAllByRole("radio")[1]!);
+    const second = within(dialog).getByRole("radiogroup", { name: /question 2/ });
+    await user.click(within(second).getAllByRole("radio")[0]!);
     await user.click(within(dialog).getByRole("button", { name: "Submit answers" }));
 
     expect(await within(dialog).findByText("You got 2 of 2 correct.")).toBeInTheDocument();

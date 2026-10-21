@@ -9,41 +9,49 @@ export type QuizModalProps = {
   open: boolean;
   // The quiz without its right answers; null while it loads.
   quiz: QuizPublic | null;
+  // Points the challenge pays for passing, shown up front and in the result.
+  points?: number;
   loadError: string | null;
   // Sends the answers; resolves with the score and verdict, or rejects with a message to show.
   onSubmit: (answers: { questionId: string; optionIndex: number }[]) => Promise<QuizResult>;
   onClose: () => void;
 };
 
-// A quiz, one question at a time. The right answers stay on the server, so the only feedback is the
-// score and whether it was passed once every question is answered.
-export function QuizModal({ open, quiz, loadError, onSubmit, onClose }: QuizModalProps) {
-  const [index, setIndex] = useState(0);
+// A quiz with every question on one screen. The right answers stay on the server, so the only
+// feedback is the score and whether it was passed. The server wants an answer to every question, so
+// nothing is sent until all are chosen.
+export function QuizModal({
+  open,
+  quiz,
+  points = 0,
+  loadError,
+  onSubmit,
+  onClose,
+}: QuizModalProps) {
   const [chosen, setChosen] = useState<Record<string, number>>({});
   const [result, setResult] = useState<QuizResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [needsAnswer, setNeedsAnswer] = useState(false);
 
-  const optionRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const optionRefs = useRef<Record<string, (HTMLButtonElement | null)[]>>({});
 
   const questions = quiz?.questions ?? [];
-  const question = questions[index];
-  const selected = question ? (chosen[question.id] ?? null) : null;
-  const isLast = index === questions.length - 1;
 
-  function select(optionIndex: number) {
+  function select(questionId: string, optionIndex: number) {
     setNeedsAnswer(false);
-    if (question) setChosen((prev) => ({ ...prev, [question.id]: optionIndex }));
+    setChosen((prev) => ({ ...prev, [questionId]: optionIndex }));
   }
 
   async function submit() {
+    if (questions.some((q) => chosen[q.id] === undefined)) {
+      setNeedsAnswer(true);
+      return;
+    }
     setBusy(true);
     setSubmitError(null);
     try {
-      const answers = questions.flatMap((q) =>
-        chosen[q.id] === undefined ? [] : [{ questionId: q.id, optionIndex: chosen[q.id]! }],
-      );
+      const answers = questions.map((q) => ({ questionId: q.id, optionIndex: chosen[q.id]! }));
       setResult(await onSubmit(answers));
     } catch (err) {
       setSubmitError(
@@ -54,36 +62,25 @@ export function QuizModal({ open, quiz, loadError, onSubmit, onClose }: QuizModa
     }
   }
 
-  function next() {
-    if (selected == null) {
-      setNeedsAnswer(true);
-      return;
-    }
-    if (isLast) {
-      void submit();
-      return;
-    }
-    setIndex((i) => i + 1);
-  }
-
   // Radio group keyboard pattern: arrows move and select, wrapping at the ends.
-  function onOptionKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-    if (!question) return;
-    const count = question.options.length;
-    const from = selected ?? -1;
+  function onOptionKeyDown(
+    event: KeyboardEvent<HTMLDivElement>,
+    questionId: string,
+    count: number,
+  ) {
+    const from = chosen[questionId] ?? -1;
     let target: number;
     if (event.key === "ArrowDown" || event.key === "ArrowRight") target = (from + 1) % count;
     else if (event.key === "ArrowUp" || event.key === "ArrowLeft") {
       target = from <= 0 ? count - 1 : from - 1;
     } else return;
     event.preventDefault();
-    select(target);
-    optionRefs.current[target]?.focus();
+    select(questionId, target);
+    optionRefs.current[questionId]?.[target]?.focus();
   }
 
   function handleClose() {
     // Reset for a clean next open.
-    setIndex(0);
     setChosen({});
     setResult(null);
     setSubmitError(null);
@@ -101,9 +98,9 @@ export function QuizModal({ open, quiz, loadError, onSubmit, onClose }: QuizModa
           <AppButton variant="primary" onClick={handleClose}>
             Done
           </AppButton>
-        ) : question ? (
-          <AppButton variant="primary" onClick={next} loading={busy}>
-            {isLast ? "Submit answers" : "Next question"}
+        ) : questions.length > 0 ? (
+          <AppButton variant="primary" onClick={() => void submit()} loading={busy}>
+            Submit answers
           </AppButton>
         ) : (
           <AppButton variant="ghost" onClick={handleClose}>
@@ -127,56 +124,70 @@ export function QuizModal({ open, quiz, loadError, onSubmit, onClose }: QuizModa
           </p>
           <p className="ui-helper" style={{ marginTop: "var(--space-2)" }}>
             {result.passed
-              ? "You passed. Any points are added to your total."
-              : `You need ${quiz.passMark} correct to pass. Try again anytime.`}
+              ? points > 0
+                ? `You passed. You earned ${points} points.`
+                : "You passed."
+              : `You need ${quiz.passMark} correct to pass. Try again later.`}
           </p>
         </div>
       ) : (
-        question && (
-          <>
-            <p className="ui-meta-row">
-              Question {index + 1} of {questions.length}
+        <>
+          <p className="ui-helper ui-flush">
+            Answer all {questions.length} questions, then send them together. You need{" "}
+            {quiz.passMark} correct to pass
+            {points > 0 ? ` and earn ${points} points` : ""}.
+          </p>
+          {questions.map((question, number) => {
+            const selected = chosen[question.id] ?? null;
+            return (
+              <div key={question.id} className="ui-stack ui-gap-2">
+                <p className="ui-meta-row">
+                  Question {number + 1} of {questions.length}
+                </p>
+                <p className="ui-flush ui-semibold">{question.question}</p>
+                <div
+                  className="quiz-options"
+                  role="radiogroup"
+                  aria-label={`Answer options for question ${number + 1}`}
+                  onKeyDown={(event) =>
+                    onOptionKeyDown(event, question.id, question.options.length)
+                  }
+                >
+                  {question.options.map((option, i) => {
+                    const isChosen = i === selected;
+                    return (
+                      <button
+                        key={option}
+                        ref={(node) => {
+                          (optionRefs.current[question.id] ??= [])[i] = node;
+                        }}
+                        type="button"
+                        role="radio"
+                        aria-checked={isChosen}
+                        tabIndex={isChosen || (selected == null && i === 0) ? 0 : -1}
+                        className={`quiz-option${isChosen ? " quiz-option--chosen" : ""}`}
+                        onClick={() => select(question.id, i)}
+                      >
+                        {option}
+                        {isChosen && <CheckCircle2 size={16} aria-hidden="true" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+          {needsAnswer && (
+            <p className="ui-error ui-flush" role="alert">
+              Answer every question to submit
             </p>
-            <p className="ui-flush ui-semibold">{question.question}</p>
-            <div
-              className="quiz-options"
-              role="radiogroup"
-              aria-label="Answer options"
-              onKeyDown={onOptionKeyDown}
-            >
-              {question.options.map((option, i) => {
-                const isChosen = i === selected;
-                return (
-                  <button
-                    key={option}
-                    ref={(node) => {
-                      optionRefs.current[i] = node;
-                    }}
-                    type="button"
-                    role="radio"
-                    aria-checked={isChosen}
-                    tabIndex={isChosen || (selected == null && i === 0) ? 0 : -1}
-                    className={`quiz-option${isChosen ? " quiz-option--chosen" : ""}`}
-                    onClick={() => select(i)}
-                  >
-                    {option}
-                    {isChosen && <CheckCircle2 size={16} aria-hidden="true" />}
-                  </button>
-                );
-              })}
-            </div>
-            {needsAnswer && (
-              <p className="ui-error ui-flush" role="alert">
-                Pick an answer to continue
-              </p>
-            )}
-            {submitError && (
-              <p className="ui-error ui-flush" role="alert">
-                <XCircle size={14} aria-hidden="true" /> {submitError}
-              </p>
-            )}
-          </>
-        )
+          )}
+          {submitError && (
+            <p className="ui-error ui-flush" role="alert">
+              <XCircle size={14} aria-hidden="true" /> {submitError}
+            </p>
+          )}
+        </>
       )}
     </Modal>
   );
