@@ -17,6 +17,7 @@ import {
   setPendingReview,
 } from "../../test/api";
 import { useTestTable } from "../../test/table";
+import { distanceKm } from "../../lib/geo";
 import { VOLUNTEERING_POINTS } from "../points/service";
 import { getUser } from "../users/repository";
 
@@ -459,6 +460,50 @@ describe("help requests", () => {
         query: { status: "matched" },
       });
       expect((matched.body as RequestsResponse).requests.map((r) => r.id)).toContain(open.id);
+    });
+
+    it("returns the exact place and no elder id when the elder shares nothing extra", async () => {
+      const open = await createOpen();
+      const res = await call("POST", `/api/requests/${open.id}/accept`, { as: volunteer.id });
+      const body = res.body as Record<string, unknown>;
+      expect(body.location).toEqual({ lat: 3.0738, lng: 101.5183, area: "Precinct 1" });
+      expect(body).not.toHaveProperty("elderId");
+      expect(body).toMatchObject({ elderName: "Mak Som" });
+    });
+
+    it("snaps the place to a 0.5 km grid when the elder turned on shareApproxLocation", async () => {
+      const sharer = await createUser("elder", { name: "Pak Ali" });
+      const settings = {
+        notifyEvents: true,
+        notifyVolunteering: true,
+        shareApproxLocation: true,
+        fontSize: "normal",
+        highContrast: false,
+        reducedMotion: false,
+        voiceAssist: false,
+      };
+      const saved = await call("PUT", "/api/me/settings", { as: sharer.id, body: settings });
+      expect(saved.status).toBe(200);
+      const open = await create({}, sharer.id);
+      const accepted = await call("POST", `/api/requests/${open.id}/accept`, {
+        as: volunteer.id,
+      });
+      const place = (accepted.body as HelpRequest).location;
+      expect(place.area).toBe("Precinct 1");
+      expect(place).not.toEqual(open.location);
+      expect(distanceKm(place, open.location)).toBeLessThan(0.5);
+      expect(accepted.body).not.toHaveProperty("elderId");
+
+      const viewed = await call("GET", `/api/requests/${open.id}`, { as: volunteer.id });
+      expect((viewed.body as HelpRequest).location).toEqual(place);
+      const mine = await call("GET", "/api/requests/mine", { as: volunteer.id });
+      const listed = (mine.body as RequestsResponse).requests.find((r) => r.id === open.id);
+      expect(listed?.location).toEqual(place);
+      expect(listed).not.toHaveProperty("elderId");
+
+      const asOwner = await call("GET", `/api/requests/${open.id}`, { as: sharer.id });
+      expect((asOwner.body as HelpRequest).location).toEqual(open.location);
+      expect(asOwner.body).toHaveProperty("elderId", sharer.id);
     });
 
     it("refuses elders, coordinators and unverified volunteers", async () => {

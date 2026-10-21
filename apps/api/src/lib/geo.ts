@@ -19,3 +19,20 @@ export const roundKm = (km: number): number => Math.round(km * 10) / 10;
 const APPROX_STEP_KM = 0.5;
 export const approxKm = (km: number): number =>
   Math.max(APPROX_STEP_KM, Math.round(km / APPROX_STEP_KM) * APPROX_STEP_KM);
+
+const KM_PER_DEGREE_LAT = (EARTH_RADIUS_KM * Math.PI) / 180;
+const COORDINATE_DECIMALS = 5;
+const roundTo = (value: number, decimals: number) => Number(value.toFixed(decimals));
+
+// Snaps a place to the same 0.5 km grid as approxKm, so shared coordinates cannot pinpoint a home.
+export function approxPlace<T extends Location>(place: T): T {
+  const latStep = APPROX_STEP_KM / KM_PER_DEGREE_LAT;
+  const lat = Math.round(place.lat / latStep) * latStep;
+  const lngStep = APPROX_STEP_KM / (KM_PER_DEGREE_LAT * Math.cos(toRadians(lat)));
+  const lng = Math.round(place.lng / lngStep) * lngStep;
+  return {
+    ...place,
+    lat: roundTo(lat, COORDINATE_DECIMALS),
+    lng: roundTo(lng, COORDINATE_DECIMALS),
+  };
+}

@@ -4,6 +4,8 @@ import {
   Id,
   RequestsQuery,
   ReviewRequestBody,
+  type AssignedHelpRequest,
+  type AssignedRequestsResponse,
   type HelpRequest,
   type HelpRequestSummary,
   type RequestsResponse,
@@ -39,7 +41,7 @@ export const requestRoutes: Route[] = [
     path: "/api/requests/mine",
     handler: async (req) => {
       const user = await requireUser(req);
-      return ok({ requests: await listMine(user) } satisfies RequestsResponse);
+      return ok({ requests: await listMine(user) } satisfies AssignedRequestsResponse);
     },
   },
   {
@@ -57,7 +59,10 @@ export const requestRoutes: Route[] = [
     handler: async (req) => {
       const user = await requireUser(req);
       const id = parse(Id, req.params.id);
-      return ok((await viewRequest(user, id)) satisfies HelpRequest | HelpRequestSummary);
+      return ok(
+        (await viewRequest(user, id)) satisfies
+          HelpRequest | AssignedHelpRequest | HelpRequestSummary,
+      );
     },
   },
   {
@@ -85,7 +90,7 @@ export const requestRoutes: Route[] = [
     handler: async (req) => {
       const volunteer = await requireVerifiedVolunteer(req);
       const id = parse(Id, req.params.id);
-      return ok((await acceptRequest(volunteer, id)) satisfies HelpRequest);
+      return ok((await acceptRequest(volunteer, id)) satisfies AssignedHelpRequest);
     },
   },
   {
@@ -104,7 +109,7 @@ export const requestRoutes: Route[] = [
       const volunteer = await requireUser(req, "volunteer");
       const id = parse(Id, req.params.id);
       const body = parse(CompleteRequestBody, req.body);
-      return ok((await completeRequest(volunteer, id, body)) satisfies HelpRequest);
+      return ok((await completeRequest(volunteer, id, body)) satisfies AssignedHelpRequest);
     },
   },
   {
