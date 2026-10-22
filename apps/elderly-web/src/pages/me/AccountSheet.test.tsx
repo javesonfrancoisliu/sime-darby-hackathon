@@ -102,6 +102,80 @@ describe("Account sheet sign out", () => {
   });
 });
 
+describe("Account sheet Done button", () => {
+  it("steps back to the list from the confirm step instead of closing the drawer", async () => {
+    const onClose = vi.fn();
+    render(
+      <MemoryRouter>
+        <AccountSheet open onClose={onClose} />
+      </MemoryRouter>,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    expect(screen.queryByRole("button", { name: "Done" })).toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: "Back" }));
+    expect(screen.getByRole("dialog", { name: "Account" })).toBeInTheDocument();
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("does nothing while signing out", async () => {
+    signOut.mockImplementation(() => new Promise<void>(() => {}));
+    const onClose = vi.fn();
+    render(
+      <MemoryRouter>
+        <AccountSheet open onClose={onClose} />
+      </MemoryRouter>,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    await userEvent.click(screen.getByRole("button", { name: "Yes, sign out" }));
+    await userEvent.click(screen.getByRole("button", { name: "Back" }));
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByRole("dialog", { name: "Sign out?" })).toBeInTheDocument();
+  });
+
+  it("closes the drawer from the Account list", async () => {
+    const onClose = vi.fn();
+    render(
+      <MemoryRouter>
+        <AccountSheet open onClose={onClose} />
+      </MemoryRouter>,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Done" }));
+    await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
+  });
+
+  it("reopens on the Account list after the drawer was closed during the confirm step", async () => {
+    const view = render(
+      <MemoryRouter>
+        <AccountSheet open onClose={() => {}} />
+      </MemoryRouter>,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    view.rerender(
+      <MemoryRouter>
+        <AccountSheet open={false} onClose={() => {}} />
+      </MemoryRouter>,
+    );
+    view.rerender(
+      <MemoryRouter>
+        <AccountSheet open onClose={() => {}} />
+      </MemoryRouter>,
+    );
+    const list = await screen.findByRole("dialog", { name: "Account" });
+    expect(within(list).getByRole("button", { name: "Sign out" })).toBeEnabled();
+  });
+
+  it("gives focus back to Sign out when leaving the confirm step", async () => {
+    await openConfirm();
+    await userEvent.click(screen.getByRole("button", { name: "Not yet" }));
+    expect(screen.getByRole("button", { name: "Sign out" })).toHaveFocus();
+    await userEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    await userEvent.keyboard("{Escape}");
+    expect(screen.getByRole("button", { name: "Sign out" })).toHaveFocus();
+  });
+});
+
 describe("Account sheet switch person", () => {
   beforeEach(() => {
     vi.unstubAllEnvs();

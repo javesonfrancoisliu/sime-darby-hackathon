@@ -72,15 +72,18 @@ interface SheetProps {
   onClose: () => void;
   title: string;
   subtitle?: string;
-  // Asked before a scrim tap, Escape or a drag closes the sheet; false keeps it open.
+  // Asked before Done, a scrim tap, Escape or a drag closes the sheet; false keeps it open.
   canDismiss?: () => boolean;
   // Asked when the phone's Back button reaches the sheet; true keeps it open and Back is used up.
   holdBack?: () => boolean;
+  // The label of the title row button, for a step where it means back rather than done.
+  doneLabel?: string;
   children: ReactNode;
 }
 
-// Bottom sheet: grabber, title row with Done, scrim. Closes on Done, Escape, scrim tap, the phone
-// back button and a downward drag. Keeps focus inside, locks the page behind it and gives focus back.
+// Bottom sheet: grabber, title row with Done, scrim. Done, Escape, a scrim tap and a drag ask
+// canDismiss first; the phone back button asks holdBack. Keeps focus inside, locks the page behind
+// it and gives focus back.
 export function Sheet({ open, ...rest }: SheetProps) {
   return open ? <SheetBody {...rest} /> : null;
 }
@@ -89,6 +92,7 @@ function SheetBody({
   onClose,
   canDismiss,
   holdBack,
+  doneLabel = "Done",
   title,
   subtitle,
   children,
@@ -315,9 +319,9 @@ function SheetBody({
               type="button"
               ref={doneRef}
               className="apple-sheet-done"
-              onClick={() => requestClose()}
+              onClick={() => void requestDismiss()}
             >
-              Done
+              {doneLabel}
             </button>
           </div>
         </div>

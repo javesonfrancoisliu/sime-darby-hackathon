@@ -363,14 +363,17 @@ describe("Sheet drag details", () => {
     expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
-  it("stays open when canDismiss refuses a scrim tap and Escape", async () => {
-    const guard = vi.fn(() => false);
+  it("stays open when canDismiss refuses a scrim tap, Escape and Done, then closes once allowed", async () => {
+    let allow = false;
+    const guard = vi.fn(() => allow);
     render(<Stack guard={guard} />);
     await userEvent.click(screen.getByRole("button", { name: "open first" }));
     await userEvent.click(screen.getByTestId("sheet-scrim"));
     await userEvent.keyboard("{Escape}");
-    expect(guard).toHaveBeenCalledTimes(2);
+    await userEvent.click(screen.getByRole("button", { name: "Done" }));
+    expect(guard).toHaveBeenCalledTimes(3);
     expect(screen.getByRole("dialog", { name: "First" })).toBeInTheDocument();
+    allow = true;
     await userEvent.click(screen.getByRole("button", { name: "Done" }));
     await gone();
   });

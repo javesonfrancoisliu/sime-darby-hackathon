@@ -14,12 +14,25 @@ interface AccountSheetProps {
 }
 
 // Account: settings and sign out with a Cognito sign-in, or Switch person on the demo picker.
+// The body is mounted only while open, so a closed drawer never keeps a half-done sign out.
 export function AccountSheet({ open, onClose }: AccountSheetProps) {
+  return open ? <AccountSheetBody onClose={onClose} /> : null;
+}
+
+function AccountSheetBody({ onClose }: Pick<AccountSheetProps, "onClose">) {
   const { signOut } = useSession();
   const navigate = useNavigate();
   const [confirming, setConfirming] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const token = tokenModeEnabled();
+  const signOutButton = useRef<HTMLButtonElement>(null);
+
+  // Leaving the confirm step unmounts the focused button, so put focus back on Sign out.
+  const wasConfirming = useRef(false);
+  useEffect(() => {
+    if (wasConfirming.current && !confirming) signOutButton.current?.focus();
+    wasConfirming.current = confirming;
+  }, [confirming]);
 
   // Removes the armed popstate listener, if any, so it cannot fire on an unrelated Back later.
   const disarm = useRef<(() => void) | null>(null);
@@ -59,7 +72,7 @@ export function AccountSheet({ open, onClose }: AccountSheetProps) {
     window.location.assign("/");
   }
 
-  // Escape, a scrim tap or a drag steps back to the list first; none leaves while signing out.
+  // Done, Escape, a scrim tap and a drag step back to the list first; none leaves while signing out.
   function stepBack(): boolean {
     if (!confirming) return true;
     if (!signingOut) setConfirming(false);
@@ -75,12 +88,13 @@ export function AccountSheet({ open, onClose }: AccountSheetProps) {
 
   return (
     <Sheet
-      open={open}
+      open
       onClose={onClose}
       title={confirming ? "Sign out?" : "Account"}
       subtitle={confirming ? undefined : "Who is using this phone"}
       canDismiss={stepBack}
       holdBack={holdBack}
+      doneLabel={confirming ? "Back" : "Done"}
     >
       <div className="apple-sheet-content">
         {confirming ? (
@@ -120,6 +134,7 @@ export function AccountSheet({ open, onClose }: AccountSheetProps) {
                   <span>Account settings</span>
                 </a>
                 <button
+                  ref={signOutButton}
                   type="button"
                   className="ui-button ui-button--secondary"
                   onClick={() => setConfirming(true)}
