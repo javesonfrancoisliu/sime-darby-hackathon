@@ -4,6 +4,8 @@ import { MemoryRouter } from "react-router-dom";
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 
+import { RewardWithStatus } from "@sdh/contracts";
+
 import { makeReward } from "../../test/fixtures";
 import { ConfirmActionDialog, Modal, Sheet } from "../ui";
 import { EditPersonalSheet } from "./EditPersonalSheet";
@@ -81,7 +83,9 @@ describe("dialogs opened from a sheet", () => {
   });
 
   it("keeps the Use now voucher confirm above My rewards", async () => {
-    const reward = makeReward({ status: "redeemed", redeemedAt: new Date().toISOString() });
+    const reward = RewardWithStatus.parse(
+      makeReward({ status: "redeemed", redeemedAt: new Date().toISOString() }),
+    );
     render(
       <MemoryRouter>
         <MyRewardsSheet
