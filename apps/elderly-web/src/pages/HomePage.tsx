@@ -34,7 +34,7 @@ import {
   type Severity,
 } from "../safety/levels";
 import { useNotices } from "../hooks/useNotices";
-import { pickLocal, useSafetyData } from "../hooks/useSafetyData";
+import { inResidentArea, pickLocal, useSafetyData } from "../hooks/useSafetyData";
 import { formatTemperature } from "../safety/format";
 
 // Home page: mobile-first dashboard.
@@ -51,14 +51,14 @@ export function HomePage() {
   const safety = useSafetyData();
   const maintenance = useNotices("maintenance");
 
-  const localAir = pickLocal(safety.air, resident?.area);
-  const localHeat = pickLocal(safety.heat, resident?.area);
+  const { item: localAir, isLocal: airIsLocal } = pickLocal(safety.air, resident?.area);
+  const { item: localHeat, isLocal: heatIsLocal } = pickLocal(safety.heat, resident?.area);
   // Only the resident's own area, and not work that is already finished.
   const localMaintenance = maintenance.data?.find(
-    (n) => n.area === resident?.area && n.status !== "completed",
+    (n) => inResidentArea(n.area, resident?.area) && n.status !== "completed",
   );
   const localFacilityDamage = safety.facilities.find(
-    (f) => f.status === "in_progress" && f.area === resident?.area,
+    (f) => f.status === "in_progress" && inResidentArea(f.area, resident?.area),
   );
 
   // One condition card per carousel slide (shown one at a time).
@@ -92,7 +92,9 @@ export function HomePage() {
           />
         </div>
         <span className="apple-condition-card__label">Air Quality (Haze)</span>
-        <span className="apple-condition-card__location">{localAir.area}</span>
+        <span className="apple-condition-card__location">
+          {airIsLocal ? localAir.area : `Nearest reading: ${localAir.area}`}
+        </span>
         <span className="apple-condition-card__sub">{localAir.advice}</span>
         <span className="apple-condition-card__sub">Updated {formatWhen(localAir.measuredAt)}</span>
       </button>,
@@ -125,7 +127,9 @@ export function HomePage() {
           </span>
         </div>
         <span className="apple-condition-card__label">Temperature Alert</span>
-        <span className="apple-condition-card__location">{localHeat.area}</span>
+        <span className="apple-condition-card__location">
+          {heatIsLocal ? localHeat.area : `Nearest reading: ${localHeat.area}`}
+        </span>
         <span className="apple-condition-card__sub">{localHeat.advice}</span>
         <span className="apple-condition-card__sub">
           Updated {formatWhen(localHeat.measuredAt)}

@@ -3,7 +3,8 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderApp } from "../test/renderRoute";
 import { installFakeApi, signInAs } from "../test/fakeApi";
-import { POINTS, STREAK } from "../test/fixtures";
+import { SafetyReading } from "@sdh/contracts";
+import { ELDER, POINTS, STREAK } from "../test/fixtures";
 
 beforeEach(() => signInAs());
 
@@ -78,5 +79,41 @@ describe("Home Around the township card", () => {
       "aria-selected",
       "true",
     );
+  });
+});
+
+describe("Home hazard cards area matching", () => {
+  const reading = (area: string, value: number) =>
+    SafetyReading.parse({
+      type: "air",
+      area,
+      value,
+      unit: "API",
+      level: "good",
+      advice: "Fine.",
+      measuredAt: "2026-10-01T09:00:00+08:00",
+    });
+  const safetyBody = (resident: string) => ({
+    ...homeRoutes,
+    "GET /api/me": { body: { ...ELDER, area: resident } },
+    "GET /api/safety": {
+      body: {
+        readings: [reading("Central Park", 55), reading("Elmina West", 42)],
+        facilityReports: [],
+      },
+    },
+  });
+
+  it("shows the precinct reading for a street-level resident area", async () => {
+    installFakeApi(safetyBody("Block A, Elmina West"));
+    await renderApp("/");
+    expect(await screen.findByText("42")).toBeInTheDocument();
+    expect(screen.queryByText(/Nearest reading/)).not.toBeInTheDocument();
+  });
+
+  it("labels the card as the nearest reading when no precinct matches", async () => {
+    installFakeApi(safetyBody("Elmina East"));
+    await renderApp("/");
+    expect(await screen.findByText("Nearest reading: Central Park")).toBeInTheDocument();
   });
 });

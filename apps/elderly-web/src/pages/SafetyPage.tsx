@@ -1,6 +1,6 @@
 import { useId, useState, type ReactNode } from "react";
 import type { FacilityStatus } from "@sdh/contracts";
-import { useSafetyData } from "../hooks/useSafetyData";
+import { inResidentArea, pickLocal, useSafetyData } from "../hooks/useSafetyData";
 import { useResident } from "../session/useResident";
 import { formatWhen } from "../requests/schedule";
 import { formatTemperature, withUnit } from "../safety/format";
@@ -68,7 +68,18 @@ function SectionHeading({ id, icon, title }: { id: string; icon: ReactNode; titl
 export function SafetyPage() {
   const safety = useSafetyData();
   const resident = useResident();
-  const { air: airReadings, water: waterReadings, heat: heatReadings } = safety;
+  const { water: waterReadings } = safety;
+  // The resident's own area leads the list and is tagged.
+  const localFirst = <T extends { area: string }>(items: T[]): T[] =>
+    [...items].sort(
+      (a, b) =>
+        Number(inResidentArea(b.area, resident?.area)) -
+        Number(inResidentArea(a.area, resident?.area)),
+    );
+  const airReadings = localFirst(safety.air);
+  const heatReadings = localFirst(safety.heat);
+  const areaLabel = (area: string) =>
+    inResidentArea(area, resident?.area) ? `${area} (Your area)` : area;
   const facilityReports = safety.facilities;
   const [facilityFilter, setFacilityFilter] = useState<FilterStatus>("all");
   const [openFacility, setOpenFacility] = useState<string | null>(null);
@@ -91,16 +102,16 @@ export function SafetyPage() {
   function handleReadSafetySummary() {
     const open = facilityReports.filter((f) => f.status !== "resolved").length;
     const parts = ["Health and safety."];
-    const air = airReadings[0];
+    const { item: air, isLocal: airIsLocal } = pickLocal(airReadings, resident?.area);
     if (air) {
-      parts.push(
-        `Air quality in ${air.area} is ${HAZARD_LEVEL[air.level].label}, API ${air.value}.`,
-      );
+      const where = airIsLocal ? air.area : `the nearest reading, ${air.area}`;
+      parts.push(`Air quality in ${where} is ${HAZARD_LEVEL[air.level].label}, API ${air.value}.`);
     }
-    const heat = heatReadings[0];
+    const { item: heat, isLocal: heatIsLocal } = pickLocal(heatReadings, resident?.area);
     if (heat) {
+      const where = heatIsLocal ? "" : ` at the nearest reading, ${heat.area}`;
       parts.push(
-        `Temperature is ${formatTemperature(heat.value, heat.unit)}, ${ALERT_LEVEL[heat.level].label}.`,
+        `Temperature${where} is ${formatTemperature(heat.value, heat.unit)}, ${ALERT_LEVEL[heat.level].label}.`,
       );
     }
     parts.push(`${open} facility repairs are not yet fixed.`);
@@ -169,7 +180,7 @@ export function SafetyPage() {
                   <div key={r.area} className="safety-card">
                     <div className="safety-card__row">
                       <div>
-                        <p className="safety-card__location">{r.area}</p>
+                        <p className="safety-card__location">{areaLabel(r.area)}</p>
                         <p className="safety-card__meta">Updated: {formatWhen(r.measuredAt)}</p>
                       </div>
                       <div className={`safety-card__badge tone-${s.tone}`}>
@@ -275,7 +286,7 @@ export function SafetyPage() {
                       </div>
                       <p className="safety-card__meta">
                         <IconMapPin className="icon-inline" size={12} strokeWidth={2} />
-                        {t.area} · {formatWhen(t.measuredAt)}
+                        {areaLabel(t.area)} · {formatWhen(t.measuredAt)}
                       </p>
                     </div>
                     <div className="safety-temp__stats">
