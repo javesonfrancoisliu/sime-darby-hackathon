@@ -430,8 +430,12 @@
 .ui-icon-button {
   display: inline-grid;
   place-items: center;
+  /* A long dialog title must not squeeze the close button under the 44px touch target. */
+  flex: none;
   width: 44px;
   height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   border: 1px solid var(--control-border);
   border-radius: var(--radius-control);
   background: var(--surface);
