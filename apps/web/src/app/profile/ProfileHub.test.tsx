@@ -123,7 +123,7 @@ describe("profile hub rows", () => {
     expect(rows[3]).toHaveTextContent("Township security and 999");
     expect(rows[4]).toHaveTextContent(`Signed in as ${volunteer.name}`);
     for (const r of rows) expect(r.querySelector(".ui-hub-row__chevron")).not.toBeNull();
-    expect(screen.queryByRole("button", { name: /Show details/ })).not.toBeInTheDocument();
+    expect(document.querySelector(".drawer")).toBeNull();
   });
 
   it("asks for volunteering preferences in the My details summary when none are set", async () => {

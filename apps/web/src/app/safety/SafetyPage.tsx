@@ -156,7 +156,6 @@ export function SafetyPage() {
                           key={r.area}
                           className="safety-card safety-card--drawer safety-card--air"
                           ariaLabel={`Air quality: ${r.area}`}
-                          label={r.area}
                           open={openAir === r.area}
                           onToggle={() => setOpenAir((cur) => (cur === r.area ? null : r.area))}
                           header={
@@ -380,7 +379,6 @@ export function SafetyPage() {
                             key={r.id}
                             className="safety-card safety-card--drawer safety-card--facility"
                             ariaLabel={`Facility report: ${r.title}`}
-                            label={r.title}
                             open={openFacility === r.id}
                             onToggle={() => setOpenFacility((cur) => (cur === r.id ? null : r.id))}
                             header={

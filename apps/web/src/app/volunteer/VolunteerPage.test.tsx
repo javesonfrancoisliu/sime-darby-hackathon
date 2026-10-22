@@ -280,7 +280,7 @@ describe("volunteer page", () => {
     renderApp("/volunteer");
     const user = userEvent.setup();
     const card = await screen.findByLabelText("Opportunity: Groceries");
-    const toggle = within(card).getByRole("button", { name: "Groceries. Show details" });
+    const toggle = within(card).getByRole("button", { name: /^Groceries/ });
     expect(toggle).toHaveAttribute("aria-expanded", "false");
     expect(within(card).queryByRole("button", { name: "View details" })).not.toBeInTheDocument();
     expect(within(card).queryByText("Flexible")).not.toBeInTheDocument();
@@ -462,7 +462,7 @@ describe("volunteer page", () => {
     const user = userEvent.setup();
 
     // Details expand inline; the accept action stays visible.
-    await user.click(await screen.findByRole("button", { name: "Groceries. Show details" }));
+    await user.click(await screen.findByRole("button", { name: /^Groceries/ }));
     await user.click(await screen.findByRole("button", { name: /^Accept & help: / }));
     // A yes/no confirmation now precedes the accept.
     await user.click(await screen.findByRole("button", { name: "Yes, accept" }));
@@ -548,7 +548,7 @@ describe("volunteer page", () => {
     renderApp("/volunteer");
     const user = userEvent.setup();
 
-    await user.click(await screen.findByRole("button", { name: "Groceries. Show details" }));
+    await user.click(await screen.findByRole("button", { name: /^Groceries/ }));
     await user.click(await screen.findByRole("button", { name: /^Accept & help: / }));
     await user.click(await screen.findByRole("button", { name: "Yes, accept" }));
     expect(await screen.findByText("Someone else just took this")).toBeInTheDocument();

@@ -17,7 +17,6 @@ export function VolunteerCard({ item, joined, onJoin }: VolunteerCardProps) {
   return (
     <li className="community-event" aria-label={`Volunteering: ${item.title}`}>
       <Drawer
-        label={item.title}
         open={open}
         onToggle={() => setOpen((current) => !current)}
         header={

@@ -90,12 +90,11 @@ describe("safety page", () => {
 
     await user.click(await screen.findByRole("tab", { name: "Facilities" }));
     const card = await screen.findByLabelText("Facility report: Broken swing");
-    const toggle = within(card).getByRole("button", { name: /Broken swing\. Show details/ });
+    const toggle = within(card).getByRole("button", { name: /^Broken swing/ });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
     await user.click(toggle);
     // The row is now expanded and its toggle announces that details are shown.
-    expect(
-      within(card).getByRole("button", { name: /Broken swing\. Hide details/ }),
-    ).toBeInTheDocument();
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
     expect(within(card).getByText("The seat is cracked.")).toBeInTheDocument();
   });
 

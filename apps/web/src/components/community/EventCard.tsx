@@ -23,7 +23,6 @@ export function EventCard({ event, onRegister }: EventCardProps) {
   return (
     <li className="community-event" aria-label={`Event: ${event.title}`}>
       <Drawer
-        label={event.title}
         open={open}
         onToggle={() => setOpen((current) => !current)}
         header={

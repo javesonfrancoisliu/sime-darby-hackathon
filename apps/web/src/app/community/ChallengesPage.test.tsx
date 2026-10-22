@@ -187,7 +187,7 @@ describe("challenges page", () => {
     const card = await screen.findByLabelText("Challenge: Walk 20,000 steps");
     expect(within(card).getByText("Waiting for verification")).toBeInTheDocument();
     expect(within(card).getAllByRole("button")).toHaveLength(1);
-    expect(within(card).getByRole("button", { name: /Show details/ })).toHaveAttribute(
+    expect(within(card).getByRole("button", { name: /^Walk 20,000 steps/ })).toHaveAttribute(
       "aria-expanded",
       "false",
     );

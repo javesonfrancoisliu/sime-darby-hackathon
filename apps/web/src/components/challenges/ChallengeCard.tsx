@@ -47,7 +47,6 @@ export function ChallengeCard({
   return (
     <li className="community-event" aria-label={`Challenge: ${challenge.title}`}>
       <Drawer
-        label={challenge.title}
         open={open}
         onToggle={() => setOpen((current) => !current)}
         header={

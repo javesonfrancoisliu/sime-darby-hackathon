@@ -2310,19 +2310,17 @@
   overflow: hidden;
 }
 
-/* The whole top row is the toggle. */
+/* The whole top row is the toggle: the button below is laid over it. */
 .drawer__header {
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: var(--space-3);
   width: 100%;
   padding: var(--space-4);
-  border: none;
-  background: transparent;
   color: inherit;
   text-align: left;
   cursor: pointer;
-  font: inherit;
   min-height: 56px;
   transition: background-color 160ms ease;
 }
@@ -2332,7 +2330,17 @@
 .drawer__header:active {
   background: rgba(17, 24, 39, 0.04);
 }
-.drawer__header:focus-visible {
+.drawer__toggle {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+.drawer__toggle:focus-visible {
   outline: 3px solid var(--brand-primary);
   outline-offset: -3px;
 }
