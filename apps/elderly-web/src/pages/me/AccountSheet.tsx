@@ -4,7 +4,7 @@ import { useSession } from "@sdh/api-client";
 import { tokenModeEnabled } from "../../config";
 import { Button } from "../../ui/Button";
 import { topEntryIsOpenDialog } from "../../ui/dialogLayer";
-import { beginPageLeave } from "../../ui/pageLeave";
+import { beginPageLeave, endPageLeave } from "../../ui/pageLeave";
 import { IconUserRound, IconUsers } from "../../ui/Icons";
 import { Sheet } from "../../ui/Sheet";
 
@@ -26,6 +26,8 @@ function AccountSheetBody({ onClose }: Pick<AccountSheetProps, "onClose">) {
   const [signingOut, setSigningOut] = useState(false);
   const token = tokenModeEnabled();
   const signOutButton = useRef<HTMLButtonElement>(null);
+  const confirmRef = useRef<HTMLDivElement>(null);
+  const notYetRef = useRef<HTMLButtonElement>(null);
 
   // Leaving the confirm step unmounts the focused button, so put focus back on Sign out.
   const wasConfirming = useRef(false);
@@ -33,6 +35,15 @@ function AccountSheetBody({ onClose }: Pick<AccountSheetProps, "onClose">) {
     if (wasConfirming.current && !confirming) signOutButton.current?.focus();
     wasConfirming.current = confirming;
   }, [confirming]);
+
+  // Busy disables the focused button, so hold focus on the confirm view; if the sign out does not
+  // end in a page change, hand focus to the safe button.
+  const wasSigningOut = useRef(false);
+  useEffect(() => {
+    if (signingOut) confirmRef.current?.focus();
+    else if (wasSigningOut.current) notYetRef.current?.focus();
+    wasSigningOut.current = signingOut;
+  }, [signingOut]);
 
   // Removes the armed popstate listener, if any, so it cannot fire on an unrelated Back later.
   const disarm = useRef<(() => void) | null>(null);
@@ -69,7 +80,14 @@ function AccountSheetBody({ onClose }: Pick<AccountSheetProps, "onClose">) {
     beginPageLeave();
     // The session ends locally even when the server call fails, so signOut does not reject.
     await signOut();
-    window.location.assign("/");
+    try {
+      window.location.assign("/");
+    } catch {
+      // Signed out but the navigation failed: unlock the drawer and reload to land on the picker.
+      endPageLeave();
+      setSigningOut(false);
+      window.location.reload();
+    }
   }
 
   // Done, Escape, a scrim tap and a drag step back to the list first; none leaves while signing out.
@@ -98,7 +116,7 @@ function AccountSheetBody({ onClose }: Pick<AccountSheetProps, "onClose">) {
     >
       <div className="apple-sheet-content">
         {confirming ? (
-          <div className="call-confirm">
+          <div className="call-confirm" ref={confirmRef} tabIndex={-1}>
             <p className="call-confirm__sub">
               You will need to sign in again to use Township Connect.
             </p>
@@ -116,6 +134,7 @@ function AccountSheetBody({ onClose }: Pick<AccountSheetProps, "onClose">) {
               </Button>
               <button
                 type="button"
+                ref={notYetRef}
                 autoFocus
                 className="ui-button ui-button--secondary call-confirm__cancel"
                 onClick={() => setConfirming(false)}

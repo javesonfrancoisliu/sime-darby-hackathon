@@ -102,6 +102,28 @@ describe("Account sheet sign out", () => {
   });
 });
 
+describe("Account sheet sign out recovery and focus", () => {
+  it("moves focus onto the confirm view when sign out starts, not a disabled button", async () => {
+    signOut.mockImplementation(() => new Promise<void>(() => {}));
+    const confirm = await confirmSignOut();
+    expect(confirm.querySelector(".call-confirm")).toHaveFocus();
+    expect(document.activeElement).not.toBe(document.body);
+  });
+
+  it("unlocks the drawer, reloads and hands focus to Not yet when the navigation throws", async () => {
+    assign.mockImplementationOnce(() => {
+      throw new Error("blocked");
+    });
+    await confirmSignOut();
+    await waitFor(() => expect(reload).toHaveBeenCalledTimes(1));
+    expect(pageIsLeaving()).toBe(false);
+    expect(screen.getByRole("button", { name: "Yes, sign out" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Not yet" })).toHaveFocus();
+    await userEvent.click(screen.getByRole("button", { name: "Not yet" }));
+    expect(screen.getByRole("dialog", { name: "Account" })).toBeInTheDocument();
+  });
+});
+
 describe("Account sheet Done button", () => {
   it("steps back to the list from the confirm step instead of closing the drawer", async () => {
     const onClose = vi.fn();

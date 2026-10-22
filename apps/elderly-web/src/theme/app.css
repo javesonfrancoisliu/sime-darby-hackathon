@@ -3462,6 +3462,10 @@ main:focus {
 .call-confirm-panel {
   text-align: center;
 }
+.call-confirm:focus {
+  outline: none;
+}
+
 .call-confirm {
   display: flex;
   flex-direction: column;
