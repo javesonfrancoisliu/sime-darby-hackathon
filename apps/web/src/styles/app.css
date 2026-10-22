@@ -362,7 +362,7 @@
 .ui-toast-region {
   position: fixed;
   inset: auto var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom)) var(--space-4);
-  z-index: 60;
+  z-index: 80;
   display: flex;
   justify-content: center;
   pointer-events: none;
@@ -385,10 +385,11 @@
 }
 
 /* ---------- Modal ---------- */
+/* Layers: sheet 60, modal 70 (a dialog opened from a sheet sits above it), toast 80. */
 .ui-modal-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: 70;
   display: grid;
   place-items: center;
   padding: var(--space-4);
