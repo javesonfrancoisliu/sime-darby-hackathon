@@ -3,9 +3,9 @@ import { useHashTab } from "../ui/useHashTab";
 import { PlayIcon } from "../ui/PlayIcon";
 import {
   useBadges,
-  useCheckIn,
   useChallenges,
   useContribute,
+  useDailyCheckIn,
   usePoints,
   useRedeem,
   useRewards,
@@ -90,7 +90,7 @@ export function ChallengesPage() {
   const rewards = useRewards();
   const badges = useBadges();
   const contribute = useContribute();
-  const checkIn = useCheckIn();
+  const { checkIn, checkedInToday, run: runCheckIn } = useDailyCheckIn(streak, points);
   const redeem = useRedeem();
 
   const [tab, setTab] = useHashTab<PlayTab>(PLAY_TABS, "streak");
@@ -105,9 +105,7 @@ export function ChallengesPage() {
   ];
 
   const balance = points.data?.points;
-  const today = malaysiaToday();
   const week = lastSevenDays(new Date());
-  const checkedInToday = streak.data?.recent?.includes(today) ?? false;
   const teamChallenges = (challenges.data ?? []).filter((c) => c.mode === "team");
 
   function setBalance(next: number) {
@@ -116,10 +114,8 @@ export function ChallengesPage() {
 
   async function handleCheckIn() {
     triggerHaptic(25);
-    const result = await checkIn.run();
+    const result = await runCheckIn();
     if (!result) return;
-    streak.update(() => result.streak);
-    setBalance(result.points);
     // Which rewards are locked depends on the balance, so load them again.
     rewards.refetch();
     setToast(`Nice! +${result.pointsAwarded} points`);

@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { renderApp } from "../test/renderRoute";
 import { installFakeApi, signInAs } from "../test/fakeApi";
 import { SafetyReading } from "@sdh/contracts";
+import { malaysiaToday } from "../requests/schedule";
 import { ELDER, POINTS, STREAK } from "../test/fixtures";
 
 beforeEach(() => signInAs());
@@ -37,7 +38,7 @@ describe("Home Community Play card", () => {
     expect(screen.getByRole("button", { name: /Request help/ })).toBeInTheDocument();
   });
 
-  it("opens the check-in and the rewards tab", async () => {
+  it("opens the rewards tab", async () => {
     installFakeApi({
       ...homeRoutes,
       "GET /api/challenges": { body: { challenges: [] } },
@@ -50,12 +51,44 @@ describe("Home Community Play card", () => {
       "aria-selected",
       "true",
     );
-    await userEvent.click(screen.getByRole("button", { name: "Home" }));
+  });
+
+  it("checks in from Home with the same API call as Play and shows the done state", async () => {
+    const { calls } = installFakeApi({
+      ...homeRoutes,
+      "POST /api/me/check-in": {
+        body: {
+          streak: {
+            current: 4,
+            best: 5,
+            lastCheckInDate: malaysiaToday(),
+            recent: [malaysiaToday()],
+          },
+          pointsAwarded: 10,
+          points: 270,
+        },
+      },
+    });
+    await renderApp("/");
     await userEvent.click(await screen.findByRole("button", { name: "I’m Okay!" }));
-    expect(await screen.findByRole("tab", { name: /Streak/ })).toHaveAttribute(
-      "aria-selected",
-      "true",
+    const done = await screen.findByRole("button", { name: /You are okay today/ });
+    expect(done).toBeDisabled();
+    expect(calls.filter((c) => c.method === "POST" && c.path === "/api/me/check-in")).toHaveLength(
+      1,
     );
+    expect(screen.getByText("270")).toBeInTheDocument();
+    expect(window.location.hash).not.toBe("#rewards");
+  });
+
+  it("shows the done state on load when already checked in today", async () => {
+    installFakeApi({
+      ...homeRoutes,
+      "GET /api/me/streak": {
+        body: { current: 4, best: 5, recent: [malaysiaToday()] },
+      },
+    });
+    await renderApp("/");
+    expect(await screen.findByRole("button", { name: /You are okay today/ })).toBeDisabled();
   });
 });
 
