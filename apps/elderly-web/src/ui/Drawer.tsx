@@ -10,8 +10,6 @@ interface DrawerProps {
   header: ReactNode;
   /** Collapsible body content, revealed when open. */
   children: ReactNode;
-  /** Accessible label for the toggle (e.g. the card title). */
-  label: string;
   /** Extra class on the outer card. */
   className?: string;
 }
@@ -19,6 +17,9 @@ interface DrawerProps {
 /**
  * Drawer — a tap-to-expand card. The header row is the control; the body
  * animates open/closed beneath it.
+ *
+ * The toggle is named by what its header shows (title, status, place, date), and aria-expanded says
+ * whether it is open; the body region takes the same name.
  *
  * apple-design notes:
  *  - The body collapses with a `grid-template-rows: 0fr → 1fr` transition, so
@@ -31,16 +32,17 @@ interface DrawerProps {
  *  - Feedback is on press and the header is a real <button> (§1, §16 agency).
  *  - Reduced motion collapses instantly via CSS (§14).
  */
-export function Drawer({ open, onToggle, header, children, label, className }: DrawerProps) {
+export function Drawer({ open, onToggle, header, children, className }: DrawerProps) {
   const bodyId = useId();
+  const toggleId = useId();
   return (
     <div className={`drawer${open ? " drawer--open" : ""}${className ? ` ${className}` : ""}`}>
       <button
         type="button"
+        id={toggleId}
         className="drawer__header"
         aria-expanded={open}
         aria-controls={bodyId}
-        aria-label={`${label}. ${open ? "Hide details" : "Show details"}`}
         onClick={onToggle}
       >
         <span className="drawer__header-content">{header}</span>
@@ -56,6 +58,7 @@ export function Drawer({ open, onToggle, header, children, label, className }: D
         id={bodyId}
         className="drawer__body"
         role="region"
+        aria-labelledby={toggleId}
         {...(open ? {} : ({ inert: "" } as object))}
       >
         <div className="drawer__body-inner">

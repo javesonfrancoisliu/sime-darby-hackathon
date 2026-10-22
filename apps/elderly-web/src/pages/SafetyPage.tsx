@@ -347,7 +347,6 @@ export function SafetyPage() {
                   <Drawer
                     key={r.id}
                     className="safety-card safety-card--drawer"
-                    label={r.title}
                     open={openFacility === r.id}
                     onToggle={() => {
                       triggerHaptic(10);

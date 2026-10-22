@@ -237,7 +237,6 @@ export function CommunityPage() {
                 <Drawer
                   key={m.id}
                   className="safety-card safety-card--drawer"
-                  label={m.title}
                   open={openNotice === m.id}
                   onToggle={() => {
                     triggerHaptic(10);
@@ -403,7 +402,6 @@ export function CommunityPage() {
                   <Drawer
                     key={u.id}
                     className={`safety-card safety-card--drawer${important ? " safety-card--pinned" : ""}`}
-                    label={u.title}
                     open={openUpdate === u.id}
                     onToggle={() => {
                       triggerHaptic(10);

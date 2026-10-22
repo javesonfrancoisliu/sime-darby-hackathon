@@ -324,7 +324,6 @@ export function ChallengesPage() {
                     <Drawer
                       key={c.id}
                       className="play-challenge play-challenge--drawer"
-                      label={c.title}
                       open={openGoal === c.id}
                       onToggle={() => {
                         triggerHaptic(10);
