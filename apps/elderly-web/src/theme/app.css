@@ -320,9 +320,11 @@
   transform: translateX(-50%);
   width: 100%;
   max-width: 480px;
-  /* Five equal columns so the centre button always sits on the middle of the screen; a long label wraps inside its column. */
+  /* Mirrored columns keep the centre button on the middle of the screen while the longer names (Community, Help request) get the room to stay on one line. */
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns:
+    minmax(0, 0.85fr) minmax(0, 1.15fr) minmax(0, 1.4fr) minmax(0, 1.15fr)
+    minmax(0, 0.85fr);
   --tab-bar-bg: var(--surface);
   --tab-bar-border-width: 1px;
   --tab-bar-border-color: var(--border);

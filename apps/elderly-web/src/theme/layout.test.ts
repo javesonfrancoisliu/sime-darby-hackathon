@@ -125,10 +125,13 @@ describe("bottom tab bar", () => {
     expect(size).toContain("white-space: normal");
   });
 
-  it("uses five equal columns so the centre button stays on the screen centre", () => {
+  it("uses mirrored columns so the centre button stays on the screen centre", () => {
     const bar = rule(".app-tab-bar");
     expect(bar).toContain("display: grid");
-    expect(bar).toContain("repeat(5, minmax(0, 1fr))");
+    const cols = bar.match(/grid-template-columns:([^;]*);/)?.[1]?.match(/[\d.]+fr/g) ?? [];
+    expect(cols).toHaveLength(5);
+    expect(cols[0]).toBe(cols[4]);
+    expect(cols[1]).toBe(cols[3]);
   });
 });
 
