@@ -49,10 +49,3 @@ describe("dialog layers", () => {
     }
   });
 });
-
-describe("bottom bar labels", () => {
-  it("lets the label size shrink with the screen so Community fits its column", () => {
-    const link = declarations(".app-mobilenav-link");
-    expect(link).toMatch(/font-size:\s*clamp\(\s*10px,\s*3\.1vw,/);
-  });
-});

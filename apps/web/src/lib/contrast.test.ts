@@ -100,7 +100,7 @@ describe("raised centre button", () => {
 describe("mobile bottom nav labels", () => {
   it("lets five labels share a narrow bar by shrinking the font and the side padding", () => {
     expect(appCss).toMatch(
-      /\.app-mobilenav-link\s*\{[^}]*min-width: 0[^}]*padding: var\(--space-2\) var\(--space-1\)[^}]*font-size: clamp\(11px, 3\.4vw, 13px\)/s,
+      /\.app-mobilenav-link\s*\{[^}]*min-width: 0[^}]*padding: var\(--space-2\) 2px[^}]*font-size: clamp\(10px, 3\.1vw, 13px\)/s,
     );
   });
 });
