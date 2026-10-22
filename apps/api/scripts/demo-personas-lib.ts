@@ -1178,12 +1178,11 @@ async function seedRequests(ctx: Context, sessions: Map<string, Session>) {
           await accept();
           break;
         case "withdrawn":
-          if (createdNow) {
-            await accept();
-            if (status === "matched" && volunteer) {
-              const res = await ctx.api(volunteer).send("POST", `/api/requests/${id}/withdraw`);
-              if (res.ok) ctx.counts.tally("withdrawn requests", true);
-            }
+          // A new request is accepted first; one left matched by an interrupted run is only withdrawn.
+          if (createdNow) await accept();
+          if (status === "matched" && volunteer) {
+            const res = await ctx.api(volunteer).send("POST", `/api/requests/${id}/withdraw`);
+            if (res.ok) ctx.counts.tally("withdrawn requests", true);
           }
           break;
         case "cancelled":

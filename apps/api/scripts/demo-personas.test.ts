@@ -488,6 +488,35 @@ describe("local run", () => {
     await runFinish({ ...deps, identity: localIdentity(api.call) });
     expect(api.requests.filter((r) => r.confirmedAt)).toHaveLength(5);
   });
+
+  it("reopens a withdrawn-stage request left matched by an interrupted run", async () => {
+    const clock = { now: Date.parse("2026-10-22T04:00:00.000Z") };
+    const api = fakeApi(clock);
+    const deps = {
+      call: api.call,
+      identity: localIdentity(api.call),
+      log: () => {},
+      now: () => clock.now,
+    };
+    await runSeed(deps);
+    const withdrawn = REQUESTS.filter((r) => r.stage.kind === "withdrawn").map((r) => r.title);
+    expect(withdrawn.length).toBeGreaterThan(0);
+    const stuck = api.requests.filter((r) => withdrawn.includes(r.title));
+    expect(stuck.every((r) => r.status === "open")).toBe(true);
+    // The run died after the accept and before the withdraw.
+    const volunteer = [...api.users.values()].find((u) => u.role === "volunteer");
+    for (const r of stuck) Object.assign(r, { status: "matched", volunteerId: volunteer?.id });
+
+    const before = api.calls.filter((c) => c.endsWith("/accept")).length;
+    await runSeed({ ...deps, identity: localIdentity(api.call) });
+    expect(stuck.every((r) => r.status === "open")).toBe(true);
+    expect(api.requests).toHaveLength(25);
+    // Recovery only withdraws; a request that is already open is not accepted again.
+    expect(api.calls.filter((c) => c.endsWith("/accept")).length).toBe(before);
+    const withdraws = api.calls.filter((c) => c.endsWith("/withdraw")).length;
+    await runSeed({ ...deps, identity: localIdentity(api.call) });
+    expect(api.calls.filter((c) => c.endsWith("/withdraw")).length).toBe(withdraws);
+  });
 });
 
 describe("cognito run", () => {
