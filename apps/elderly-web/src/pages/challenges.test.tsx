@@ -206,8 +206,12 @@ describe("Community Play from the API", () => {
     await renderApp("/challenges");
     await userEvent.click(await screen.findByRole("tab", { name: /Rewards/i }));
     const card = (await screen.findByText("Free kopi")).closest(".play-reward") as HTMLElement;
-    await userEvent.click(within(card).getByRole("button", { name: /^Redeem$/ }));
-    expect(await within(card).findByRole("button", { name: /Redeemed/ })).toBeDisabled();
+    await userEvent.click(
+      within(card).getByRole("button", { name: "Redeem Free kopi for 80 points" }),
+    );
+    // Once redeemed it is plain text, not a disabled toggle button.
+    expect(await within(card).findByText("Redeemed")).toBeInTheDocument();
+    expect(within(card).queryByRole("button")).not.toBeInTheDocument();
     expect(screen.getAllByText("180").length).toBeGreaterThan(0);
   });
 
@@ -221,7 +225,9 @@ describe("Community Play from the API", () => {
     });
     await renderApp("/challenges");
     await userEvent.click(await screen.findByRole("tab", { name: /Rewards/i }));
-    await userEvent.click(await screen.findByRole("button", { name: /^Redeem$/ }));
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Redeem Free kopi for 80 points" }),
+    );
     expect(await screen.findByText(/do not have enough points/i)).toBeInTheDocument();
   });
 
@@ -229,7 +235,36 @@ describe("Community Play from the API", () => {
     installFakeApi({ ...baseRoutes, "GET /api/me/points": { body: POINTS(20) } });
     await renderApp("/challenges");
     await userEvent.click(await screen.findByRole("tab", { name: /Rewards/i }));
-    expect(await screen.findByRole("button", { name: /Not enough/ })).toBeDisabled();
+    expect(
+      await screen.findByRole("button", { name: "Free kopi, not enough points" }),
+    ).toBeDisabled();
+  });
+
+  it("names every reward button after its reward and never announces a toggle", async () => {
+    const other = {
+      ...REWARD,
+      id: "00000000-0000-4000-8000-000000000064",
+      title: "Tea bag",
+      pointsCost: 1,
+    };
+    installFakeApi({ ...baseRoutes, "GET /api/rewards": { body: { rewards: [REWARD, other] } } });
+    await renderApp("/challenges");
+    await userEvent.click(await screen.findByRole("tab", { name: /Rewards/i }));
+    const names = (await screen.findAllByRole("button", { name: /^Redeem / })).map((b) =>
+      b.getAttribute("aria-label"),
+    );
+    expect(names).toEqual(["Redeem Tea bag for 1 point", "Redeem Free kopi for 80 points"]);
+    for (const b of screen.getAllByRole("button", { name: /^Redeem / })) {
+      expect(b).not.toHaveAttribute("aria-pressed");
+    }
+  });
+
+  it("does not mark the Play check-in button as a toggle", async () => {
+    installFakeApi(baseRoutes);
+    await renderApp("/challenges");
+    expect(await screen.findByRole("button", { name: "I’m Okay!" })).not.toHaveAttribute(
+      "aria-pressed",
+    );
   });
 
   it("lists badges from the API", async () => {

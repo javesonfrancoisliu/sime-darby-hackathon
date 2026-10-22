@@ -2785,6 +2785,16 @@ button:active,
   font-weight: 700;
   color: var(--brand-primary);
 }
+/* Redeemed is a status, not a control, so it looks and acts like one. */
+.play-reward__done {
+  cursor: default;
+}
+.play-reward__done:hover {
+  background: var(--success);
+}
+.play-reward__done:active {
+  transform: none;
+}
 .play-reward .community-register-btn:disabled {
   background: #e5e7eb;
   color: var(--text-secondary);

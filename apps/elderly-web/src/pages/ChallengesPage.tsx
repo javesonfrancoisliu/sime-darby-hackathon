@@ -268,7 +268,6 @@ export function ChallengesPage() {
                 className={`ui-button ui-button--primary play-checkin-btn${checkedInToday ? " play-checkin-btn--done" : ""}`}
                 onClick={() => void handleCheckIn()}
                 disabled={checkedInToday || checkIn.status === "loading"}
-                aria-pressed={checkedInToday}
               >
                 {checkedInToday ? (
                   <>
@@ -456,28 +455,28 @@ export function ChallengesPage() {
                         <span className="play-reward__cost">
                           {pointsLabel(r.pointsCost, "pt", "pts")}
                         </span>
-                        <button
-                          type="button"
-                          className={`community-register-btn${isRedeemed ? " community-register-btn--done" : ""}`}
-                          onClick={() => void handleRedeem(r.id, r.title)}
-                          disabled={
-                            isRedeemed || locked || !affordable || redeem.status === "loading"
-                          }
-                          aria-pressed={isRedeemed}
-                        >
-                          {isRedeemed ? (
-                            <>
-                              <IconCheck size={15} strokeWidth={2.4} aria-hidden="true" />
-                              Redeemed
-                            </>
-                          ) : locked ? (
-                            "Locked"
-                          ) : affordable ? (
-                            "Redeem"
-                          ) : (
-                            "Not enough"
-                          )}
-                        </button>
+                        {isRedeemed ? (
+                          <span className="community-register-btn community-register-btn--done play-reward__done">
+                            <IconCheck size={15} strokeWidth={2.4} aria-hidden="true" />
+                            Redeemed
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            className="community-register-btn"
+                            onClick={() => void handleRedeem(r.id, r.title)}
+                            disabled={locked || !affordable || redeem.status === "loading"}
+                            aria-label={
+                              locked
+                                ? `${r.title}, locked`
+                                : affordable
+                                  ? `Redeem ${r.title} for ${pointsLabel(r.pointsCost)}`
+                                  : `${r.title}, not enough points`
+                            }
+                          >
+                            {locked ? "Locked" : affordable ? "Redeem" : "Not enough"}
+                          </button>
+                        )}
                       </div>
                     </div>
                   );
