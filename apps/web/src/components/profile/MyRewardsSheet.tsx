@@ -114,6 +114,7 @@ export function MyRewardsSheet({
                       <AppButton
                         variant="primary"
                         loading={busyId === reward.id}
+                        aria-label={`Use ${reward.title}`}
                         onClick={() => askUse(reward)}
                       >
                         Use now

@@ -147,7 +147,7 @@ describe("my rewards sheet", () => {
     expect(await within(dialog).findByText("Coffee voucher")).toBeInTheDocument();
     expect(within(dialog).getByText("Tote bag")).toBeInTheDocument();
     expect(within(dialog).getByText(/You have/)).toHaveTextContent("You have 120 points.");
-    expect(within(dialog).getByRole("button", { name: "Use now" })).toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: "Use Coffee voucher" })).toBeInTheDocument();
     expect(within(dialog).getByRole("link", { name: "See available rewards" })).toHaveAttribute(
       "href",
       "/community/challenges?tab=rewards",
@@ -158,6 +158,38 @@ describe("my rewards sheet", () => {
     expect(myRewards).toHaveFocus();
   });
 
+  it("gives each Use now button the name of its voucher", async () => {
+    installFakeApi(
+      signedIn({
+        ...REWARD_ROUTES,
+        "GET /api/rewards": {
+          body: {
+            rewards: [
+              makeReward({
+                title: "Coffee voucher",
+                status: "redeemed",
+                redeemedAt: "2026-10-18T02:00:00Z",
+              }),
+              makeReward({
+                id: "0a1b2c3d-9999-4a99-8a99-000000000010",
+                title: "Tote bag",
+                status: "redeemed",
+                redeemedAt: "2026-10-17T02:00:00Z",
+              }),
+            ],
+          },
+        },
+      }),
+    );
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    await userEvent.click(await row(/^My rewards/));
+    const dialog = await screen.findByRole("dialog", { name: "My rewards" });
+    expect(await within(dialog).findByRole("button", { name: "Use Coffee voucher" })).toBeVisible();
+    expect(within(dialog).getByRole("button", { name: "Use Tote bag" })).toBeVisible();
+    expect(within(dialog).queryByRole("button", { name: "Use now" })).not.toBeInTheDocument();
+  });
+
   it("closes the voucher confirmation before the sheet beneath it", async () => {
     installFakeApi(signedIn(REWARD_ROUTES));
     signInAs(VOLUNTEER.id);
@@ -165,7 +197,7 @@ describe("my rewards sheet", () => {
     const user = userEvent.setup();
 
     await user.click(await row(/^My rewards/));
-    await user.click(await screen.findByRole("button", { name: "Use now" }));
+    await user.click(await screen.findByRole("button", { name: "Use Coffee voucher" }));
     expect(
       await screen.findByRole("dialog", { name: "Use this voucher now?" }),
     ).toBeInTheDocument();
