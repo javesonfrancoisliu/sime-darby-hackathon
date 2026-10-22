@@ -55,7 +55,7 @@ export function EventCard({ event, onRegister }: EventCardProps) {
           {event.joined ? (
             "You're registered"
           ) : slots === 0 ? (
-            "No spots left"
+            "Fully booked"
           ) : (
             <>
               Only <strong>{slots}</strong> {slots === 1 ? "spot" : "spots"} left

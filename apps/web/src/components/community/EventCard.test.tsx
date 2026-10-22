@@ -34,6 +34,6 @@ describe("EventCard", () => {
     render(<EventCard event={makeItem({ signupCount: 10 })} onRegister={vi.fn()} />);
     expect(screen.getByText("Full")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Register" })).not.toBeInTheDocument();
-    expect(screen.queryByText("Fully booked")).not.toBeInTheDocument();
+    expect(screen.getByText("Fully booked")).toBeInTheDocument();
   });
 });
