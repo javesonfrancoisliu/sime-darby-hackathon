@@ -23,6 +23,7 @@ import { Banner } from "../ui/Banner";
 import { Spinner } from "../ui/Spinner";
 import type { FriendlyError } from "../api/errors";
 import { formatPoints, pointsLabel } from "../ui/points";
+import { BreakablePoints } from "../ui/BreakablePoints";
 
 type PlayTab = "streak" | "challenges" | "badges" | "rewards";
 export const PLAY_TABS: readonly PlayTab[] = ["streak", "challenges", "badges", "rewards"];
@@ -214,7 +215,9 @@ export function ChallengesPage() {
                     <IconSparkles size={22} strokeWidth={1.8} />
                   </span>
                   <div>
-                    <span className="play-summary__points-value">{formatPoints(balance ?? 0)}</span>
+                    <span className="play-summary__points-value">
+                      <BreakablePoints value={balance ?? 0} />
+                    </span>
                     <span className="play-summary__points-label">neighbour points</span>
                   </div>
                 </div>

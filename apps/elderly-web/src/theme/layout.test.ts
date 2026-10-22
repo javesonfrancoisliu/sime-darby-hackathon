@@ -41,8 +41,9 @@ describe("point totals", () => {
   it("lets the points tile shrink and break a long total inside the card", () => {
     expect(rule(".play-summary")).toContain("flex-wrap: wrap");
     expect(rule(".play-summary__points,\n.play-summary__streak")).toContain("min-width: 0");
+    // The total offers breaks only after its commas, so a break inside a group needs a group wider than the card.
     expect(rule(".play-summary__points-value,\n.play-summary__streak-value")).toContain(
-      "overflow-wrap: anywhere",
+      "overflow-wrap: break-word",
     );
   });
 
