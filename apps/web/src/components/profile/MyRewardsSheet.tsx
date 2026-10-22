@@ -114,7 +114,8 @@ export function MyRewardsSheet({
                       <AppButton
                         variant="primary"
                         loading={busyId === reward.id}
-                        aria-label={`Use ${reward.title}`}
+                        // The name starts with the visible "Use now" text.
+                        aria-label={`Use now: ${reward.title}`}
                         onClick={() => askUse(reward)}
                       >
                         Use now

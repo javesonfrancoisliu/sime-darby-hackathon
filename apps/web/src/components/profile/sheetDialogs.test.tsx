@@ -97,7 +97,7 @@ describe("dialogs opened from a sheet", () => {
         />
       </MemoryRouter>,
     );
-    await userEvent.click(screen.getByRole("button", { name: "Use Coffee voucher" }));
+    await userEvent.click(screen.getByRole("button", { name: "Use now: Coffee voucher" }));
     expectDialogAboveSheet("Use this voucher now?");
     expect(screen.getByRole("button", { name: "Yes, use now" })).toBeEnabled();
   });

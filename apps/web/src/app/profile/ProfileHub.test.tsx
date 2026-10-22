@@ -147,7 +147,9 @@ describe("my rewards sheet", () => {
     expect(await within(dialog).findByText("Coffee voucher")).toBeInTheDocument();
     expect(within(dialog).getByText("Tote bag")).toBeInTheDocument();
     expect(within(dialog).getByText(/You have/)).toHaveTextContent("You have 120 points.");
-    expect(within(dialog).getByRole("button", { name: "Use Coffee voucher" })).toBeInTheDocument();
+    expect(
+      within(dialog).getByRole("button", { name: "Use now: Coffee voucher" }),
+    ).toBeInTheDocument();
     expect(within(dialog).getByRole("link", { name: "See available rewards" })).toHaveAttribute(
       "href",
       "/community/challenges?tab=rewards",
@@ -185,8 +187,10 @@ describe("my rewards sheet", () => {
     renderApp("/profile");
     await userEvent.click(await row(/^My rewards/));
     const dialog = await screen.findByRole("dialog", { name: "My rewards" });
-    expect(await within(dialog).findByRole("button", { name: "Use Coffee voucher" })).toBeVisible();
-    expect(within(dialog).getByRole("button", { name: "Use Tote bag" })).toBeVisible();
+    expect(
+      await within(dialog).findByRole("button", { name: "Use now: Coffee voucher" }),
+    ).toBeVisible();
+    expect(within(dialog).getByRole("button", { name: "Use now: Tote bag" })).toBeVisible();
     expect(within(dialog).queryByRole("button", { name: "Use now" })).not.toBeInTheDocument();
   });
 
@@ -197,7 +201,7 @@ describe("my rewards sheet", () => {
     const user = userEvent.setup();
 
     await user.click(await row(/^My rewards/));
-    await user.click(await screen.findByRole("button", { name: "Use Coffee voucher" }));
+    await user.click(await screen.findByRole("button", { name: "Use now: Coffee voucher" }));
     expect(
       await screen.findByRole("dialog", { name: "Use this voucher now?" }),
     ).toBeInTheDocument();
