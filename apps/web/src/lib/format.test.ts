@@ -4,6 +4,8 @@ import {
   formatCount,
   formatDate,
   formatDateTimeRange,
+  formatPoints,
+  formatPts,
   formatReadingValue,
   formatRelative,
   formatWhen,
@@ -36,6 +38,14 @@ describe("format helpers", () => {
 
   it("adds thousands separators", () => {
     expect(formatCount(10000)).toBe("10,000");
+  });
+
+  it("groups point totals and agrees the unit with the number", () => {
+    expect(formatPoints(1)).toBe("1 point");
+    expect(formatPoints(0)).toBe("0 points");
+    expect(formatPoints(100000000133)).toBe("100,000,000,133 points");
+    expect(formatPts(1)).toBe("1 pt");
+    expect(formatPts(1500)).toBe("1,500 pts");
   });
 
   it("writes temperatures with the degree sign whatever the unit spelling", () => {

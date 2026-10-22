@@ -98,9 +98,24 @@ describe("raised centre button", () => {
 });
 
 describe("mobile bottom nav labels", () => {
-  it("lets five labels share a narrow bar by shrinking the font and the side padding", () => {
+  it("keeps every label at 12px or more and gives the middle three columns more room", () => {
     expect(appCss).toMatch(
-      /\.app-mobilenav-link\s*\{[^}]*min-width: 0[^}]*padding: var\(--space-2\) var\(--space-1\)[^}]*font-size: clamp\(11px, 3\.4vw, 13px\)/s,
+      /\.app-mobilenav-link\s*\{[^}]*min-width: 0[^}]*padding: var\(--space-2\) 2px[^}]*font-size: clamp\(12px, 3\.4vw, 13px\)/s,
+    );
+    expect(appCss).toMatch(
+      /\.app-mobilenav-link:nth-child\(n \+ 2\):nth-child\(-n \+ 4\)\s*\{[^}]*flex-grow: 1\.4/s,
+    );
+  });
+
+  it("scales the labels with the Larger text setting without dropping under 12px", () => {
+    expect(appCss).toMatch(
+      /\.easy-view \.app-mobilenav-link\s*\{[^}]*font-size: clamp\(12px, 3\.8vw, 14px\)/s,
+    );
+  });
+
+  it("keeps the active orb ring clear of the Volunteer label", () => {
+    expect(appCss).toMatch(
+      /\.app-mobilenav-orb\s*\{[^}]*margin: calc\(16px - var\(--orb-size\)\) 0 6px/s,
     );
   });
 });

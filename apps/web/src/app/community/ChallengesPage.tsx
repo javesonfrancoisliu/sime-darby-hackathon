@@ -34,6 +34,7 @@ import {
   TabPanel,
   Tabs,
 } from "../../components/ui";
+import { formatPoints } from "../../lib/format";
 import { useConfirm } from "../../lib/useConfirm";
 import { useProfile } from "../../data/ProfileContext";
 import {
@@ -74,7 +75,7 @@ const CATEGORY_FILTERS: CategoryFilter[] = [
 type Notice = { title: string; message: string };
 
 function pointsText(points: number): string {
-  return points > 0 ? ` You earned ${points} points.` : "";
+  return points > 0 ? ` You earned ${formatPoints(points)}.` : "";
 }
 
 export function ChallengesPage() {
@@ -243,7 +244,7 @@ export function ChallengesPage() {
   function handleRedeem(reward: RewardWithStatus) {
     confirm.ask({
       title: "Redeem this reward?",
-      message: `Redeem "${reward.title}" for ${reward.pointsCost} points?`,
+      message: `Redeem "${reward.title}" for ${formatPoints(reward.pointsCost)}?`,
       confirmLabel: "Yes, redeem",
       onConfirm: () =>
         run(
@@ -251,7 +252,7 @@ export function ChallengesPage() {
           () => redeemReward(reward.id),
           (result) => ({
             title: "Reward redeemed",
-            message: `"${reward.title}" is yours. You have ${result.points} points left. Find your voucher in Profile under My rewards and select Use now when you want to use it.`,
+            message: `"${reward.title}" is yours. You have ${formatPoints(result.points)} left. Find your voucher in Profile under My rewards and select Use now when you want to use it.`,
           }),
           "Couldn't redeem the reward",
         ),

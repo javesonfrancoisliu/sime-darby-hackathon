@@ -434,14 +434,24 @@ describe("help requests", () => {
       expect(late.body).toMatchObject({ error: { code: "CONFLICT" } });
     });
 
-    it("lets a withdraw and an elder cancel race end with exactly one winner", async () => {
-      const raced = await createOpen();
-      await call("POST", `/api/requests/${raced.id}/accept`, { as: volunteer.id });
-      const [out, cancel] = await Promise.all([
-        withdraw(raced.id, volunteer.id),
-        call("POST", `/api/requests/${raced.id}/cancel`, { as: elder.id }),
-      ]);
-      expect([out.status, cancel.status].sort()).toEqual([200, 409]);
+    it("lets a withdraw and an elder cancel race end in a valid state in either order", async () => {
+      for (let i = 0; i < 25; i += 1) {
+        const raced = await createOpen();
+        await call("POST", `/api/requests/${raced.id}/accept`, { as: volunteer.id });
+        const [out, cancel] = await Promise.all([
+          withdraw(raced.id, volunteer.id),
+          call("POST", `/api/requests/${raced.id}/cancel`, { as: elder.id }),
+        ]);
+        const statuses = [out.status, cancel.status];
+        expect(statuses.every((s) => s < 500)).toBe(true);
+        expect(statuses).toContain(200);
+        expect(statuses).not.toEqual([409, 409]);
+        const stored = (await call("GET", `/api/requests/${raced.id}`, { as: elder.id }))
+          .body as HelpRequest;
+        // withdraw won and the cancel was refused: the request is open again
+        const openAgain = out.status === 200 && cancel.status === 409;
+        expect(stored.status).toBe(openAgain ? "open" : "cancelled");
+      }
     });
   });
 

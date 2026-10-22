@@ -27,6 +27,7 @@ export function Carousel({ slides, intervalMs = 5000, ariaLabel }: CarouselProps
   const viewportRef = useRef<HTMLDivElement>(null);
   const startX = useRef<number | null>(null);
   const didDrag = useRef(false);
+  const resumeTimer = useRef<number | undefined>(undefined);
   const [dragPct, setDragPct] = useState(0);
   const [dragging, setDragging] = useState(false);
 
@@ -45,6 +46,9 @@ export function Carousel({ slides, intervalMs = 5000, ariaLabel }: CarouselProps
     }, intervalMs);
     return () => window.clearInterval(id);
   }, [reducedMotion, paused, count, intervalMs]);
+
+  // Cancel the pending resume timer on unmount so it cannot fire into a torn-down page.
+  useEffect(() => () => window.clearTimeout(resumeTimer.current), []);
 
   function step(delta: number) {
     triggerHaptic(10);
@@ -75,7 +79,8 @@ export function Carousel({ slides, intervalMs = 5000, ariaLabel }: CarouselProps
     else if (dragPct >= 18) step(-1);
     setDragPct(0);
     // Resume auto-play shortly after the finger lifts.
-    window.setTimeout(() => setPaused(false), 600);
+    window.clearTimeout(resumeTimer.current);
+    resumeTimer.current = window.setTimeout(() => setPaused(false), 600);
   }
 
   function onClickCapture(e: React.MouseEvent) {

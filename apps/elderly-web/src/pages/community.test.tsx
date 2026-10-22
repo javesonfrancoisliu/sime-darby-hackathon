@@ -54,7 +54,10 @@ describe("Community events from the API", () => {
     expect(screen.queryByText("Old Picnic")).not.toBeInTheDocument();
     expect(screen.getByText(/Only/)).toHaveTextContent("Only 5 spots left");
     expect(screen.getByText("This event is full")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Full" })).toBeDisabled();
+    // A full event shows a grey status naming the event, not a disabled red Register button.
+    expect(screen.queryByRole("button", { name: /Full/ })).not.toBeInTheDocument();
+    expect(screen.getByText("Full")).toHaveTextContent("Full, Farmers Market");
+    expect(screen.getByText("Full")).toHaveClass("community-full-badge");
     expect(screen.getAllByText("Central Park")).toHaveLength(2);
 
     const call = calls.find((c) => c.path === "/api/events?purpose=activity");
@@ -207,6 +210,20 @@ describe("Notices, volunteering and updates from the API", () => {
     expect(within(card).getByRole("button", { name: /signed up/i })).toBeDisabled();
     expect(calls.filter((c) => c.method === "POST")).toHaveLength(1);
     expect(calls.some((c) => c.path === "/api/events?purpose=volunteer_drive")).toBe(true);
+  });
+
+  it("shows a full volunteer drive as a status, not a disabled button", async () => {
+    const fullDrive = { ...drive, capacity: 7 };
+    installFakeApi({
+      "GET /api/events": (call) => ({
+        body: { events: call.path.includes("volunteer_drive") ? [fullDrive] : [] },
+      }),
+      "GET /api/notices": { body: { items: [] } },
+    });
+    await renderApp("/community#volunteer");
+    expect(await screen.findByText("Grocery run for neighbours")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Full|I can help/ })).not.toBeInTheDocument();
+    expect(screen.getByText("Full")).toHaveTextContent("Full, Grocery run for neighbours");
   });
 
   it("shows an empty state and an error state for notices", async () => {

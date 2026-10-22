@@ -3,7 +3,9 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderApp } from "../test/renderRoute";
 import { installFakeApi, signInAs } from "../test/fakeApi";
-import { POINTS, STREAK } from "../test/fixtures";
+import { SafetyReading } from "@sdh/contracts";
+import { malaysiaToday } from "../requests/schedule";
+import { ELDER, POINTS, STREAK } from "../test/fixtures";
 
 beforeEach(() => signInAs());
 
@@ -32,11 +34,11 @@ describe("Home Community Play card", () => {
       ".app-cta-card",
     ) as HTMLElement;
     expect(await within(card).findByRole("button", { name: "Try again" })).toBeInTheDocument();
-    expect(within(card).getByRole("button", { name: "I am okay" })).toBeEnabled();
+    expect(within(card).getByRole("button", { name: "I’m Okay!" })).toBeEnabled();
     expect(screen.getByRole("button", { name: /Request help/ })).toBeInTheDocument();
   });
 
-  it("opens the check-in and the rewards tab", async () => {
+  it("opens the rewards tab", async () => {
     installFakeApi({
       ...homeRoutes,
       "GET /api/challenges": { body: { challenges: [] } },
@@ -49,12 +51,44 @@ describe("Home Community Play card", () => {
       "aria-selected",
       "true",
     );
-    await userEvent.click(screen.getByRole("button", { name: "Home" }));
-    await userEvent.click(await screen.findByRole("button", { name: "I am okay" }));
-    expect(await screen.findByRole("tab", { name: /Streak/ })).toHaveAttribute(
-      "aria-selected",
-      "true",
+  });
+
+  it("checks in from Home with the same API call as Play and shows the done state", async () => {
+    const { calls } = installFakeApi({
+      ...homeRoutes,
+      "POST /api/me/check-in": {
+        body: {
+          streak: {
+            current: 4,
+            best: 5,
+            lastCheckInDate: malaysiaToday(),
+            recent: [malaysiaToday()],
+          },
+          pointsAwarded: 10,
+          points: 270,
+        },
+      },
+    });
+    await renderApp("/");
+    await userEvent.click(await screen.findByRole("button", { name: "I’m Okay!" }));
+    const done = await screen.findByRole("button", { name: /You are okay today/ });
+    expect(done).toBeDisabled();
+    expect(calls.filter((c) => c.method === "POST" && c.path === "/api/me/check-in")).toHaveLength(
+      1,
     );
+    expect(screen.getByText("270")).toBeInTheDocument();
+    expect(window.location.hash).not.toBe("#rewards");
+  });
+
+  it("shows the done state on load when already checked in today", async () => {
+    installFakeApi({
+      ...homeRoutes,
+      "GET /api/me/streak": {
+        body: { current: 4, best: 5, recent: [malaysiaToday()] },
+      },
+    });
+    await renderApp("/");
+    expect(await screen.findByRole("button", { name: /You are okay today/ })).toBeDisabled();
   });
 });
 
@@ -78,5 +112,41 @@ describe("Home Around the township card", () => {
       "aria-selected",
       "true",
     );
+  });
+});
+
+describe("Home hazard cards area matching", () => {
+  const reading = (area: string, value: number) =>
+    SafetyReading.parse({
+      type: "air",
+      area,
+      value,
+      unit: "API",
+      level: "good",
+      advice: "Fine.",
+      measuredAt: "2026-10-01T09:00:00+08:00",
+    });
+  const safetyBody = (resident: string) => ({
+    ...homeRoutes,
+    "GET /api/me": { body: { ...ELDER, area: resident } },
+    "GET /api/safety": {
+      body: {
+        readings: [reading("Central Park", 55), reading("Elmina West", 42)],
+        facilityReports: [],
+      },
+    },
+  });
+
+  it("shows the precinct reading for a street-level resident area", async () => {
+    installFakeApi(safetyBody("Block A, Elmina West"));
+    await renderApp("/");
+    expect(await screen.findByText("42")).toBeInTheDocument();
+    expect(screen.queryByText(/Nearest reading/)).not.toBeInTheDocument();
+  });
+
+  it("labels the card as the nearest reading when no precinct matches", async () => {
+    installFakeApi(safetyBody("Elmina East"));
+    await renderApp("/");
+    expect(await screen.findByText("Nearest reading: Central Park")).toBeInTheDocument();
   });
 });

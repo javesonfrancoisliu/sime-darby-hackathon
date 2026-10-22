@@ -258,10 +258,35 @@ describe("Edit your details, saving and leaving", () => {
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
   });
 
+  it("asks before Done throws away typed text, then leaves on a second Done", async () => {
+    const { calls, sheet } = await openEdit();
+    await userEvent.type(within(sheet).getByLabelText("Your name"), "x");
+    const typed = (within(sheet).getByLabelText("Your name") as HTMLInputElement).value;
+    await userEvent.click(within(sheet).getByRole("button", { name: "Done" }));
+    expect(await within(sheet).findByText(/changes are not saved yet/i)).toBeInTheDocument();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect((within(sheet).getByLabelText("Your name") as HTMLInputElement).value).toBe(typed);
+    await userEvent.click(within(sheet).getByRole("button", { name: "Done" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(calls.some((c) => c.method === "PATCH")).toBe(false);
+  });
+
   it("closes at once on Escape when nothing was typed", async () => {
     await openEdit();
     await userEvent.keyboard("{Escape}");
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  });
+});
+
+describe("Large point totals", () => {
+  it("groups the total in the Profile row and the My rewards sheet", async () => {
+    installFakeApi({ ...hubRoutes, "GET /api/me/points": { body: POINTS(100000000089) } });
+    await renderApp("/me");
+    const row = await screen.findByRole("button", { name: /^My rewards/ });
+    await waitFor(() => expect(row).toHaveTextContent("100,000,000,089 points"));
+    await userEvent.click(row);
+    const sheet = await sheetNamed("My rewards");
+    expect(await within(sheet).findByText("100,000,000,089")).toBeInTheDocument();
   });
 });
 

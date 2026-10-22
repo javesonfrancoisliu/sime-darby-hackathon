@@ -17,7 +17,6 @@ export function AnnouncementCard({ item }: AnnouncementCardProps) {
   return (
     <li className="community-event" aria-label={`Maintenance: ${item.title}`}>
       <Drawer
-        label={item.title}
         open={open}
         onToggle={() => setOpen((current) => !current)}
         header={

@@ -21,6 +21,7 @@ import { useProfile } from "../../data/ProfileContext";
 import { usePoints, useRewards } from "../../data/useGamification";
 import { tokenModeEnabled } from "../../lib/authMode";
 import { demoSignInEnabled } from "../../lib/demoFlag";
+import { formatPoints } from "../../lib/format";
 import { preferencesSummary } from "../../lib/profileSummary";
 
 type ProfileSheet = "rewards" | "details" | "settings" | "help" | "account";
@@ -89,7 +90,7 @@ export function ProfilePage() {
   const rewardsSummary =
     points.data === null || rewards.data === null
       ? "Points and vouchers"
-      : `${points.data.points} ${points.data.points === 1 ? "point" : "points"} · ${toUse} ${
+      : `${formatPoints(points.data.points)} · ${toUse} ${
           toUse === 1 ? "voucher" : "vouchers"
         } to use`;
 

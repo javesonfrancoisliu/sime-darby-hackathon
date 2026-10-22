@@ -137,12 +137,20 @@
     gap: 2px;
     min-width: 0;
     min-height: 56px;
-    padding: var(--space-2) var(--space-1);
+    padding: var(--space-2) 2px;
     color: var(--text-secondary);
     text-decoration: none;
-    /* Five labels share the bar, so the size eases down on the narrowest phones. */
-    font-size: clamp(11px, 3.4vw, 13px);
+    /* Five labels share the bar. The size never drops under 12px; the three middle columns are
+       wider than the two edge ones (still symmetric, so the raised centre stays centred) so the
+       longest labels fit on one line at 320px. Larger text raises the ceiling, not the 320px size. */
+    font-size: clamp(12px, 3.4vw, 13px);
     font-weight: 600;
+  }
+  .app-mobilenav-link:nth-child(n + 2):nth-child(-n + 4) {
+    flex-grow: 1.4;
+  }
+  .easy-view .app-mobilenav-link {
+    font-size: clamp(12px, 3.8vw, 14px);
   }
   .app-mobilenav-link[aria-current="page"] {
     color: var(--brand-primary);
@@ -168,8 +176,9 @@
     place-items: center;
     width: var(--orb-size);
     height: var(--orb-size);
-    /* The orb's bottom meets the icon row of the other tabs, so every label shares one line. */
-    margin-top: calc(22px - var(--orb-size));
+    /* The orb plus its margins is as tall as the icon row of the other tabs, so every label shares
+       one line; the 6px below the orb keeps the 6px active ring off the label. */
+    margin: calc(16px - var(--orb-size)) 0 6px;
     border-radius: 50%;
     background: var(--brand-primary);
     color: #fff;
@@ -362,7 +371,7 @@
 .ui-toast-region {
   position: fixed;
   inset: auto var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom)) var(--space-4);
-  z-index: 60;
+  z-index: 80;
   display: flex;
   justify-content: center;
   pointer-events: none;
@@ -385,10 +394,11 @@
 }
 
 /* ---------- Modal ---------- */
+/* Layers: sheet 60, modal 70 (a dialog opened from a sheet sits above it), toast 80. */
 .ui-modal-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: 70;
   display: grid;
   place-items: center;
   padding: var(--space-4);
@@ -398,7 +408,8 @@
   width: min(100%, 540px);
   max-height: 90vh;
   max-height: 90dvh;
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
   background: var(--surface);
   border-radius: var(--radius-card);
   padding: var(--space-6);
@@ -409,6 +420,7 @@
   justify-content: space-between;
   gap: var(--space-4);
   margin-bottom: var(--space-4);
+  flex: 0 0 auto;
 }
 .ui-modal-title {
   margin: 0;
@@ -418,8 +430,12 @@
 .ui-icon-button {
   display: inline-grid;
   place-items: center;
+  /* A long dialog title must not squeeze the close button under the 44px touch target. */
+  flex: none;
   width: 44px;
   height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   border: 1px solid var(--control-border);
   border-radius: var(--radius-control);
   background: var(--surface);
@@ -826,12 +842,19 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  /* Room inside the scroller so focus rings at its edges are not cut off. */
+  padding: 3px;
+  margin: -3px;
 }
 .ui-modal-foot {
   display: flex;
   justify-content: flex-end;
   gap: var(--space-3);
   margin-top: var(--space-6);
+  flex: 0 0 auto;
   flex-wrap: wrap;
 }
 
@@ -875,6 +898,10 @@
   gap: var(--space-3);
   padding: var(--space-2) 0 var(--space-1);
 }
+.ui-confirm:focus {
+  outline: none;
+}
+
 .ui-confirm-icon {
   display: inline-grid;
   place-items: center;
@@ -889,6 +916,9 @@
 .ui-confirm-icon--ask {
   background: var(--danger-bg);
   color: var(--brand-primary);
+}
+.ui-confirm > .sheet-stack {
+  align-self: stretch;
 }
 .ui-confirm-message {
   margin: 0;
@@ -916,6 +946,9 @@
   border: 1px solid var(--brand-amber);
 }
 .reward-stat-value {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
   font-size: 32px;
   font-weight: 700;
   line-height: 1.1;
@@ -988,6 +1021,7 @@
   text-align: center;
   gap: 2px;
   padding: var(--space-2);
+  min-width: 0;
 }
 .impact-tile .reward-icon {
   width: 40px;
@@ -1001,10 +1035,10 @@
 }
 .impact-tile .reward-stat-value {
   margin: 0;
-  font-size: 24px;
+  font-size: clamp(16px, 5.5vw, 24px);
 }
 .easy-view .impact-tile .reward-stat-value {
-  font-size: 28px;
+  font-size: clamp(18px, 6vw, 28px);
 }
 .easy-view .impact-tile-label {
   font-size: 14px;
@@ -1108,6 +1142,14 @@
 .home-challenge-links .ui-button {
   min-width: 0;
   padding-inline: var(--space-2);
+}
+/* Three labelled buttons no longer fit side by side, so the icon sits above the label. */
+@media (max-width: 360px) {
+  .home-challenge-links .ui-button {
+    flex-direction: column;
+    gap: 2px;
+    padding-block: var(--space-2);
+  }
 }
 
 /* ---------- Progress bar ---------- */
@@ -1551,10 +1593,10 @@
   padding: var(--space-3) var(--space-2);
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
-  opacity: 0.6;
+  /* Locked tiles are told apart by the lock icon and a muted fill, not by fading their text. */
+  background: var(--surface-muted);
 }
 .badge-tile--earned {
-  opacity: 1;
   border-color: var(--brand-amber);
   background: var(--warning-bg);
 }
@@ -1992,20 +2034,9 @@
   transition: width 600ms ease;
 }
 
-.safety-bar__fill--tone {
+/* Two classes so the bar takes its tone's bar colour, not the tone chip's pale background. */
+.safety-bar__fill.safety-bar__fill--tone {
   background: var(--tone-bar);
-}
-
-.safety-bar__fill--ok {
-  background: var(--success);
-}
-
-.safety-bar__fill--mid {
-  background: var(--tone-bar-mid);
-}
-
-.safety-bar__fill--high {
-  background: var(--tone-alert-text);
 }
 
 /* ── Status chip (ported as -tone to avoid the Home .safety-chip) ── */
@@ -2283,19 +2314,17 @@
   overflow: hidden;
 }
 
-/* The whole top row is the toggle. */
+/* The whole top row is the toggle: the button below is laid over it. */
 .drawer__header {
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: var(--space-3);
   width: 100%;
   padding: var(--space-4);
-  border: none;
-  background: transparent;
   color: inherit;
   text-align: left;
   cursor: pointer;
-  font: inherit;
   min-height: 56px;
   transition: background-color 160ms ease;
 }
@@ -2305,7 +2334,17 @@
 .drawer__header:active {
   background: rgba(17, 24, 39, 0.04);
 }
-.drawer__header:focus-visible {
+.drawer__toggle {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+.drawer__toggle:focus-visible {
   outline: 3px solid var(--brand-primary);
   outline-offset: -3px;
 }

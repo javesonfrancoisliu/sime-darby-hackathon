@@ -72,18 +72,31 @@ interface SheetProps {
   onClose: () => void;
   title: string;
   subtitle?: string;
-  // Asked before a scrim tap, Escape or a drag closes the sheet; false keeps it open.
+  // Asked before Done, a scrim tap, Escape or a drag closes the sheet; false keeps it open.
   canDismiss?: () => boolean;
+  // Asked when the phone's Back button reaches the sheet; true keeps it open and Back is used up.
+  holdBack?: () => boolean;
+  // The label of the title row button, for a step where it means back rather than done.
+  doneLabel?: string;
   children: ReactNode;
 }
 
-// Bottom sheet: grabber, title row with Done, scrim. Closes on Done, Escape, scrim tap, the phone
-// back button and a downward drag. Keeps focus inside, locks the page behind it and gives focus back.
+// Bottom sheet: grabber, title row with Done, scrim. Done, Escape, a scrim tap and a drag ask
+// canDismiss first; the phone back button asks holdBack. Keeps focus inside, locks the page behind
+// it and gives focus back.
 export function Sheet({ open, ...rest }: SheetProps) {
   return open ? <SheetBody {...rest} /> : null;
 }
 
-function SheetBody({ onClose, canDismiss, title, subtitle, children }: Omit<SheetProps, "open">) {
+function SheetBody({
+  onClose,
+  canDismiss,
+  holdBack,
+  doneLabel = "Done",
+  title,
+  subtitle,
+  children,
+}: Omit<SheetProps, "open">) {
   const { reducedMotion } = useAccessibility();
   const titleId = useId();
   const [host] = useState<HTMLElement>(
@@ -97,6 +110,7 @@ function SheetBody({ onClose, canDismiss, title, subtitle, children }: Omit<Shee
   const doneRef = useRef<HTMLButtonElement>(null);
   const onCloseRef = useRef(onClose);
   const canDismissRef = useRef(canDismiss);
+  const holdBackRef = useRef(holdBack);
   const shownFade = useRef(fade);
   const token = useRef(0);
   const timer = useRef<number | undefined>(undefined);
@@ -113,6 +127,7 @@ function SheetBody({ onClose, canDismiss, title, subtitle, children }: Omit<Shee
   useEffect(() => {
     onCloseRef.current = onClose;
     canDismissRef.current = canDismiss;
+    holdBackRef.current = holdBack;
   });
 
   function panelHeight(): number {
@@ -152,7 +167,16 @@ function SheetBody({ onClose, canDismiss, title, subtitle, children }: Omit<Shee
     return true;
   }
 
-  useDialogLayer({ panelRef, onBack: requestClose, onEscape: () => void requestDismiss() });
+  function handleBack(): boolean {
+    if (holdBackRef.current?.()) {
+      settle(0, 1);
+      return true;
+    }
+    requestClose();
+    return false;
+  }
+
+  useDialogLayer({ panelRef, onBack: handleBack, onEscape: () => void requestDismiss() });
 
   // The motion mode changed while open: carry on from the resting state of the new mode.
   useLayoutEffect(() => {
@@ -295,9 +319,9 @@ function SheetBody({ onClose, canDismiss, title, subtitle, children }: Omit<Shee
               type="button"
               ref={doneRef}
               className="apple-sheet-done"
-              onClick={() => requestClose()}
+              onClick={() => void requestDismiss()}
             >
-              Done
+              {doneLabel}
             </button>
           </div>
         </div>

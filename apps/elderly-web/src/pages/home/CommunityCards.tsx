@@ -1,14 +1,18 @@
 import { useNavigate } from "react-router-dom";
-import { usePoints, useStreak } from "../../hooks/useChallengesData";
+import { useDailyCheckIn, usePoints, useStreak } from "../../hooks/useChallengesData";
+import { useAccessibility } from "../../context/AccessibilityContext";
 import { Banner } from "../../ui/Banner";
 import { IconCheck, IconFlame, IconHandHeart, IconSparkles } from "../../ui/Icons";
 import { Spinner } from "../../ui/Spinner";
+import { formatPoints } from "../../ui/points";
 
 // Points and streak for Home. A slow or failed call only affects this card, never the rest of Home.
 export function CommunityPlayCard() {
   const navigate = useNavigate();
   const points = usePoints();
   const streak = useStreak();
+  const { checkIn, checkedInToday, run: runCheckIn } = useDailyCheckIn(streak, points);
+  const { speak, voiceAssist, triggerHaptic } = useAccessibility();
   const loading =
     (points.status === "loading" && !points.data) || (streak.status === "loading" && !streak.data);
   const failed =
@@ -17,6 +21,17 @@ export function CommunityPlayCard() {
       : streak.status === "error" && !streak.data
         ? streak
         : null;
+
+  async function handleCheckIn() {
+    triggerHaptic(25);
+    const result = await runCheckIn();
+    if (!result) return;
+    if (voiceAssist) {
+      speak(
+        `Checked in. Your streak is now ${result.streak.current} days, with ${result.pointsAwarded} points added.`,
+      );
+    }
+  }
 
   return (
     <section className="app-home__section" aria-labelledby="community-play-heading">
@@ -41,7 +56,9 @@ export function CommunityPlayCard() {
                 <IconSparkles size={22} strokeWidth={1.8} />
               </span>
               <div>
-                <span className="play-summary__points-value">{points.data?.points ?? 0}</span>
+                <span className="play-summary__points-value">
+                  {formatPoints(points.data?.points ?? 0)}
+                </span>
                 <span className="play-summary__points-label">neighbour points</span>
               </div>
             </div>
@@ -56,14 +73,26 @@ export function CommunityPlayCard() {
             </div>
           </div>
         )}
+        {checkIn.status === "error" ? (
+          <Banner
+            message={
+              checkIn.error?.code === "ALREADY_DONE"
+                ? "You have already checked in today. Come back tomorrow."
+                : (checkIn.error?.message ?? "We could not check you in.")
+            }
+            onRetry={checkIn.error?.code === "ALREADY_DONE" ? streak.refetch : undefined}
+            retryLabel="Refresh"
+          />
+        ) : null}
         <div className="app-cta-card__actions">
           <button
             type="button"
             className="ui-button ui-button--primary app-cta-card__btn"
-            onClick={() => navigate("/challenges")}
+            onClick={() => void handleCheckIn()}
+            disabled={checkedInToday || checkIn.status === "loading"}
           >
             <IconCheck size={18} strokeWidth={2.4} aria-hidden="true" />
-            <span>I am okay</span>
+            <span>{checkedInToday ? "You are okay today" : "I’m Okay!"}</span>
           </button>
           <button
             type="button"

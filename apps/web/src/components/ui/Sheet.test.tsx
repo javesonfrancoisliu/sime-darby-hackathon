@@ -194,7 +194,8 @@ describe("Sheet closing", () => {
     await userEvent.click(screen.getByRole("button", { name: "Done" }));
     await gone();
     expect(onClosed).toHaveBeenCalledTimes(1);
-    expect(opener).toHaveFocus();
+    // The sheet hands focus back after it unmounts, so wait for it rather than read it once.
+    await waitFor(() => expect(opener).toHaveFocus());
     expect(document.body.style.overflow).toBe("");
     expect(opener.closest("[inert]")).toBeNull();
   });
@@ -208,7 +209,8 @@ describe("Sheet closing", () => {
     await screen.findByRole("dialog", { name: "My sheet" });
     await userEvent.click(screen.getByRole("button", { name: "Done" }));
     await gone();
-    expect(opener).toHaveFocus();
+    // The sheet hands focus back after it unmounts, so wait for it rather than read it once.
+    await waitFor(() => expect(opener).toHaveFocus());
   });
 
   it("closes on Escape", async () => {
@@ -216,7 +218,8 @@ describe("Sheet closing", () => {
     const { opener } = await openSheet();
     await userEvent.keyboard("{Escape}");
     await gone();
-    expect(opener).toHaveFocus();
+    // The sheet hands focus back after it unmounts, so wait for it rather than read it once.
+    await waitFor(() => expect(opener).toHaveFocus());
   });
 
   it("closes on Escape even when focus has fallen to the page body", async () => {

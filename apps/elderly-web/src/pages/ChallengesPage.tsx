@@ -3,9 +3,9 @@ import { useHashTab } from "../ui/useHashTab";
 import { PlayIcon } from "../ui/PlayIcon";
 import {
   useBadges,
-  useCheckIn,
   useChallenges,
   useContribute,
+  useDailyCheckIn,
   usePoints,
   useRedeem,
   useRewards,
@@ -22,6 +22,8 @@ import { useAccessibility } from "../context/AccessibilityContext";
 import { Banner } from "../ui/Banner";
 import { Spinner } from "../ui/Spinner";
 import type { FriendlyError } from "../api/errors";
+import { formatPoints, pointsLabel } from "../ui/points";
+import { BreakablePoints } from "../ui/BreakablePoints";
 
 type PlayTab = "streak" | "challenges" | "badges" | "rewards";
 export const PLAY_TABS: readonly PlayTab[] = ["streak", "challenges", "badges", "rewards"];
@@ -47,7 +49,7 @@ const NO_PRECINCT_TEXT =
 
 // Cheapest first, so the next reward within reach is at the top.
 // For example "1 more point" or "3 more points".
-const moreText = (n: number) => `${n} more ${n === 1 ? "point" : "points"}`;
+const moreText = (n: number) => `${formatPoints(n)} more ${n === 1 ? "point" : "points"}`;
 
 const byCost = (a: { pointsCost: number }, b: { pointsCost: number }) =>
   a.pointsCost - b.pointsCost;
@@ -90,7 +92,7 @@ export function ChallengesPage() {
   const rewards = useRewards();
   const badges = useBadges();
   const contribute = useContribute();
-  const checkIn = useCheckIn();
+  const { checkIn, checkedInToday, run: runCheckIn } = useDailyCheckIn(streak, points);
   const redeem = useRedeem();
 
   const [tab, setTab] = useHashTab<PlayTab>(PLAY_TABS, "streak");
@@ -105,9 +107,7 @@ export function ChallengesPage() {
   ];
 
   const balance = points.data?.points;
-  const today = malaysiaToday();
   const week = lastSevenDays(new Date());
-  const checkedInToday = streak.data?.recent?.includes(today) ?? false;
   const teamChallenges = (challenges.data ?? []).filter((c) => c.mode === "team");
 
   function setBalance(next: number) {
@@ -116,13 +116,11 @@ export function ChallengesPage() {
 
   async function handleCheckIn() {
     triggerHaptic(25);
-    const result = await checkIn.run();
+    const result = await runCheckIn();
     if (!result) return;
-    streak.update(() => result.streak);
-    setBalance(result.points);
     // Which rewards are locked depends on the balance, so load them again.
     rewards.refetch();
-    setToast(`Nice! +${result.pointsAwarded} points`);
+    setToast(`Nice! +${pointsLabel(result.pointsAwarded)}`);
     window.setTimeout(() => setToast(""), 2200);
     if (voiceAssist) {
       speak(
@@ -142,7 +140,7 @@ export function ChallengesPage() {
       points.update((p) => ({ ...p, points: p.points + result.pointsAwarded }));
       rewards.refetch();
     }
-    setToast(`Thank you! +${result.pointsAwarded} points for ${neighbourhood}`);
+    setToast(`Thank you! +${pointsLabel(result.pointsAwarded)} for ${neighbourhood}`);
     window.setTimeout(() => setToast(""), 2200);
   }
 
@@ -163,7 +161,7 @@ export function ChallengesPage() {
   function handleReadSummary() {
     const earned = (badges.data ?? []).filter((b) => b.earned).length;
     speak(
-      `Community play for ${neighbourhood}. You have ${balance ?? 0} points and a ${streak.data?.current ?? 0} day check-in streak. ${earned} badges earned. Join a neighbourhood challenge or redeem a reward.`,
+      `Community play for ${neighbourhood}. You have ${pointsLabel(balance ?? 0)} and a ${streak.data?.current ?? 0} day check-in streak. ${earned} badges earned. Join a neighbourhood challenge or redeem a reward.`,
     );
   }
 
@@ -180,9 +178,12 @@ export function ChallengesPage() {
           </div>
           <div className="row-center">
             {balance !== undefined ? (
-              <span className="play-header-points" aria-label={`${balance} neighbour points`}>
+              <span
+                className="play-header-points"
+                aria-label={`${formatPoints(balance)} neighbour points`}
+              >
                 <IconSparkles size={15} strokeWidth={2} aria-hidden="true" />
-                {balance}
+                {formatPoints(balance)}
               </span>
             ) : null}
             <PageHeaderActions onReadAloud={handleReadSummary} />
@@ -214,7 +215,9 @@ export function ChallengesPage() {
                     <IconSparkles size={22} strokeWidth={1.8} />
                   </span>
                   <div>
-                    <span className="play-summary__points-value">{balance ?? 0}</span>
+                    <span className="play-summary__points-value">
+                      <BreakablePoints value={balance ?? 0} />
+                    </span>
                     <span className="play-summary__points-label">neighbour points</span>
                   </div>
                 </div>
@@ -268,7 +271,6 @@ export function ChallengesPage() {
                 className={`ui-button ui-button--primary play-checkin-btn${checkedInToday ? " play-checkin-btn--done" : ""}`}
                 onClick={() => void handleCheckIn()}
                 disabled={checkedInToday || checkIn.status === "loading"}
-                aria-pressed={checkedInToday}
               >
                 {checkedInToday ? (
                   <>
@@ -276,7 +278,7 @@ export function ChallengesPage() {
                     You are okay today
                   </>
                 ) : (
-                  "I am okay"
+                  "I’m Okay!"
                 )}
               </button>
 
@@ -325,7 +327,6 @@ export function ChallengesPage() {
                     <Drawer
                       key={c.id}
                       className="play-challenge play-challenge--drawer"
-                      label={c.title}
                       open={openGoal === c.id}
                       onToggle={() => {
                         triggerHaptic(10);
@@ -453,29 +454,31 @@ export function ChallengesPage() {
                         ) : null}
                       </div>
                       <div className="play-reward__action">
-                        <span className="play-reward__cost">{r.pointsCost} pts</span>
-                        <button
-                          type="button"
-                          className={`community-register-btn${isRedeemed ? " community-register-btn--done" : ""}`}
-                          onClick={() => void handleRedeem(r.id, r.title)}
-                          disabled={
-                            isRedeemed || locked || !affordable || redeem.status === "loading"
-                          }
-                          aria-pressed={isRedeemed}
-                        >
-                          {isRedeemed ? (
-                            <>
-                              <IconCheck size={15} strokeWidth={2.4} aria-hidden="true" />
-                              Redeemed
-                            </>
-                          ) : locked ? (
-                            "Locked"
-                          ) : affordable ? (
-                            "Redeem"
-                          ) : (
-                            "Not enough"
-                          )}
-                        </button>
+                        <span className="play-reward__cost">
+                          {pointsLabel(r.pointsCost, "pt", "pts")}
+                        </span>
+                        {isRedeemed ? (
+                          <span className="community-register-btn community-register-btn--done play-reward__done">
+                            <IconCheck size={15} strokeWidth={2.4} aria-hidden="true" />
+                            Redeemed
+                          </span>
+                        ) : locked || !affordable ? (
+                          // A status, not a disabled Redeem button: it cannot be pressed, so it is not a control.
+                          <span className="community-full-badge">
+                            {locked ? "Locked" : "Not enough"}
+                            <span className="sr-only">, {r.title}</span>
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            className="community-register-btn"
+                            onClick={() => void handleRedeem(r.id, r.title)}
+                            disabled={redeem.status === "loading"}
+                            aria-label={`Redeem ${r.title} for ${pointsLabel(r.pointsCost)}`}
+                          >
+                            Redeem
+                          </button>
+                        )}
                       </div>
                     </div>
                   );

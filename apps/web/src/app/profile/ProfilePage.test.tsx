@@ -237,6 +237,8 @@ describe("profile page", () => {
 
     expect(await within(dialog).findByText(/at least one day and one time/)).toBeInTheDocument();
     expect(calls.some((c) => c.method === "PATCH")).toBe(false);
+    // The message takes focus so it is read out and scrolled into view, wherever the footer is.
+    expect(within(dialog).getByRole("alert")).toHaveFocus();
 
     // Fixing the form clears the message straight away.
     await user.click(within(days).getByRole("button", { name: "Weekends" }));
@@ -544,14 +546,16 @@ describe("profile page", () => {
     renderApp("/profile");
     const user = userEvent.setup();
     await user.click(await screen.findByRole("button", { name: /^My rewards/ }));
-    await user.click(await screen.findByRole("button", { name: "Use now" }));
+    await user.click(await screen.findByRole("button", { name: "Use now: Coffee voucher" }));
     await user.click(screen.getByRole("button", { name: "Not yet" }));
     expect(calls.some((call) => call.method === "POST")).toBe(false);
-    await user.click(screen.getByRole("button", { name: "Use now" }));
+    await user.click(screen.getByRole("button", { name: "Use now: Coffee voucher" }));
     await user.click(screen.getByRole("button", { name: "Yes, use now" }));
     expect(await screen.findByText("Claimed")).toBeInTheDocument();
     expect(screen.getByText("Claimed 20 Oct 2026")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Use now" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Use now: Coffee voucher" }),
+    ).not.toBeInTheDocument();
     expect(calls.filter((call) => call.method === "POST")).toHaveLength(1);
   });
 
@@ -592,7 +596,9 @@ describe("profile page", () => {
     const user = userEvent.setup();
     await user.click(await screen.findByRole("button", { name: /^My rewards/ }));
     expect(await screen.findByText("Expired 31 Jan 2020")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Use now" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Use now: Coffee voucher" }),
+    ).not.toBeInTheDocument();
   });
 
   it("hides the local sign-in picker in a build that switches it off", async () => {

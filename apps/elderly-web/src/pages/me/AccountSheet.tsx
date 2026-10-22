@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSession } from "@sdh/api-client";
 import { tokenModeEnabled } from "../../config";
-import { ConfirmDialog } from "../../ui/ConfirmDialog";
+import { Button } from "../../ui/Button";
 import { topEntryIsOpenDialog } from "../../ui/dialogLayer";
-import { beginPageLeave } from "../../ui/pageLeave";
+import { beginPageLeave, endPageLeave } from "../../ui/pageLeave";
 import { IconUserRound, IconUsers } from "../../ui/Icons";
 import { Sheet } from "../../ui/Sheet";
 
@@ -14,12 +14,36 @@ interface AccountSheetProps {
 }
 
 // Account: settings and sign out with a Cognito sign-in, or Switch person on the demo picker.
+// The body is mounted only while open, so a closed drawer never keeps a half-done sign out.
 export function AccountSheet({ open, onClose }: AccountSheetProps) {
+  return open ? <AccountSheetBody onClose={onClose} /> : null;
+}
+
+function AccountSheetBody({ onClose }: Pick<AccountSheetProps, "onClose">) {
   const { signOut } = useSession();
   const navigate = useNavigate();
   const [confirming, setConfirming] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const token = tokenModeEnabled();
+  const signOutButton = useRef<HTMLButtonElement>(null);
+  const confirmRef = useRef<HTMLDivElement>(null);
+  const notYetRef = useRef<HTMLButtonElement>(null);
+
+  // Leaving the confirm step unmounts the focused button, so put focus back on Sign out.
+  const wasConfirming = useRef(false);
+  useEffect(() => {
+    if (wasConfirming.current && !confirming) signOutButton.current?.focus();
+    wasConfirming.current = confirming;
+  }, [confirming]);
+
+  // Busy disables the focused button, so hold focus on the confirm view; if the sign out does not
+  // end in a page change, hand focus to the safe button.
+  const wasSigningOut = useRef(false);
+  useEffect(() => {
+    if (signingOut) confirmRef.current?.focus();
+    else if (wasSigningOut.current) notYetRef.current?.focus();
+    wasSigningOut.current = signingOut;
+  }, [signingOut]);
 
   // Removes the armed popstate listener, if any, so it cannot fire on an unrelated Back later.
   const disarm = useRef<(() => void) | null>(null);
@@ -56,13 +80,71 @@ export function AccountSheet({ open, onClose }: AccountSheetProps) {
     beginPageLeave();
     // The session ends locally even when the server call fails, so signOut does not reject.
     await signOut();
-    window.location.assign("/");
+    try {
+      window.location.assign("/");
+    } catch {
+      // Signed out but the navigation failed: unlock the drawer and reload to land on the picker.
+      endPageLeave();
+      setSigningOut(false);
+      window.location.reload();
+    }
+  }
+
+  // Done, Escape, a scrim tap and a drag step back to the list first; none leaves while signing out.
+  function stepBack(): boolean {
+    if (!confirming) return true;
+    if (!signingOut) setConfirming(false);
+    return false;
+  }
+
+  // The phone's Back leaves the confirm step first, and is used up by it.
+  function holdBack(): boolean {
+    if (!confirming) return false;
+    stepBack();
+    return true;
   }
 
   return (
-    <>
-      <Sheet open={open} onClose={onClose} title="Account" subtitle="Who is using this phone">
-        <div className="apple-sheet-content">
+    <Sheet
+      open
+      onClose={onClose}
+      title={confirming ? "Sign out?" : "Account"}
+      subtitle={confirming ? undefined : "Who is using this phone"}
+      canDismiss={stepBack}
+      holdBack={holdBack}
+      doneLabel={confirming ? "Back" : "Done"}
+    >
+      <div className="apple-sheet-content">
+        {confirming ? (
+          <div className="call-confirm" ref={confirmRef} tabIndex={-1}>
+            <p className="call-confirm__sub">
+              You will need to sign in again to use Township Connect.
+            </p>
+            <p role="status" className="call-confirm__sub">
+              {signingOut ? "Signing out…" : ""}
+            </p>
+            <div className="call-confirm__actions">
+              <Button
+                block
+                onClick={() => void signOutOfAccount()}
+                disabled={signingOut}
+                aria-busy={signingOut || undefined}
+              >
+                Yes, sign out
+              </Button>
+              <button
+                type="button"
+                ref={notYetRef}
+                autoFocus
+                className="ui-button ui-button--secondary call-confirm__cancel"
+                onClick={() => setConfirming(false)}
+                disabled={signingOut}
+              >
+                Not yet
+              </button>
+            </div>
+          </div>
+        ) : (
           <div className="ui-stack">
             {token ? (
               <>
@@ -71,6 +153,7 @@ export function AccountSheet({ open, onClose }: AccountSheetProps) {
                   <span>Account settings</span>
                 </a>
                 <button
+                  ref={signOutButton}
                   type="button"
                   className="ui-button ui-button--secondary"
                   onClick={() => setConfirming(true)}
@@ -89,23 +172,8 @@ export function AccountSheet({ open, onClose }: AccountSheetProps) {
               </button>
             )}
           </div>
-        </div>
-      </Sheet>
-      {confirming ? (
-        <ConfirmDialog
-          title="Sign out?"
-          confirmLabel="Yes, sign out"
-          cancelLabel="Not yet"
-          busy={signingOut}
-          busyLabel="Signing out"
-          onConfirm={() => void signOutOfAccount()}
-          onCancel={() => {
-            setConfirming(false);
-          }}
-        >
-          You will need to sign in again to use Township Connect.
-        </ConfirmDialog>
-      ) : null}
-    </>
+        )}
+      </div>
+    </Sheet>
   );
 }

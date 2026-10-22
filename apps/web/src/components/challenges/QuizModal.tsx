@@ -3,6 +3,7 @@ import { useRef, useState, type KeyboardEvent } from "react";
 
 import type { QuizPublic, QuizResult } from "@sdh/contracts";
 
+import { formatPoints } from "../../lib/format";
 import { AppButton, Modal } from "../ui";
 
 export type QuizModalProps = {
@@ -125,7 +126,7 @@ export function QuizModal({
           <p className="ui-helper" style={{ marginTop: "var(--space-2)" }}>
             {result.passed
               ? points > 0
-                ? `You passed. You earned ${points} points.`
+                ? `You passed. You earned ${formatPoints(points)}.`
                 : "You passed."
               : `You need ${quiz.passMark} correct to pass. Try again later.`}
           </p>
@@ -135,7 +136,7 @@ export function QuizModal({
           <p className="ui-helper ui-flush">
             Answer all {questions.length} questions, then send them together. You need{" "}
             {quiz.passMark} correct to pass
-            {points > 0 ? ` and earn ${points} points` : ""}.
+            {points > 0 ? ` and earn ${formatPoints(points)}` : ""}.
           </p>
           {questions.map((question, number) => {
             const selected = chosen[question.id] ?? null;

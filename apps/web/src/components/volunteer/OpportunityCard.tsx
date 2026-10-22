@@ -66,7 +66,6 @@ export function OpportunityCard({
       aria-label={`Opportunity: ${opportunity.title}${urgent ? ". Urgent" : ""}`}
     >
       <Drawer
-        label={opportunity.title}
         open={open}
         onToggle={() => setOpen((current) => !current)}
         header={

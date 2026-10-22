@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { StrictMode, useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -363,14 +363,17 @@ describe("Sheet drag details", () => {
     expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
-  it("stays open when canDismiss refuses a scrim tap and Escape", async () => {
-    const guard = vi.fn(() => false);
+  it("stays open when canDismiss refuses a scrim tap, Escape and Done, then closes once allowed", async () => {
+    let allow = false;
+    const guard = vi.fn(() => allow);
     render(<Stack guard={guard} />);
     await userEvent.click(screen.getByRole("button", { name: "open first" }));
     await userEvent.click(screen.getByTestId("sheet-scrim"));
     await userEvent.keyboard("{Escape}");
-    expect(guard).toHaveBeenCalledTimes(2);
+    await userEvent.click(screen.getByRole("button", { name: "Done" }));
+    expect(guard).toHaveBeenCalledTimes(3);
     expect(screen.getByRole("dialog", { name: "First" })).toBeInTheDocument();
+    allow = true;
     await userEvent.click(screen.getByRole("button", { name: "Done" }));
     await gone();
   });
@@ -401,6 +404,48 @@ describe("Sheet stacking", () => {
     expect(screen.getByRole("dialog", { name: "First" })).toBeInTheDocument();
     window.history.back();
     await gone();
+  });
+
+  it("keeps the sheet when the engine runs window popstate listeners in the order they were added", async () => {
+    // Some engines ignore the capture flag for listeners on the window itself.
+    const add = window.addEventListener.bind(window);
+    vi.spyOn(window, "addEventListener").mockImplementation(((
+      type: string,
+      listener: EventListenerOrEventListenerObject,
+      options?: boolean | AddEventListenerOptions,
+    ) =>
+      add(
+        type,
+        listener,
+        type === "popstate" ? false : options,
+      )) as typeof window.addEventListener);
+    render(<Stack />);
+    await userEvent.click(screen.getByRole("button", { name: "open first" }));
+    const sheetEntry = sheetMarker();
+    await userEvent.click(screen.getByRole("button", { name: "call" }));
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(sheetMarker()).toBe(sheetEntry));
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    expect(screen.getByRole("dialog", { name: "First" })).toBeInTheDocument();
+    expect(sheetMarker()).toBe(sheetEntry);
+  });
+
+  it("Cancel closes only the confirm dialog and leaves the sheet and its history entry", async () => {
+    render(
+      <StrictMode>
+        <Stack />
+      </StrictMode>,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "open first" }));
+    const sheetEntry = sheetMarker();
+    await userEvent.click(screen.getByRole("button", { name: "call" }));
+    expect(sheetMarker()).not.toBe(sheetEntry);
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(sheetMarker()).toBe(sheetEntry));
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    expect(screen.getAllByRole("dialog", { hidden: true })).toHaveLength(1);
+    expect(screen.getByRole("dialog", { name: "First" })).toBeInTheDocument();
+    expect(sheetMarker()).toBe(sheetEntry);
   });
 
   it("Escape closes only the confirm dialog when it sits over a sheet", async () => {

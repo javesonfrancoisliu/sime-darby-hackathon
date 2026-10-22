@@ -69,6 +69,16 @@ export function formatCount(n: number): string {
   return new Intl.NumberFormat("en-MY").format(n);
 }
 
+// A points total with grouping and a unit that agrees with the number, e.g. "1 point", "1,250 points".
+export function formatPoints(n: number): string {
+  return `${formatCount(n)} ${n === 1 ? "point" : "points"}`;
+}
+
+// The short form for tight spots, e.g. "1 pt", "1,250 pts".
+export function formatPts(n: number): string {
+  return `${formatCount(n)} ${n === 1 ? "pt" : "pts"}`;
+}
+
 // A reading with its unit; temperatures read "34°C" however the unit arrives ("C" or "°C").
 export function formatReadingValue(value: number, unit: string): string {
   return /^°?C$/.test(unit.trim()) ? `${value}°C` : `${value} ${unit}`;

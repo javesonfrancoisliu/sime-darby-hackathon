@@ -3,7 +3,7 @@ import { useState } from "react";
 
 import type { VolunteerItem } from "../../types/community";
 import { formatDate, formatTimeRange } from "../../lib/format";
-import { AppButton, Drawer } from "../ui";
+import { AppButton, Drawer, Pill } from "../ui";
 import { CardMeta } from "./CardMeta";
 
 export type VolunteerCardProps = {
@@ -17,7 +17,6 @@ export function VolunteerCard({ item, joined, onJoin }: VolunteerCardProps) {
   return (
     <li className="community-event" aria-label={`Volunteering: ${item.title}`}>
       <Drawer
-        label={item.title}
         open={open}
         onToggle={() => setOpen((current) => !current)}
         header={
@@ -52,13 +51,11 @@ export function VolunteerCard({ item, joined, onJoin }: VolunteerCardProps) {
             <CheckCircle2 size={14} aria-hidden="true" />
             You&rsquo;re signed up
           </span>
+        ) : item.slotsAvailable === 0 ? (
+          <Pill>Full</Pill>
         ) : (
-          <AppButton
-            variant="primary"
-            disabled={item.slotsAvailable === 0}
-            onClick={() => onJoin(item)}
-          >
-            {item.slotsAvailable === 0 ? "Full" : "Join"}
+          <AppButton variant="primary" onClick={() => onJoin(item)}>
+            Join
           </AppButton>
         )}
       </div>

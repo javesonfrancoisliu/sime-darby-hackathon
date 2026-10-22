@@ -38,6 +38,29 @@ describe("safety page", () => {
     expect(within(heat).getByText("70%")).toBeInTheDocument();
   });
 
+  it("colours each water bar by its status chip, not by how full the gauge is", async () => {
+    const water = (name: string, level: "normal" | "watch", value: number) => ({
+      ...SAFETY.readings[1],
+      name,
+      level,
+      value,
+      normalMax: 100,
+    });
+    setup({
+      body: {
+        ...SAFETY,
+        readings: [water("Nearly full lake", "normal", 95), water("Half full river", "watch", 50)],
+      },
+    });
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("tab", { name: "Water" }));
+    const normal = await screen.findByLabelText("Water levels: Nearly full lake");
+    const watch = await screen.findByLabelText("Water levels: Half full river");
+    expect(normal.querySelector(".safety-bar__fill")).toHaveClass("tone-good");
+    expect(watch.querySelector(".safety-bar__fill")).toHaveClass("tone-caution");
+  });
+
   it("filters facility reports by status in the Facilities tab", async () => {
     setup({ body: SAFETY });
     const user = userEvent.setup();
@@ -67,12 +90,11 @@ describe("safety page", () => {
 
     await user.click(await screen.findByRole("tab", { name: "Facilities" }));
     const card = await screen.findByLabelText("Facility report: Broken swing");
-    const toggle = within(card).getByRole("button", { name: /Broken swing\. Show details/ });
+    const toggle = within(card).getByRole("button", { name: /^Broken swing/ });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
     await user.click(toggle);
     // The row is now expanded and its toggle announces that details are shown.
-    expect(
-      within(card).getByRole("button", { name: /Broken swing\. Hide details/ }),
-    ).toBeInTheDocument();
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
     expect(within(card).getByText("The seat is cracked.")).toBeInTheDocument();
   });
 

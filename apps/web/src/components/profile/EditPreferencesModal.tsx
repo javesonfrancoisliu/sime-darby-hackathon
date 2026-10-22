@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { errorMessage } from "@sdh/api-client";
 import { Category } from "@sdh/contracts";
@@ -71,6 +71,12 @@ export function EditPreferencesModal({ open, onClose, onSaved }: EditPreferences
   const [languages, setLanguages] = useState(prefs.languages);
   const [busy, setBusy] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const errorRef = useRef<HTMLParagraphElement>(null);
+
+  // The footer is pinned and the form scrolls, so bring a new error into view and announce it.
+  useEffect(() => {
+    if (saveError) errorRef.current?.focus();
+  }, [saveError]);
 
   // Any change to the form clears the last error, so it never outlives the mistake.
   function edit(change: () => void) {
@@ -163,7 +169,7 @@ export function EditPreferencesModal({ open, onClose, onSaved }: EditPreferences
         Your skills and availability are saved to your account and used for volunteer matching.
       </p>
       {saveError && (
-        <p className="ui-error ui-flush" role="alert">
+        <p ref={errorRef} tabIndex={-1} className="ui-error ui-flush" role="alert">
           {saveError}
         </p>
       )}

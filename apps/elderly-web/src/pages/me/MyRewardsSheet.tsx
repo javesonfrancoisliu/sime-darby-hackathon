@@ -6,6 +6,7 @@ import { Banner } from "../../ui/Banner";
 import { IconSparkles } from "../../ui/Icons";
 import { Sheet } from "../../ui/Sheet";
 import { Spinner } from "../../ui/Spinner";
+import { formatPoints } from "../../ui/points";
 
 interface MyRewardsSheetProps {
   open: boolean;
@@ -47,7 +48,9 @@ export function MyRewardsSheet({ open, onClose }: MyRewardsSheetProps) {
             <IconSparkles size={22} strokeWidth={1.8} />
           </span>
           <div>
-            <span className="play-summary__points-value">{points.data?.points ?? 0}</span>
+            <span className="play-summary__points-value">
+              {formatPoints(points.data?.points ?? 0)}
+            </span>
             <span className="play-summary__points-label">neighbour points</span>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { Award, CheckCircle2, Star } from "lucide-react";
 
+import { formatCount } from "../../lib/format";
 import { InfoCard } from "../ui";
 
 export type ChallengeStatsStripProps = {
@@ -29,7 +30,7 @@ export function ChallengeStatsStrip({ points, completed, badges }: ChallengeStat
               <span className="reward-icon" aria-hidden="true">
                 <Icon size={20} />
               </span>
-              <dd className="reward-stat-value">{value}</dd>
+              <dd className="reward-stat-value">{formatCount(value)}</dd>
               <dt className="impact-tile-label">{label}</dt>
             </div>
           ))}

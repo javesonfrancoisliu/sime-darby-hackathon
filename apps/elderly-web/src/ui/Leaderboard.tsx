@@ -1,3 +1,5 @@
+import { pointsLabel } from "./points";
+
 interface LeaderboardRow {
   displayName: string;
   points: number;
@@ -43,7 +45,7 @@ export function Leaderboard({ others = [], myPoints, myName }: LeaderboardProps)
               {entry.displayName}
               {entry.isCurrentUser ? <span className="leaderboard-you"> (you)</span> : null}
             </span>
-            <span className="leaderboard-points">{entry.points} pts</span>
+            <span className="leaderboard-points">{pointsLabel(entry.points, "pt", "pts")}</span>
           </li>
         ))}
       </ol>

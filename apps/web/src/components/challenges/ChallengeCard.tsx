@@ -5,7 +5,7 @@ import { useState } from "react";
 import type { ChallengeWithProgress } from "@sdh/contracts";
 
 import { CHALLENGE_CATEGORY_LABEL } from "../../types/gamification";
-import { formatCount, formatDate } from "../../lib/format";
+import { formatCount, formatDate, formatPts } from "../../lib/format";
 import { ICON_BY_KEY } from "../../lib/icons";
 import { AppButton, Drawer, Pill, ProgressBar, StatusBadge } from "../ui";
 
@@ -47,7 +47,6 @@ export function ChallengeCard({
   return (
     <li className="community-event" aria-label={`Challenge: ${challenge.title}`}>
       <Drawer
-        label={challenge.title}
         open={open}
         onToggle={() => setOpen((current) => !current)}
         header={
@@ -71,7 +70,7 @@ export function ChallengeCard({
               ) : (
                 <span className="match-score" title="Points for completing this challenge">
                   <Sparkles size={14} aria-hidden="true" />
-                  {challenge.points} pts
+                  {formatPts(challenge.points)}
                 </span>
               )}
               {challenge.requiresVerification && (
@@ -147,7 +146,7 @@ export function ChallengeCard({
 
           {!team && status === "completed" && (
             <StatusBadge
-              label={`Completed · +${challenge.points} pts`}
+              label={`Completed · +${formatPts(challenge.points)}`}
               variant="success"
               icon={CheckCircle2}
             />

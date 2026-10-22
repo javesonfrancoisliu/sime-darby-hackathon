@@ -66,3 +66,17 @@ describe("tab bar", () => {
     ).toContain("outline: 3px solid transparent");
   });
 });
+
+describe("bottom bar fit", () => {
+  it("holds the label size to the screen width and gives Help request a wider column", () => {
+    expect(rule(".app-tab-bar__label")).toMatch(
+      /font-size:\s*max\(14px,\s*min\(0\.875rem,\s*4\.6vw\)\)/,
+    );
+    expect(rule(".app-tab-bar")).toContain("minmax(max-content, 1.25fr)");
+  });
+
+  it("lets the hero name wrap so the buttons stay on screen at large text", () => {
+    expect(rule(".app-hero__text")).toMatch(/min-width:\s*0/);
+    expect(rule(".app-hero__actions")).toContain("flex-shrink: 0");
+  });
+});

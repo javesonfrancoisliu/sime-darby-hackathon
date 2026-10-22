@@ -154,7 +154,7 @@ describe("community page", () => {
 
     await selectCategory("Updates");
     const card = await screen.findByLabelText("Township update: Water cut tonight");
-    const toggle = within(card).getByRole("button", { name: "Water cut tonight. Show details" });
+    const toggle = within(card).getByRole("button", { name: /^Water cut tonight/ });
     expect(toggle).toHaveAttribute("aria-expanded", "false");
     await user.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "true");
@@ -282,7 +282,7 @@ describe("community page", () => {
 
     await user.click(
       within(await screen.findByLabelText("Event: Live tea morning")).getByRole("button", {
-        name: /details/i,
+        name: /^Live tea morning/,
       }),
     );
     await user.click(

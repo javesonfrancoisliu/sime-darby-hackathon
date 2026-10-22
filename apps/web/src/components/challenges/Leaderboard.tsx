@@ -3,6 +3,7 @@ import { useId } from "react";
 
 import type { LeaderboardEntry } from "@sdh/contracts";
 
+import { formatPts } from "../../lib/format";
 import { EmptyState, InfoCard, LoadingState } from "../ui";
 
 export type LeaderboardProps = {
@@ -27,7 +28,7 @@ function Row({ entry }: { entry: LeaderboardEntry }) {
         {entry.displayName}
         {entry.isCurrentUser && <span className="leaderboard-you"> (you)</span>}
       </span>
-      <span className="leaderboard-points">{entry.lifetimePoints} pts</span>
+      <span className="leaderboard-points">{formatPts(entry.lifetimePoints)}</span>
     </li>
   );
 }

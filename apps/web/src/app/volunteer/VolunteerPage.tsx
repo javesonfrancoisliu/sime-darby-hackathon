@@ -76,14 +76,16 @@ export function VolunteerPage() {
     const sorted = opportunities.filter((item) => item.kind === "request");
     switch (sort) {
       case "best_match":
-        sorted.sort((a, b) =>
-          a.matchRank !== undefined && b.matchRank !== undefined
-            ? a.matchRank - b.matchRank
-            : b.matchScore - a.matchScore || dist(a) - dist(b),
+        // The API order follows its own fit scale, not the shown score, so sort by the shown score.
+        sorted.sort(
+          (a, b) =>
+            b.matchScore - a.matchScore ||
+            (a.matchRank ?? Number.MAX_SAFE_INTEGER) - (b.matchRank ?? Number.MAX_SAFE_INTEGER) ||
+            dist(a) - dist(b),
         );
         break;
       case "nearest":
-        sorted.sort((a, b) => dist(a) - dist(b));
+        sorted.sort((a, b) => dist(a) - dist(b) || b.matchScore - a.matchScore);
         break;
       case "soonest":
         sorted.sort(

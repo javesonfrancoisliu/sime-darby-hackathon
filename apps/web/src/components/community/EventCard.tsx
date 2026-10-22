@@ -3,7 +3,7 @@ import { useState } from "react";
 
 import type { EventItem } from "../../types/community";
 import { formatWhen } from "../../lib/format";
-import { AppButton, Drawer } from "../ui";
+import { AppButton, Drawer, Pill } from "../ui";
 import { CardMeta } from "./CardMeta";
 
 const EVENT_TYPE_LABEL = {
@@ -23,7 +23,6 @@ export function EventCard({ event, onRegister }: EventCardProps) {
   return (
     <li className="community-event" aria-label={`Event: ${event.title}`}>
       <Drawer
-        label={event.title}
         open={open}
         onToggle={() => setOpen((current) => !current)}
         header={
@@ -63,13 +62,14 @@ export function EventCard({ event, onRegister }: EventCardProps) {
             </>
           )}
         </span>
-        <AppButton
-          variant="primary"
-          disabled={event.joined || slots === 0}
-          onClick={() => onRegister(event)}
-        >
-          {event.joined ? "Registered" : "Register"}
-        </AppButton>
+        {slots === 0 && !event.joined ? (
+          // A status, not a faded Register button: it cannot be pressed, so it is not a control.
+          <Pill>Full</Pill>
+        ) : (
+          <AppButton variant="primary" disabled={event.joined} onClick={() => onRegister(event)}>
+            {event.joined ? "Registered" : "Register"}
+          </AppButton>
+        )}
       </div>
     </li>
   );

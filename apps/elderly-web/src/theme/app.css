@@ -155,9 +155,17 @@
 
 .app-hero__greeting-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-3);
+}
+
+/* The name takes the whole row when the buttons leave too little room, and breaks only between words (a single word longer than the row still breaks as a last resort). */
+.app-hero__text {
+  flex: 1 1 12rem;
+  min-width: 0;
+  overflow-wrap: break-word;
 }
 
 .app-hero__greeting {
@@ -312,7 +320,12 @@
   transform: translateX(-50%);
   width: 100%;
   max-width: 480px;
-  display: flex;
+  /* Five columns that start at their label width and share what is left, with the Help request
+     column a little wider. They stay equal on a roomy bar and give way to a long label on a narrow one. */
+  display: grid;
+  grid-template-columns:
+    minmax(max-content, 1fr) minmax(max-content, 1fr) minmax(max-content, 1.25fr)
+    minmax(max-content, 1fr) minmax(max-content, 1fr);
   --tab-bar-bg: var(--surface);
   --tab-bar-border-width: 1px;
   --tab-bar-border-color: var(--border);
@@ -324,7 +337,6 @@
 }
 
 .app-tab-bar__item {
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -434,11 +446,6 @@
   }
 }
 
-.app-tab-bar__label {
-  font-size: 1rem;
-  font-weight: 600;
-}
-
 /* ── Safety / Community page shell ──────────────────────────── */
 .safety-page {
   display: flex;
@@ -462,6 +469,12 @@
 .safety-page__subtitle {
   margin: 4px 0 0;
   font-size: 1rem;
+}
+
+/* The title and the Aa and read-aloud buttons share one row; when the title is wider than what the
+   buttons leave (320px at X-Large text) the buttons drop to their own row instead of the title running off. */
+.safety-page__header .row-between {
+  flex-wrap: wrap;
 }
 
 /* Keep the header title from pushing the right-side controls off-screen on narrow phones. */
@@ -504,6 +517,29 @@
 
 .safety-card--pinned {
   border-color: var(--warn-accent);
+}
+
+/* The drawer header and content already pad themselves, so the card must not pad again. */
+.safety-card--drawer {
+  padding: 0;
+}
+
+/* The status chip cannot shrink, so the header row wraps it under the title when the column would get too narrow. */
+.safety-card--drawer .safety-card__row {
+  flex-wrap: wrap;
+  row-gap: var(--space-2);
+}
+
+.safety-card--drawer .safety-card__row > .flex-fill {
+  flex: 1 1 6rem;
+}
+
+.safety-card--drawer .safety-card__location {
+  overflow-wrap: break-word;
+}
+
+.safety-card--drawer .row-center {
+  flex-wrap: wrap;
 }
 
 .safety-card--temperature {
@@ -949,6 +985,24 @@
   background: #116932;
 }
 
+/* No spots left: a status in the app's grey, not a disabled copy of the red Register button. */
+.community-full-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 6px 16px;
+  border-radius: var(--radius-pill);
+  background: #e5e7eb;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  font-weight: 700;
+}
+.community-full-badge--block {
+  width: 100%;
+  margin-top: var(--space-3);
+}
+
 .community-register-btn--full {
   width: 100%;
   margin-top: var(--space-3);
@@ -1223,6 +1277,7 @@ button:active,
 
 /* ── 3. Hero Quick Action Buttons ────────────────────────────── */
 .app-hero__actions {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -1307,7 +1362,18 @@ button:active,
   min-height: 62px;
 }
 .text-size-xlarge .app-hero__name {
-  font-size: 2.75rem;
+  font-size: clamp(1.75rem, 9vw, 2.75rem);
+}
+/* When the buttons wrap onto their own row they sit above the greeting, keeping Call 999 on the first screen. */
+.text-size-xlarge .app-hero__actions {
+  order: -1;
+  margin-left: auto;
+}
+@media (max-width: 360px) {
+  .app-hero__actions {
+    order: -1;
+    margin-left: auto;
+  }
 }
 
 /* ── 5. High Contrast Mode (Low Vision / Cataracts) ──────────── */
@@ -1594,19 +1660,19 @@ button:active,
 /* ── Switch ────────────────────────────────────────────── */
 .apple-switch {
   width: 52px;
-  height: 44px;
+  height: 48px;
   background: transparent;
   border: none;
-  padding: 8px 2px;
+  padding: 10px 2px;
   cursor: pointer;
   position: relative;
   flex-shrink: 0;
 }
-/* The button is 44 px tall for touch; the visible 52x32 track is drawn here. */
+/* The button is 48 px tall for touch; the visible 52x32 track is drawn here. */
 .apple-switch::before {
   content: "";
   position: absolute;
-  inset: 6px 0;
+  inset: 8px 0;
   background: var(--control-border);
   border-radius: var(--radius-pill);
   transition: background-color 220ms ease;
@@ -2107,6 +2173,11 @@ button:active,
   align-items: center;
   gap: var(--space-3);
   flex: 1;
+  min-width: 0;
+}
+.apple-inset-btn-row__left > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .apple-inset-btn-row__icon {
@@ -2171,7 +2242,8 @@ button:active,
 .seg-tabs {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(var(--seg-count, 4), 1fr);
+  /* minmax(0, 1fr) keeps every column equal, so the sliding pill always sits under the active label. */
+  grid-template-columns: repeat(var(--seg-count, 4), minmax(0, 1fr));
   padding: 4px;
   margin: 0 var(--space-4) var(--space-4);
   background: rgba(118, 118, 128, 0.12);
@@ -2224,7 +2296,7 @@ button:active,
   -webkit-tap-highlight-color: transparent;
 }
 .seg-tabs__tab--active {
-  color: var(--brand-primary);
+  color: var(--brand-primary-hover);
 }
 /* Instant press feedback. */
 .seg-tabs__tab:active {
@@ -2249,6 +2321,36 @@ button:active,
     font-size: 1rem;
     padding: 6px 2px;
   }
+}
+
+/* Four tabs do not fit one row on a narrow phone or at X-Large text, so they sit in a 2x2 grid. The sliding pill only suits one row, so each active tab carries its own white pill instead. */
+@media (max-width: 360px) {
+  .seg-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2px;
+  }
+  .seg-tabs__indicator {
+    display: none;
+  }
+  .seg-tabs__tab--active {
+    background: var(--surface);
+    box-shadow:
+      0 1px 2px rgba(17, 24, 39, 0.08),
+      0 3px 8px rgba(17, 24, 39, 0.1);
+  }
+}
+.text-size-xlarge .seg-tabs {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px;
+}
+.text-size-xlarge .seg-tabs__indicator {
+  display: none;
+}
+.text-size-xlarge .seg-tabs__tab--active {
+  background: var(--surface);
+  box-shadow:
+    0 1px 2px rgba(17, 24, 39, 0.08),
+    0 3px 8px rgba(17, 24, 39, 0.1);
 }
 
 /* Reduced motion: no sliding/scale, just an instant state change. */
@@ -2445,12 +2547,14 @@ button:active,
 /* Community Play - gamification (challenges, streak, badges, rewards). Brand tokens, rem text so it scales with Dynamic Type, reduced-motion aware. */
 .play-summary {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-3);
   margin-bottom: var(--space-4);
 }
 .play-summary__points,
 .play-summary__streak {
-  flex: 1;
+  flex: 1 1 10rem;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: var(--space-3);
@@ -2469,9 +2573,16 @@ button:active,
   display: inline-flex;
   color: var(--brand-primary);
 }
+.play-summary__points > div,
+.play-summary__streak > div {
+  min-width: 0;
+}
 .play-summary__points-value,
 .play-summary__streak-value {
   display: block;
+  /* A long total wraps at the break points after its commas; it splits inside a group of digits only
+     if one group alone is wider than the card. */
+  overflow-wrap: break-word;
   font-size: 1.75rem;
   font-weight: 800;
   line-height: 1.05;
@@ -2713,6 +2824,16 @@ button:active,
   font-weight: 700;
   color: var(--brand-primary);
 }
+/* Redeemed is a status, not a control, so it looks and acts like one. */
+.play-reward__done {
+  cursor: default;
+}
+.play-reward__done:hover {
+  background: var(--success);
+}
+.play-reward__done:active {
+  transform: none;
+}
 .play-reward .community-register-btn:disabled {
   background: #e5e7eb;
   color: var(--text-secondary);
@@ -2740,6 +2861,13 @@ button:active,
   min-width: 0;
 }
 
+/* The chip and the buttons wrap onto their own row, and the chip may shrink, so a long total stays on screen. */
+.play-header-row > .row-center {
+  flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
+}
+
 /* Always-visible points chip in the Community Play header. */
 .play-header-points {
   display: inline-flex;
@@ -2751,7 +2879,9 @@ button:active,
   color: #fff;
   font-size: 1rem;
   font-weight: 800;
-  white-space: nowrap;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 /* Live-condition carousel cards - severity-driven accent. One shared 5-step ramp (light green → green → yellow → orange → red). The card exposes --sev-accent / --sev-chip-bg / --sev-chip-text (set by the card's data-severity attribute); the chip, the progress bar and a left accent stripe all read from them so the severity is obvious at a glance. apple-design (clear status), (colour is reinforced by the text label on the chip, never colour alone). */
@@ -2870,11 +3000,13 @@ button:active,
   text-align: center;
   line-height: 1.15;
   letter-spacing: -0.01em;
-  /* A tab name never splits mid-word; the size ignores the text-size setting and shrinks with the
-     bar (480px wide at most) so the longest name fits at any text size. */
+  font-weight: 600;
+  /* A tab name never splits mid-word. The size follows the text-size setting (0.875rem is 14, 16.6 and
+     20px at Normal, Large and X-Large) but never drops under 14px and is held to 4.6vw so all five
+     names fit on one line on a 320px screen. */
   white-space: nowrap;
   overflow-wrap: normal;
-  font-size: min(16px, 3.4vw);
+  font-size: max(14px, min(0.875rem, 4.6vw));
 }
 
 /* The raised label stays on one line so the bar height does not change by device width. */
@@ -2978,15 +3110,6 @@ main:focus {
 }
 .safety-bar__fill--tone {
   background: var(--tone-bar);
-}
-.safety-bar__fill--ok {
-  background: var(--success);
-}
-.safety-bar__fill--mid {
-  background: var(--tone-bar-mid);
-}
-.safety-bar__fill--high {
-  background: var(--tone-alert-text);
 }
 .safety-card--alert {
   border-color: var(--warn-accent);
@@ -3451,6 +3574,10 @@ main:focus {
 .call-confirm-panel {
   text-align: center;
 }
+.call-confirm:focus {
+  outline: none;
+}
+
 .call-confirm {
   display: flex;
   flex-direction: column;
@@ -3647,6 +3774,32 @@ main:focus {
   color: var(--brand-primary);
   font-weight: 700;
   cursor: pointer;
+}
+/* The call button needs the whole row, not the usual 60% value column. */
+.apple-inset-value--wide {
+  max-width: 100%;
+  text-align: left;
+}
+.call-contact-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 48px;
+  max-width: 100%;
+  margin-top: var(--space-2);
+  white-space: nowrap;
+  padding: 8px 16px;
+  border: 2px solid var(--brand-primary);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--brand-primary-hover);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.call-contact-btn:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 2px;
 }
 .link-button:focus-visible {
   outline: 3px solid var(--brand-primary);
