@@ -258,6 +258,19 @@ describe("Edit your details, saving and leaving", () => {
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
   });
 
+  it("asks before Done throws away typed text, then leaves on a second Done", async () => {
+    const { calls, sheet } = await openEdit();
+    await userEvent.type(within(sheet).getByLabelText("Your name"), "x");
+    const typed = (within(sheet).getByLabelText("Your name") as HTMLInputElement).value;
+    await userEvent.click(within(sheet).getByRole("button", { name: "Done" }));
+    expect(await within(sheet).findByText(/changes are not saved yet/i)).toBeInTheDocument();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect((within(sheet).getByLabelText("Your name") as HTMLInputElement).value).toBe(typed);
+    await userEvent.click(within(sheet).getByRole("button", { name: "Done" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(calls.some((c) => c.method === "PATCH")).toBe(false);
+  });
+
   it("closes at once on Escape when nothing was typed", async () => {
     await openEdit();
     await userEvent.keyboard("{Escape}");

@@ -76,7 +76,7 @@ function EditForm({
   const trimmed = name.trim();
   const dirty = trimmed !== resident.name || area !== resident.area;
 
-  // Escape and a scrim tap ask first when there is typed text; a second try leaves.
+  // Done, Escape and a scrim tap ask first when there is typed text; a second try leaves.
   useEffect(() => {
     setGuard(() => {
       if (!dirty || warnedRef.current) return true;
@@ -151,7 +151,7 @@ function EditForm({
         ))}
       </div>
       {warned ? (
-        <Banner message="Your changes are not saved yet. Tap outside again to leave without saving, or tap Save." />
+        <Banner message="Your changes are not saved yet. Tap Save to keep them, or close again to leave without saving." />
       ) : null}
       {formError ? <Banner message={formError} /> : null}
       {update.status === "error" ? (
