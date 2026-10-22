@@ -86,7 +86,8 @@ export function MyDetailsSheet({ open, onClose }: MyDetailsSheetProps) {
                     <button
                       type="button"
                       className="call-contact-btn"
-                      aria-label={`Call ${medical.data.nextOfKinName} (${medical.data.nextOfKinRelation})`}
+                      // The name starts with the visible number so voice control can say what it sees.
+                      aria-label={`${medical.data.nextOfKinPhone}, call ${medical.data.nextOfKinName} (${medical.data.nextOfKinRelation})`}
                       onClick={() =>
                         requestCall({
                           tel: medical.data!.nextOfKinPhone.replace(/[^\d+]/g, ""),
