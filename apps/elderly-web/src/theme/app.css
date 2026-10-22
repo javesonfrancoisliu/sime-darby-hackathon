@@ -320,12 +320,9 @@
   transform: translateX(-50%);
   width: 100%;
   max-width: 480px;
-  /* Five columns that start at their label width and share what is left, with the Help request
-     column a little wider. They stay equal on a roomy bar and give way to a long label on a narrow one. */
+  /* Five equal columns so the centre button always sits on the middle of the screen; a long label wraps inside its column. */
   display: grid;
-  grid-template-columns:
-    minmax(max-content, 1fr) minmax(max-content, 1fr) minmax(max-content, 1.25fr)
-    minmax(max-content, 1fr) minmax(max-content, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   --tab-bar-bg: var(--surface);
   --tab-bar-border-width: 1px;
   --tab-bar-border-color: var(--border);
@@ -342,7 +339,7 @@
   align-items: center;
   justify-content: center;
   gap: 2px;
-  padding: 10px 2px 8px;
+  padding: 10px 0 8px;
   background: none;
   border: none;
   cursor: pointer;
@@ -548,6 +545,7 @@
 
 .safety-card__row {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   gap: var(--space-3);
   margin-bottom: var(--space-3);
@@ -803,6 +801,7 @@
 
 .safety-temp__reading {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-3);
   margin-bottom: 4px;
@@ -2991,17 +2990,11 @@ button:active,
   line-height: 1.15;
   letter-spacing: -0.01em;
   font-weight: 600;
-  /* A tab name never splits mid-word. The size follows the text-size setting (0.875rem is 14, 16.6 and
-     20px at Normal, Large and X-Large) but never drops under 14px and is held to 4.6vw so all five
-     names fit on one line on a 320px screen. */
-  white-space: nowrap;
-  overflow-wrap: normal;
-  font-size: max(14px, min(0.875rem, 4.6vw));
-}
-
-/* The raised label stays on one line so the bar height does not change by device width. */
-.app-tab-bar__item--raised .app-tab-bar__label {
-  white-space: nowrap;
+  /* The size follows the text-size setting (0.875rem is 14, 16.6 and 20px at Normal, Large and X-Large) but is held to 3.7vw
+     (never under 12px) so each name fits its equal column; "Help request" wraps to two lines instead of touching its neighbour. */
+  white-space: normal;
+  overflow-wrap: break-word;
+  font-size: clamp(12px, 3.7vw, 0.875rem);
 }
 
 /* People who ask for less transparency get solid surfaces. */
@@ -3532,9 +3525,7 @@ main:focus {
   flex: 1;
   min-width: 0;
   font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: break-word;
   color: var(--text-primary);
 }
 .leaderboard-you {

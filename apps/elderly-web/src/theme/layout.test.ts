@@ -119,19 +119,16 @@ describe("Elder touch targets", () => {
 });
 
 describe("bottom tab bar", () => {
-  it("sizes the labels from the text-size setting with a 14px floor", () => {
-    // The label was min(15px, 3.2vw): 12.48px at 390 and 10.24px at 320, whatever the text size.
+  it("sizes the labels from the text-size setting, held to the screen width", () => {
     const size = rule(".app-tab-bar__label");
-    expect(size).toContain("max(14px,");
-    expect(size).toContain("0.875rem");
-    expect(size).not.toContain("3.2vw");
-    expect(size).toContain("white-space: nowrap");
+    expect(size).toContain("clamp(12px, 3.7vw, 0.875rem)");
+    expect(size).toContain("white-space: normal");
   });
 
-  it("starts each column at its label width so five names fit on one line", () => {
+  it("uses five equal columns so the centre button stays on the screen centre", () => {
     const bar = rule(".app-tab-bar");
     expect(bar).toContain("display: grid");
-    expect(bar).toContain("minmax(max-content, 1fr)");
+    expect(bar).toContain("repeat(5, minmax(0, 1fr))");
   });
 });
 
