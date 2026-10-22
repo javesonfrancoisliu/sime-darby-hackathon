@@ -2,6 +2,7 @@ import { CloudOff, Gift } from "lucide-react";
 
 import type { RewardWithStatus } from "@sdh/contracts";
 
+import { formatCount, formatPts } from "../../lib/format";
 import { ICON_BY_KEY } from "../../lib/icons";
 import { AppButton, EmptyState, InfoCard, LoadingState } from "../ui";
 
@@ -20,15 +21,13 @@ export type RewardsPanelProps = {
 function lockHint(reward: RewardWithStatus, balance: number): string {
   if (reward.pointsCost > balance) {
     const short = reward.pointsCost - balance;
-    return `${short} more ${short === 1 ? "point" : "points"} needed`;
+    return `${formatCount(short)} more ${short === 1 ? "point" : "points"} needed`;
   }
   if (reward.minVolunteerTasks) {
     return `Complete ${reward.minVolunteerTasks} volunteer tasks to unlock`;
   }
   return "Not available yet";
 }
-
-const pointsUnit = (n: number) => (n === 1 ? "pt" : "pts");
 
 // Cheapest first, so the next reward within reach is at the top.
 const byCost = (a: RewardWithStatus, b: RewardWithStatus) => a.pointsCost - b.pointsCost;
@@ -74,16 +73,14 @@ export function RewardsPanel({
                     )}
                   </div>
                   <div className="reward-card__action">
-                    <span className="reward-card__points">
-                      {reward.pointsCost} {pointsUnit(reward.pointsCost)}
-                    </span>
+                    <span className="reward-card__points">{formatPts(reward.pointsCost)}</span>
                     <AppButton
                       variant={reward.status === "available" ? "primary" : "secondary"}
                       disabled={reward.status !== "available"}
                       loading={redeemingId === reward.id}
                       aria-label={
                         reward.status === "available"
-                          ? `Redeem ${reward.title} for ${reward.pointsCost} ${pointsUnit(reward.pointsCost)}`
+                          ? `Redeem ${reward.title} for ${formatPts(reward.pointsCost)}`
                           : `${reward.title}: ${reward.status}`
                       }
                       onClick={() => onRedeem(reward)}

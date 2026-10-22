@@ -925,6 +925,9 @@
   border: 1px solid var(--brand-amber);
 }
 .reward-stat-value {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
   font-size: 32px;
   font-weight: 700;
   line-height: 1.1;
@@ -997,6 +1000,7 @@
   text-align: center;
   gap: 2px;
   padding: var(--space-2);
+  min-width: 0;
 }
 .impact-tile .reward-icon {
   width: 40px;
@@ -1010,10 +1014,10 @@
 }
 .impact-tile .reward-stat-value {
   margin: 0;
-  font-size: 24px;
+  font-size: clamp(16px, 5.5vw, 24px);
 }
 .easy-view .impact-tile .reward-stat-value {
-  font-size: 28px;
+  font-size: clamp(18px, 6vw, 28px);
 }
 .easy-view .impact-tile-label {
   font-size: 14px;

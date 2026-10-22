@@ -6,7 +6,7 @@ import { errorMessage } from "@sdh/api-client";
 import { voucherExpiry, type RewardWithStatus } from "@sdh/contracts";
 
 import { consumeRewardVoucher } from "../../data/useGamification";
-import { formatDate } from "../../lib/format";
+import { formatDate, formatPoints } from "../../lib/format";
 import { useConfirm } from "../../lib/useConfirm";
 import { useNow } from "../../lib/useNow";
 import {
@@ -72,11 +72,7 @@ export function MyRewardsSheet({
         <div className="sheet-stack">
           {points !== undefined && (
             <p className="ui-flush">
-              You have{" "}
-              <strong>
-                {points} {points === 1 ? "point" : "points"}
-              </strong>
-              .
+              You have <strong>{formatPoints(points)}</strong>.
             </p>
           )}
 

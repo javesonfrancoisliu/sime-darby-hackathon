@@ -75,6 +75,25 @@ describe("profile hub header", () => {
 });
 
 describe("profile hub rows", () => {
+  it("groups a large points balance and keeps one point singular", async () => {
+    installFakeApi(
+      signedIn({ ...REWARD_ROUTES, "GET /api/me/points": { body: makePoints(100000000133) } }),
+    );
+    signInAs(VOLUNTEER.id);
+    renderApp("/profile");
+    const menu = await screen.findByLabelText("Profile menu");
+    await waitFor(() =>
+      expect(within(menu).getByRole("button", { name: /^My rewards/ })).toHaveTextContent(
+        "100,000,000,133 points · 1 voucher to use",
+      ),
+    );
+    await userEvent.click(within(menu).getByRole("button", { name: /^My rewards/ }));
+    const dialog = await screen.findByRole("dialog", { name: "My rewards" });
+    expect(within(dialog).getByText(/You have/)).toHaveTextContent(
+      "You have 100,000,000,133 points.",
+    );
+  });
+
   it("lists the five rows in order with live one-line summaries and no old drawers", async () => {
     const volunteer = User.parse({
       ...VOLUNTEER,

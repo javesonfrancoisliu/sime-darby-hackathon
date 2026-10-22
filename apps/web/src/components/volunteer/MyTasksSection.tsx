@@ -5,7 +5,7 @@ import { errorMessage } from "@sdh/api-client";
 
 import type { AcceptedTask } from "../../data/AcceptedTasksContext";
 import { TASK_CATEGORY_LABEL } from "../../types/volunteer";
-import { formatDate } from "../../lib/format";
+import { formatDate, formatPoints } from "../../lib/format";
 import { useNow } from "../../lib/useNow";
 import { AppButton, InfoCard, Pill, StatusBadge } from "../ui";
 
@@ -163,7 +163,7 @@ export function MyTasksSection({
                     <StatusBadge
                       label={
                         points !== undefined
-                          ? `Confirmed by the resident, +${points} points`
+                          ? `Confirmed by the resident, +${formatPoints(points)}`
                           : "Confirmed by the resident"
                       }
                       variant="success"
