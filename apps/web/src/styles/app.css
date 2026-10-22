@@ -877,6 +877,10 @@
   gap: var(--space-3);
   padding: var(--space-2) 0 var(--space-1);
 }
+.ui-confirm:focus {
+  outline: none;
+}
+
 .ui-confirm-icon {
   display: inline-grid;
   place-items: center;

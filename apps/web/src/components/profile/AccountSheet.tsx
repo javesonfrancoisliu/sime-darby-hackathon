@@ -23,6 +23,7 @@ export function AccountSheet({
   const [failed, setFailed] = useState(false);
   const tokenMode = tokenModeEnabled();
   const listRef = useRef<HTMLDivElement>(null);
+  const confirmRef = useRef<HTMLDivElement>(null);
 
   // Leaving the confirm step unmounts the focused button, so put focus back on Sign out.
   const wasConfirm = useRef(false);
@@ -33,6 +34,16 @@ export function AccountSheet({
     }
     wasConfirm.current = isConfirm;
   }, [step]);
+
+  // Busy disables the focused button, so hold focus on the confirm view; a failed sign out hands it
+  // to the safe button.
+  const wasBusy = useRef(false);
+  useEffect(() => {
+    if (busy) confirmRef.current?.focus();
+    else if (wasBusy.current)
+      confirmRef.current?.querySelector<HTMLElement>("[data-not-yet]")?.focus();
+    wasBusy.current = busy;
+  }, [busy]);
 
   // Resolves true once the page is on its way out, false when the user is still signed in.
   async function signOutOfAccount(): Promise<boolean> {
@@ -79,6 +90,12 @@ export function AccountSheet({
   }
 
   const confirming = step === "confirm";
+  // The one spoken copy of the question; the visible paragraph is hidden from screen readers.
+  const status = busy
+    ? "Signing out…"
+    : confirming && !failed
+      ? "Are you sure you want to sign out?"
+      : "";
 
   return (
     <Sheet
@@ -90,14 +107,16 @@ export function AccountSheet({
       doneLabel={confirming ? "Back" : "Done"}
     >
       <p role="status" className="ui-visually-hidden">
-        {confirming ? "Are you sure you want to sign out?" : ""}
+        {status}
       </p>
       {confirming ? (
-        <div className="ui-confirm">
+        <div className="ui-confirm" ref={confirmRef} tabIndex={-1}>
           <span className="ui-confirm-icon ui-confirm-icon--ask" aria-hidden="true">
             <HelpCircle size={56} />
           </span>
-          <p className="ui-confirm-message">Are you sure you want to sign out?</p>
+          <p className="ui-confirm-message" aria-hidden="true">
+            Are you sure you want to sign out?
+          </p>
           {failed ? (
             <p className="ui-confirm-message" role="alert">
               Could not sign you out. Please try again.
@@ -114,6 +133,7 @@ export function AccountSheet({
                 setFailed(false);
               }}
               disabled={busy}
+              data-not-yet=""
               autoFocus
             >
               Not yet

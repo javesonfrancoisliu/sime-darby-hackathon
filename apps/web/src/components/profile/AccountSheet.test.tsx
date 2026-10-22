@@ -144,6 +144,40 @@ describe("Account sheet sign out step", () => {
     expect(region).toHaveTextContent("Are you sure you want to sign out?");
   });
 
+  it("moves focus onto the confirm view when sign out starts, not a disabled button", async () => {
+    signOut.mockImplementation(() => new Promise<void>(() => {}));
+    const dialog = await openConfirm();
+    await userEvent.click(within(dialog).getByRole("button", { name: "Yes, sign out" }));
+    expect(dialog.querySelector(".ui-confirm")).toHaveFocus();
+    expect(document.activeElement).not.toBe(document.body);
+  });
+
+  it("puts focus on Not yet after a failed sign out", async () => {
+    signOut.mockRejectedValueOnce(new Error("offline"));
+    await openConfirm();
+    await userEvent.click(screen.getByRole("button", { name: "Yes, sign out" }));
+    await screen.findByRole("alert");
+    expect(screen.getByRole("button", { name: "Not yet" })).toHaveFocus();
+  });
+
+  it("announces Signing out while busy and the question only once otherwise", async () => {
+    let finish: () => void = () => {};
+    signOut.mockImplementation(() => new Promise<void>((resolve) => (finish = resolve)));
+    const dialog = await openConfirm();
+    const question = "Are you sure you want to sign out?";
+    const spoken = () =>
+      within(dialog)
+        .getAllByText(question)
+        .filter((el) => !el.closest('[aria-hidden="true"]'));
+    expect(spoken()).toHaveLength(1);
+    expect(screen.getByRole("status")).toHaveTextContent(question);
+    await userEvent.click(within(dialog).getByRole("button", { name: "Yes, sign out" }));
+    expect(screen.getByRole("status")).toHaveTextContent("Signing out");
+    expect(within(dialog).getByText(question)).toBeInTheDocument();
+    finish();
+    await waitFor(() => expect(assign).toHaveBeenCalledWith("/"));
+  });
+
   it("reloads when the navigation to the start page fails", async () => {
     assign.mockImplementationOnce(() => {
       throw new Error("blocked");
