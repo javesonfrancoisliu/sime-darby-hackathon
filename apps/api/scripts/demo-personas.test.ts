@@ -50,8 +50,9 @@ const cognitoArgs = [
   "ap-southeast-5",
   "--i-know-this-is-dev",
 ];
+const ALLOW = { DEMO_POOL_ALLOW_PATTERN: `^${POOL}$` };
 const okConfig = (argv: string[], env: Record<string, string> = {}) => {
-  const res = resolveConfig(argv, env);
+  const res = resolveConfig(argv, { ...ALLOW, ...env });
   if (!res.ok) throw new Error(res.error);
   return res.config;
 };
@@ -92,38 +93,46 @@ describe("arguments and guards", () => {
     const args = cognitoArgs.map((a) =>
       a === "https://dev.example.com" ? "http://dev.example.com" : a,
     );
-    expect(resolveConfig(args, {}).ok).toBe(false);
-    expect(resolveConfig(cognitoArgs, {}).ok).toBe(true);
+    expect(resolveConfig(args, ALLOW).ok).toBe(false);
+    expect(resolveConfig(cognitoArgs, ALLOW).ok).toBe(true);
   });
   it("needs the dev acknowledgement and every cognito id", () => {
     expect(
       resolveConfig(
         cognitoArgs.filter((a) => a !== "--i-know-this-is-dev"),
-        {},
+        ALLOW,
       ).ok,
     ).toBe(false);
     expect(
       resolveConfig(
         cognitoArgs.filter((a) => a !== "--client-id" && a !== "client123"),
-        {},
+        ALLOW,
       ).ok,
     ).toBe(false);
   });
   it("refuses a pool id outside the allow pattern or region", () => {
     const swap = (id: string) => cognitoArgs.map((a) => (a === POOL ? id : a));
-    expect(resolveConfig(swap("us-east-1_AbCdEf123"), {}).ok).toBe(false);
-    expect(resolveConfig(swap("ap-southeast-5_Ab Cd"), {}).ok).toBe(false);
+    const anyDevPool = { DEMO_POOL_ALLOW_PATTERN: "^ap-southeast-5_[A-Za-z0-9 ]+$" };
+    expect(resolveConfig(swap("us-east-1_AbCdEf123"), anyDevPool).ok).toBe(false);
+    expect(resolveConfig(swap("ap-southeast-5_Other"), ALLOW).ok).toBe(false);
     expect(
       resolveConfig(cognitoArgs, { DEMO_POOL_ALLOW_PATTERN: "^ap-southeast-5_Other$" }).ok,
     ).toBe(false);
     expect(resolveConfig(cognitoArgs, { DEMO_POOL_ALLOW_PATTERN: "(" }).ok).toBe(false);
     expect(resolveConfig(cognitoArgs, { DEMO_POOL_ALLOW_PATTERN: `^${POOL}$` }).ok).toBe(true);
   });
+  it("has no default pool pattern, so an unset DEMO_POOL_ALLOW_PATTERN refuses any pool", () => {
+    for (const env of [{}, { DEMO_POOL_ALLOW_PATTERN: "  " }]) {
+      const res = resolveConfig(cognitoArgs, env);
+      expect(res.ok).toBe(false);
+      expect(!res.ok && res.error).toContain("DEMO_POOL_ALLOW_PATTERN");
+    }
+  });
   it("needs AWS_PROFILE only to apply", () => {
-    expect(resolveConfig([...cognitoArgs, "--yes"], {}).ok).toBe(false);
+    expect(resolveConfig([...cognitoArgs, "--yes"], ALLOW).ok).toBe(false);
     const c = okConfig([...cognitoArgs, "--yes"], { AWS_PROFILE: "javesonpersonal" });
     expect(c.cognito?.profile).toBe("javesonpersonal");
-    expect(resolveConfig(cognitoArgs, {}).ok).toBe(true);
+    expect(resolveConfig(cognitoArgs, ALLOW).ok).toBe(true);
   });
 });
 

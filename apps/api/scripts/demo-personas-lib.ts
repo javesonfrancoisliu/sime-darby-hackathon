@@ -21,7 +21,6 @@ import { ecoQuiz } from "./content/quizzes";
 import { authHeaders, errorCodeOf, isLoopbackUrl } from "./loader-lib";
 
 export const REQUEST_TITLE_PREFIX = "Demo: ";
-export const DEFAULT_POOL_ALLOW_PATTERN = "^ap-southeast-5_[A-Za-z0-9]+$";
 export const CREDENTIAL_HEADING = "## Demo personas (dev)";
 export const EMAIL_DOMAIN = "township-demo.example";
 const REQUEST_TIMEOUT_MS = 15_000;
@@ -56,7 +55,7 @@ function flagValue(argv: string[], name: string): string | undefined {
 
 export const USAGE =
   "Usage: demo:personas -- --local --base-url http://localhost:3001 [--pass seed|finish] [--yes]\n" +
-  "       AWS_PROFILE=<profile> demo:personas -- --cognito --base-url https://<host> --user-pool-id <id> --client-id <id> --region <region> --i-know-this-is-dev [--pass seed|finish] [--yes]";
+  "       AWS_PROFILE=<profile> DEMO_POOL_ALLOW_PATTERN=^<dev pool id>$ demo:personas -- --cognito --base-url https://<host> --user-pool-id <id> --client-id <id> --region <region> --i-know-this-is-dev [--pass seed|finish] [--yes]";
 
 export function resolveConfig(
   argv: string[],
@@ -97,16 +96,24 @@ export function resolveConfig(
   if (!argv.includes("--i-know-this-is-dev")) {
     return { ok: false, error: "--cognito needs --i-know-this-is-dev (dev pool only)" };
   }
+  // No default: dev and prod pools share a region, so only the caller can name the dev pool.
+  const pattern = env.DEMO_POOL_ALLOW_PATTERN?.trim();
+  if (!pattern) {
+    return {
+      ok: false,
+      error: "Set DEMO_POOL_ALLOW_PATTERN to the exact dev user pool id, for example ^<pool id>$",
+    };
+  }
   let allow: RegExp;
   try {
-    allow = new RegExp(env.DEMO_POOL_ALLOW_PATTERN?.trim() || DEFAULT_POOL_ALLOW_PATTERN);
+    allow = new RegExp(pattern);
   } catch {
     return { ok: false, error: "DEMO_POOL_ALLOW_PATTERN is not a valid regular expression" };
   }
   if (!allow.test(userPoolId)) {
     return {
       ok: false,
-      error: "Refusing to run: the user pool id does not match the dev allow pattern",
+      error: "Refusing to run: the user pool id does not match DEMO_POOL_ALLOW_PATTERN",
     };
   }
   if (!userPoolId.startsWith(`${region}_`)) {
