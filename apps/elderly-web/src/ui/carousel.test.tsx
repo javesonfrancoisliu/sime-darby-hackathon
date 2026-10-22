@@ -81,4 +81,14 @@ describe("Carousel", () => {
     fireEvent.click(card);
     expect(onOpen).toHaveBeenCalledTimes(1);
   });
+
+  it("leaves no timer running after it unmounts mid-drag", () => {
+    vi.useFakeTimers();
+    const { unmount } = render(<Carousel ariaLabel="Conditions" slides={slides} />);
+    const card = screen.getByRole("button", { name: "Air" });
+    pointer(card, "pointerdown", 100);
+    pointer(card, "pointerup", 100);
+    unmount();
+    expect(vi.getTimerCount()).toBe(0);
+  });
 });
