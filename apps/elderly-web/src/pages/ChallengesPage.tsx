@@ -276,7 +276,7 @@ export function ChallengesPage() {
                     You are okay today
                   </>
                 ) : (
-                  "I am okay"
+                  "I’m Okay!"
                 )}
               </button>
 
