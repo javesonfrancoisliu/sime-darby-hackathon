@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSession } from "@sdh/api-client";
 import { tokenModeEnabled } from "../../config";
-import { ConfirmDialog } from "../../ui/ConfirmDialog";
+import { Button } from "../../ui/Button";
 import { topEntryIsOpenDialog } from "../../ui/dialogLayer";
 import { beginPageLeave } from "../../ui/pageLeave";
 import { IconUserRound, IconUsers } from "../../ui/Icons";
@@ -59,10 +59,59 @@ export function AccountSheet({ open, onClose }: AccountSheetProps) {
     window.location.assign("/");
   }
 
+  // Escape, a scrim tap or a drag steps back to the list first; none leaves while signing out.
+  function stepBack(): boolean {
+    if (!confirming) return true;
+    if (!signingOut) setConfirming(false);
+    return false;
+  }
+
+  // The phone's Back leaves the confirm step first, and is used up by it.
+  function holdBack(): boolean {
+    if (!confirming) return false;
+    stepBack();
+    return true;
+  }
+
   return (
-    <>
-      <Sheet open={open} onClose={onClose} title="Account" subtitle="Who is using this phone">
-        <div className="apple-sheet-content">
+    <Sheet
+      open={open}
+      onClose={onClose}
+      title={confirming ? "Sign out?" : "Account"}
+      subtitle={confirming ? undefined : "Who is using this phone"}
+      canDismiss={stepBack}
+      holdBack={holdBack}
+    >
+      <div className="apple-sheet-content">
+        {confirming ? (
+          <div className="call-confirm">
+            <p className="call-confirm__sub">
+              You will need to sign in again to use Township Connect.
+            </p>
+            <p role="status" className="call-confirm__sub">
+              {signingOut ? "Signing out…" : ""}
+            </p>
+            <div className="call-confirm__actions">
+              <Button
+                block
+                onClick={() => void signOutOfAccount()}
+                disabled={signingOut}
+                aria-busy={signingOut || undefined}
+              >
+                Yes, sign out
+              </Button>
+              <button
+                type="button"
+                autoFocus
+                className="ui-button ui-button--secondary call-confirm__cancel"
+                onClick={() => setConfirming(false)}
+                disabled={signingOut}
+              >
+                Not yet
+              </button>
+            </div>
+          </div>
+        ) : (
           <div className="ui-stack">
             {token ? (
               <>
@@ -89,23 +138,8 @@ export function AccountSheet({ open, onClose }: AccountSheetProps) {
               </button>
             )}
           </div>
-        </div>
-      </Sheet>
-      {confirming ? (
-        <ConfirmDialog
-          title="Sign out?"
-          confirmLabel="Yes, sign out"
-          cancelLabel="Not yet"
-          busy={signingOut}
-          busyLabel="Signing out"
-          onConfirm={() => void signOutOfAccount()}
-          onCancel={() => {
-            setConfirming(false);
-          }}
-        >
-          You will need to sign in again to use Township Connect.
-        </ConfirmDialog>
-      ) : null}
-    </>
+        )}
+      </div>
+    </Sheet>
   );
 }

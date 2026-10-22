@@ -105,8 +105,9 @@ export function lockScroll(): () => void {
 
 interface DialogLayerOptions {
   panelRef: RefObject<HTMLElement | null>;
-  // The phone's Back button reached this dialog; its history entry is already gone.
-  onBack: () => void;
+  // The phone's Back button reached this dialog; its history entry is already gone. Return true to
+  // keep the dialog open: its entry is pushed again so the next Back asks again.
+  onBack: () => boolean | void;
   onEscape: () => void;
 }
 
@@ -133,8 +134,11 @@ export function useDialogLayer({ panelRef, onBack, onEscape }: DialogLayerOption
 
     const onPop = () => {
       if (selfPop || !isTop()) return;
+      if (handlers.current.onBack() === true) {
+        window.history.pushState({ ...stateObject(), [MARKER]: id }, "");
+        return;
+      }
       popped.current = true;
-      handlers.current.onBack();
     };
 
     const onKeyDown = (e: KeyboardEvent) => {

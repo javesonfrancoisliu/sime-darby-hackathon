@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { AccountSheet } from "./AccountSheet";
@@ -23,24 +23,73 @@ beforeEach(() => {
   vi.stubGlobal("location", { assign, reload });
 });
 
-afterEach(() => {
+afterEach(async () => {
+  // Unmounting a sheet steps the history back asynchronously; let that land before the next test.
+  cleanup();
+  await new Promise((resolve) => setTimeout(resolve, 20));
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
 });
 
-async function confirmSignOut() {
+async function openConfirm() {
   render(
     <MemoryRouter>
       <AccountSheet open onClose={() => {}} />
     </MemoryRouter>,
   );
   await userEvent.click(screen.getByRole("button", { name: "Sign out" }));
-  const confirm = await screen.findByRole("dialog", { name: "Sign out?" });
+  return screen.findByRole("dialog", { name: "Sign out?" });
+}
+
+async function confirmSignOut() {
+  const confirm = await openConfirm();
   await userEvent.click(within(confirm).getByRole("button", { name: "Yes, sign out" }));
   return confirm;
 }
 
 describe("Account sheet sign out", () => {
+  it("switches the drawer in place, with no second dialog", async () => {
+    const confirm = await openConfirm();
+    expect(screen.getAllByRole("dialog")).toHaveLength(1);
+    expect(confirm).toHaveTextContent("You will need to sign in again to use Township Connect.");
+    expect(within(confirm).getByRole("button", { name: "Yes, sign out" })).toBeEnabled();
+    expect(within(confirm).getByRole("button", { name: "Not yet" })).toHaveFocus();
+  });
+
+  it("returns to the Account list on Not yet", async () => {
+    await openConfirm();
+    await userEvent.click(screen.getByRole("button", { name: "Not yet" }));
+    const list = screen.getByRole("dialog", { name: "Account" });
+    expect(within(list).getByRole("button", { name: "Sign out" })).toBeInTheDocument();
+    expect(signOut).not.toHaveBeenCalled();
+  });
+
+  it("returns to the Account list on Escape", async () => {
+    await openConfirm();
+    await userEvent.keyboard("{Escape}");
+    expect(screen.getByRole("dialog", { name: "Account" })).toBeInTheDocument();
+  });
+
+  it("returns to the Account list on the first Back press and keeps the sheet open", async () => {
+    await openConfirm();
+    window.history.back();
+    await waitFor(() =>
+      expect(screen.getByRole("dialog", { name: "Account" })).toBeInTheDocument(),
+    );
+    expect(window.history.state).toMatchObject({ sdhSheet: expect.any(String) });
+  });
+
+  it("ignores Escape and Back while signing out", async () => {
+    signOut.mockImplementation(() => new Promise<void>(() => {}));
+    await openConfirm();
+    await userEvent.click(screen.getByRole("button", { name: "Yes, sign out" }));
+    await userEvent.keyboard("{Escape}");
+    window.history.back();
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(screen.getByRole("dialog", { name: "Sign out?" })).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("Signing out");
+  });
+
   it("keeps Not yet off while signing out, then leaves to the start page", async () => {
     let finish: () => void = () => {};
     signOut.mockImplementation(() => new Promise<void>((resolve) => (finish = resolve)));
