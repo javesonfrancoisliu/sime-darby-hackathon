@@ -110,7 +110,7 @@ describe("volunteer page", () => {
     expect(screen.queryByText("Community tea morning")).not.toBeInTheDocument();
     expect(screen.getAllByLabelText(/^Opportunity:/)).toHaveLength(1);
   });
-  it("respects personalized AI order instead of overwriting it with the numeric baseline", async () => {
+  it("sorts best match by descending match score and uses the AI rank only to break ties", async () => {
     const first = {
       ...makeRequestOpportunity({ title: "Contextually best", distanceKm: 2 }),
       matchScore: 70,
@@ -137,7 +137,7 @@ describe("volunteer page", () => {
     renderApp("/volunteer");
     await screen.findByText("Contextually best");
     const cards = () => screen.getAllByLabelText(/^Opportunity:/);
-    expect(cards()[0]).toHaveAccessibleName(/Contextually best/);
+    expect(cards()[0]).toHaveAccessibleName(/Closer general task/);
     expect(screen.getAllByText("AI-assisted")).toHaveLength(2);
     await userEvent.click(screen.getByRole("button", { name: /70% match/ }));
     expect(screen.getByText("Relevant grocery experience fits carrying bags.")).toBeInTheDocument();
@@ -150,7 +150,60 @@ describe("volunteer page", () => {
     await userEvent.selectOptions(screen.getByRole("combobox", { name: "Sort by" }), "nearest");
     expect(cards()[0]).toHaveAccessibleName(/Closer general task/);
     await userEvent.selectOptions(screen.getByRole("combobox", { name: "Sort by" }), "best_match");
-    expect(cards()[0]).toHaveAccessibleName(/Contextually best/);
+    expect(cards()[0]).toHaveAccessibleName(/Closer general task/);
+  });
+  it("breaks equal match scores by AI rank, then by distance", async () => {
+    const make = (title: string, matchRank: number | undefined, distanceKm: number) => ({
+      ...makeRequestOpportunity({ id: crypto.randomUUID(), title, distanceKm }),
+      matchScore: 27,
+      matchRank,
+      matchSource: "ai",
+    });
+    installFakeApi({
+      ...baseRoutes,
+      "GET /api/opportunities": {
+        body: {
+          items: [
+            make("Far unranked", undefined, 3),
+            make("Ranked second", 2, 2),
+            make("Ranked first", 1, 2.5),
+          ],
+        },
+      },
+    });
+    signInAs(VOLUNTEER.id);
+    renderApp("/volunteer");
+    await screen.findByText("Ranked first");
+    const names = screen
+      .getAllByLabelText(/^Opportunity:/)
+      .map((card) => card.getAttribute("aria-label"));
+    expect(names).toEqual([
+      "Opportunity: Ranked first",
+      "Opportunity: Ranked second",
+      "Opportunity: Far unranked",
+    ]);
+  });
+  it("sorts nearest by distance and breaks equal distances by match score", async () => {
+    const make = (title: string, matchScore: number, distanceKm: number) => ({
+      ...makeRequestOpportunity({ id: crypto.randomUUID(), title, distanceKm }),
+      matchScore,
+    });
+    installFakeApi({
+      ...baseRoutes,
+      "GET /api/opportunities": {
+        body: {
+          items: [make("Low near", 20, 0.5), make("Far", 90, 2), make("High near", 60, 0.5)],
+        },
+      },
+    });
+    signInAs(VOLUNTEER.id);
+    renderApp("/volunteer");
+    await screen.findByText("Far");
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Sort by" }), "nearest");
+    const names = screen
+      .getAllByLabelText(/^Opportunity:/)
+      .map((card) => card.getAttribute("aria-label"));
+    expect(names).toEqual(["Opportunity: High near", "Opportunity: Low near", "Opportunity: Far"]);
   });
   it("shows a pending-verification state instead of a generic error", async () => {
     installFakeApi({
