@@ -113,12 +113,3 @@ export const FACILITY_TONE: Record<FacilityStatus, LevelInfo> = {
 
 // Top of the Air Pollutant Index bar; readings above it fill the bar.
 export const HAZE_API_SCALE_MAX = 300;
-
-const WATER_WARN_PCT = 70;
-const WATER_HIGH_PCT = 85;
-
-// Which fill colour the water-level bar uses for a given percentage of normalMax.
-export function waterBarLevel(pct: number): "ok" | "mid" | "high" {
-  if (pct > WATER_HIGH_PCT) return "high";
-  return pct > WATER_WARN_PCT ? "mid" : "ok";
-}

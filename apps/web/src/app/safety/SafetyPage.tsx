@@ -30,7 +30,6 @@ import {
   HAZE_API_SCALE_MAX,
   HEAT_LEVEL,
   WATER_STATUS,
-  waterBarLevel,
 } from "../../lib/safety";
 
 type SafetyTab = "air" | "water" | "heat" | "facilities";
@@ -245,7 +244,7 @@ export function SafetyPage() {
                             )}`}
                           >
                             <div
-                              className={`safety-bar__fill safety-bar__fill--${waterBarLevel(pct)}`}
+                              className={`safety-bar__fill safety-bar__fill--tone tone-${s.tone}`}
                               style={{ width: `${pct}%` }}
                             />
                           </div>

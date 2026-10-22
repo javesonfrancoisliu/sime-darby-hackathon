@@ -2030,20 +2030,9 @@
   transition: width 600ms ease;
 }
 
-.safety-bar__fill--tone {
+/* Two classes so the bar takes its tone's bar colour, not the tone chip's pale background. */
+.safety-bar__fill.safety-bar__fill--tone {
   background: var(--tone-bar);
-}
-
-.safety-bar__fill--ok {
-  background: var(--success);
-}
-
-.safety-bar__fill--mid {
-  background: var(--tone-bar-mid);
-}
-
-.safety-bar__fill--high {
-  background: var(--tone-alert-text);
 }
 
 /* ── Status chip (ported as -tone to avoid the Home .safety-chip) ── */
