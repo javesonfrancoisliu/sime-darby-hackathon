@@ -1,10 +1,10 @@
-import { CloudOff, Gift } from "lucide-react";
+import { CloudOff, Gift, Lock } from "lucide-react";
 
 import type { RewardWithStatus } from "@sdh/contracts";
 
 import { formatCount, formatPts } from "../../lib/format";
 import { ICON_BY_KEY } from "../../lib/icons";
-import { AppButton, EmptyState, InfoCard, LoadingState } from "../ui";
+import { AppButton, EmptyState, InfoCard, LoadingState, Pill, StatusBadge } from "../ui";
 
 export type RewardsPanelProps = {
   rewards: RewardWithStatus[];
@@ -74,23 +74,23 @@ export function RewardsPanel({
                   </div>
                   <div className="reward-card__action">
                     <span className="reward-card__points">{formatPts(reward.pointsCost)}</span>
-                    <AppButton
-                      variant={reward.status === "available" ? "primary" : "secondary"}
-                      disabled={reward.status !== "available"}
-                      loading={redeemingId === reward.id}
-                      aria-label={
-                        reward.status === "available"
-                          ? `Redeem ${reward.title} for ${formatPts(reward.pointsCost)}`
-                          : `${reward.title}: ${reward.status}`
-                      }
-                      onClick={() => onRedeem(reward)}
-                    >
-                      {reward.status === "redeemed"
-                        ? "Redeemed"
-                        : reward.status === "locked"
-                          ? "Locked"
-                          : "Redeem"}
-                    </AppButton>
+                    {reward.status === "available" ? (
+                      <AppButton
+                        variant="primary"
+                        loading={redeemingId === reward.id}
+                        aria-label={`Redeem ${reward.title} for ${formatPts(reward.pointsCost)}`}
+                        onClick={() => onRedeem(reward)}
+                      >
+                        Redeem
+                      </AppButton>
+                    ) : reward.status === "redeemed" ? (
+                      <StatusBadge label="Redeemed" variant="success" />
+                    ) : (
+                      <Pill>
+                        <Lock size={14} aria-hidden="true" />
+                        Locked
+                      </Pill>
+                    )}
                   </div>
                 </div>
               </InfoCard>

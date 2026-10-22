@@ -347,8 +347,11 @@ describe("challenges page", () => {
     expect(titles).toEqual(["Tea bag", "Coffee voucher", "Big voucher"]);
     expect(screen.getByText("280 more points needed")).toBeInTheDocument();
     const names = screen.getAllByRole("button").map((b) => b.getAttribute("aria-label"));
-    expect(names).toEqual(expect.arrayContaining(["Big voucher: locked"]));
     expect(new Set(names.filter(Boolean)).size).toBe(names.filter(Boolean).length);
+    // A locked reward is a status, not a faded button.
+    const locked = screen.getByLabelText("Reward: Big voucher");
+    expect(within(locked).getByText("Locked")).toBeInTheDocument();
+    expect(within(locked).queryByRole("button")).not.toBeInTheDocument();
   });
 
   it("uses the singular when a locked reward is one point away", async () => {

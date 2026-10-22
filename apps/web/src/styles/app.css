@@ -1593,10 +1593,10 @@
   padding: var(--space-3) var(--space-2);
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
-  opacity: 0.6;
+  /* Locked tiles are told apart by the lock icon and a muted fill, not by fading their text. */
+  background: var(--surface-muted);
 }
 .badge-tile--earned {
-  opacity: 1;
   border-color: var(--brand-amber);
   background: var(--warning-bg);
 }
