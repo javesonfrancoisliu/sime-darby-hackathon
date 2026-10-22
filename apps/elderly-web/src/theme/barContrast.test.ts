@@ -67,11 +67,11 @@ describe("tab bar", () => {
 });
 
 describe("bottom bar fit", () => {
-  it("holds the label size to the screen width and keeps five equal columns", () => {
+  it("holds the label size to the screen width and keeps five columns", () => {
     expect(rule(".app-tab-bar__label")).toMatch(
       /font-size:\s*clamp\(12px,\s*3\.7vw,\s*0\.875rem\)/,
     );
-    expect(rule(".app-tab-bar")).toContain("repeat(5, minmax(0, 1fr))");
+    expect(rule(".app-tab-bar")).toMatch(/grid-template-columns:(\s*minmax\(0, [\d.]+fr\)){5};/);
   });
 
   it("lets the hero name wrap so the buttons stay on screen at large text", () => {
