@@ -237,6 +237,8 @@ describe("profile page", () => {
 
     expect(await within(dialog).findByText(/at least one day and one time/)).toBeInTheDocument();
     expect(calls.some((c) => c.method === "PATCH")).toBe(false);
+    // The message takes focus so it is read out and scrolled into view, wherever the footer is.
+    expect(within(dialog).getByRole("alert")).toHaveFocus();
 
     // Fixing the form clears the message straight away.
     await user.click(within(days).getByRole("button", { name: "Weekends" }));
