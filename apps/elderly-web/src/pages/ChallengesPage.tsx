@@ -462,21 +462,21 @@ export function ChallengesPage() {
                             <IconCheck size={15} strokeWidth={2.4} aria-hidden="true" />
                             Redeemed
                           </span>
+                        ) : locked || !affordable ? (
+                          // A status, not a disabled Redeem button: it cannot be pressed, so it is not a control.
+                          <span className="community-full-badge">
+                            {locked ? "Locked" : "Not enough"}
+                            <span className="sr-only">, {r.title}</span>
+                          </span>
                         ) : (
                           <button
                             type="button"
                             className="community-register-btn"
                             onClick={() => void handleRedeem(r.id, r.title)}
-                            disabled={locked || !affordable || redeem.status === "loading"}
-                            aria-label={
-                              locked
-                                ? `${r.title}, locked`
-                                : affordable
-                                  ? `Redeem ${r.title} for ${pointsLabel(r.pointsCost)}`
-                                  : `${r.title}, not enough points`
-                            }
+                            disabled={redeem.status === "loading"}
+                            aria-label={`Redeem ${r.title} for ${pointsLabel(r.pointsCost)}`}
                           >
-                            {locked ? "Locked" : affordable ? "Redeem" : "Not enough"}
+                            Redeem
                           </button>
                         )}
                       </div>
