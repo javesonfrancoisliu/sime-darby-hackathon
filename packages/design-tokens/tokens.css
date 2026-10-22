@@ -165,6 +165,9 @@ textarea {
     background-color 150ms ease,
     border-color 150ms ease;
 }
+.ui-button svg {
+  flex-shrink: 0;
+}
 .ui-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;

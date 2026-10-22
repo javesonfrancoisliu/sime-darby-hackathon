@@ -1122,6 +1122,14 @@
   min-width: 0;
   padding-inline: var(--space-2);
 }
+/* Three labelled buttons no longer fit side by side, so the icon sits above the label. */
+@media (max-width: 360px) {
+  .home-challenge-links .ui-button {
+    flex-direction: column;
+    gap: 2px;
+    padding-block: var(--space-2);
+  }
+}
 
 /* ---------- Progress bar ---------- */
 .ui-progress {
