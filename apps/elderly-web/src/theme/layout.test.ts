@@ -52,6 +52,17 @@ describe("point totals", () => {
   });
 });
 
+describe("play header points chip", () => {
+  it("wraps with the buttons and shrinks inside the header instead of running off the screen", () => {
+    // A nowrap chip spanned x=133 to 373 on a 320px screen at X-Large with a 12-digit total.
+    expect(rule(".play-header-row > .row-center")).toContain("flex-wrap: wrap");
+    const chip = rule(".play-header-points");
+    expect(chip).toContain("max-width: 100%");
+    expect(chip).toContain("min-width: 0");
+    expect(chip).not.toContain("nowrap");
+  });
+});
+
 describe("hero header", () => {
   it("wraps the name between words and lets the buttons move to their own row", () => {
     // The name sharing a 109px-wide row with the buttons at X-Large forced a break inside every word.

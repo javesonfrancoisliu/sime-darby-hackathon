@@ -2840,6 +2840,13 @@ button:active,
   min-width: 0;
 }
 
+/* The chip and the buttons wrap onto their own row, and the chip may shrink, so a long total stays on screen. */
+.play-header-row > .row-center {
+  flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
+}
+
 /* Always-visible points chip in the Community Play header. */
 .play-header-points {
   display: inline-flex;
@@ -2851,7 +2858,9 @@ button:active,
   color: #fff;
   font-size: 1rem;
   font-weight: 800;
-  white-space: nowrap;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 /* Live-condition carousel cards - severity-driven accent. One shared 5-step ramp (light green → green → yellow → orange → red). The card exposes --sev-accent / --sev-chip-bg / --sev-chip-text (set by the card's data-severity attribute); the chip, the progress bar and a left accent stripe all read from them so the severity is obvious at a glance. apple-design (clear status), (colour is reinforced by the text label on the chip, never colour alone). */
