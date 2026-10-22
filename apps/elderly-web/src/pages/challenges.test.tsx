@@ -130,6 +130,19 @@ describe("Community Play from the API", () => {
     expect(screen.getAllByText(/more points to unlock/)).toHaveLength(1);
   });
 
+  it("groups a large balance and reads a one point cost as 1 pt", async () => {
+    const one = { ...REWARD, pointsCost: 1 };
+    installFakeApi({
+      ...baseRoutes,
+      "GET /api/me/points": { body: POINTS(100000000089) },
+      "GET /api/rewards": { body: { rewards: [one] } },
+    });
+    await renderApp("/challenges");
+    expect((await screen.findAllByText("100,000,000,089")).length).toBeGreaterThan(0);
+    await userEvent.click(await screen.findByRole("tab", { name: /Rewards/i }));
+    expect(await screen.findByText("1 pt")).toBeInTheDocument();
+  });
+
   it("uses the singular when a locked reward is one point away", async () => {
     const close = { ...REWARD, pointsCost: 261, status: "locked" };
     installFakeApi({ ...baseRoutes, "GET /api/rewards": { body: { rewards: [close] } } });

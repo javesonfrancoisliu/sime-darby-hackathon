@@ -4,6 +4,7 @@ import { useAccessibility } from "../../context/AccessibilityContext";
 import { Banner } from "../../ui/Banner";
 import { IconCheck, IconFlame, IconHandHeart, IconSparkles } from "../../ui/Icons";
 import { Spinner } from "../../ui/Spinner";
+import { formatPoints } from "../../ui/points";
 
 // Points and streak for Home. A slow or failed call only affects this card, never the rest of Home.
 export function CommunityPlayCard() {
@@ -55,7 +56,9 @@ export function CommunityPlayCard() {
                 <IconSparkles size={22} strokeWidth={1.8} />
               </span>
               <div>
-                <span className="play-summary__points-value">{points.data?.points ?? 0}</span>
+                <span className="play-summary__points-value">
+                  {formatPoints(points.data?.points ?? 0)}
+                </span>
                 <span className="play-summary__points-label">neighbour points</span>
               </div>
             </div>

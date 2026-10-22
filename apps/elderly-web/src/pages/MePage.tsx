@@ -23,6 +23,7 @@ import { HelpSafetySheet } from "./me/HelpSafetySheet";
 import { takeDetailsRequest } from "./me/detailsRequest";
 import { MyDetailsSheet } from "./me/MyDetailsSheet";
 import { MyRewardsSheet } from "./me/MyRewardsSheet";
+import { pointsLabel } from "../ui/points";
 
 type MeSheet = "edit" | "rewards" | "details" | "help" | "account" | null;
 
@@ -30,7 +31,7 @@ function rewardsSummary(points: number | undefined, vouchers: number | undefined
   if (points === undefined) return "Points and vouchers";
   const voucherText =
     vouchers === undefined ? "" : ` · ${vouchers} ${vouchers === 1 ? "voucher" : "vouchers"}`;
-  return `${points} points${voucherText}`;
+  return `${pointsLabel(points)}${voucherText}`;
 }
 
 // The old /me/details address redirects here asking for the My details drawer.

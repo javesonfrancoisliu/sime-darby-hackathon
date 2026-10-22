@@ -22,6 +22,7 @@ import { useAccessibility } from "../context/AccessibilityContext";
 import { Banner } from "../ui/Banner";
 import { Spinner } from "../ui/Spinner";
 import type { FriendlyError } from "../api/errors";
+import { formatPoints, pointsLabel } from "../ui/points";
 
 type PlayTab = "streak" | "challenges" | "badges" | "rewards";
 export const PLAY_TABS: readonly PlayTab[] = ["streak", "challenges", "badges", "rewards"];
@@ -47,7 +48,7 @@ const NO_PRECINCT_TEXT =
 
 // Cheapest first, so the next reward within reach is at the top.
 // For example "1 more point" or "3 more points".
-const moreText = (n: number) => `${n} more ${n === 1 ? "point" : "points"}`;
+const moreText = (n: number) => `${formatPoints(n)} more ${n === 1 ? "point" : "points"}`;
 
 const byCost = (a: { pointsCost: number }, b: { pointsCost: number }) =>
   a.pointsCost - b.pointsCost;
@@ -118,7 +119,7 @@ export function ChallengesPage() {
     if (!result) return;
     // Which rewards are locked depends on the balance, so load them again.
     rewards.refetch();
-    setToast(`Nice! +${result.pointsAwarded} points`);
+    setToast(`Nice! +${pointsLabel(result.pointsAwarded)}`);
     window.setTimeout(() => setToast(""), 2200);
     if (voiceAssist) {
       speak(
@@ -138,7 +139,7 @@ export function ChallengesPage() {
       points.update((p) => ({ ...p, points: p.points + result.pointsAwarded }));
       rewards.refetch();
     }
-    setToast(`Thank you! +${result.pointsAwarded} points for ${neighbourhood}`);
+    setToast(`Thank you! +${pointsLabel(result.pointsAwarded)} for ${neighbourhood}`);
     window.setTimeout(() => setToast(""), 2200);
   }
 
@@ -159,7 +160,7 @@ export function ChallengesPage() {
   function handleReadSummary() {
     const earned = (badges.data ?? []).filter((b) => b.earned).length;
     speak(
-      `Community play for ${neighbourhood}. You have ${balance ?? 0} points and a ${streak.data?.current ?? 0} day check-in streak. ${earned} badges earned. Join a neighbourhood challenge or redeem a reward.`,
+      `Community play for ${neighbourhood}. You have ${pointsLabel(balance ?? 0)} and a ${streak.data?.current ?? 0} day check-in streak. ${earned} badges earned. Join a neighbourhood challenge or redeem a reward.`,
     );
   }
 
@@ -176,9 +177,12 @@ export function ChallengesPage() {
           </div>
           <div className="row-center">
             {balance !== undefined ? (
-              <span className="play-header-points" aria-label={`${balance} neighbour points`}>
+              <span
+                className="play-header-points"
+                aria-label={`${formatPoints(balance)} neighbour points`}
+              >
                 <IconSparkles size={15} strokeWidth={2} aria-hidden="true" />
-                {balance}
+                {formatPoints(balance)}
               </span>
             ) : null}
             <PageHeaderActions onReadAloud={handleReadSummary} />
@@ -210,7 +214,7 @@ export function ChallengesPage() {
                     <IconSparkles size={22} strokeWidth={1.8} />
                   </span>
                   <div>
-                    <span className="play-summary__points-value">{balance ?? 0}</span>
+                    <span className="play-summary__points-value">{formatPoints(balance ?? 0)}</span>
                     <span className="play-summary__points-label">neighbour points</span>
                   </div>
                 </div>
@@ -449,7 +453,9 @@ export function ChallengesPage() {
                         ) : null}
                       </div>
                       <div className="play-reward__action">
-                        <span className="play-reward__cost">{r.pointsCost} pts</span>
+                        <span className="play-reward__cost">
+                          {pointsLabel(r.pointsCost, "pt", "pts")}
+                        </span>
                         <button
                           type="button"
                           className={`community-register-btn${isRedeemed ? " community-register-btn--done" : ""}`}

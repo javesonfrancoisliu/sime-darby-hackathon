@@ -265,6 +265,18 @@ describe("Edit your details, saving and leaving", () => {
   });
 });
 
+describe("Large point totals", () => {
+  it("groups the total in the Profile row and the My rewards sheet", async () => {
+    installFakeApi({ ...hubRoutes, "GET /api/me/points": { body: POINTS(100000000089) } });
+    await renderApp("/me");
+    const row = await screen.findByRole("button", { name: /^My rewards/ });
+    await waitFor(() => expect(row).toHaveTextContent("100,000,000,089 points"));
+    await userEvent.click(row);
+    const sheet = await sheetNamed("My rewards");
+    expect(await within(sheet).findByText("100,000,000,089")).toBeInTheDocument();
+  });
+});
+
 describe("My rewards sheet", () => {
   it("shows points and the claimed vouchers and uses one", async () => {
     let used = false;

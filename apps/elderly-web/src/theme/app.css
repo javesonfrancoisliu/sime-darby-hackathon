@@ -2123,6 +2123,11 @@ button:active,
   align-items: center;
   gap: var(--space-3);
   flex: 1;
+  min-width: 0;
+}
+.apple-inset-btn-row__left > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .apple-inset-btn-row__icon {
@@ -2461,12 +2466,14 @@ button:active,
 /* Community Play - gamification (challenges, streak, badges, rewards). Brand tokens, rem text so it scales with Dynamic Type, reduced-motion aware. */
 .play-summary {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-3);
   margin-bottom: var(--space-4);
 }
 .play-summary__points,
 .play-summary__streak {
-  flex: 1;
+  flex: 1 1 10rem;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: var(--space-3);
@@ -2485,9 +2492,15 @@ button:active,
   display: inline-flex;
   color: var(--brand-primary);
 }
+.play-summary__points > div,
+.play-summary__streak > div {
+  min-width: 0;
+}
 .play-summary__points-value,
 .play-summary__streak-value {
   display: block;
+  /* A long total has no spaces to wrap at, so it breaks inside the card instead of spilling out. */
+  overflow-wrap: anywhere;
   font-size: 1.75rem;
   font-weight: 800;
   line-height: 1.05;
