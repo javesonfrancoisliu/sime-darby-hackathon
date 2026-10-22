@@ -31,22 +31,26 @@ function dropMarker() {
   window.history.replaceState(base, "");
 }
 
-// True while a popstate caused by a dialog removing its own entry is being delivered, so the
-// dialog underneath does not mistake it for the phone's Back button.
+// True while a popstate caused by a dialog removing its own entry is pending or being delivered,
+// so the dialog underneath does not mistake it for the phone's Back button. It is raised before
+// the history move, because engines differ on whether capture listeners on the window run before
+// the others that were added earlier.
 let selfPop = false;
 const SELF_POP_LISTEN_MS = 1000;
 
 // Steps back off the entry this dialog pushed, marking the resulting popstate as its own.
 function backOffOwnEntry() {
-  const mark = () => {
-    selfPop = true;
-    window.setTimeout(() => {
-      selfPop = false;
-    }, 0);
-    window.removeEventListener("popstate", mark, true);
+  selfPop = true;
+  let fallback = 0;
+  const clear = () => {
+    selfPop = false;
+    window.removeEventListener("popstate", landed);
+    window.clearTimeout(fallback);
   };
-  window.addEventListener("popstate", mark, true);
-  window.setTimeout(() => window.removeEventListener("popstate", mark, true), SELF_POP_LISTEN_MS);
+  // Dropped after the delivery that carried it, once every listener has run.
+  const landed = () => void window.setTimeout(clear, 0);
+  fallback = window.setTimeout(clear, SELF_POP_LISTEN_MS);
+  window.addEventListener("popstate", landed);
   window.history.back();
 }
 
