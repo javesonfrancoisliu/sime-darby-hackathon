@@ -516,6 +516,11 @@
   border-color: var(--warn-accent);
 }
 
+/* The drawer header and content already pad themselves, so the card must not pad again. */
+.safety-card--drawer {
+  padding: 0;
+}
+
 .safety-card--temperature {
   border-width: 2px;
 }
