@@ -27,6 +27,8 @@ export type SheetProps = {
   // keep it open (and spring it back), for example while a form holds typed text. Back then puts
   // the sheet's history entry back so the next Back asks again.
   guardClose?: () => boolean;
+  // The label of the title row button, for a step where it means back rather than done.
+  doneLabel?: string;
 };
 
 const HISTORY_KEY = "sdhSheet";
@@ -151,6 +153,7 @@ function SheetBody({
   reducedMotion = false,
   openerRef,
   guardClose,
+  doneLabel = "Done",
 }: Omit<SheetProps, "open">) {
   const systemReduced = useSystemReducedMotion();
   const fade = reducedMotion || systemReduced;
@@ -470,7 +473,7 @@ function SheetBody({
               className="ui-sheet-done"
               onClick={() => requestClose()}
             >
-              Done
+              {doneLabel}
             </button>
           </div>
         </div>

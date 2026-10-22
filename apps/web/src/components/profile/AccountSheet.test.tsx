@@ -43,7 +43,9 @@ describe("Account sheet sign out step", () => {
   it("switches the drawer in place, with no second dialog", async () => {
     const dialog = await openConfirm();
     expect(screen.getAllByRole("dialog")).toHaveLength(1);
-    expect(within(dialog).getByText("Are you sure you want to sign out?")).toBeInTheDocument();
+    expect(
+      within(dialog).getByText("Are you sure you want to sign out?", { selector: "p:not([role])" }),
+    ).toBeInTheDocument();
     expect(within(dialog).getByRole("button", { name: "Yes, sign out" })).toBeEnabled();
     expect(within(dialog).getByRole("button", { name: "Not yet" })).toHaveFocus();
     expect(within(dialog).queryByRole("link", { name: "Account settings" })).toBeNull();
@@ -91,13 +93,55 @@ describe("Account sheet sign out step", () => {
     await waitFor(() => expect(assign).toHaveBeenCalledWith("/"));
   });
 
-  it("stays signed in and returns to the list when the sign out fails", async () => {
-    signOut.mockRejectedValue(new Error("offline"));
+  it("stays on the confirm step with an error when the sign out fails, and can retry", async () => {
+    signOut.mockRejectedValueOnce(new Error("offline"));
     await openConfirm();
     await userEvent.click(screen.getByRole("button", { name: "Yes, sign out" }));
-    await waitFor(() => expect(listShown()).toBeInTheDocument());
+    expect(await screen.findByRole("alert")).toHaveTextContent("Could not sign you out");
+    expect(screen.getByRole("dialog", { name: "Sign out?" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Yes, sign out" })).toBeEnabled();
     expect(assign).not.toHaveBeenCalled();
     expect(pageIsLeaving()).toBe(false);
+    await userEvent.click(screen.getByRole("button", { name: "Yes, sign out" }));
+    await waitFor(() => expect(assign).toHaveBeenCalledWith("/"));
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("stays locked on the confirm step after a successful sign out until the page unloads", async () => {
+    await openConfirm();
+    await userEvent.click(screen.getByRole("button", { name: "Yes, sign out" }));
+    await waitFor(() => expect(assign).toHaveBeenCalledWith("/"));
+    expect(screen.getByRole("dialog", { name: "Sign out?" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Yes, sign out/ })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Not yet" })).toBeDisabled();
+    await userEvent.click(screen.getByRole("button", { name: /Yes, sign out/ }));
+    expect(signOut).toHaveBeenCalledTimes(1);
+  });
+
+  it("labels the title row button Back on the confirm step and steps back with it", async () => {
+    await openConfirm();
+    expect(screen.queryByRole("button", { name: "Done" })).toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: "Back" }));
+    expect(within(listShown()).getByRole("button", { name: "Done" })).toBeInTheDocument();
+    expect(signOut).not.toHaveBeenCalled();
+  });
+
+  it("gives focus back to Sign out when leaving the confirm step", async () => {
+    await openConfirm();
+    await userEvent.click(screen.getByRole("button", { name: "Not yet" }));
+    expect(screen.getByRole("button", { name: "Sign out" })).toHaveFocus();
+    await userEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    await userEvent.keyboard("{Escape}");
+    expect(screen.getByRole("button", { name: "Sign out" })).toHaveFocus();
+  });
+
+  it("announces the question through a live region that is already mounted", async () => {
+    render(<AccountSheet onClose={() => {}} openerRef={{ current: null }} />);
+    const region = screen.getByRole("status");
+    expect(region).toHaveTextContent("");
+    await userEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    expect(screen.getByRole("status")).toBe(region);
+    expect(region).toHaveTextContent("Are you sure you want to sign out?");
   });
 
   it("reloads when the navigation to the start page fails", async () => {
