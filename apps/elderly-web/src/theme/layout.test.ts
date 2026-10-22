@@ -116,3 +116,20 @@ describe("Elder touch targets", () => {
     expect(rule(".call-contact-btn")).toContain("min-height: 48px");
   });
 });
+
+describe("bottom tab bar", () => {
+  it("sizes the labels from the text-size setting with a 14px floor", () => {
+    // The label was min(15px, 3.2vw): 12.48px at 390 and 10.24px at 320, whatever the text size.
+    const size = rule(".app-tab-bar__label");
+    expect(size).toContain("max(14px,");
+    expect(size).toContain("0.875rem");
+    expect(size).not.toContain("3.2vw");
+    expect(size).toContain("white-space: nowrap");
+  });
+
+  it("starts each column at its label width so five names fit on one line", () => {
+    const bar = rule(".app-tab-bar");
+    expect(bar).toContain("display: grid");
+    expect(bar).toContain("minmax(max-content, 1fr)");
+  });
+});

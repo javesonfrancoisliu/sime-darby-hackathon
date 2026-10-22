@@ -68,9 +68,11 @@ describe("tab bar", () => {
 });
 
 describe("bottom bar fit", () => {
-  it("shrinks the label size with the screen and gives Help request a wider column", () => {
-    expect(appCss).toMatch(/font-size:\s*min\(15px,\s*3\.2vw\)/);
-    expect(rule(".app-tab-bar__item--raised")).toMatch(/flex:\s*1\.25 1 0/);
+  it("holds the label size to the screen width and gives Help request a wider column", () => {
+    expect(rule(".app-tab-bar__label")).toMatch(
+      /font-size:\s*max\(14px,\s*min\(0\.875rem,\s*4\.6vw\)\)/,
+    );
+    expect(rule(".app-tab-bar")).toContain("minmax(max-content, 1.25fr)");
   });
 
   it("lets the hero name wrap so the buttons stay on screen at large text", () => {

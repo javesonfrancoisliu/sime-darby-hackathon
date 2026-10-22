@@ -320,7 +320,12 @@
   transform: translateX(-50%);
   width: 100%;
   max-width: 480px;
-  display: flex;
+  /* Five columns that start at their label width and share what is left, with the Help request
+     column a little wider. They stay equal on a roomy bar and give way to a long label on a narrow one. */
+  display: grid;
+  grid-template-columns:
+    minmax(max-content, 1fr) minmax(max-content, 1fr) minmax(max-content, 1.25fr)
+    minmax(max-content, 1fr) minmax(max-content, 1fr);
   --tab-bar-bg: var(--surface);
   --tab-bar-border-width: 1px;
   --tab-bar-border-color: var(--border);
@@ -332,13 +337,12 @@
 }
 
 .app-tab-bar__item {
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 2px;
-  padding: 10px 0 8px;
+  padding: 10px 2px 8px;
   background: none;
   border: none;
   cursor: pointer;
@@ -362,9 +366,6 @@
 .app-tab-bar__item--raised {
   position: relative;
   --fab-size: 64px;
-  /* The longest name, Help request, gets a wider column; the two columns each side stay equal so
-     the button stays in the middle of the bar. */
-  flex: 1.25 1 0;
 }
 
 .app-tab-bar__item--raised .app-tab-bar__icon {
@@ -443,11 +444,6 @@
   .app-tab-bar__item--raised:active .app-tab-bar__fab {
     transform: none;
   }
-}
-
-.app-tab-bar__label {
-  font-size: 1rem;
-  font-weight: 600;
 }
 
 /* ── Safety / Community page shell ──────────────────────────── */
@@ -2979,11 +2975,13 @@ button:active,
   text-align: center;
   line-height: 1.15;
   letter-spacing: -0.01em;
-  /* A tab name never splits mid-word; the size ignores the text-size setting and shrinks with the
-     bar (480px wide at most) so the longest name fits at any text size. */
+  font-weight: 600;
+  /* A tab name never splits mid-word. The size follows the text-size setting (0.875rem is 14, 16.6 and
+     20px at Normal, Large and X-Large) but never drops under 14px and is held to 4.6vw so all five
+     names fit on one line on a 320px screen. */
   white-space: nowrap;
   overflow-wrap: normal;
-  font-size: min(15px, 3.2vw);
+  font-size: max(14px, min(0.875rem, 4.6vw));
 }
 
 /* The raised label stays on one line so the bar height does not change by device width. */
