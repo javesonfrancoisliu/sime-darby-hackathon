@@ -5,6 +5,13 @@ import { describe, expect, it } from "vitest";
 
 const css = readFileSync(join(__dirname, "app.css"), "utf8");
 
+// The declarations of every rule whose selector is exactly the one given.
+function declarations(selector: string): string {
+  const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const rule = new RegExp(`(?:^|\\n)\\s*${escaped}\\s*\\{([^}]*)\\}`, "g");
+  return [...css.matchAll(rule)].map((match) => match[1] ?? "").join("\n");
+}
+
 // Every z-index declared in a rule whose selector is exactly the one given.
 function zIndexes(selector: string): number[] {
   const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -31,5 +38,21 @@ describe("dialog layers", () => {
 
   it("keeps the toast above the dialogs", () => {
     expect(Math.min(...toast)).toBeGreaterThan(Math.max(...modal));
+  });
+
+  it("keeps the layer roots out of a stacking context of their own", () => {
+    // A transform, filter or similar on a root would trap its children below the other layers.
+    for (const selector of [".ui-sheet-root", ".ui-modal-backdrop", ".ui-toast-region"]) {
+      expect(declarations(selector), selector).not.toMatch(
+        /(?:^|[\s;])(transform|filter|perspective|will-change|contain|isolation|opacity)\s*:/,
+      );
+    }
+  });
+});
+
+describe("bottom bar labels", () => {
+  it("lets the label size shrink with the screen so Community fits its column", () => {
+    const link = declarations(".app-mobilenav-link");
+    expect(link).toMatch(/font-size:\s*clamp\(\s*10px,\s*3\.1vw,/);
   });
 });
