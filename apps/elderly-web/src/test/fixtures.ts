@@ -74,8 +74,8 @@ export const AIR = SafetyReading.parse({
 });
 
 export const WATER_ROWS = [
-  { name: "Sungai Buloh", value: 1.4, normalMax: 3, level: "normal" },
-  { name: "Lake Elmina", value: 2.1, normalMax: 2.8, level: "watch" },
+  { name: "Sungai Buloh", value: 2.2, normalMax: 3, level: "normal" },
+  { name: "Lake Elmina", value: 3.1, normalMax: 2.8, level: "watch" },
   { name: "Retention pond", value: 3.8, normalMax: 4, level: "danger" },
 ].map((w) =>
   SafetyReading.parse({

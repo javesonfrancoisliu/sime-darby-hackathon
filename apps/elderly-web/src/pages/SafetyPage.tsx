@@ -32,14 +32,6 @@ import { EmergencyCallButton } from "../ui/EmergencyCallButton";
 type SafetyTab = "haze" | "water" | "temp" | "facilities";
 const SAFETY_TABS: readonly SafetyTab[] = ["haze", "water", "temp", "facilities"];
 
-// Water bar turns amber, then red, as the level nears the normal maximum.
-const WATER_WARN_PCT = 70;
-const WATER_HIGH_PCT = 85;
-function waterBarLevel(pct: number): "ok" | "mid" | "high" {
-  if (pct > WATER_HIGH_PCT) return "high";
-  return pct > WATER_WARN_PCT ? "mid" : "ok";
-}
-
 type FilterStatus = "all" | FacilityStatus;
 const FACILITY_STATUSES: FacilityStatus[] = ["reported", "in_progress", "resolved"];
 const FILTER_STATUSES: FilterStatus[] = ["all", ...FACILITY_STATUSES];
@@ -242,7 +234,7 @@ export function SafetyPage() {
                       aria-label={`Water level ${withUnit(r.value, r.unit)} of ${withUnit(r.normalMax, r.unit)}`}
                     >
                       <div
-                        className={`safety-bar__fill safety-bar__fill--${waterBarLevel(pct)}`}
+                        className={`safety-bar__fill safety-bar__fill--tone tone-${s.tone}`}
                         style={{ width: `${pct}%` }}
                       />
                     </div>

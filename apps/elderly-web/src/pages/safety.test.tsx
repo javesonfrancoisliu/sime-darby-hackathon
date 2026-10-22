@@ -198,13 +198,17 @@ describe("Safety page", () => {
     expect(bar.firstElementChild).toHaveClass("safety-bar__fill--tone", "tone-caution");
   });
 
-  it("draws the water bars ok, mid and high by how near the level is to its normal maximum", async () => {
+  it("colours each water bar by its status chip, not by how full the bar is", async () => {
     installFakeApi(safetyRoutes);
     await renderApp("/safety#water");
     const fillOf = async (label: RegExp) => (await screen.findByLabelText(label)).firstElementChild;
-    expect(await fillOf(/Water level 1.4 m/)).toHaveClass("safety-bar__fill--ok");
-    expect(await fillOf(/Water level 2.1 m/)).toHaveClass("safety-bar__fill--mid");
-    expect(await fillOf(/Water level 3.8 m/)).toHaveClass("safety-bar__fill--high");
+    // A Normal river at 73% and a Watch lake past 100% used to turn amber and dark red from the fill alone.
+    expect(await fillOf(/Water level 2.2 m/)).toHaveClass("safety-bar__fill--tone", "tone-good");
+    expect(await fillOf(/Water level 3.1 m/)).toHaveClass("safety-bar__fill--tone", "tone-caution");
+    expect(await fillOf(/Water level 3.8 m/)).toHaveClass(
+      "safety-bar__fill--tone",
+      "tone-solid-danger",
+    );
   });
 
   it("labels a resolved report as Fixed and counts it", async () => {

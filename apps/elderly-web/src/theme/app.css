@@ -3086,15 +3086,6 @@ main:focus {
 .safety-bar__fill--tone {
   background: var(--tone-bar);
 }
-.safety-bar__fill--ok {
-  background: var(--success);
-}
-.safety-bar__fill--mid {
-  background: var(--tone-bar-mid);
-}
-.safety-bar__fill--high {
-  background: var(--tone-alert-text);
-}
 .safety-card--alert {
   border-color: var(--warn-accent);
 }
