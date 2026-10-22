@@ -756,19 +756,13 @@
   font-weight: 600;
   line-height: 1.3;
   color: var(--text-primary);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  overflow-wrap: break-word;
 }
 .apple-condition-card__location {
   font-size: 1rem;
   color: var(--text-secondary);
   line-height: 1.35;
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  overflow-wrap: break-word;
 }
 .apple-condition-card__sub {
   font-size: 1rem;
@@ -2428,22 +2422,18 @@ button:active,
   /* Make room so the card's shadow isn't clipped by the viewport. */
   padding: 4px;
   box-sizing: border-box;
+  display: flex;
 }
-/* Every carousel card is the SAME fixed size so the carousel height never jumps between slides, regardless of how many content rows a card has. */
+/* Cards grow to fit all their text at any text size; the flex track stretches every slide to the tallest one, so the carousel height never jumps between slides. */
 .carousel__slide .apple-condition-card {
   width: 100%;
-  height: 212px;
-  min-height: 0;
+  min-height: 212px;
   justify-content: flex-start;
 }
 /* The primary label sits just above the supporting line; the top block and the label/sub block are pushed apart so all cards align consistently. */
 .carousel__slide .apple-condition-card__label,
 .carousel__slide .apple-condition-card__title-line {
   margin-top: auto;
-}
-/* Font scaling: at X-Large text the cards need a little more room. */
-.text-size-xlarge .carousel__slide .apple-condition-card {
-  height: 248px;
 }
 
 .carousel__dots {

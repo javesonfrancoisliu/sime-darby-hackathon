@@ -154,3 +154,24 @@ describe("page header row", () => {
     expect(rule(".safety-page__header .row-between")).toContain("flex-wrap: wrap");
   });
 });
+
+describe("Home condition cards", () => {
+  it("sizes the carousel card to its content instead of a fixed height", () => {
+    // A fixed 212px/248px card cut the haze advice at the bottom when the text wrapped to more lines.
+    expect(rule(".carousel__slide .apple-condition-card")).not.toMatch(/(^|[\s;])height:/);
+    expect(appCss).not.toMatch(/\.text-size-xlarge \.carousel__slide/);
+  });
+
+  it("stretches every slide to the tallest one so the carousel height never jumps", () => {
+    expect(rule(".carousel__slide")).toContain("display: flex");
+    expect(rule(".carousel__track")).toContain("display: flex");
+  });
+
+  it("never clamps or hides the condition card text", () => {
+    for (const part of ["title-line", "location", "sub"]) {
+      const text = rule(`.apple-condition-card__${part}`);
+      expect(text).not.toContain("line-clamp");
+      expect(text).not.toContain("overflow: hidden");
+    }
+  });
+});
