@@ -2,12 +2,12 @@
 // Local: pnpm --filter @sdh/api demo:personas -- --local --base-url http://localhost:3001 [--pass seed|finish] [--yes]
 // Dev: AWS_PROFILE=<profile> pnpm --filter @sdh/api demo:personas -- --cognito --base-url https://<host> --user-pool-id <id> --client-id <id> --region <region> --i-know-this-is-dev [--pass seed|finish] [--yes]
 // Without --yes it is a dry run. Cognito logins are written only to docs/CREDENTIAL.md (gitignored).
-import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { CognitoIdentityProviderClient } from "@aws-sdk/client-cognito-identity-provider";
 import {
   USAGE,
   cognitoIdentity,
+  credentialFileIgnored,
   fileCredentialStore,
   httpCall,
   localIdentity,
@@ -41,8 +41,8 @@ if (config.mode === "local" || !config.cognito) {
 } else {
   const { region, userPoolId, clientId, profile } = config.cognito;
   // The credentials file must be ignored by git before any login is written to it.
-  const ignored = spawnSync("git", ["check-ignore", "-q", CREDENTIAL_PATH]);
-  if (ignored.status !== 0) fail("Refusing to run: docs/CREDENTIAL.md is not gitignored");
+  if (!credentialFileIgnored(CREDENTIAL_PATH))
+    fail("Refusing to run: docs/CREDENTIAL.md is not gitignored");
   identity = cognitoIdentity({
     client: new CognitoIdentityProviderClient({ region }),
     userPoolId,

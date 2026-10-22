@@ -1,4 +1,5 @@
 // Pure and injectable parts of demo-personas.ts so tests can run them with a fake API and a fake Cognito client.
+import { spawnSync } from "node:child_process";
 import { randomInt } from "node:crypto";
 import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import {
@@ -866,6 +867,13 @@ export type CallFn = (
   headers: Headers,
   body?: unknown,
 ) => Promise<unknown>;
+
+export type GitRunner = (command: string, args: string[]) => { status: number | null };
+
+// True only when git confirms the file is ignored, so a login is never written to a tracked path.
+export function credentialFileIgnored(path: string, run: GitRunner = spawnSync): boolean {
+  return run("git", ["check-ignore", "-q", path]).status === 0;
+}
 
 // Only a method, path, status and short error code are ever put in an error message.
 export function httpCall(baseUrl: string): CallFn {
