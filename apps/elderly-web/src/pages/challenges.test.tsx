@@ -48,7 +48,7 @@ describe("Community Play from the API", () => {
       },
     });
     await renderApp("/challenges");
-    await userEvent.click(await screen.findByRole("button", { name: /I’m Okay!/i }));
+    await userEvent.click(await screen.findByRole("button", { name: /I am okay/i }));
     expect((await screen.findAllByText("270")).length).toBeGreaterThan(0);
     expect(await screen.findByRole("button", { name: /You are okay today/i })).toBeDisabled();
     expect(calls.filter((c) => c.method === "POST")).toHaveLength(1);
@@ -57,7 +57,7 @@ describe("Community Play from the API", () => {
   it("explains kindly when already checked in today", async () => {
     installFakeApi({ ...baseRoutes, "POST /api/me/check-in": alreadyDone });
     await renderApp("/challenges");
-    await userEvent.click(await screen.findByRole("button", { name: /I’m Okay!/i }));
+    await userEvent.click(await screen.findByRole("button", { name: /I am okay/i }));
     expect(await screen.findByText(/already checked in today/i)).toBeInTheDocument();
   });
 
@@ -155,7 +155,7 @@ describe("Community Play from the API", () => {
       },
     });
     await renderApp("/challenges");
-    await userEvent.click(await screen.findByRole("button", { name: /I’m Okay!/i }));
+    await userEvent.click(await screen.findByRole("button", { name: /I am okay/i }));
     await screen.findByRole("button", { name: /You are okay today/i });
     await waitFor(() =>
       expect(calls.filter((c) => c.method === "GET" && c.path === "/api/rewards")).toHaveLength(2),
