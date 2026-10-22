@@ -22,6 +22,21 @@ describe("drawer cards", () => {
   });
 });
 
+describe("drawer card header row", () => {
+  it("lets the status chip wrap under the title instead of squeezing the title column", () => {
+    // A 104px nowrap chip plus icon and gaps left the title 58px wide in a 210px row at X-Large.
+    expect(rule(".safety-card--drawer .safety-card__row")).toContain("flex-wrap: wrap");
+    expect(rule(".safety-card--drawer .safety-card__row > .flex-fill")).toContain("flex: 1 1 6rem");
+  });
+
+  it("breaks a title only between words unless one word is wider than the column", () => {
+    expect(rule(".safety-card--drawer .safety-card__location")).toContain(
+      "overflow-wrap: break-word",
+    );
+    expect(rule(".safety-card--drawer .row-center")).toContain("flex-wrap: wrap");
+  });
+});
+
 describe("point totals", () => {
   it("lets the points tile shrink and break a long total inside the card", () => {
     expect(rule(".play-summary")).toContain("flex-wrap: wrap");

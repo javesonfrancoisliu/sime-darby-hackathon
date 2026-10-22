@@ -522,6 +522,24 @@
   padding: 0;
 }
 
+/* The status chip cannot shrink, so the header row wraps it under the title when the column would get too narrow. */
+.safety-card--drawer .safety-card__row {
+  flex-wrap: wrap;
+  row-gap: var(--space-2);
+}
+
+.safety-card--drawer .safety-card__row > .flex-fill {
+  flex: 1 1 6rem;
+}
+
+.safety-card--drawer .safety-card__location {
+  overflow-wrap: break-word;
+}
+
+.safety-card--drawer .row-center {
+  flex-wrap: wrap;
+}
+
 .safety-card--temperature {
   border-width: 2px;
 }
