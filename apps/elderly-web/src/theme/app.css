@@ -160,6 +160,13 @@
   gap: var(--space-3);
 }
 
+/* The name wraps in the room the buttons leave, so they never run past the edge at large text. */
+.app-hero__text {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .app-hero__greeting {
   margin: 0;
   font-size: 1.125rem;
@@ -330,7 +337,7 @@
   align-items: center;
   justify-content: center;
   gap: 2px;
-  padding: 10px 2px 8px;
+  padding: 10px 0 8px;
   background: none;
   border: none;
   cursor: pointer;
@@ -354,6 +361,9 @@
 .app-tab-bar__item--raised {
   position: relative;
   --fab-size: 64px;
+  /* The longest name, Help request, gets a wider column; the two columns each side stay equal so
+     the button stays in the middle of the bar. */
+  flex: 1.25 1 0;
 }
 
 .app-tab-bar__item--raised .app-tab-bar__icon {
@@ -1223,6 +1233,7 @@ button:active,
 
 /* ── 3. Hero Quick Action Buttons ────────────────────────────── */
 .app-hero__actions {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -2874,7 +2885,7 @@ button:active,
      bar (480px wide at most) so the longest name fits at any text size. */
   white-space: nowrap;
   overflow-wrap: normal;
-  font-size: min(16px, 3.4vw);
+  font-size: min(15px, 3.2vw);
 }
 
 /* The raised label stays on one line so the bar height does not change by device width. */

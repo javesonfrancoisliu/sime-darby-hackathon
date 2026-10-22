@@ -51,7 +51,7 @@ export function HeroHeader({ name, location = "Elmina West" }: HeroHeaderProps) 
       </div>
 
       <div className="app-hero__greeting-row">
-        <div>
+        <div className="app-hero__text">
           <p className="app-hero__greeting">{getTimeOfDay()},</p>
           <h1 className="app-hero__name">{name}</h1>
         </div>
