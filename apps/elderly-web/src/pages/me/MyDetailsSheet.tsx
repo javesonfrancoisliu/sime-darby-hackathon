@@ -80,11 +80,13 @@ export function MyDetailsSheet({ open, onClose }: MyDetailsSheetProps) {
                     <IconPhone className="text-brand" size={18} strokeWidth={1.8} />
                     <span className="app-detail-label m-0">Emergency contact</span>
                   </div>
-                  <span className="apple-inset-value">
-                    {medical.data.nextOfKinName} ({medical.data.nextOfKinRelation}) ·{" "}
+                  <span className="apple-inset-value apple-inset-value--wide">
+                    {medical.data.nextOfKinName} ({medical.data.nextOfKinRelation})
+                    <br />
                     <button
                       type="button"
-                      className="link-button text-nowrap"
+                      className="call-contact-btn"
+                      aria-label={`Call ${medical.data.nextOfKinName} (${medical.data.nextOfKinRelation})`}
                       onClick={() =>
                         requestCall({
                           tel: medical.data!.nextOfKinPhone.replace(/[^\d+]/g, ""),
@@ -93,6 +95,7 @@ export function MyDetailsSheet({ open, onClose }: MyDetailsSheetProps) {
                         })
                       }
                     >
+                      <IconPhone size={18} strokeWidth={2.2} aria-hidden="true" />
                       {medical.data.nextOfKinPhone}
                     </button>
                   </span>

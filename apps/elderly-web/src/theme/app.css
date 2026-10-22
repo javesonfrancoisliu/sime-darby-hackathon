@@ -1622,19 +1622,19 @@ button:active,
 /* ── Switch ────────────────────────────────────────────── */
 .apple-switch {
   width: 52px;
-  height: 44px;
+  height: 48px;
   background: transparent;
   border: none;
-  padding: 8px 2px;
+  padding: 10px 2px;
   cursor: pointer;
   position: relative;
   flex-shrink: 0;
 }
-/* The button is 44 px tall for touch; the visible 52x32 track is drawn here. */
+/* The button is 48 px tall for touch; the visible 52x32 track is drawn here. */
 .apple-switch::before {
   content: "";
   position: absolute;
-  inset: 6px 0;
+  inset: 8px 0;
   background: var(--control-border);
   border-radius: var(--radius-pill);
   transition: background-color 220ms ease;
@@ -3723,6 +3723,32 @@ main:focus {
   color: var(--brand-primary);
   font-weight: 700;
   cursor: pointer;
+}
+/* The call button needs the whole row, not the usual 60% value column. */
+.apple-inset-value--wide {
+  max-width: 100%;
+  text-align: left;
+}
+.call-contact-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 48px;
+  max-width: 100%;
+  margin-top: var(--space-2);
+  white-space: nowrap;
+  padding: 8px 16px;
+  border: 2px solid var(--brand-primary);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--brand-primary-hover);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.call-contact-btn:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 2px;
 }
 .link-button:focus-visible {
   outline: 3px solid var(--brand-primary);

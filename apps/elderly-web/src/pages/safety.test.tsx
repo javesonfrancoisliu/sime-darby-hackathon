@@ -130,7 +130,10 @@ describe("Me page", () => {
     await user.click(await screen.findByRole("button", { name: /^My details/ }));
     expect(await screen.findByText("O+", { selector: ".apple-inset-value" })).toBeInTheDocument();
     // The next-of-kin phone and township security now confirm before dialing.
-    await user.click(screen.getByRole("button", { name: "012-345 6789" }));
+    const callLink = screen.getByRole("button", { name: "Call Zainal (Son)" });
+    expect(callLink).toHaveTextContent("012-345 6789");
+    expect(callLink.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+    await user.click(callLink);
     const dialog = await screen.findByRole("dialog", { name: /^Call 012-345 6789/ });
     expect(
       within(dialog).getByRole("slider", { name: /Slide to call 012-345 6789/ }),

@@ -79,3 +79,14 @@ describe("segmented tabs", () => {
     expect((track + 0.05) / (label + 0.05)).toBeGreaterThanOrEqual(4.5);
   });
 });
+
+describe("Elder touch targets", () => {
+  it("makes the switch at least 48px tall", () => {
+    // The 44px switch was under the Elder minimum; the track is re-centred in the taller button.
+    expect(rule(".apple-switch")).toContain("height: 48px");
+  });
+
+  it("makes the emergency contact call button at least 48px tall", () => {
+    expect(rule(".call-contact-btn")).toContain("min-height: 48px");
+  });
+});
