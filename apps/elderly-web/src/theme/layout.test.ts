@@ -133,3 +133,15 @@ describe("bottom tab bar", () => {
     expect(bar).toContain("minmax(max-content, 1fr)");
   });
 });
+
+describe("full event status", () => {
+  it("draws Full as a grey pill that is not a control", () => {
+    // A disabled Full button kept the solid red of Register, so it looked tappable.
+    const badge = rule(".community-full-badge");
+    expect(badge).toContain("background: #e5e7eb");
+    expect(badge).toContain("color: var(--text-secondary)");
+    expect(badge).toContain("border-radius: var(--radius-pill)");
+    expect(badge).not.toContain("cursor: pointer");
+    expect(rule(".community-full-badge--block")).toContain("width: 100%");
+  });
+});

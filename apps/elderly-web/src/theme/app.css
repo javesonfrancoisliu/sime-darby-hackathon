@@ -979,6 +979,24 @@
   background: #116932;
 }
 
+/* No spots left: a status in the app's grey, not a disabled copy of the red Register button. */
+.community-full-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 6px 16px;
+  border-radius: var(--radius-pill);
+  background: #e5e7eb;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  font-weight: 700;
+}
+.community-full-badge--block {
+  width: 100%;
+  margin-top: var(--space-3);
+}
+
 .community-register-btn--full {
   width: 100%;
   margin-top: var(--space-3);

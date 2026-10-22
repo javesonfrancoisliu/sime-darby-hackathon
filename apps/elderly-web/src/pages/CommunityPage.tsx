@@ -38,6 +38,15 @@ function SectionHeading({ icon, title }: { icon: ReactNode; title: string }) {
   );
 }
 
+// Grey status for an event or drive with no spots left; it is text, not a control, and names the event for screen readers.
+function FullBadge({ title, block }: { title: string; block?: boolean }) {
+  return (
+    <span className={`community-full-badge${block ? " community-full-badge--block" : ""}`}>
+      Full<span className="sr-only">, {title}</span>
+    </span>
+  );
+}
+
 // Centralised Neighbourhood Information page with standardized monochrome outline icons.
 // Sections:
 // a. Community activities and upcoming events
@@ -181,25 +190,27 @@ export function CommunityPage() {
                           </>
                         )}
                       </span>
-                      <button
-                        type="button"
-                        className={`community-register-btn${e.joined ? " community-register-btn--done" : ""}`}
-                        aria-label={e.joined || spots === 0 ? undefined : `Register for ${e.title}`}
-                        aria-pressed={Boolean(e.joined)}
-                        disabled={Boolean(e.joined) || spots === 0 || join.status === "loading"}
-                        onClick={() => void joinEvent(e.id, e.title)}
-                      >
-                        {e.joined ? (
-                          <>
-                            <IconCheck size={16} strokeWidth={2.4} aria-hidden="true" />
-                            Registered
-                          </>
-                        ) : spots === 0 ? (
-                          "Full"
-                        ) : (
-                          "Register"
-                        )}
-                      </button>
+                      {!e.joined && spots === 0 ? (
+                        <FullBadge title={e.title} />
+                      ) : (
+                        <button
+                          type="button"
+                          className={`community-register-btn${e.joined ? " community-register-btn--done" : ""}`}
+                          aria-label={e.joined ? undefined : `Register for ${e.title}`}
+                          aria-pressed={Boolean(e.joined)}
+                          disabled={Boolean(e.joined) || join.status === "loading"}
+                          onClick={() => void joinEvent(e.id, e.title)}
+                        >
+                          {e.joined ? (
+                            <>
+                              <IconCheck size={16} strokeWidth={2.4} aria-hidden="true" />
+                              Registered
+                            </>
+                          ) : (
+                            "Register"
+                          )}
+                        </button>
+                      )}
                     </div>
                   </div>
                 );
@@ -345,25 +356,27 @@ export function CommunityPage() {
                         {v.signupCount} / {v.capacity} volunteers signed up
                       </p>
                     </div>
-                    <button
-                      type="button"
-                      className={`community-register-btn community-register-btn--full${joined ? " community-register-btn--done" : ""}`}
-                      aria-label={joined || spots === 0 ? undefined : `I can help with ${v.title}`}
-                      aria-pressed={joined}
-                      disabled={joined || spots === 0 || joinDrive.status === "loading"}
-                      onClick={() => void signUpForDrive(v.id, v.title)}
-                    >
-                      {joined ? (
-                        <>
-                          <IconCheck size={18} strokeWidth={2.4} aria-hidden="true" />
-                          You&rsquo;re signed up
-                        </>
-                      ) : spots === 0 ? (
-                        "Full"
-                      ) : (
-                        "I can help"
-                      )}
-                    </button>
+                    {!joined && spots === 0 ? (
+                      <FullBadge title={v.title} block />
+                    ) : (
+                      <button
+                        type="button"
+                        className={`community-register-btn community-register-btn--full${joined ? " community-register-btn--done" : ""}`}
+                        aria-label={joined ? undefined : `I can help with ${v.title}`}
+                        aria-pressed={joined}
+                        disabled={joined || joinDrive.status === "loading"}
+                        onClick={() => void signUpForDrive(v.id, v.title)}
+                      >
+                        {joined ? (
+                          <>
+                            <IconCheck size={18} strokeWidth={2.4} aria-hidden="true" />
+                            You&rsquo;re signed up
+                          </>
+                        ) : (
+                          "I can help"
+                        )}
+                      </button>
+                    )}
                   </div>
                 );
               })}
