@@ -471,6 +471,12 @@
   font-size: 1rem;
 }
 
+/* The title and the Aa and read-aloud buttons share one row; when the title is wider than what the
+   buttons leave (320px at X-Large text) the buttons drop to their own row instead of the title running off. */
+.safety-page__header .row-between {
+  flex-wrap: wrap;
+}
+
 /* Keep the header title from pushing the right-side controls off-screen on narrow phones. */
 @media (max-width: 380px) {
   .safety-page__title {

@@ -145,3 +145,11 @@ describe("full event status", () => {
     expect(rule(".community-full-badge--block")).toContain("width: 100%");
   });
 });
+
+describe("page header row", () => {
+  it("wraps so a wide title and the two buttons never push the title off the screen", () => {
+    // "Community" at X-Large on a 320px screen was 191px wide beside 109px of buttons in a 288px row,
+    // so the title ended at x=328 on a 320px screen.
+    expect(rule(".safety-page__header .row-between")).toContain("flex-wrap: wrap");
+  });
+});
