@@ -63,7 +63,7 @@ export function CommunityPlayCard() {
             onClick={() => navigate("/challenges")}
           >
             <IconCheck size={18} strokeWidth={2.4} aria-hidden="true" />
-            <span>I am okay</span>
+            <span>I’m Okay!</span>
           </button>
           <button
             type="button"

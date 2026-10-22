@@ -32,7 +32,7 @@ describe("Home Community Play card", () => {
       ".app-cta-card",
     ) as HTMLElement;
     expect(await within(card).findByRole("button", { name: "Try again" })).toBeInTheDocument();
-    expect(within(card).getByRole("button", { name: "I am okay" })).toBeEnabled();
+    expect(within(card).getByRole("button", { name: "I’m Okay!" })).toBeEnabled();
     expect(screen.getByRole("button", { name: /Request help/ })).toBeInTheDocument();
   });
 
@@ -50,7 +50,7 @@ describe("Home Community Play card", () => {
       "true",
     );
     await userEvent.click(screen.getByRole("button", { name: "Home" }));
-    await userEvent.click(await screen.findByRole("button", { name: "I am okay" }));
+    await userEvent.click(await screen.findByRole("button", { name: "I’m Okay!" }));
     expect(await screen.findByRole("tab", { name: /Streak/ })).toHaveAttribute(
       "aria-selected",
       "true",
