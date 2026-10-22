@@ -55,9 +55,8 @@ describe("tab bar", () => {
     expect(appCss).toMatch(/\.high-contrast \.app-tab-bar \{[^}]*--tab-bar-border-width: 3px/s);
   });
 
-  it("keeps the raised label on one line so the bar height does not change", () => {
-    // The raised rule itself must say so, even though the base label rule does as well.
-    expect(rule(".app-tab-bar__item--raised .app-tab-bar__label")).toContain("white-space: nowrap");
+  it("lets the labels wrap inside their column instead of touching a neighbour", () => {
+    expect(rule(".app-tab-bar__label")).toContain("white-space: normal");
   });
 
   it("keeps a transparent outline on the current-page centre button for forced-colors modes", () => {
@@ -68,11 +67,11 @@ describe("tab bar", () => {
 });
 
 describe("bottom bar fit", () => {
-  it("holds the label size to the screen width and gives Help request a wider column", () => {
+  it("holds the label size to the screen width and keeps five equal columns", () => {
     expect(rule(".app-tab-bar__label")).toMatch(
-      /font-size:\s*max\(14px,\s*min\(0\.875rem,\s*4\.6vw\)\)/,
+      /font-size:\s*clamp\(12px,\s*3\.7vw,\s*0\.875rem\)/,
     );
-    expect(rule(".app-tab-bar")).toContain("minmax(max-content, 1.25fr)");
+    expect(rule(".app-tab-bar")).toContain("repeat(5, minmax(0, 1fr))");
   });
 
   it("lets the hero name wrap so the buttons stay on screen at large text", () => {
