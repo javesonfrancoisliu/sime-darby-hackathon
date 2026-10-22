@@ -157,7 +157,8 @@ describe("my rewards sheet", () => {
 
     await user.click(within(dialog).getByRole("button", { name: "Done" }));
     await gone();
-    expect(myRewards).toHaveFocus();
+    // The sheet hands focus back after it unmounts, so wait for it rather than read it once.
+    await waitFor(() => expect(myRewards).toHaveFocus());
   });
 
   it("gives each Use now button the name of its voucher", async () => {
@@ -324,7 +325,8 @@ describe("my details drawer", () => {
     const sheet = await screen.findByRole("dialog", { name: "My details" });
     await userEvent.click(within(sheet).getByRole("button", { name: "Done" }));
     await gone();
-    expect(await row(/^My details/)).toHaveFocus();
+    const detailsRow = await row(/^My details/);
+    await waitFor(() => expect(detailsRow).toHaveFocus());
   });
 
   it("opens My details when the redirect arrives while Profile is already mounted", async () => {
